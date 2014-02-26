@@ -50,7 +50,7 @@ current results:
 
 ### History
 
-**newer releases are documented at releases section here. Below historic history kept for the records**
+**newer releases are documented at releases section here. Below old history kept for the records**
 
 *V 1.37* (26-Feb-2014)
 
