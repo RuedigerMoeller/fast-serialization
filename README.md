@@ -3,22 +3,19 @@ fast-serialization
 
 fast java serialization drop in-replacement + some serialization based utils (Structs, OffHeap Memory)
 
-this project is still hosted in googlecode, I'll move it here soon ..
-https://code.google.com/p/fast-serialization/
+---
 
+this project is still hosted in googlecode, I'll move it here soon .. copied the front page from google to here, but links to wiki are broken ...
 
-
-=FST - Fast Serialization=
-
-  * *Fast Serialization* reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. 
+  * **Fast Serialization** reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. 
   Details: QuickStart.
-  * *FSTStructs* implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software. Other applications are data exchange with other languages, reduction of FullGC by 'flattening' complex Objects, fast offheap, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. 
+  * **FSTStructs** implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software. Other applications are data exchange with other languages, reduction of FullGC by 'flattening' complex Objects, fast offheap, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. 
   Details: StructsIntroduction 
 
-*features:*
+#### features:
 
   * Faster serialization and smaller object size. 
-  * *drop-in replacement*. Does not require special getters/setters/Constructors/Interfaces to serialize a class. Extends Outputstream, implements {{{ObjectInput/ObjectOutput}}}. Few code changes required.
+  * **drop-in replacement**. Does not require special getters/setters/Constructors/Interfaces to serialize a class. Extends Outputstream, implements {{{ObjectInput/ObjectOutput}}}. Few code changes required.
   * Full support of JDK-serialization features such as Externalizable writeObject/readObject/readReplace/validation/putField/getField, hooks etc.. If an object is serializable with JDK, it should be serializable with FST without any further work.
   * preserves links inside the serialized object graph same as JDK default serialization
   * custom optimization using *annotations*, custom serializers
@@ -28,43 +25,42 @@ Supports java 1.7+
   * Fast serialization should be adaptable to 1.6 (no use of 1.7 features)
   * FST-structs does require 1.7 API
 
-*Maven, Download*
+#### Maven, Download
 
-==Google preferred to disable upload of new Files, so only maven available. Smart move.==
 
-download non-maven build at at github:
-https://github.com/RuedigerMoeller/fast-serialization/releases/tag/1.37
+download non-maven build at the releases section:
+https://github.com/RuedigerMoeller/fast-serialization/releases/tag
 
 Note: fixes+updates are delivered with some delay to maven central, check downloads first
 for newest version
-{{{
+```xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
     <version>1.37</version>
 </dependency>
-}}}
-
-Read an Introduction on the QuickStart wiki page,
-about optimization: [Optimization]
-
+```
 
 <br>
-*Limits*
+#### Limits
   * specialized on java-to-java, no inter language operability.
   * no support for versioning. Reader and writer need to have identical versions of the classes serialized.
   * reads/writes to a temporary buffer in memory to speed up things. This might impose a problem when reading/writing huge objects > 100MB
 
 
-====Benchmark====
+#### Benchmark
 
 I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of {{{ByteArrayStreams}}} etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).
 
 current results:
  http://fast-serialization.googlecode.com/files/result-1.24.html
 <br><br>
-===History===
-*V 1.37* (release underway)
+
+### History
+
+newer releases are documented at releases section here. Below historic history kept for the records
+
+*V 1.37* (26-Feb-2014)
 
  Many bugfixes in serialization
  * fixed issue with serialize/deserialize inbetween 32bit and 64bit VM's
@@ -254,13 +250,4 @@ Bug Fixes
 initial release
 Benchmark: http://fast-serialization.googlecode.com/files/result-0.5.html
 
---------------------------------------------------------------------------------
-
-also checkout how Structs+Fast Serialization enable high performance remote method invokation with up to 10+ million 1:N remote method calls per second: 
-{{{
-____ ____ ____ ___ ____ ____ ____ ___
-|--- |--| ====  |  |___ |--| ====  |
-> 2.0
-}}}
-* http://code.google.com/p/fast-cast/ *
 
