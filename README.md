@@ -22,7 +22,6 @@ Supports java 1.7+
 
 #### Maven, Download
 
-
 download non-maven build at the releases section:
 https://github.com/RuedigerMoeller/fast-serialization/releases/tag
 
@@ -36,12 +35,10 @@ for newest version
 </dependency>
 ```
 
-<br>
 #### Limits
   * specialized on java-to-java, no inter language operability.
   * no support for versioning. Reader and writer need to have identical versions of the classes serialized.
   * reads/writes to a temporary buffer in memory to speed up things. This might impose a problem when reading/writing huge objects > 100MB
-
 
 #### Benchmark
 
