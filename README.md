@@ -1,11 +1,8 @@
 fast-serialization
 ==================
 
-fast java serialization drop in-replacement + some serialization based utils (Structs, OffHeap Memory)
 
----
-
-this project is still hosted in googlecode, I'll move it here soon .. copied the front page from google to here, but links to wiki are broken ...
+this project is still hosted in googlecode, I'll move it here soon .. copied the front page from google to here, documentation still needs transition
 
   * **Fast Serialization** reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. 
   Details: QuickStart.
@@ -58,7 +55,7 @@ current results:
 
 ### History
 
-newer releases are documented at releases section here. Below historic history kept for the records
+**newer releases are documented at releases section here. Below historic history kept for the records**
 
 *V 1.37* (26-Feb-2014)
 
