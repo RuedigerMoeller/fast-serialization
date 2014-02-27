@@ -23,7 +23,7 @@ Supports java 1.7+
 #### Maven, Download
 
 download non-maven build at the releases section:
-https://github.com/RuedigerMoeller/fast-serialization/releases/tag
+https://github.com/RuedigerMoeller/fast-serialization/releases/
 
 Note: fixes+updates are delivered with some delay to maven central, check downloads first
 for newest version
