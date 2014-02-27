@@ -44,8 +44,7 @@ for newest version
 
 I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of {{{ByteArrayStreams}}} etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).
 
-current results:
- http://fast-serialization.googlecode.com/files/result-1.24.html
+[current results](https://github.com/RuedigerMoeller/fast-serialization/wiki/Benchmark)
 <br><br>
 
 ### History
