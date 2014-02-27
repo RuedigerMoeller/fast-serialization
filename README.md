@@ -35,6 +35,10 @@ for newest version
 </dependency>
 ```
 
+#### Documentation
+
+see [Wiki](https://github.com/RuedigerMoeller/fast-serialization/wiki), some documents are still not moved/ported from https://code.google.com/p/fast-serialization/. Read them there.
+
 #### Limits
   * specialized on java-to-java, no inter language operability.
   * no support for versioning. Reader and writer need to have identical versions of the classes serialized.
