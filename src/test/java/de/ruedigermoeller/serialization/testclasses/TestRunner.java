@@ -61,7 +61,7 @@ public class TestRunner {
 //        SerTest tests[] = { speedFST, kryoUnsTest };
 //        SerTest tests[] = { defFST };
 //        SerTest tests[] = { defFST, defFSTNoUns, kryotest };
-//        SerTest tests[] = { defFST, defFSTNoUns};
+//        SerTest tests[] = { defFSTNoUns, defFST};
 //        SerTest tests[] = { kryotest };
         if ( toSer instanceof BigObject ) {
             SerTest.Run/=100;
@@ -162,7 +162,7 @@ public class TestRunner {
         runner.charter.text("<i>intel i7 3770K 3,4 ghz, 4 core, 8 threads</i>");
         runner.charter.text("<i>"+System.getProperty("java.runtime.version")+","+System.getProperty("java.vm.name")+","+System.getProperty("os.name")+"</i>");
 
-        SerTest.WarmUP = 10000; SerTest.Run = SerTest.WarmUP*1+1;
+        SerTest.WarmUP = 30000; SerTest.Run = SerTest.WarmUP*1+1;
 //        SerTest.WarmUP = 2000; SerTest.Run = 3000;
         runner.runAll(FrequentPrimitives.getArray(200));
         runner.runAll(FrequentPrimitivesExternalizable.getArray(200));
