@@ -110,6 +110,13 @@ public class FSTUtil {
         System.arraycopy(EmptyObjArray,0,arr,count, arrlen -count);
     }
 
+    public static RuntimeException rethrow( Throwable ex ) {
+        if ( ex instanceof RuntimeException ) {
+            return (RuntimeException) ex;
+        }
+        return new RuntimeException(ex);
+    }
+
     public static String getPackage(Class clazz) {
         String s = clazz.getName();
         int i = s.lastIndexOf('[');

@@ -23,6 +23,7 @@ import de.ruedigermoeller.heapoff.structs.unsafeimpl.FSTStructFactory;
 import de.ruedigermoeller.serialization.util.FSTIdentity2IdMap;
 import de.ruedigermoeller.serialization.util.FSTInt2ObjectMap;
 import de.ruedigermoeller.serialization.util.FSTObject2IntMap;
+import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -238,7 +239,7 @@ public class FSTClazzNameRegistry {
                             onHeapStructClz = Class.forName(clName);
                         res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
                     } catch (Throwable th1) {
-                        throw new RuntimeException(th1);
+                        throw FSTUtil.rethrow(th1);
                     }
                 } else {
                     throw new RuntimeException("CLASSNAME:"+clName,th);

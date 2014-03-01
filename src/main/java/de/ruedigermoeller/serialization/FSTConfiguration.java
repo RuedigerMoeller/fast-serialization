@@ -22,6 +22,7 @@ package de.ruedigermoeller.serialization;
 import de.ruedigermoeller.heapoff.structs.FSTStruct;
 import de.ruedigermoeller.serialization.serializers.*;
 import de.ruedigermoeller.serialization.util.FSTInputStream;
+import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.awt.*;
 import java.io.*;
@@ -475,9 +476,8 @@ public final class FSTConfiguration {
             try {
                 return new FSTObjectInput(FSTConfiguration.this);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw FSTUtil.rethrow(e);
             }
-            return null;
         }
     };
 
@@ -493,9 +493,8 @@ public final class FSTConfiguration {
             fstObjectInput.resetForReuse(in);
             return fstObjectInput;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw FSTUtil.rethrow(e);
         }
-        return null;
     }
 
     public FSTObjectInput getObjectInput( byte arr[]) {
@@ -514,9 +513,8 @@ public final class FSTConfiguration {
             fstObjectInput.resetForReuseUseArray(arr,off,len);
             return fstObjectInput;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw FSTUtil.rethrow(e);
         }
-        return null;
     }
 
     /**

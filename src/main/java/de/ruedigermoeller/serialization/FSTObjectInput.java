@@ -199,15 +199,9 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     public Object readObject() throws ClassNotFoundException, IOException {
         try {
             return readObject((Class[]) null);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             dumpDebugStack();
             throw new IOException(e);
-        } catch (InstantiationException e) {
-            dumpDebugStack();
-            throw new IOException(e);
-        } catch (Throwable th) {
-            dumpDebugStack();
-            throw new IOException(th);
         }
     }
 
@@ -226,7 +220,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             try {
                 callbackEntry.cb.validateObject();
             } catch (Exception ex) {
-                ex.printStackTrace();
+                throw FSTUtil.rethrow(ex);
             }
         }
     }
@@ -255,7 +249,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             return res;
         } catch (Throwable th) {
             dumpDebugStack();
-            throw new IOException(th);
+            throw FSTUtil.rethrow(th);
         } finally {
             curDepth--;
         }
@@ -269,9 +263,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             FSTClazzInfo.FSTFieldInfo info = new FSTClazzInfo.FSTFieldInfo(expected, null, ignoreAnnotations);
             return readObjectWithHeader(info);
         } catch (Throwable t) {
-            throw new IOException(t);
+            throw FSTUtil.rethrow(t);
         }
-
     }
 
     public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
@@ -304,7 +297,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                 return instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);
             }
         } catch (Exception e) {
-            throw new IOException(e);
+            throw FSTUtil.rethrow(e);
         }
     }
 
@@ -473,7 +466,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             input.pop();
             return res;
         } catch (Exception e) {
-            throw new IOException(e);
+            throw FSTUtil.rethrow(e);
         }
     }
 
@@ -487,7 +480,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             try {
                 rep = serializationInfo.getReadResolveMethod().invoke(newObj);
             } catch (InvocationTargetException e) {
-                throw new IOException(e);
+                throw FSTUtil.rethrow(e);
             }
 //                if (unshared && rep.getClass().isArray()) { //FIXME
 //                    rep = cloneArray(rep);
@@ -512,10 +505,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                 ObjectInputStream objectInputStream = getObjectInputStream(cl, serializationInfo, referencee, toRead);
                 fstCompatibilityInfo.getReadMethod().invoke(toRead, objectInputStream);
                 fakeWrapper.pop();
-            } catch (IllegalAccessException e) {
-                throw new IOException(e);
-            } catch (InvocationTargetException e) {
-                throw new IOException(e);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
             }
         } else {
             if (fstCompatibilityInfo != null) {
@@ -1002,9 +993,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             throw new RuntimeException("unexpected primitive type " + componentType);
         }
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw FSTUtil.rethrow(e);  //To change body of catch statement use File | Settings | File Templates.
         }
-        return null;
     }
 
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {

@@ -286,7 +286,7 @@ public final class FSTClazzInfo {
                 try {
                     os = ObjectStreamClass.lookup(curCl);
                 } catch (Exception e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw FSTUtil.rethrow(e);
                 }
                 if (os != null) {
                     final ObjectStreamField[] fi = os.getFields();
@@ -420,9 +420,8 @@ public final class FSTClazzInfo {
                     if ( ! Modifier.isStatic(fi.getModifiers()) ) {
                         try {
                             memOffset = (int)FSTUtil.unFlaggedUnsafe.objectFieldOffset(fi);
-//                            int x = 1;
                         } catch ( Throwable th ) {
-//                            int y = 1;
+                            throw FSTUtil.rethrow(th);
                         }
                     }
                 }

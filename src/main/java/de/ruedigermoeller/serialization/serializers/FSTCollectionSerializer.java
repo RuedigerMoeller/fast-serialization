@@ -21,6 +21,7 @@
 package de.ruedigermoeller.serialization.serializers;
 
 import de.ruedigermoeller.serialization.*;
+import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.util.*;
@@ -116,8 +117,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
             }
             return res;
         } catch (Throwable th) {
-            th.printStackTrace();
-            return null;
+            throw FSTUtil.rethrow(th);
         }
     }
 }

@@ -385,10 +385,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     Object replaced = null;
                     try {
                         replaced = serializationInfo.getWriteReplaceMethod().invoke(toWrite);
-                    } catch (IllegalAccessException e) {
-                        throw new IOException(e);
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        throw FSTUtil.rethrow(e);
                     }
                     if ( replaced != toWrite ) {
                         toWrite = replaced;
@@ -457,11 +455,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         if ( fstCompatibilityInfo != null && fstCompatibilityInfo.getWriteMethod() != null ) {
             try {
                 fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
-            } catch (IllegalAccessException e) {
-                throw new IOException(e);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-                throw new IOException(e);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
             }
         } else {
             if ( fstCompatibilityInfo != null ) {
@@ -563,7 +558,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 }
             }
         } catch (IllegalAccessException ex) {
-            throw new IOException(ex);
+            throw FSTUtil.rethrow(ex);
         }
     }
 
@@ -666,7 +661,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 }
             }
         } catch (IllegalAccessException ex) {
-            throw new IOException(ex);
+            throw FSTUtil.rethrow(ex);
         }
     }
 
@@ -723,7 +718,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     writeObjectWithContext(subInfo, subObject);
                 }
             } catch (Exception ex) {
-                throw new IOException(ex);
+                throw FSTUtil.rethrow(ex);
             }
         }
         if ( boolcount > 0 ) {
@@ -1630,10 +1625,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                             replObj = replaced;
                             newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass());
                         }
-                    } catch (IllegalAccessException e) {
-                        throw new IOException(e);
-                    } catch (InvocationTargetException e) {
-                        throw new IOException(e);
+                    } catch (Exception e) {
+                        throw FSTUtil.rethrow(e);
                     }
                 }
                 FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.compInfo.get(cl).getFieldArray());
