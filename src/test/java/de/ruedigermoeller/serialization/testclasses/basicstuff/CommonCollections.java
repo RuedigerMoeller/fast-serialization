@@ -54,12 +54,12 @@ public class CommonCollections implements Serializable, HasDescription {
         mp = new ConcurrentHashMap(); fillMapRandom(mp); collections.add(mp);
         mp = new TreeMap(new MyComp()); fillMapRandom(mp); collections.add(mp);
 
-        for (int i = 0; i<200;i ++ ) {
+        for (int i = 0; i<150;i ++ ) {
             map.put("xy" + i, i);
         }
         collections.add(map);
 
-        for (int i = 0; i<200;i ++ ) {
+        for (int i = 0; i<150;i ++ ) {
             list.add("yx" + i);
         }
         collections.add(list);

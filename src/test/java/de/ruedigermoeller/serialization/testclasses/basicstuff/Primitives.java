@@ -146,7 +146,7 @@ public class Primitives extends PrivatePrimitive implements Serializable, HasDes
 
     // to avoid measurement of pure stream init performance
     public static Primitives[] createPrimArray() {
-        Primitives res[] = new Primitives[25];
+        Primitives res[] = new Primitives[15];
         for (int i = 0; i < res.length; i++) {
             res[i] = new Primitives(i);
         }

@@ -44,10 +44,10 @@ public class FrequentCollections implements Serializable, HasDescription {
     }
 
     public void fillRandom() {
-        for ( int i = 0; i < 500; i++ ) {
+        for ( int i = 0; i < 300; i++ ) {
             map.put(randomValue(i),randomValue(i+1));
         }
-        for ( int i = 0; i < 500; i++ ) {
+        for ( int i = 0; i < 300; i++ ) {
             list.add(randomValue(i));
         }
     }

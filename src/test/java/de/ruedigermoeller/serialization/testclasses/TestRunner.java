@@ -129,7 +129,7 @@ public class TestRunner {
             for (int i = 0; i < tests.length; i++) {
                 SerTest test = tests[i];
                 int val = test.bout.size();
-                if ( val/fac > 130 ) {
+                if ( val/fac > 70 ) {
                     fac++;
                     cont = true;
                 }
@@ -161,13 +161,8 @@ public class TestRunner {
         runner.charter.openDoc();
         runner.charter.text("<i>intel i7 3770K 3,4 ghz, 4 core, 8 threads</i>");
         runner.charter.text("<i>"+System.getProperty("java.runtime.version")+","+System.getProperty("java.vm.name")+","+System.getProperty("os.name")+"</i>");
-        runner.charter.text("<p>With recent 1.7u40 and Kryo 2.2.2 things have changed a bit. JDK has become somewhat faster, Kryo improved in many areas, however has some weird outliers. " +
-                "<br><bR>If fast serialization is run" +
-                " with 'FSTConfiguration.preferSpeedOverSize=true' little performance gain is traded against significant output size increase. IMO, the best overall size/performance ratio is given by plain FST default configuration. " +
-                "</p>"
-        );
 
-        SerTest.WarmUP = 30000; SerTest.Run = SerTest.WarmUP*1+1;
+        SerTest.WarmUP = 10000; SerTest.Run = SerTest.WarmUP*1+1;
 //        SerTest.WarmUP = 2000; SerTest.Run = 3000;
         runner.runAll(FrequentPrimitives.getArray(200));
         runner.runAll(FrequentPrimitivesExternalizable.getArray(200));

@@ -36,7 +36,7 @@ public class LargeNativeArrays implements Serializable, HasDescription {
     long longs[];
     double doubles[];
     public LargeNativeArrays() {
-        int N = 2000;
+        int N = 1300;
         ints = new int[N*2];
         for (int i = 0; i < ints.length; i++) {
             ints[i] = (int) (Math.random()*Integer.MAX_VALUE*2-Integer.MAX_VALUE);
