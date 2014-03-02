@@ -39,29 +39,33 @@ public final class FSTInputStream extends InputStream {
     public  int count;
     InputStream in;
 
-    public FSTInputStream(InputStream in) throws IOException {
+    public FSTInputStream(InputStream in) {
         initFromStream(in);
     }
 
-    public void initFromStream(InputStream in) throws IOException {
-        this.in = in;
-        if (buf==null) {
-            buf = cachedBuffer.get();
-            if ( buf == null )
-                buf = new byte[chunk_size];
-            cachedBuffer.set(buf);
-        }
-        int read = in.read(buf);
-        count+=read;
-        while( read != -1 ) {
-            if ( buf.length < count+chunk_size ) {
-                ensureCapacity(buf.length*2);
+    public void initFromStream(InputStream in) {
+        try {
+            this.in = in;
+            if (buf==null) {
+                buf = cachedBuffer.get();
+                if ( buf == null )
+                    buf = new byte[chunk_size];
+                cachedBuffer.set(buf);
             }
-            read = in.read(buf,count,chunk_size);
-            if ( read > 0 )
-                count += read;
+            int read = in.read(buf);
+            count+=read;
+            while( read != -1 ) {
+                if ( buf.length < count+chunk_size ) {
+                    ensureCapacity(buf.length*2);
+                }
+                read = in.read(buf,count,chunk_size);
+                if ( read > 0 )
+                    count += read;
+            }
+            in.close();
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
         }
-        in.close();
     }
 
     public void ensureCapacity(int siz) {

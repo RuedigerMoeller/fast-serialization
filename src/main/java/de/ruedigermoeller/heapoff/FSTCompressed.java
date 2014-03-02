@@ -66,7 +66,7 @@ public abstract class FSTCompressed<T> {
         if ( object == null ) {
             throw new RuntimeException("Object must not be null");
         }
-        FSTObjectOutput objectOutput = getConf().getObjectOutput(null);
+        FSTObjectOutput objectOutput = getConf().getObjectOutput();
         try {
             objectOutput.writeObject(object,clazz);
             cached = new WeakReference<T>(object);

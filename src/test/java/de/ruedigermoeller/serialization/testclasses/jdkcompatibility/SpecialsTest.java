@@ -57,7 +57,7 @@ public class SpecialsTest {
     }
 
     public static void exceptionTest(FSTConfiguration conf) throws IOException, ClassNotFoundException {
-        FSTObjectOutput out = conf.getObjectOutput(null);
+        FSTObjectOutput out = conf.getObjectOutput();
         Exception e;
         try {
             throw new Exception("Test");

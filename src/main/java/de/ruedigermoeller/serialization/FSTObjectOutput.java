@@ -25,7 +25,6 @@ import sun.misc.*;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -85,23 +84,23 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     static final byte HANDLE = -7;
     static final byte ENUM = -6;
     static final byte ARRAY = -5;
-//    static final byte STRING = -4;
+    static final byte STRING = -4;
     static final byte TYPED = -3; // var class == object written class
     //static final byte PRIMITIVE_ARRAY = -2;
     static final byte NULL = -1;
     static final byte OBJECT = 0;
 
     public FSTClazzNameRegistry clnames; // immutable
-    FSTConfiguration conf; // immutable
+    protected FSTConfiguration conf; // immutable
 
-    FSTObjectRegistry objects;
-    FSTOutputStream buffout;
-    FSTSerialisationListener listener;
+    protected FSTObjectRegistry objects;
+    protected FSTOutputStream buffout;
+    protected FSTSerialisationListener listener;
 
-    int curDepth = 0;
+    protected int curDepth = 0;
 
-    int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
-    Unsafe unsafe;
+    protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
+    protected Unsafe unsafe;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -264,6 +263,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
     FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
 
+    //avoid creation of dummy ref
     FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
         if ( curDepth >= refs.length ) {
             return new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
@@ -303,8 +303,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
     int tmp[] = {0};
     // splitting this slows down ...
-    void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         int startPosition = 0;
+        boolean dontShare = objects.disabled;
         if (listener != null) {
             startPosition = getWritten();
             listener.objectWillBeWritten(toWrite,startPosition);
@@ -316,13 +317,27 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 return;
             }
             final Class clazz = toWrite.getClass();
-            if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
-            } else
-            if ( clazz == Long.class ) { writeFByte(BIG_LONG); writeCLong(((Long) toWrite).longValue()); return;
-            } else
-            if ( clazz == Boolean.class ) { writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
-            } else
-            if (clazz.isArray()) {
+            if ( clazz == String.class ) {
+                if (dontShare) {
+                    writeFByte(STRING);
+                    writeStringUTFDef((String) toWrite);
+                    return;
+                }
+                String[] oneOf = referencee.getOneOf();
+                if ( oneOf != null ) {
+                    for (int i = 0; i < oneOf.length; i++) {
+                        String s = oneOf[i];
+                        if ( s.equals(toWrite) ) {
+                            writeFByte(ONE_OF);
+                            writeFByte(i);
+                            return;
+                        }
+                    }
+                }
+            } else if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
+            } else if ( clazz == Long.class ) { writeFByte(BIG_LONG); writeCLong(((Long) toWrite).longValue()); return;
+            } else if ( clazz == Boolean.class ) { writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
+            } else if (clazz.isArray()) {
                 writeFByte(ARRAY);
                 writeArray(referencee, toWrite);
                 return;
@@ -346,22 +361,10 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 return;
             }
 
-            String[] oneOf = referencee.getOneOf();
-            if ( oneOf != null ) {
-                for (int i = 0; i < oneOf.length; i++) {
-                    String s = oneOf[i];
-                    if ( s.equals(toWrite) ) {
-                        writeFByte(ONE_OF);
-                        writeFByte(i);
-                        return;
-                    }
-                }
-            }
-
             FSTClazzInfo serializationInfo = getFstClazzInfo(referencee, clazz);
             // check for identical / equal objects
             FSTObjectSerializer ser = serializationInfo.getSer();
-            if ( ! referencee.isFlat() && ! serializationInfo.isFlat() && ( ser == null || !ser.alwaysCopy() ) ) {
+            if ( ! dontShare && ! referencee.isFlat() && ! serializationInfo.isFlat() && ( ser == null || !ser.alwaysCopy() ) ) {
                 boolean needsEqualMap = serializationInfo.isEqualIsBinary() || serializationInfo.isEqualIsIdentity();
                 int handle = objects.registerObjectForWrite(toWrite, !needsEqualMap, written, serializationInfo, tmp);
                 // determine class header
@@ -381,23 +384,25 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             }
             if ( ser == null ) {
                 // handle write replace
-                if ( serializationInfo.getWriteReplaceMethod() != null ) {
-                    Object replaced = null;
-                    try {
-                        replaced = serializationInfo.getWriteReplaceMethod().invoke(toWrite);
-                    } catch (Exception e) {
-                        throw FSTUtil.rethrow(e);
+                if ( ! dontShare ) {
+                    if ( serializationInfo.getWriteReplaceMethod() != null ) {
+                        Object replaced = null;
+                        try {
+                            replaced = serializationInfo.getWriteReplaceMethod().invoke(toWrite);
+                        } catch (Exception e) {
+                            throw FSTUtil.rethrow(e);
+                        }
+                        if ( replaced != toWrite ) {
+                            toWrite = replaced;
+                            serializationInfo = getClassInfoRegistry().getCLInfo(toWrite.getClass());
+                            // fixme: update object map
+                        }
                     }
-                    if ( replaced != toWrite ) {
-                        toWrite = replaced;
-                        serializationInfo = getClassInfoRegistry().getCLInfo(toWrite.getClass());
-                        // fixme: update object map
+                    // clazz uses some JDK special stuff (frequently slow)
+                    if ( serializationInfo.useCompatibleMode() ) {
+                        writeObjectCompatible(referencee, toWrite, serializationInfo);
+                        return;
                     }
-                }
-                // clazz uses some JDK special stuff (frequently slow)
-                if ( serializationInfo.useCompatibleMode() ) {
-                    writeObjectCompatible(referencee, toWrite, serializationInfo);
-                    return;
                 }
                 writeObjectHeader(serializationInfo, referencee, toWrite);
                 defaultWriteObject(toWrite, serializationInfo);
@@ -417,7 +422,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     /**
      * if class is same as last referenced, returned cached clzinfo, else do a lookup
      */
-    private FSTClazzInfo getFstClazzInfo(FSTClazzInfo.FSTFieldInfo referencee, Class clazz) {
+    protected FSTClazzInfo getFstClazzInfo(FSTClazzInfo.FSTFieldInfo referencee, Class clazz) {
         FSTClazzInfo serializationInfo = null;
         FSTClazzInfo lastInfo = referencee.lastInfo;
         if ( lastInfo != null && lastInfo.getClazz() == clazz ) {
@@ -439,7 +444,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         }
     }
 
-    private void writeObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
+    protected void writeObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
         // Object header (nothing written till here)
         writeObjectHeader(serializationInfo, referencee, toWrite);
         Class cl = serializationInfo.getClazz();
@@ -736,7 +741,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         if ( toWrite instanceof Serializable == false && ! conf.isIgnoreSerialInterfaces() ) {
             throw new RuntimeException(toWrite.getClass().getName()+" is not serializable. referenced by "+referencee.getDesc());
         }
-        if ( toWrite.getClass() == referencee.getType() && ! clsInfo.useCompatibleMode() ) {
+        if ( toWrite.getClass() == referencee.getType()
+            && ! clsInfo.useCompatibleMode() )
+        {
             writeFByte(TYPED);
         } else {
             final Class[] possibleClasses = referencee.getPossibleClasses();
@@ -760,7 +767,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         }
     }
 
-    private void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
+    protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
         if ( array == null ) {
             writeClass(Object.class);
             writeCInt(-1);
@@ -1006,26 +1013,29 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             writeStringUTFUnsafe(str);
             return;
         }
+
+        writeStringUTFDef(str);
+    }
+
+    // save condition testing
+    protected void writeStringUTFDef(String str) throws IOException {
         final int strlen = str.length();
 
         writeCInt(strlen);
         buffout.ensureFree(strlen*3);
-
         final byte[] bytearr = buffout.buf;
         int count = buffout.pos;
 
         for (int i=0; i<strlen; i++) {
-            final int c = str.charAt(i);
-            if ( c < 255 ) {
-                bytearr[count++] = (byte)c;
-                written++;
-            } else {
-                bytearr[count++] = (byte) 255;
+            final char c = str.charAt(i);
+            bytearr[count++] = (byte)c;
+            if ( c >= 255) {
+                bytearr[count-1] = (byte)255;
                 bytearr[count++] = (byte) ((c >>> 8) & 0xFF);
                 bytearr[count++] = (byte) ((c >>> 0) & 0xFF);
-                written += 3;
             }
         }
+        written += count-buffout.pos;
         buffout.pos = count;
     }
 
@@ -1175,7 +1185,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     public final void writeFByteUnsafe( int v ) throws IOException {
         buffout.ensureFree(1);
         final byte buf[] = buffout.buf;
-        unsafe.putByte(buf,buffout.pos+bufoff,(byte)v);
+        unsafe.putByte(buf, buffout.pos + bufoff, (byte) v);
         buffout.pos++;
         written++;
     }
@@ -1580,6 +1590,24 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         clnames.clear();
     }
 
+    /**
+     * reset keeping the last used byte[] buffer
+     */
+    public void resetForReUse() {
+        resetForReUse((OutputStream)null);
+    }
+
+    public void resetForReUse( byte[] out ) {
+        unsafe = FSTUtil.unsafe;
+        if ( closed )
+            throw new RuntimeException("Can't reuse closed stream");
+        reset();
+        this.out = buffout;
+        buffout.reset(out);
+        objects.clearForWrite();
+        clnames.clear();
+    }
+
     public FSTClazzInfoRegistry getClassInfoRegistry() {
         return conf.getCLInfoRegistry();
     }
@@ -1633,7 +1661,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             }
 
             PutField pf;
-            HashMap<String,Object> fields = new HashMap<String, Object>();
+            HashMap<String,Object> fields = new HashMap<String, Object>(); // fixme: init lazy
             @Override
             public PutField putFields() throws IOException {
                 if ( pf == null ) {
@@ -1799,10 +1827,16 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         return objects;
     }
 
+    /**
+     * @return the written buffer reference. use getWritten() to obtain the valid length of written bytes.
+     */
     public byte[] getBuffer() {
         return buffout.buf;
     }
 
+    /**
+     * @return a copy of written bytes
+     */
     public byte[] getCopyOfWrittenBuffer() {
         byte res [] = new byte[written];
         byte[] buffer = getBuffer();

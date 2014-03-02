@@ -19,6 +19,7 @@
  */
 package de.ruedigermoeller.serialization;
 
+import de.ruedigermoeller.serialization.serializers.FSTStringSerializer;
 import de.ruedigermoeller.serialization.util.FSTInputStream;
 import de.ruedigermoeller.serialization.util.FSTInt2ObjectMap;
 import de.ruedigermoeller.serialization.util.FSTUtil;
@@ -117,7 +118,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         this(empty, FSTConfiguration.getDefaultConfiguration());
     }
 
-    public FSTObjectInput(FSTConfiguration conf) throws IOException {
+    public FSTObjectInput(FSTConfiguration conf) {
         this(empty, conf);
     }
 
@@ -140,7 +141,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
      *
      * @param in the specified input stream
      */
-    public FSTObjectInput(InputStream in, FSTConfiguration conf) throws IOException {
+    public FSTObjectInput(InputStream in, FSTConfiguration conf) {
 //        super(in);
 //        input = new InputStreamWrapper(this.in);
         super(new FSTInputStream(in));
@@ -309,6 +310,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
             case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[readFByte()]; }
             case FSTObjectOutput.NULL: { return null; }
+            case FSTObjectOutput.STRING: return readStringUTFDef();
             case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
             case FSTObjectOutput.COPYHANDLE: { return instantiateCopyHandle(); }
             case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
@@ -361,7 +363,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         clzSerInfo = readClass();
         c = clzSerInfo.getClazz();
         int ordinal = readCInt();
-        Object[] enumConstants = c.getEnumConstants();
+        Object[] enumConstants = clzSerInfo.getEnumConstants();
         if ( enumConstants == null ) {
             // pseudo enum of anonymous classes tom style ?
             return null;
@@ -830,6 +832,10 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         if ( FSTUtil.unsafe != null && UNSAFE_READ_UTF ) {
             return readStringUTFUnsafe();
         }
+        return readStringUTFDef();
+    }
+
+    private String readStringUTFDef() throws IOException {
         int len = readCInt();
         if (charBuf == null || charBuf.length < len * 3) {
             charBuf = new char[Math.max(len,15) * 3];
@@ -1179,7 +1185,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     public void registerObject(Object o, int streamPosition, FSTClazzInfo info, FSTClazzInfo.FSTFieldInfo referencee) {
-        if (!referencee.isFlat() && ! info.isFlat() ) {
+        if ( ! objects.disabled && !referencee.isFlat() && ! info.isFlat() ) {
             objects.registerObjectForRead(o, streamPosition);
         }
     }

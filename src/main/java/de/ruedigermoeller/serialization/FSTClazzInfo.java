@@ -80,6 +80,7 @@ public final class FSTClazzInfo {
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
     Class clazz;
+    Object[] enumConstants;
     Constructor cons;
     int structSize = 0;
 
@@ -87,6 +88,7 @@ public final class FSTClazzInfo {
 
     public FSTClazzInfo(Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
         this.clazz = clazz;
+        enumConstants = clazz.getEnumConstants();
         reg = infoRegistry;
         ignoreAnn = ignoreAnnotations;
         createFields(clazz);
@@ -102,6 +104,12 @@ public final class FSTClazzInfo {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
                 if (annotation != null) {
                     predict = annotation.value();
+                } else { //default predictions
+                    if ( clazz == List.class ) {
+                        predict = new Class[]{ArrayList.class};
+                    } else if ( clazz == Map.class ) {
+                        predict = new Class[]{HashMap.class};
+                    }
                 }
                 equalIsIdentity = clazz.isAnnotationPresent(EqualnessIsIdentity.class);
                 equalIsBinary = clazz.isAnnotationPresent(EqualnessIsBinary.class);
@@ -147,8 +155,8 @@ public final class FSTClazzInfo {
 
     public final Object newInstance() {
         try {
-            if ( FSTUtil.unsafe != null ) {
-                return FSTUtil.unsafe.allocateInstance(clazz);
+            if ( FSTUtil.unFlaggedUnsafe != null ) {
+                return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
             return cons.newInstance();
         } catch (Throwable ignored) {
@@ -370,6 +378,10 @@ public final class FSTClazzInfo {
 
     public final Class getClazz() {
         return clazz;
+    }
+
+    public Object[] getEnumConstants() {
+        return enumConstants;
     }
 
     public final static class FSTFieldInfo {
@@ -681,7 +693,7 @@ public final class FSTClazzInfo {
 
         public final Object getObjectValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                return FSTUtil.unFlaggedUnsafe.getObject(obj,memOffset);
+                return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
             }
             return field.get(obj);
         }
@@ -719,7 +731,7 @@ public final class FSTClazzInfo {
 
         public final void setObjectValue(Object newObj, Object i1) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putObject(newObj,memOffset,i1);
+                FSTUtil.unFlaggedUnsafe.putObject(newObj, memOffset, i1);
                 return;
             }
             field.set(newObj, i1);
@@ -739,7 +751,7 @@ public final class FSTClazzInfo {
 
         public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putDouble(newObj,memOffset,l);
+                FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
             }
             field.setDouble(newObj, l);
@@ -755,7 +767,7 @@ public final class FSTClazzInfo {
 
         public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putLong(newObj,memOffset,i1);
+                FSTUtil.unFlaggedUnsafe.putLong(newObj, memOffset, i1);
                 return;
             }
             field.setLong(newObj, i1);
@@ -763,21 +775,21 @@ public final class FSTClazzInfo {
 
         public final long getLongValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                return FSTUtil.unFlaggedUnsafe.getLong(obj,memOffset);
+                return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
             }
             return field.getLong(obj);
         }
 
         public final double getDoubleValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                return FSTUtil.unFlaggedUnsafe.getDouble(obj,memOffset);
+                return FSTUtil.unFlaggedUnsafe.getDouble(obj, memOffset);
             }
             return field.getDouble(obj);
         }
 
         public final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putInt(newObj,memOffset,i1);
+                FSTUtil.unFlaggedUnsafe.putInt(newObj, memOffset, i1);
                 return;
             }
             field.setInt(newObj, i1);
@@ -785,7 +797,7 @@ public final class FSTClazzInfo {
 
         public final int getIntValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                return FSTUtil.unFlaggedUnsafe.getInt(obj,memOffset);
+                return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
             }
             return field.getInt(obj);
         }

@@ -58,9 +58,11 @@ public final class FSTObjectRegistry {
     }
 
     public void clearForRead() {
-        idToObject.clear();
         disabled = !conf.isShareReferences();
-        FSTUtil.clear(reuseMap,highestPos);
+        if (!disabled) {
+            idToObject.clear();
+            FSTUtil.clear(reuseMap,highestPos);
+        }
         highestPos = 0;
     }
 

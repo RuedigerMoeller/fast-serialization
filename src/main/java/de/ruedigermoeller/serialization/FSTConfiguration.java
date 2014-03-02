@@ -305,8 +305,10 @@ public final class FSTConfiguration {
      * attention: id should be > CUSTOM_ID_BASE
      * @param c
      */
-    public void registerClass( Class c) {
-        classRegistry.registerClass(c);
+    public void registerClass( Class ... c) {
+        for (int i = 0; i < c.length; i++) {
+            classRegistry.registerClass(c[i]);
+        }
     }
 
     void addDefaultClazzes() {
@@ -475,7 +477,7 @@ public final class FSTConfiguration {
         protected FSTObjectInput initialValue() {
             try {
                 return new FSTObjectInput(FSTConfiguration.this);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw FSTUtil.rethrow(e);
             }
         }
@@ -526,6 +528,19 @@ public final class FSTConfiguration {
     public FSTObjectOutput getObjectOutput(OutputStream out) {
         FSTObjectOutput fstObjectOutput = output.get();
         fstObjectOutput.resetForReUse(out);
+        return fstObjectOutput;
+    }
+
+    /**
+     * @return a recycled outputstream reusing its last recently used byte[] buffer
+     */
+    public FSTObjectOutput getObjectOutput() {
+        return getObjectOutput((OutputStream)null);
+    }
+
+    public FSTObjectOutput getObjectOutput(byte[] outByte) {
+        FSTObjectOutput fstObjectOutput = output.get();
+        fstObjectOutput.resetForReUse(outByte);
         return fstObjectOutput;
     }
 

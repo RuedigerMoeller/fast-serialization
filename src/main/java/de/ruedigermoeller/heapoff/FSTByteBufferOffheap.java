@@ -255,7 +255,7 @@ public class FSTByteBufferOffheap {
             }
             currentEntry.tag = tag;
             currentEntry.content = toSave;
-            out.resetForReUse(null);
+            out.resetForReUse();
             out.writeObject(currentEntry,currentEntry.getClass());
             return out.getWritten();
         }

@@ -150,4 +150,8 @@ public final class FSTOutputStream extends OutputStream {
             outstream.flush();
     }
 
+    public void reset(byte[] out) {
+        reset();
+        buf = out;
+    }
 }

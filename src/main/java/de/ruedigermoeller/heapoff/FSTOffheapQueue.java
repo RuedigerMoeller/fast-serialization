@@ -176,7 +176,7 @@ public class FSTOffheapQueue  {
                 @Override
                 public void runConcurrent() {
                     tmp = getCachedOutput();
-                    tmp.resetForReUse(null);
+                    tmp.resetForReUse();
                     try {
                         tmp.writeObject(o);
                     } catch (IOException e) {
@@ -203,7 +203,7 @@ public class FSTOffheapQueue  {
         FSTObjectOutput out = new FSTObjectOutput(conf);
 
         public boolean add(Object o) throws IOException {
-            out.resetForReUse(null);
+            out.resetForReUse();
             out.writeObject(o);
             int siz = out.getWritten();
             byte[] towrite = out.getBuffer();
@@ -255,7 +255,7 @@ public class FSTOffheapQueue  {
                         if (inp == null) {
                             try {
                                 thinp.set(inp = new FSTObjectInput(conf));
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
                         }

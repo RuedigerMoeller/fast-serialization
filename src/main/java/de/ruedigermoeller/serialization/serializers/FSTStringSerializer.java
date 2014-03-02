@@ -13,6 +13,8 @@ import java.io.IOException;
  */
 public class FSTStringSerializer extends FSTBasicObjectSerializer {
 
+    public static FSTStringSerializer Instance = new FSTStringSerializer(); // used directly
+
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         if ( referencedBy.isCompressed() ) {
