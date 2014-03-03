@@ -353,7 +353,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     if ( c == null ) {
                         throw new RuntimeException("Can't handle this enum: "+toWrite.getClass());
                     }
-                    clnames.encodeClass(this,c);
+                    writeClass(c);
                 } else {
                     writeClass(toWrite);
                 }
@@ -735,7 +735,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected void writeObjectHeader(final FSTClazzInfo clsInfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
         if (clsInfo.isEqualIsBinary() ) {
             writeFByte(OBJECT);
-            writeClass(toWrite);
+            writeClass(clsInfo);
             return;
         }
         //fixme:move to Clazzinfo
@@ -750,8 +750,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
                 writeFByte(OBJECT);
-                //writeClass(toWrite); inline
-                clnames.encodeClass(this,toWrite.getClass());
+                writeClass(clsInfo);
             } else {
                 final int length = possibleClasses.length;
                 for (int j = 0; j < length; j++) {
@@ -762,8 +761,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     }
                 }
                 writeFByte(OBJECT);
-                //writeClass(toWrite); inline
-                clnames.encodeClass(this, toWrite.getClass());
+                writeClass(clsInfo);
             }
         }
     }
@@ -1105,6 +1103,14 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             }
         }
         buffout.pos = (int) (count-bufoff);
+    }
+
+    public final void writeClass(Class cl) throws IOException {
+        clnames.encodeClass(this,cl);
+    }
+
+    public final void writeClass(FSTClazzInfo clInf) throws IOException {
+        clnames.encodeClass(this,clInf);
     }
 
     public final void writeClass(Object toWrite) throws IOException {

@@ -90,8 +90,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
                 writeFByte(OBJECT);
-                //writeClass(toWrite); inline
-                clnames.encodeClass(this,toWrite.getClass());
+                writeClass(clsInfo);
             } else {
                 final int length = possibleClasses.length;
                 for (int j = 0; j < length; j++) {
@@ -102,8 +101,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     }
                 }
                 writeFByte(OBJECT);
-                //writeClass(toWrite); inline
-                clnames.encodeClass(this, toWrite.getClass());
+                writeClass(clsInfo);
             }
         }
     }
@@ -149,7 +147,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 if ( c == null ) {
                     throw new RuntimeException("Can't handle this enum: "+toWrite.getClass());
                 }
-                clnames.encodeClass(this,c);
+                writeClass(c);
             } else {
                 writeClass(toWrite);
             }

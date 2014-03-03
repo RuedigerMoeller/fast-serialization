@@ -112,7 +112,11 @@ public class FSTClazzNameRegistry {
 
     protected void addClassMapping( Class c, int id ) {
         clzToId.put(c, id);
-        idToClz.put(id, conf.getCLInfoRegistry().getCLInfo(c) );
+        FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(c);
+        idToClz.put(id, clInfo);
+        if ( parent == null ) {
+            clInfo.setClzId(id);
+        }
     }
 
     public int getIdFromClazz(Class c) {
@@ -124,6 +128,15 @@ public class FSTClazzNameRegistry {
             res = clzToId.get(c);
         }
         return res;
+    }
+
+    public void encodeClass(FSTObjectOutput out, FSTClazzInfo ci) throws IOException {
+        int clzId = ci.getClzId();
+        if ( clzId >= 0 ) {
+            out.writeCShort((short) clzId); // > 2 !!
+        } else {
+            encodeClass(out,ci.getClazz());
+        }
     }
 
     public void encodeClass(FSTObjectOutput out, Class c) throws IOException {

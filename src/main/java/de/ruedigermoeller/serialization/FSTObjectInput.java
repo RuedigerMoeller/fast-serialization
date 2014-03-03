@@ -303,20 +303,27 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        switch (code) {
-            case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
-            case FSTObjectOutput.BIG_LONG: { return new Long(readCLong()); }
-            case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
-            case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
-            case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[readFByte()]; }
-            case FSTObjectOutput.NULL: { return null; }
-            case FSTObjectOutput.STRING: return readStringUTFDef();
-            case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
-            case FSTObjectOutput.COPYHANDLE: { return instantiateCopyHandle(); }
-            case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
-            case FSTObjectOutput.ENUM: { return instantiateEnum(referencee, readPos); }
+        if ( code == FSTObjectOutput.STRING ) {
+            return readStringUTFDef();
+        } else if ( code == FSTObjectOutput.ENUM ) {
+            return instantiateEnum(referencee, readPos);
+        } else
+        {
+            switch (code) {
+                case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
+                case FSTObjectOutput.BIG_LONG: { return new Long(readCLong()); }
+                case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
+                case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
+                case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[readFByte()]; }
+                case FSTObjectOutput.NULL: { return null; }
+                case FSTObjectOutput.STRING: return readStringUTFDef();
+                case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
+                case FSTObjectOutput.COPYHANDLE: { return instantiateCopyHandle(); }
+                case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
+                case FSTObjectOutput.ENUM: { return instantiateEnum(referencee, readPos); }
+            }
+            throw new RuntimeException("unknown object tag "+code);
         }
-        throw new RuntimeException("unknown object tag "+code);
     }
 
     private FSTClazzInfo getClazzInfo(Class c, FSTClazzInfo.FSTFieldInfo referencee) {

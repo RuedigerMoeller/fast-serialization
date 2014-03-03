@@ -82,6 +82,7 @@ public final class FSTClazzInfo {
     Class clazz;
     Object[] enumConstants;
     Constructor cons;
+    int clzId = -1;
     int structSize = 0;
 
     FSTClazzInfoRegistry reg;
@@ -120,6 +121,14 @@ public final class FSTClazzInfo {
         if (cons != null) {
             cons.setAccessible(true);
         }
+    }
+
+    public int getClzId() {
+        return clzId;
+    }
+
+    public void setClzId(int clzId) {
+        this.clzId = clzId;
     }
 
     public int getNumBoolFields() {
