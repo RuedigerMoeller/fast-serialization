@@ -4,6 +4,7 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -79,6 +80,32 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
      */
     public FSTObjectOutputNoShared() {
         super();
+    }
+
+    protected void writeObjectHeader(FSTClazzInfo clsInfo, FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+        if ( toWrite.getClass() == referencee.getType() )
+        {
+            writeFByte(TYPED);
+        } else {
+            final Class[] possibleClasses = referencee.getPossibleClasses();
+            if ( possibleClasses == null ) {
+                writeFByte(OBJECT);
+                //writeClass(toWrite); inline
+                clnames.encodeClass(this,toWrite.getClass());
+            } else {
+                final int length = possibleClasses.length;
+                for (int j = 0; j < length; j++) {
+                    final Class possibleClass = possibleClasses[j];
+                    if ( possibleClass == toWrite.getClass() ) {
+                        writeFByte(j+1);
+                        return;
+                    }
+                }
+                writeFByte(OBJECT);
+                //writeClass(toWrite); inline
+                clnames.encodeClass(this, toWrite.getClass());
+            }
+        }
     }
 
     @Override

@@ -7,7 +7,9 @@ import java.util.List;
 
 @SuppressWarnings("serial")
 public class Media implements java.io.Serializable {
-	public enum Player {
+    private static final long serialVersionUID = 6200798418658960034l;
+
+    public enum Player {
 		JAVA, FLASH;
 		
 		public static Player find(String str) {

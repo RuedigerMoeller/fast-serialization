@@ -1242,6 +1242,10 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         System.arraycopy(bytes,off,input.buf,0,len);
     }
 
+    public void resetForReuseUseArray(byte bytes[]) throws IOException {
+        resetForReuseUseArray(bytes,0,bytes.length);
+    }
+
     public void resetForReuseUseArray(byte bytes[], int off, int len) throws IOException {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
