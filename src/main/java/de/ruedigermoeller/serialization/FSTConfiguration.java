@@ -347,17 +347,23 @@ public final class FSTConfiguration {
 
         classRegistry.registerClass(StringBuffer.class);
         classRegistry.registerClass(StringBuilder.class);
+
         classRegistry.registerClass(Object.class);
         classRegistry.registerClass(Object[].class);
         classRegistry.registerClass(Object[][].class);
         classRegistry.registerClass(Object[][][].class);
         classRegistry.registerClass(Object[][][][].class);
+        classRegistry.registerClass(Object[][][][][].class);
+        classRegistry.registerClass(Object[][][][][][].class);
+        classRegistry.registerClass(Object[][][][][][][].class);
 
         classRegistry.registerClass(byte[].class);
         classRegistry.registerClass(byte[][].class);
         classRegistry.registerClass(byte[][][].class);
         classRegistry.registerClass(byte[][][][].class);
         classRegistry.registerClass(byte[][][][][].class);
+        classRegistry.registerClass(byte[][][][][][].class);
+        classRegistry.registerClass(byte[][][][][][][].class);
 
         classRegistry.registerClass(char[].class);
         classRegistry.registerClass(char[][].class);
@@ -365,6 +371,7 @@ public final class FSTConfiguration {
         classRegistry.registerClass(char[][][][].class);
         classRegistry.registerClass(char[][][][][].class);
         classRegistry.registerClass(char[][][][][][].class);
+        classRegistry.registerClass(char[][][][][][][].class);
 
         classRegistry.registerClass(short[].class);
         classRegistry.registerClass(short[][].class);
@@ -373,7 +380,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(short[][][][][].class);
         classRegistry.registerClass(short[][][][][][].class);
         classRegistry.registerClass(short[][][][][][][].class);
-        classRegistry.registerClass(short[][][][][][][][].class);
 
         classRegistry.registerClass(int[].class);
         classRegistry.registerClass(int[][].class);
@@ -382,9 +388,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(int[][][][][].class);
         classRegistry.registerClass(int[][][][][][].class);
         classRegistry.registerClass(int[][][][][][][].class);
-        classRegistry.registerClass(int[][][][][][][][].class);
-        classRegistry.registerClass(int[][][][][][][][][].class);
-        classRegistry.registerClass(int[][][][][][][][][][].class);
 
         classRegistry.registerClass(float[].class);
         classRegistry.registerClass(float[][].class);
@@ -393,8 +396,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(float[][][][][].class);
         classRegistry.registerClass(float[][][][][][].class);
         classRegistry.registerClass(float[][][][][][][].class);
-        classRegistry.registerClass(float[][][][][][][][].class);
-        classRegistry.registerClass(float[][][][][][][][][].class);
 
         classRegistry.registerClass(double[].class);
         classRegistry.registerClass(double[][].class);
@@ -403,19 +404,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(double[][][][][].class);
         classRegistry.registerClass(double[][][][][][].class);
         classRegistry.registerClass(double[][][][][][][].class);
-
-
-        classRegistry.addSingleSnippet("java.lang");
-        classRegistry.addSingleSnippet("java.util");
-        classRegistry.addSingleSnippet("java.awt");
-        classRegistry.addSingleSnippet("javax.swing");
-        classRegistry.addSingleSnippet("java.net");
-        classRegistry.addSingleSnippet("java.sql");
-        classRegistry.addSingleSnippet("org");
-        classRegistry.addSingleSnippet("sun");
-        classRegistry.addSingleSnippet("sunw");
-        classRegistry.addSingleSnippet("com.oracle");
-        classRegistry.addSingleSnippet("com.sun");
 
     }
 

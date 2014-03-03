@@ -137,10 +137,10 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             return;
         } else if ( toWrite instanceof Enum ) {
             writeFByte(ENUM);
-            boolean isEnumClass = toWrite.getClass().isEnum();
+            Class c = toWrite.getClass();
+            boolean isEnumClass = c.isEnum();
             if ( ! isEnumClass ) {
                 // weird stuff ..
-                Class c = toWrite.getClass();
                 while ( c != null && ! c.isEnum() ) {
                     c = toWrite.getClass().getEnclosingClass();
                 }
@@ -157,14 +157,13 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
 
         FSTClazzInfo serializationInfo = getFstClazzInfo(referencee, clazz);
         FSTObjectSerializer ser = serializationInfo.getSer();
-        int pos = written;
         // Object header (nothing written till here)
         writeObjectHeader(serializationInfo, referencee, toWrite);
         if ( ser == null ) {
             defaultWriteObject(toWrite, serializationInfo);
         } else {
             // write object depending on type (custom, externalizable, serializable/java, default)
-            ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
+            ser.writeObject(this, toWrite, serializationInfo, referencee, written);
         }
     }
 

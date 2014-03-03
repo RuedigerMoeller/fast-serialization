@@ -62,14 +62,13 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
 //            }
 //        } else
         {
-            // problems with linkedlists
-//            if ( col instanceof List) {
-//                List l = (List) col;
-//                for (int i = 0; i < size; i++) {
-//                    Object o = l.get(i);
-//                    out.writeObjectInternal(o, possibleClasses);
-//                }
-//            } else
+            if ( col.getClass() == ArrayList.class ) {
+                List l = (List) col;
+                for (int i = 0; i < size; i++) {
+                    Object o = l.get(i);
+                    out.writeObjectInternal(o, possibleClasses);
+                }
+            } else
             {
                 for (Object o : col) {
                     out.writeObjectInternal(o, possibleClasses);

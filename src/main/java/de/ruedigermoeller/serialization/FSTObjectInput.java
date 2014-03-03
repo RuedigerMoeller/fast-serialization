@@ -242,7 +242,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
                     clnames.registerClass(possible);
-                    clnames.addCLNameSnippets(possible);
                 }
             }
             Object res = readObjectInternal(possibles);
@@ -256,13 +255,21 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         }
     }
 
+    FSTClazzInfo.FSTFieldInfo infoCache;
     public Object readObjectInternal(Class... expected) throws ClassNotFoundException, IOException, IllegalAccessException, InstantiationException {
 //        if ( curDepth == 0 ) {
 //            throw new RuntimeException("do not call this directly. only for internal use (incl. Serializers)");
 //        }
         try {
-            FSTClazzInfo.FSTFieldInfo info = new FSTClazzInfo.FSTFieldInfo(expected, null, ignoreAnnotations);
-            return readObjectWithHeader(info);
+            FSTClazzInfo.FSTFieldInfo info = infoCache;
+            infoCache = null;
+            if (info == null )
+                info = new FSTClazzInfo.FSTFieldInfo(expected, null, ignoreAnnotations);
+            else
+                info.possibleClasses = expected;
+            Object res = readObjectWithHeader(info);
+            infoCache = info;
+            return res;
         } catch (Throwable t) {
             throw FSTUtil.rethrow(t);
         }
@@ -271,7 +278,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
         FSTClazzInfo clzSerInfo;
         Class c;
-        final int readPos = input.pos-input.off; // incase of pointing to larger array => general issue in both in and output stream when start is !=0 !
+        final int readPos = input.pos;
         byte code = readFByte();
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
@@ -303,10 +310,12 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        if ( code == FSTObjectOutput.STRING ) {
+        if ( code == FSTObjectOutput.STRING ) { // faster than switch ..
             return readStringUTFDef();
         } else if ( code == FSTObjectOutput.ENUM ) {
             return instantiateEnum(referencee, readPos);
+        } else if ( code == FSTObjectOutput.NULL ) {
+            return null;
         } else
         {
             switch (code) {
@@ -794,9 +803,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
     public String readStringCompressed() throws IOException {
         int len = readCInt();
-        if (charBuf == null || charBuf.length < len * 3) {
-            charBuf = new char[len * 3];
-        }
+        char[] charBuf = getCharBuf(len * 3);
         ensureReadAhead(len * 3);
         byte buf[] = input.buf;
         int count = input.pos;
@@ -831,7 +838,17 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         return new String(charBuf, 0, chcount);
     }
 
-    char[] charBuf;
+    char chBufS[];
+
+    private char[] getCharBuf(int siz) {
+        char chars[] = chBufS;
+        if (chars == null || chars.length < siz) {
+            chars = new char[Math.max(siz,15)];
+            chBufS = chars;
+        }
+        return chars;
+    }
+
     public String readStringUTF() throws IOException {
         if ( preferSpeed ) {
             return readStringUTFSpeed();
@@ -844,16 +861,14 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
     private String readStringUTFDef() throws IOException {
         int len = readCInt();
-        if (charBuf == null || charBuf.length < len * 3) {
-            charBuf = new char[Math.max(len,15) * 3];
-        }
+        char[] charBuf = getCharBuf(len*3);
         ensureReadAhead(len * 3);
         byte buf[] = input.buf;
         int count = input.pos;
         int chcount = 0;
         for (int i = 0; i < len; i++) {
             char head = (char) ((buf[count++] + 256) &0xff);
-            if (head >= 0 && head < 255) {
+            if (head < 255) {
                 charBuf[chcount++] = head;
             } else {
                 int ch1 = ((buf[count++] + 256) &0xff);
@@ -869,9 +884,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         if ( FSTUtil.unsafe != null && UNSAFE_READ_UTF ) {
             Unsafe unsafe = FSTUtil.unsafe;
             int len = readFIntUnsafe();
-            if (charBuf == null || charBuf.length < len * 2) {
-                charBuf = new char[len * 2];
-            }
+            char[] charBuf = getCharBuf(len*2);
             ensureReadAhead(len * 2);
             byte buf[] = input.buf;
             int count = (int) (input.pos+bufoff);
@@ -887,9 +900,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             return new String(charBuf, 0, len);
         } else {
             int len = readFInt();
-            if (charBuf == null || charBuf.length < len * 2) {
-                charBuf = new char[len * 2];
-            }
+            char[] charBuf = getCharBuf(len*2);
             ensureReadAhead(len * 2);
             byte buf[] = input.buf;
             int count = input.pos;
@@ -911,9 +922,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             len = readCIntUnsafe();
         else
             len = readCInt();
-        if (charBuf == null || charBuf.length < len * 3) {
-            charBuf = new char[len * 3];
-        }
+        char[] charBuf = getCharBuf(len*3);
         ensureReadAhead(len * 3);
         final byte buf[] = input.buf;
         long count = input.pos+bufoff;
@@ -1019,7 +1028,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         Class arrType = arrCl.getComponentType();
         if (!arrCl.getComponentType().isArray()) {
             Object array = Array.newInstance(arrType, len);
-            objects.registerObjectForRead(array, input.pos - input.off );
+            objects.registerObjectForRead(array, input.pos );
             if (arrCl.getComponentType().isPrimitive()) {
                 if (arrType == byte.class) {
                     byte[] arr = (byte[]) array;
@@ -1118,7 +1127,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         } else {
             Object array[] = (Object[]) Array.newInstance(arrType, len);
             if (!FSTUtil.isPrimitiveArray(arrType) && ! referencee.isFlat() ) {
-                objects.registerObjectForRead(array, input.pos - input.off);
+                objects.registerObjectForRead(array, input.pos);
             }
 //            if ( false && referencee.isThin() ) {
 //                for (int i = 0; i < len; i++) {
@@ -1233,7 +1242,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         input.reset();
-//        this.in = in;
+        clnames.clear();
         input.initFromStream(in);
         objects.clearForRead(); clnames.clear();
     }
@@ -1243,14 +1252,15 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         input.reset();
-        objects.clearForRead(); clnames.clear();
+        objects.clearForRead();
+        clnames.clear();
         input.ensureCapacity(len);
         input.count = len;
-        System.arraycopy(bytes,off,input.buf,0,len);
+        System.arraycopy(bytes, off, input.buf, 0, len);
     }
 
     public void resetForReuseUseArray(byte bytes[]) throws IOException {
-        resetForReuseUseArray(bytes,0,bytes.length);
+        resetForReuseUseArray(bytes, 0, bytes.length);
     }
 
     public void resetForReuseUseArray(byte bytes[], int off, int len) throws IOException {
@@ -1262,7 +1272,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         input.count = len+off;
         input.buf = bytes;
         input.pos = off;
-        input.off = off;
     }
 
     public final int readFIntUnsafe() throws IOException {

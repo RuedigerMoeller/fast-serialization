@@ -1,5 +1,5 @@
 intel i7 3770K 3,4 ghz, 4 core, 8 threads
-1.7.0_45-b18,Java HotSpot(TM) 64-Bit Server VM,Windows 8
+1.7.0_51-b13,Java HotSpot(TM) 64-Bit Server VM,Windows 8
 
 ================================
 Test Class: FrequentPrimitives[]
@@ -8,29 +8,29 @@ A class with a typical distribution of primitve fields: 2 short Strings, 3 boole
 
 Read Time (micros)
 
-================== - FST (preferSpeed=true, Unsafe enabled) (55)
-=================== - FST (Unsafe enabled) (57)
-====================== - Kryo 2.2.2 UnsafeIn/Output (66)
-====================== - FST  (67)
-========================= - Kryo 2.2.2 (75)
-======================================= - Java built in (119)
+=============== - FST (preferSpeed=true, Unsafe enabled) (46)
+================= - FST (Unsafe enabled) (52)
+=================== - Kryo 2.23 UnsafeIn/Output (57)
+===================== - FST  (63)
+===================== - Kryo 2.23 (64)
+=================================== - Java built in (105)
 
 Write Time (micros)
 
-=============== - FST (preferSpeed=true, Unsafe enabled) (47)
-=================== - FST (Unsafe enabled) (57)
-================== - Kryo 2.2.2 UnsafeIn/Output (55)
-=================== - FST  (59)
-======================= - Kryo 2.2.2 (69)
-==================================== - Java built in (110)
+============= - FST (preferSpeed=true, Unsafe enabled) (40)
+================= - FST (Unsafe enabled) (51)
+================ - Kryo 2.23 UnsafeIn/Output (49)
+================ - FST  (50)
+===================== - Kryo 2.23 (63)
+================================= - Java built in (99)
 
 Size (byte)
 
 =========================================== - FST (preferSpeed=true, Unsafe enabled) (21917)
 ============================ - FST (Unsafe enabled) (14260)
-================================ - Kryo 2.2.2 UnsafeIn/Output (16059)
+================================ - Kryo 2.23 UnsafeIn/Output (16059)
 ============================ - FST  (14260)
-========================== - Kryo 2.2.2 (13259)
+========================== - Kryo 2.23 (13259)
 =================================== - Java built in (17683)
 
 
@@ -41,29 +41,29 @@ A class with a typical distribution of primitve fields: 2 short Strings, 3 boole
 
 Read Time (micros)
 
-================== - FST (preferSpeed=true, Unsafe enabled) (55)
-================== - FST (Unsafe enabled) (56)
-======================== - Kryo 2.2.2 UnsafeIn/Output (74)
-================== - FST  (54)
-========================= - Kryo 2.2.2 (76)
-============================== - Java built in (90)
+================ - FST (preferSpeed=true, Unsafe enabled) (50)
+================ - FST (Unsafe enabled) (48)
+===================== - Kryo 2.23 UnsafeIn/Output (65)
+=============== - FST  (47)
+====================== - Kryo 2.23 (66)
+========================== - Java built in (79)
 
 Write Time (micros)
 
-================== - FST (preferSpeed=true, Unsafe enabled) (56)
-================== - FST (Unsafe enabled) (54)
-==================== - Kryo 2.2.2 UnsafeIn/Output (61)
-================== - FST  (54)
-======================= - Kryo 2.2.2 (69)
-===================== - Java built in (65)
+================ - FST (preferSpeed=true, Unsafe enabled) (48)
+=============== - FST (Unsafe enabled) (47)
+================= - Kryo 2.23 UnsafeIn/Output (53)
+=============== - FST  (47)
+==================== - Kryo 2.23 (61)
+=================== - Java built in (57)
 
 Size (byte)
 
 ================================ - FST (preferSpeed=true, Unsafe enabled) (16365)
 ================================ - FST (Unsafe enabled) (16274)
-================================ - Kryo 2.2.2 UnsafeIn/Output (16073)
+================================ - Kryo 2.23 UnsafeIn/Output (16073)
 ================================ - FST  (16274)
-========================== - Kryo 2.2.2 (13273)
+========================== - Kryo 2.23 (13273)
 =================================== - Java built in (17795)
 
 
@@ -74,29 +74,29 @@ Measures serialization of most popular collection classes. (HashMap and an Array
 
 Read Time (micros)
 
-========== - FST (preferSpeed=true, Unsafe enabled) (32)
-========= - FST (Unsafe enabled) (29)
-================== - Kryo 2.2.2 UnsafeIn/Output (56)
-========== - FST  (31)
-===================== - Kryo 2.2.2 (64)
-=============================================================== - Java built in (190)
+====== - FST (preferSpeed=true, Unsafe enabled) (20)
+====== - FST (Unsafe enabled) (19)
+================= - Kryo 2.23 UnsafeIn/Output (51)
+====== - FST  (20)
+=================== - Kryo 2.23 (57)
+============================================================ - Java built in (181)
 
 Write Time (micros)
 
-===== - FST (preferSpeed=true, Unsafe enabled) (16)
-===== - FST (Unsafe enabled) (16)
-======= - Kryo 2.2.2 UnsafeIn/Output (22)
-====== - FST  (18)
-======== - Kryo 2.2.2 (26)
-========================================================================= - Java built in (221)
+==== - FST (preferSpeed=true, Unsafe enabled) (14)
+===== - FST (Unsafe enabled) (15)
+====== - Kryo 2.23 UnsafeIn/Output (18)
+===== - FST  (15)
+======== - Kryo 2.23 (26)
+================================================================= - Java built in (197)
 
 Size (byte)
 
 ========= - FST (preferSpeed=true, Unsafe enabled) (4671)
 ========= - FST (Unsafe enabled) (4671)
-======== - Kryo 2.2.2 UnsafeIn/Output (4443)
+======== - Kryo 2.23 UnsafeIn/Output (4443)
 ========= - FST  (4671)
-========= - Kryo 2.2.2 (4619)
+========= - Kryo 2.23 (4615)
 ================ - Java built in (8435)
 
 
@@ -107,29 +107,29 @@ measures performance serializing a large int array, a large long array and a lar
 
 Read Time (micros)
 
-=== - FST (preferSpeed=true, Unsafe enabled) (11)
+=== - FST (preferSpeed=true, Unsafe enabled) (10)
 === - FST (Unsafe enabled) (10)
-============================================= - Kryo 2.2.2 UnsafeIn/Output (137)
-============ - FST  (38)
-=============================================================== - Kryo 2.2.2 (189)
-============ - Java built in (37)
+======================================= - Kryo 2.23 UnsafeIn/Output (117)
+=========== - FST  (33)
+====================================================== - Kryo 2.23 (162)
+=========== - Java built in (34)
 
 Write Time (micros)
 
-== - FST (preferSpeed=true, Unsafe enabled) (8)
-== - FST (Unsafe enabled) (8)
-= - Kryo 2.2.2 UnsafeIn/Output (3)
-========== - FST  (30)
-================= - Kryo 2.2.2 (53)
-========= - Java built in (27)
+== - FST (preferSpeed=true, Unsafe enabled) (7)
+== - FST (Unsafe enabled) (7)
+= - Kryo 2.23 UnsafeIn/Output (3)
+========= - FST  (27)
+================ - Kryo 2.23 (48)
+======== - Java built in (26)
 
 Size (byte)
 
 ============================================================== - FST (preferSpeed=true, Unsafe enabled) (31224)
 ============================================================== - FST (Unsafe enabled) (31219)
-============================================================== - Kryo 2.2.2 UnsafeIn/Output (31210)
+============================================================== - Kryo 2.23 UnsafeIn/Output (31210)
 ============================================================== - FST  (31219)
-===================================================================== - Kryo 2.2.2 (34946)
+===================================================================== - Kryo 2.23 (34949)
 ============================================================== - Java built in (31403)
 
 
@@ -140,29 +140,29 @@ measures serialization of mid size to very long Strings
 
 Read Time (micros)
 
-==== - FST (preferSpeed=true, Unsafe enabled) (12)
-========= - FST (Unsafe enabled) (28)
-===================================================== - Kryo 2.2.2 UnsafeIn/Output (160)
-============== - FST  (43)
-===================================================== - Kryo 2.2.2 (160)
-======================= - Java built in (70)
+=== - FST (preferSpeed=true, Unsafe enabled) (11)
+======== - FST (Unsafe enabled) (25)
+================================================== - Kryo 2.23 UnsafeIn/Output (150)
+=========== - FST  (33)
+================================================ - Kryo 2.23 (146)
+===================== - Java built in (63)
 
 Write Time (micros)
 
-== - FST (preferSpeed=true, Unsafe enabled) (6)
-======= - FST (Unsafe enabled) (23)
-==================================== - Kryo 2.2.2 UnsafeIn/Output (109)
+= - FST (preferSpeed=true, Unsafe enabled) (5)
+====== - FST (Unsafe enabled) (20)
+================================== - Kryo 2.23 UnsafeIn/Output (103)
 ====== - FST  (20)
-==================================== - Kryo 2.2.2 (108)
-============================ - Java built in (85)
+================================= - Kryo 2.23 (99)
+========================= - Java built in (77)
 
 Size (byte)
 
 ================================================== - FST (preferSpeed=true, Unsafe enabled) (29806)
 ================================= - FST (Unsafe enabled) (20020)
-====================================================================== - Kryo 2.2.2 UnsafeIn/Output (42043)
+====================================================================== - Kryo 2.23 UnsafeIn/Output (42043)
 ================================= - FST  (20020)
-====================================================================== - Kryo 2.2.2 (42043)
+====================================================================== - Kryo 2.23 (42043)
 ============================== - Java built in (17931)
 
 
@@ -174,23 +174,23 @@ A broad test of primitive values and specials such as Enums, EnumSets, Date, Str
 
 Read Time (micros)
 
-================================================ - FST (preferSpeed=true, Unsafe enabled) (146)
-=================================================== - FST (Unsafe enabled) (153)
-===================================================== - FST  (159)
+========================================== - FST (preferSpeed=true, Unsafe enabled) (127)
+=========================================== - FST (Unsafe enabled) (130)
+=============================================== - FST  (142)
 
 Write Time (micros)
 
-================================================================== - FST (preferSpeed=true, Unsafe enabled) (198)
-===================================================================== - FST (Unsafe enabled) (209)
-======================================================================== - FST  (216)
+============================================================= - FST (preferSpeed=true, Unsafe enabled) (184)
+============================================================== - FST (Unsafe enabled) (188)
+================================================================== - FST  (200)
 
 Size (byte)
 
 ============================================= - FST (preferSpeed=true, Unsafe enabled) (22600)
 ================================= - FST (Unsafe enabled) (16602)
-======================== - Kryo 2.2.2 UnsafeIn/Output (12181)
+======================== - Kryo 2.23 UnsafeIn/Output (12181)
 ================================= - FST  (16602)
-==================== - Kryo 2.2.2 (10171)
+==================== - Kryo 2.23 (10171)
 ===================================================== - Java built in (26662)
 
 
@@ -201,29 +201,29 @@ Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimens
 
 Read Time (micros)
 
-====================== - FST (preferSpeed=true, Unsafe enabled) (68)
-======================= - FST (Unsafe enabled) (71)
-===================== - Kryo 2.2.2 UnsafeIn/Output (65)
-============================ - FST  (85)
-========================== - Kryo 2.2.2 (78)
-================================================================== - Java built in (198)
+=================== - FST (preferSpeed=true, Unsafe enabled) (58)
+=================== - FST (Unsafe enabled) (57)
+=================== - Kryo 2.23 UnsafeIn/Output (57)
+======================== - FST  (73)
+======================== - Kryo 2.23 (73)
+======================================================== - Java built in (170)
 
 Write Time (micros)
 
-================ - FST (preferSpeed=true, Unsafe enabled) (48)
-================ - FST (Unsafe enabled) (50)
-================ - Kryo 2.2.2 UnsafeIn/Output (49)
-=================== - FST  (57)
-======================= - Kryo 2.2.2 (71)
-=================================== - Java built in (107)
+=============== - FST (preferSpeed=true, Unsafe enabled) (45)
+=============== - FST (Unsafe enabled) (45)
+============== - Kryo 2.23 UnsafeIn/Output (43)
+================= - FST  (51)
+====================== - Kryo 2.23 (66)
+============================= - Java built in (89)
 
 Size (byte)
 
-=============================================== - FST (preferSpeed=true, Unsafe enabled) (23928)
-============================================= - FST (Unsafe enabled) (22759)
-================================= - Kryo 2.2.2 UnsafeIn/Output (16518)
-============================================= - FST  (22759)
-=================== - Kryo 2.2.2 (9728)
+=============================================== - FST (preferSpeed=true, Unsafe enabled) (23894)
+============================================= - FST (Unsafe enabled) (22743)
+================================= - Kryo 2.23 UnsafeIn/Output (16518)
+============================================= - FST  (22743)
+=================== - Kryo 2.23 (9728)
 ========================================= - Java built in (20846)
 
 
@@ -235,29 +235,29 @@ In depth test of collections incl. collections of collections.
 
 Read Time (micros)
 
-===================== - FST (preferSpeed=true, Unsafe enabled) (64)
-====================== - FST (Unsafe enabled) (68)
-============================================= - Kryo 2.2.2 UnsafeIn/Output (137)
-========================= - FST  (76)
-============================================ - Kryo 2.2.2 (132)
-============================================================================================= - Java built in (281)
+=================== - FST (preferSpeed=true, Unsafe enabled) (58)
+=================== - FST (Unsafe enabled) (57)
+======================================== - Kryo 2.23 UnsafeIn/Output (121)
+======================== - FST  (72)
+====================================== - Kryo 2.23 (116)
+======================================================================================= - Java built in (262)
 
 Write Time (micros)
 
-================ - FST (preferSpeed=true, Unsafe enabled) (49)
-================= - FST (Unsafe enabled) (51)
-==================== - Kryo 2.2.2 UnsafeIn/Output (60)
-================= - FST  (51)
-===================== - Kryo 2.2.2 (65)
-=============================================================== - Java built in (190)
+============== - FST (preferSpeed=true, Unsafe enabled) (42)
+============== - FST (Unsafe enabled) (43)
+================= - Kryo 2.23 UnsafeIn/Output (53)
+=============== - FST  (47)
+===================== - Kryo 2.23 (63)
+============================================================ - Java built in (181)
 
 Size (byte)
 
 =============================== - FST (preferSpeed=true, Unsafe enabled) (15839)
 ================= - FST (Unsafe enabled) (8502)
-================== - Kryo 2.2.2 UnsafeIn/Output (9408)
+================== - Kryo 2.23 UnsafeIn/Output (9408)
 ================= - FST  (8502)
-================ - Kryo 2.2.2 (8323)
+================ - Kryo 2.23 (8323)
 ========================== - Java built in (13172)
 
 
@@ -268,29 +268,29 @@ Measures serialization of a typical 'Enterprise-Object' using Value-Classes inst
 
 Read Time (micros)
 
-=================== - FST (preferSpeed=true, Unsafe enabled) (57)
-=================== - FST (Unsafe enabled) (58)
-============================ - Kryo 2.2.2 UnsafeIn/Output (85)
-==================== - FST  (62)
-============================ - Kryo 2.2.2 (85)
-=================================================================================== - Java built in (251)
+================ - FST (preferSpeed=true, Unsafe enabled) (50)
+================== - FST (Unsafe enabled) (54)
+========================= - Kryo 2.23 UnsafeIn/Output (77)
+================== - FST  (54)
+=========================== - Kryo 2.23 (83)
+=========================================================================== - Java built in (226)
 
 Write Time (micros)
 
-================= - FST (preferSpeed=true, Unsafe enabled) (52)
-================== - FST (Unsafe enabled) (55)
-======================== - Kryo 2.2.2 UnsafeIn/Output (73)
-================== - FST  (56)
-=========================== - Kryo 2.2.2 (82)
-====================================================================== - Java built in (211)
+================= - FST (preferSpeed=true, Unsafe enabled) (53)
+================= - FST (Unsafe enabled) (51)
+====================== - Kryo 2.23 UnsafeIn/Output (67)
+================= - FST  (53)
+======================== - Kryo 2.23 (73)
+=============================================================== - Java built in (189)
 
 Size (byte)
 
 ============ - FST (preferSpeed=true, Unsafe enabled) (6380)
 ========== - FST (Unsafe enabled) (5129)
-=========== - Kryo 2.2.2 UnsafeIn/Output (5928)
+=========== - Kryo 2.23 UnsafeIn/Output (5928)
 ========== - FST  (5129)
-=========== - Kryo 2.2.2 (5919)
+=========== - Kryo 2.23 (5919)
 ====================== - Java built in (11075)
 
 
@@ -301,29 +301,29 @@ Tests speed serializing a complex object graph of many different classes with fe
 
 Read Time (micros)
 
-============== - FST (preferSpeed=true, Unsafe enabled) (43)
-============== - FST (Unsafe enabled) (44)
-=================== - Kryo 2.2.2 UnsafeIn/Output (57)
-=============== - FST  (47)
-=================== - Kryo 2.2.2 (58)
-============================================================================== - Java built in (234)
+============= - FST (preferSpeed=true, Unsafe enabled) (39)
+============== - FST (Unsafe enabled) (43)
+================= - Kryo 2.23 UnsafeIn/Output (52)
+============== - FST  (43)
+================= - Kryo 2.23 (53)
+============================================================================== - Java built in (235)
 
 Write Time (micros)
 
-============ - FST (preferSpeed=true, Unsafe enabled) (37)
-============ - FST (Unsafe enabled) (37)
-=============== - Kryo 2.2.2 UnsafeIn/Output (45)
-============= - FST  (39)
-================ - Kryo 2.2.2 (50)
-================================================== - Java built in (150)
+=========== - FST (preferSpeed=true, Unsafe enabled) (34)
+=========== - FST (Unsafe enabled) (35)
+============== - Kryo 2.23 UnsafeIn/Output (43)
+============= - FST  (40)
+=============== - Kryo 2.23 (47)
+============================================== - Java built in (138)
 
 Size (byte)
 
 ============= - FST (preferSpeed=true, Unsafe enabled) (6525)
 ======= - FST (Unsafe enabled) (3996)
-========= - Kryo 2.2.2 UnsafeIn/Output (4560)
+========= - Kryo 2.23 UnsafeIn/Output (4560)
 ======= - FST  (3996)
-======== - Kryo 2.2.2 (4152)
+======== - Kryo 2.23 (4152)
 ================ - Java built in (8117)
 
 
@@ -334,29 +334,29 @@ Performance of Externalizable objects.
 
 Read Time (micros)
 
-========================== - FST (preferSpeed=true, Unsafe enabled) (80)
+========================= - FST (preferSpeed=true, Unsafe enabled) (76)
 ========================== - FST (Unsafe enabled) (80)
-=================================== - Kryo 2.2.2 UnsafeIn/Output (106)
-========================== - FST  (80)
-============================== - Kryo 2.2.2 (92)
-=================================================================== - Java built in (202)
+==================================== - Kryo 2.23 UnsafeIn/Output (110)
+======================== - FST  (73)
+============================== - Kryo 2.23 (90)
+=========================================================== - Java built in (179)
 
 Write Time (micros)
 
-=================================== - FST (preferSpeed=true, Unsafe enabled) (107)
-=================================== - FST (Unsafe enabled) (105)
-============================ - Kryo 2.2.2 UnsafeIn/Output (85)
-================================== - FST  (104)
-============================== - Kryo 2.2.2 (90)
-================================================================= - Java built in (196)
+====================================== - FST (preferSpeed=true, Unsafe enabled) (116)
+====================================== - FST (Unsafe enabled) (115)
+=========================== - Kryo 2.23 UnsafeIn/Output (82)
+================================ - FST  (97)
+========================== - Kryo 2.23 (78)
+======================================================= - Java built in (165)
 
 Size (byte)
 
 ==================== - FST (preferSpeed=true, Unsafe enabled) (10335)
 ==================== - FST (Unsafe enabled) (10137)
-=============== - Kryo 2.2.2 UnsafeIn/Output (7507)
+=============== - Kryo 2.23 UnsafeIn/Output (7507)
 ==================== - FST  (10137)
-========= - Kryo 2.2.2 (4733)
+========= - Kryo 2.23 (4733)
 ============================= - Java built in (14840)
 
 
@@ -367,29 +367,29 @@ A bigger object graph consisting of some of the test objects at once
 
 Read Time (micros)
 
-============== - FST (preferSpeed=true, Unsafe enabled) (44)
-=============== - FST (Unsafe enabled) (45)
-================================== - Kryo 2.2.2 UnsafeIn/Output (104)
-=============== - FST  (45)
-=================================== - Kryo 2.2.2 (105)
-================================== - Java built in (104)
+============ - FST (preferSpeed=true, Unsafe enabled) (36)
+============ - FST (Unsafe enabled) (36)
+============================= - Kryo 2.23 UnsafeIn/Output (88)
+============= - FST  (41)
+============================== - Kryo 2.23 (92)
+============================== - Java built in (91)
 
 Write Time (micros)
 
-============== - FST (preferSpeed=true, Unsafe enabled) (42)
-============= - FST (Unsafe enabled) (41)
-==================== - Kryo 2.2.2 UnsafeIn/Output (61)
-============== - FST  (42)
-====================== - Kryo 2.2.2 (66)
-=========================================== - Java built in (131)
+============ - FST (preferSpeed=true, Unsafe enabled) (37)
+============ - FST (Unsafe enabled) (37)
+================= - Kryo 2.23 UnsafeIn/Output (53)
+============= - FST  (41)
+==================== - Kryo 2.23 (62)
+====================================== - Java built in (114)
 
 Size (byte)
 
-=========================================== - FST (preferSpeed=true, Unsafe enabled) (632842)
-================================== - FST (Unsafe enabled) (498243)
-====================================================================== - Kryo 2.2.2 UnsafeIn/Output (1028285)
-================================== - FST  (498243)
-================================================================== - Kryo 2.2.2 (956756)
+=========================================== - FST (preferSpeed=true, Unsafe enabled) (632808)
+================================== - FST (Unsafe enabled) (498227)
+====================================================================== - Kryo 2.23 UnsafeIn/Output (1028285)
+================================== - FST  (498227)
+================================================================== - Kryo 2.23 (956770)
 ================================================ - Java built in (699317)
 
 
@@ -400,28 +400,28 @@ Heavily nested Objects
 
 Read Time (micros)
 
-================================ - FST (preferSpeed=true, Unsafe enabled) (97)
-================================ - FST (Unsafe enabled) (98)
-================================== - Kryo 2.2.2 UnsafeIn/Output (104)
-================================= - FST  (101)
-================================== - Kryo 2.2.2 (104)
-============================================================ - Java built in (182)
+=========================== - FST (preferSpeed=true, Unsafe enabled) (82)
+========================== - FST (Unsafe enabled) (80)
+============================== - Kryo 2.23 UnsafeIn/Output (90)
+============================= - FST  (87)
+=============================== - Kryo 2.23 (94)
+===================================================== - Java built in (161)
 
 Write Time (micros)
 
-============================== - FST (preferSpeed=true, Unsafe enabled) (91)
-=============================== - FST (Unsafe enabled) (95)
-======================================== - Kryo 2.2.2 UnsafeIn/Output (122)
-================================= - FST  (99)
-============================================= - Kryo 2.2.2 (137)
-======================================================================== - Java built in (217)
+===================== - FST (preferSpeed=true, Unsafe enabled) (63)
+====================== - FST (Unsafe enabled) (66)
+================================== - Kryo 2.23 UnsafeIn/Output (104)
+======================== - FST  (73)
+====================================== - Kryo 2.23 (116)
+=============================================================== - Java built in (191)
 
 Size (byte)
 
 ========== - FST (preferSpeed=true, Unsafe enabled) (5006)
 ======= - FST (Unsafe enabled) (3747)
-============== - Kryo 2.2.2 UnsafeIn/Output (7076)
+============== - Kryo 2.23 UnsafeIn/Output (7076)
 ======= - FST  (3747)
-========== - Kryo 2.2.2 (5009)
+========== - Kryo 2.23 (5009)
 ==================== - Java built in (10182)
 

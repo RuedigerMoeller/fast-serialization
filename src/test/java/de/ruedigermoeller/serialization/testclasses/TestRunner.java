@@ -32,8 +32,8 @@ public class TestRunner {
         System.setProperty("fst.unsafe","true");
     }
 
-    SerTest kryotest = new KryoTest("Kryo 2.2.2");
-    SerTest kryoUnsTest = new KryoUnsafeTest("Kryo 2.2.2 UnsafeIn/Output");
+    SerTest kryotest = new KryoTest("Kryo 2.23");
+    SerTest kryoUnsTest = new KryoUnsafeTest("Kryo 2.23 UnsafeIn/Output");
     SerTest speedFST = new FSTTest("FST (preferSpeed=true, Unsafe enabled)",true,true);
     SerTest defFST = new FSTTest("FST (Unsafe enabled)",true,false);
     SerTest defFSTNoUns = new FSTTest("FST ",false,false);
@@ -162,7 +162,7 @@ public class TestRunner {
         runner.charter.text("<i>intel i7 3770K 3,4 ghz, 4 core, 8 threads</i>");
         runner.charter.text("<i>"+System.getProperty("java.runtime.version")+","+System.getProperty("java.vm.name")+","+System.getProperty("os.name")+"</i>");
 
-        SerTest.WarmUP = 30000; SerTest.Run = SerTest.WarmUP*1+1;
+        SerTest.WarmUP = 20000; SerTest.Run = SerTest.WarmUP*1+1;
 //        SerTest.WarmUP = 2000; SerTest.Run = 3000;
         runner.runAll(FrequentPrimitives.getArray(200));
         runner.runAll(FrequentPrimitivesExternalizable.getArray(200));

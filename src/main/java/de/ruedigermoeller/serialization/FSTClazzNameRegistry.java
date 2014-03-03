@@ -39,20 +39,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    static final boolean ENABLE_SNIPPETS = false;
-
     FSTObject2IntMap<Class> clzToId = new FSTObject2IntMap<Class>(13,false);
     FSTInt2ObjectMap idToClz = new FSTInt2ObjectMap(13);
     int classIdCount = 3;
     int lastCatch;
-    Class lastClazz;
     FSTClazzNameRegistry parent;
-
-    // snippet stuff
-    HashSet<Class> visitedClasses = new HashSet<Class>(13);
-    FSTObject2IntMap<String> stringSnippets = new FSTObject2IntMap<String>(13,false);
-    FSTInt2ObjectMap stringSnippetsReverse = new FSTInt2ObjectMap(13);
-    int snippetCount = 3;
 
     private FSTConfiguration conf;
 
@@ -61,7 +52,6 @@ public class FSTClazzNameRegistry {
         this.conf = conf;
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;
-            snippetCount = parent.snippetCount+1;
         }
     }
 
@@ -70,16 +60,8 @@ public class FSTClazzNameRegistry {
         clzToId.clear();
         idToClz.clear();
         classIdCount = 3;
-        if ( visitedClasses.size() > 0 )
-            visitedClasses.clear();
-        if ( ENABLE_SNIPPETS ) {
-            stringSnippets.clear();
-            stringSnippetsReverse.clear();
-        }
-        snippetCount = 3;
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;
-            snippetCount = parent.snippetCount+1;
         }
     }
 
@@ -149,31 +131,8 @@ public class FSTClazzNameRegistry {
 //            lastCatch = clid; lastClazz = c;
             out.writeCShort((short) clid); // > 2 !!
         } else {
-            int snippet = 0;
-            if ( ENABLE_SNIPPETS ) {
-                snippet = findLongestSnippet(c);
-            }
-            if ( snippet == 0 ) {
-                out.writeCShort((short) 0); // no direct cl id
-                out.writeStringUTF(c.getName());
-                if ( ENABLE_SNIPPETS ) {
-                    addCLNameSnippets(c);
-                    addCLNameSnippets( Array.newInstance(c,0).getClass() );
-                }
-            } else {
-                out.writeCShort((short) 1); // no direct cl id, but snippet
-                String snippetString = getSnippetFromId(snippet);
-                out.writeCShort((short) snippet);
-                String written = null;
-                if ( c.getName().length() == snippetString.length() ) {
-                    written = "";
-                } else {
-                    written = c.getName().substring(snippetString.length() + 1);
-                }
-                addCLNameSnippets(c);
-                addCLNameSnippets( Array.newInstance(c,0).getClass() );
-                out.writeStringUTF(written);
-            }
+            out.writeCShort((short) 0); // no direct cl id
+            out.writeStringUTF(c.getName());
             registerClass(c, false);
         }
     }
@@ -185,44 +144,8 @@ public class FSTClazzNameRegistry {
             String clName = in.readStringUTF();
             Class cl = classForName(clName);
             registerClass(cl, true);
-            addCLNameSnippets(cl);
-            addCLNameSnippets(Array.newInstance(cl, 0).getClass());
             return conf.getCLInfoRegistry().getCLInfo(cl);
-        } else if ( c == 1 ) {
-            int snippetId = in.readCShort();
-            String snippetString = getSnippetFromId(snippetId);
-            String clName = snippetString;
-            String s = in.readStringUTF();
-            if ( clName.length() > 0 && s.length() > 0 ) {
-                clName += "."+ s;
-            }
-            Class cl = null;
-            try {
-                cl = classForName(clName);
-            } catch ( ClassNotFoundException ex ) {
-                String oldTry = clName;
-                clName = snippetString;
-                if ( clName.length() > 0 && s.length() > 0 ) {
-                    clName += "$"+ s;
-                }
-                try {
-                    cl = classForName(clName);
-                    if ( parent != null ) {
-                        while( !parent.classCacheLock.compareAndSet(false,true) );
-                        parent.classCache.put(oldTry,cl);
-                        parent.classCacheLock.set(false);
-                    }
-                    classCache.put(oldTry,cl);
-                } catch ( ClassNotFoundException ex1 ) {
-                    throw ex;
-                }
-
-            }
-            registerClass(cl, true);
-            addCLNameSnippets(cl);
-            addCLNameSnippets( Array.newInstance(cl,0).getClass() );
-            return conf.getCLInfoRegistry().getCLInfo(cl);
-        } else {
+        } else { // do first as snippets are turned off since several releases. TODO: remove snippet code and checks
             FSTClazzInfo aClass = getClazzFromId(c);
             if ( aClass == null ) {
                 throw new RuntimeException("unable to decode class from code "+c);
@@ -272,17 +195,6 @@ public class FSTClazzNameRegistry {
         classCacheLock.set(false);
     }
 
-    private String getSnippetFromId(int snippetId) {
-        String res = null;
-        if ( parent != null ) {
-            res = parent.getSnippetFromId(snippetId);
-        }
-        if ( res == null )
-            return (String) stringSnippetsReverse.get(snippetId);
-        else
-            return res;
-    }
-
     public FSTClazzInfo getClazzFromId(int c) {
         FSTClazzInfo res = null;
         if ( parent != null ) {
@@ -295,78 +207,5 @@ public class FSTClazzNameRegistry {
         }
     }
 
-    private int getStringId(String name) {
-        return addSingleSnippet(name);
-    }
-
-    void addCLNameSnippets( Class cl ) {
-        if ( visitedClasses.contains(cl) || ! ENABLE_SNIPPETS ) {
-            return;
-        }
-        visitedClasses.add(cl);
-        String pack = cl.getName();
-        int idx = 1;
-        while (idx > 0) {
-            if ( getStringSnippet(pack) != Integer.MIN_VALUE ) {
-                return;
-            }
-            addSingleSnippet(pack);
-            if ( idx < 0 ) {
-                idx = pack.lastIndexOf('$');
-                idx = pack.lastIndexOf('.');
-            }
-            if ( idx > 0 ) {
-                pack = pack.substring(0,idx);
-            } else {
-                return;
-            }
-        }
-    }
-
-    int findLongestSnippet( Class c ) {
-        String pack = c.getName();
-        int idx = 1;
-        int id = 0;
-        while (idx > 0) {
-            id = getStringSnippet(pack);
-            if ( id != Integer.MIN_VALUE ) {
-                break;
-            }
-            idx = pack.lastIndexOf('$');
-            if ( idx < 0 ) {
-                idx = pack.lastIndexOf('.');
-            }
-            if ( idx > 0 ) {
-                pack = pack.substring(0,idx);
-            }
-        }
-        if ( id == Integer.MIN_VALUE ) {
-            return 0;
-        } else {
-            return id;
-        }
-    }
-
-    private int getStringSnippet(String pack) {
-        int res = Integer.MIN_VALUE;
-        if ( parent != null ) {
-            res = parent.getStringSnippet(pack);
-        }
-        if ( res == Integer.MIN_VALUE )
-            return stringSnippets.get(pack);
-        else
-            return res;
-    }
-
-    int addSingleSnippet(String pack) {
-        int integer = getStringSnippet(pack);
-        if (integer != Integer.MIN_VALUE) {
-            return integer;
-        }
-        stringSnippets.put(pack, snippetCount);
-        stringSnippetsReverse.put(snippetCount,pack);
-        snippetCount++;
-        return snippetCount-1;
-    }
 
 }

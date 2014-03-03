@@ -1,0 +1,104 @@
+package de.ruedigermoeller.serialization;
+
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.InputStream;
+
+/**
+ * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
+ * <p/>
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * <p/>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * <p/>
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ * <p/>
+ * Date: 03.03.14
+ * Time: 20:07
+ * To change this template use File | Settings | File Templates.
+ */
+public class FSTObjectInputNoShared extends FSTObjectInput {
+
+    public FSTObjectInputNoShared() throws IOException {
+    }
+
+    public FSTObjectInputNoShared(FSTConfiguration conf) {
+        super(conf);
+    }
+
+    /**
+     * Creates a FSTObjectInput that uses the specified
+     * underlying InputStream.
+     *
+     * @param in the specified input stream
+     */
+    public FSTObjectInputNoShared(InputStream in) throws IOException {
+        super(in);
+    }
+
+    /**
+     * Creates a FSTObjectInput that uses the specified
+     * underlying InputStream.
+     * <p/>
+     * Don't create a FSTConfiguration with each stream, just create one global static configuration and reuseit.
+     * FSTConfiguration is threadsafe.
+     *
+     * @param in   the specified input stream
+     * @param conf
+     */
+    public FSTObjectInputNoShared(InputStream in, FSTConfiguration conf) {
+        super(in, conf);
+    }
+
+    public void registerObject(Object o, int streamPosition, FSTClazzInfo info, FSTClazzInfo.FSTFieldInfo referencee) {
+        return;
+    }
+
+    public void resetForReuse(InputStream in) throws IOException {
+        if ( closed ) {
+            throw new RuntimeException("can't reuse closed stream");
+        }
+        input.reset();
+        input.initFromStream(in);
+        clnames.clear();
+    }
+
+    public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
+        if ( closed ) {
+            throw new RuntimeException("can't reuse closed stream");
+        }
+        input.reset();
+        clnames.clear();
+        input.ensureCapacity(len);
+        input.count = len;
+        System.arraycopy(bytes, off, input.buf, 0, len);
+    }
+
+    private Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        Object newObj;
+        newObj = clzSerInfo.newInstance();
+        if (newObj == null) {
+            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
+        }
+        if ( clzSerInfo.isExternalizable() )
+        {
+            ensureReadAhead(readExternalReadAHead);
+            ((Externalizable)newObj).readExternal(this);
+        } else {
+            FSTClazzInfo.FSTFieldInfo[] fieldInfo = clzSerInfo.getFieldInfo();
+            readObjectFields(referencee, clzSerInfo, fieldInfo, newObj);
+        }
+        return newObj;
+    }
+
+
+}

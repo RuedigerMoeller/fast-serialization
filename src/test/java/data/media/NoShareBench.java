@@ -1,9 +1,6 @@
 package data.media;
 
-import de.ruedigermoeller.serialization.FSTConfiguration;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.FSTObjectOutputNoShared;
+import de.ruedigermoeller.serialization.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,7 +22,7 @@ public class NoShareBench {
 
 //        FSTObjectOutput out = new FSTObjectOutput(conf);
         FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
-        FSTObjectInput in = new FSTObjectInput(conf);
+        FSTObjectInput in = new FSTObjectInputNoShared(conf);
 
         final int iters = 100000;
         bench(medpa, out, in, iters);

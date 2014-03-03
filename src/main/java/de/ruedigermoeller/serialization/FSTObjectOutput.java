@@ -251,7 +251,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
                     clnames.registerClass(possible);
-                    clnames.addCLNameSnippets(possible);
                 }
             }
             writeObjectInternal(obj, possibles);
@@ -318,11 +317,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             }
             final Class clazz = toWrite.getClass();
             if ( clazz == String.class ) {
-                if (dontShare) {
-                    writeFByte(STRING);
-                    writeStringUTFDef((String) toWrite);
-                    return;
-                }
                 String[] oneOf = referencee.getOneOf();
                 if ( oneOf != null ) {
                     for (int i = 0; i < oneOf.length; i++) {
@@ -333,6 +327,11 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                             return;
                         }
                     }
+                }
+                if (dontShare) {
+                    writeFByte(STRING);
+                    writeStringUTFDef((String) toWrite);
+                    return;
                 }
             } else if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
             } else if ( clazz == Long.class ) { writeFByte(BIG_LONG); writeCLong(((Long) toWrite).longValue()); return;

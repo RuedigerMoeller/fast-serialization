@@ -97,9 +97,11 @@ public final class FSTClazzInfo {
             if (Externalizable.class.isAssignableFrom(clazz)) {
                 externalizable = true;
                 cons = FSTUtil.findConstructorForExternalize(clazz);
-            } else {
+            } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class ) {
                 externalizable = false;
                 cons = FSTUtil.findConstructorForSerializable(clazz);
+            } else {
+                throw new RuntimeException("Class "+clazz.getName()+" does not implement Serializable or externalizable");
             }
             if ( ! ignoreAnnotations ) {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
@@ -164,7 +166,7 @@ public final class FSTClazzInfo {
 
     public final Object newInstance() {
         try {
-            if ( FSTUtil.unFlaggedUnsafe != null ) {
+            if ( FSTUtil.unFlaggedUnsafe != null ) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
             return cons.newInstance();
