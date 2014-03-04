@@ -737,10 +737,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             writeClass(clsInfo);
             return;
         }
-        //fixme:move to Clazzinfo
-//        if ( toWrite instanceof Serializable == false && ! conf.isIgnoreSerialInterfaces() ) {
-//            throw new RuntimeException(toWrite.getClass().getName()+" is not serializable. referenced by "+referencee.getDesc());
-//        }
         if ( toWrite.getClass() == referencee.getType()
             && ! clsInfo.useCompatibleMode() )
         {
