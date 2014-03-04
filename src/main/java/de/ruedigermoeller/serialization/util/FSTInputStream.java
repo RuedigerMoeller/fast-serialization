@@ -54,7 +54,7 @@ public final class FSTInputStream extends InputStream {
             }
             int read = in.read(buf);
             count+=read;
-            while( read != -1 ) {
+            while( read != -1 && read == chunk_size ) {
                 if ( buf.length < count+chunk_size ) {
                     ensureCapacity(buf.length*2);
                 }
