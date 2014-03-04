@@ -31,7 +31,7 @@ for newest version
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.37</version>
+    <version>1.39</version>
 </dependency>
 ```
 
