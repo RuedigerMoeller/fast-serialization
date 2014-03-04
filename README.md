@@ -5,7 +5,7 @@ fast-serialization
 this project was hosted in googlecode, documentation is still not fully moved. (see http://fast-serialization.googlecode.com)
 
   * **Fast Serialization** reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. 
-  * **FSTStructs** implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software. Other applications are data exchange with other languages, reduction of FullGC by 'flattening' complex Objects, fast offheap, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. 
+  * **FSTStructs** implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software, huge (>32GB) of static offheap data, data exchange with other languages, reduction of FullGC by 'flattening' or offheaping complex object graphs, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. 
 
 #### features:
 
