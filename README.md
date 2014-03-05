@@ -10,7 +10,7 @@ this project was hosted in googlecode, documentation is still not fully moved. (
 #### features:
 
   * Faster serialization and smaller object size. 
-  * **drop-in replacement**. Does not require special getters/setters/Constructors/Interfaces to serialize a class. Extends Outputstream, implements {{{ObjectInput/ObjectOutput}}}. Few code changes required.
+  * **drop-in replacement**. Does not require special getters/setters/Constructors/Interfaces to serialize a class. Extends Outputstream, implements `ObjectInput/ObjectOutput`. Few code changes required.
   * Full support of JDK-serialization features such as Externalizable writeObject/readObject/readReplace/validation/putField/getField, hooks etc.. If an object is serializable with JDK, it should be serializable with FST without any further work.
   * preserves links inside the serialized object graph same as JDK default serialization
   * custom optimization using *annotations*, custom serializers
@@ -53,7 +53,7 @@ Also see this [blog post](http://java-is-the-new-c.blogspot.de/2013/10/still-usi
 
 #### Benchmark
 
-I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of {{{ByteArrayStreams}}} etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).
+I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of `ByteArrayStreams` etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).
 
 [current results](https://github.com/RuedigerMoeller/fast-serialization/wiki/Benchmark)
 <br><br>
@@ -79,7 +79,7 @@ I measure different typical use cases (both classes with lots of native data and
 *V 1.35* (02-Jan-2014)
 
  Serialization: 
- * Fix: Serializing {{{LinkedHashMap}}} caused NPE
+ * Fix: Serializing LinkedHashMap caused NPE
  * Fix: Reading Enumeration with elements consisting of anonymous classes failed
  * Fix: cached byte array size capped at 10MB to avoid OOM when serializing > 100MB object graph at once
 
