@@ -219,3 +219,4 @@ target/
 .idea/
 .gradle/
 *.iml
+*.bin
