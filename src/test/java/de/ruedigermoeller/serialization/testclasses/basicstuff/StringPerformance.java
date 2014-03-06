@@ -27,7 +27,15 @@ import java.io.Serializable;
  * To change this template use File | Settings | File Templates.
  */
 public class StringPerformance implements Serializable, HasDescription {
-    String str[] =
+
+    public StringPerformance() {
+    }
+
+    String str[];
+
+    //avoid instance initalizing - actually had no effect on test results ..
+    public StringPerformance(int dummy) {
+        str = new String[]
             {
                     " License along with this library; if not, write to the Free Software\n" +
                             " * Foundation, Inc., 51 Fradddddnklin Street, Fifth Floor, Boston,\n" +
@@ -243,6 +251,7 @@ public class StringPerformance implements Serializable, HasDescription {
                             "\"All druid rituals have an element of fertility, and the solstice is no exception,\" says King Arthur Pendragon, a senior archdruid. \"We celebrate the union of the male and female deities -- the sun and the Earth -- on the longest day of the year.\""
 
             };
+    }
 
     @Override
     public String getDescription() {

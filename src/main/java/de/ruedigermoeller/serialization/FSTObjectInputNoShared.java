@@ -33,6 +33,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
 
     public FSTObjectInputNoShared(FSTConfiguration conf) {
         super(conf);
+        conf.setShareReferences(false);
     }
 
     /**

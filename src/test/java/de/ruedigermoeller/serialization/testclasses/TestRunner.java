@@ -164,19 +164,19 @@ public class TestRunner {
 
         SerTest.WarmUP = 20000; SerTest.Run = SerTest.WarmUP*1+1;
 //        SerTest.WarmUP = 2000; SerTest.Run = 3000;
-        runner.runAll(FrequentPrimitives.getArray(200));
-        runner.runAll(FrequentPrimitivesExternalizable.getArray(200));
-        runner.runAll(new FrequentCollections());
-        runner.runAll(new LargeNativeArrays());
-        runner.runAll(new StringPerformance());
-        runner.runAll(new Primitives(0).createPrimArray());
-        runner.runAll(new PrimitiveArrays().createPrimArray());
-        runner.runAll(new CommonCollections());
-        runner.runAll(Trader.generateTrader(101, true));
-        runner.runAll(ManyClasses.getArray() );
-        runner.runAll(new ExternalizableTest());
-        runner.runAll(new BigObject());
-        runner.runAll(HeavyNesting.createNestedObject(1000));
+//        runner.runAll(FrequentPrimitives.getArray(200));
+//        runner.runAll(FrequentPrimitivesExternalizable.getArray(200));
+//        runner.runAll(new FrequentCollections());
+//        runner.runAll(new LargeNativeArrays());
+        runner.runAll(new StringPerformance(0));
+//        runner.runAll(new Primitives(0).createPrimArray());
+//        runner.runAll(new PrimitiveArrays().createPrimArray());
+//        runner.runAll(new CommonCollections());
+//        runner.runAll(Trader.generateTrader(101, true));
+//        runner.runAll(ManyClasses.getArray() );
+//        runner.runAll(new ExternalizableTest());
+//        runner.runAll(new BigObject("dummy"));
+//        runner.runAll(HeavyNesting.createNestedObject(1000));
         runner.charter.closeDoc();
         FSTTestApp.main(new String[0]);
     }

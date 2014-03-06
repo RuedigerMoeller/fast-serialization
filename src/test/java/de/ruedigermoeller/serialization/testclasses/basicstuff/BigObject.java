@@ -31,7 +31,7 @@ import java.io.Serializable;
  */
 public class BigObject implements Serializable, HasDescription {
 //        runner.runAll(FrequentPrimitives.getArray(200));
-//        runner.runAll(new StringPerformance());
+//        runner.runAll(new StringPerformance(0));
 //        runner.runAll(new FrequentCollections());
 //        runner.runAll(new LargeNativeArrays());
 //        runner.runAll("new Primitives(0).createPrimArray() jva ser bug");
@@ -41,12 +41,19 @@ public class BigObject implements Serializable, HasDescription {
 //        runner.runAll(ManyClasses.getArray() );
 //        runner.runAll(new ExternalizableTest());
 
-    Object[] aLot = {
+    Object[] aLot;
+
+    public BigObject() {
+    }
+
+    // move init to constructor to avoid skewing results
+    public BigObject(String dummy) {
+        aLot = new Object[] {
             FrequentPrimitives.getArray(10),
             "A",
             "B",
             "C",
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -55,7 +62,7 @@ public class BigObject implements Serializable, HasDescription {
             new ManyClasses(123),
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             null,
             new FrequentCollections(),
             new CommonCollections(),
@@ -69,7 +76,7 @@ public class BigObject implements Serializable, HasDescription {
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
             null,
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -78,7 +85,7 @@ public class BigObject implements Serializable, HasDescription {
             new ManyClasses(123),
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             null,
             new FrequentCollections(),
             new CommonCollections(),
@@ -92,7 +99,7 @@ public class BigObject implements Serializable, HasDescription {
             new ExternalizableTest(),
             null,
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -105,7 +112,7 @@ public class BigObject implements Serializable, HasDescription {
             "C",
             FrequentPrimitives.getArray(10),
             null,
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -115,7 +122,7 @@ public class BigObject implements Serializable, HasDescription {
             new ManyClasses(123),
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -124,7 +131,7 @@ public class BigObject implements Serializable, HasDescription {
             new ManyClasses(123),
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             null,
             new FrequentCollections(),
             new CommonCollections(),
@@ -135,7 +142,7 @@ public class BigObject implements Serializable, HasDescription {
             null,
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -146,7 +153,7 @@ public class BigObject implements Serializable, HasDescription {
             new ExternalizableTest(),
             null,
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -160,7 +167,7 @@ public class BigObject implements Serializable, HasDescription {
             new ExternalizableTest(),
             null,
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -172,7 +179,7 @@ public class BigObject implements Serializable, HasDescription {
             null,
             FrequentPrimitives.getArray(10),
             null,            null,
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -190,7 +197,7 @@ public class BigObject implements Serializable, HasDescription {
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
             null,
-            new StringPerformance(),
+            new StringPerformance(0),
             new FrequentCollections(),
             new CommonCollections(),
             "new Primitives(0).createPrimArray() jva ser bug",
@@ -200,7 +207,7 @@ public class BigObject implements Serializable, HasDescription {
             new ManyClasses(123),
             new ExternalizableTest(),
             FrequentPrimitives.getArray(10),
-            new StringPerformance(),
+            new StringPerformance(0),
             "AA",
             "BA",
             "CA",
@@ -212,9 +219,8 @@ public class BigObject implements Serializable, HasDescription {
             Trader.generateTrader(13, true),
             new ManyClasses(123),
             new ExternalizableTest(),
-    };
+        };
 
-    {
         for (int i = 0; i < aLot.length; i++) {
             Object o = aLot[i];
             if ( o == null )
