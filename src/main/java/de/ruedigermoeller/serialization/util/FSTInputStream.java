@@ -47,17 +47,6 @@ public final class FSTInputStream extends InputStream {
     public void initFromStream(InputStream in) {
         try {
             this.in = in;
-            if ( in instanceof ByteArrayInputStream ) {
-                int available = in.available();
-                buf = cachedBuffer.get();
-                if ( buf == null || buf.length < available) {
-                    buf = new byte[available];
-                    cachedBuffer.set(buf);
-                }
-                in.read(buf,0,available);
-                count = available;
-                return;
-            }
             if (buf==null) {
                 buf = cachedBuffer.get();
                 if ( buf == null ) {

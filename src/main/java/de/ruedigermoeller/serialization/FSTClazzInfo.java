@@ -444,7 +444,7 @@ public final class FSTClazzInfo {
                         try {
                             memOffset = (int)FSTUtil.unFlaggedUnsafe.objectFieldOffset(fi);
                         } catch ( Throwable th ) {
-                            throw FSTUtil.rethrow(th);
+                            //throw FSTUtil.rethrow(th);
                         }
                     }
                 }
