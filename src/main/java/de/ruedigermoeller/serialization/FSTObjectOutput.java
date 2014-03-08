@@ -340,7 +340,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 writeFByte(ARRAY);
                 writeArray(referencee, toWrite);
                 return;
-            } else if ( toWrite instanceof Enum ) {
+            } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
                 writeFByte(ENUM);
                 boolean isEnumClass = toWrite.getClass().isEnum();
                 if ( ! isEnumClass ) {
@@ -572,7 +572,13 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             int boolcount = 0;
             final int length = fieldInfo.length;
             int j = 0;
-            for (; j < length; j++) {
+            for (;; j++) {
+                if ( j == length ) {
+                    if ( boolcount > 0 ) {
+                        writeFByteUnsafe(booleanMask<<(8-boolcount));
+                    }
+                    break;
+                }
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
                 if ( subInfo.getType() != boolean.class ) {
                     if ( boolcount > 0 ) {
@@ -738,7 +744,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             return;
         }
         if ( toWrite.getClass() == referencee.getType()
-            && ! clsInfo.useCompatibleMode() )
+                && ! clsInfo.useCompatibleMode() )
         {
             writeFByte(TYPED);
         } else {
@@ -869,8 +875,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         if ( unsafe != null && UNSAFE_MEMCOPY_ARRAY_LONG) {
             writeFLongArrayUnsafe(arr);
         } else {
-        for ( int i = 0; i < arr.length; i++ )
-            writeFLong(arr[i]);
+            for ( int i = 0; i < arr.length; i++ )
+                writeFLong(arr[i]);
         }
     }
 

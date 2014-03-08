@@ -121,7 +121,8 @@ public final class FSTConfiguration {
         reg.putSerializer(StringBuffer.class, new FSTStringBufferSerializer(), true);
         reg.putSerializer(StringBuilder.class, new FSTStringBuilderSerializer(), true);
         reg.putSerializer(EnumSet.class, new FSTEnumSetSerializer(), true);
-        reg.putSerializer(ArrayList.class, new FSTCollectionSerializer(), false); // subclass should register manually
+        reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false); // subclass should register manually
+//        reg.putSerializer(ArrayList.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false); // EXCEPTION !!! subclass should register manually
         reg.putSerializer(LinkedList.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashSet.class, new FSTCollectionSerializer(), false); // subclass should register manually

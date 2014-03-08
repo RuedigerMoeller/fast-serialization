@@ -107,12 +107,12 @@ public final class FSTClazzInfo {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
                 if (annotation != null) {
                     predict = annotation.value();
-                } else { //default predictions
-                    if ( clazz == List.class ) {
-                        predict = new Class[]{ArrayList.class};
-                    } else if ( clazz == Map.class ) {
-                        predict = new Class[]{HashMap.class};
-                    }
+                } else { //default predictions (disabled, no speedup)
+//                    if ( clazz == List.class ) {
+//                        predict = new Class[]{ArrayList.class};
+//                    } else if ( clazz == Map.class ) {
+//                        predict = new Class[]{HashMap.class};
+//                    }
                 }
                 equalIsIdentity = clazz.isAnnotationPresent(EqualnessIsIdentity.class);
                 equalIsBinary = clazz.isAnnotationPresent(EqualnessIsBinary.class);

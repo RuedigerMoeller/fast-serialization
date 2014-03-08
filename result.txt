@@ -1,35 +1,68 @@
 intel i7 3770K 3,4 ghz, 4 core, 8 threads
 1.7.0_45-b18,Java HotSpot(TM) 64-Bit Server VM,Windows 8
 
-=============================
-Test Class: StringPerformance
-=============================
-measures serialization of mid size to very long Strings
+================================
+Test Class: FrequentPrimitives[]
+================================
+A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.
 
 Read Time (micros)
 
-==== - FST (preferSpeed=true, Unsafe enabled) (13)
-======== - FST (Unsafe enabled) (26)
-==================================================== - Kryo 2.23 UnsafeIn/Output (157)
-========= - FST  (28)
-==================================================== - Kryo 2.23 (157)
-====================== - Java built in (68)
+========================= - FST (preferSpeed=true, Unsafe enabled) (75)
+========================== - FST (Unsafe enabled) (78)
+============================= - Kryo 2.23 UnsafeIn/Output (87)
+============================= - FST  (89)
+=================================== - Kryo 2.23 (107)
+=================================================== - Java built in (154)
 
 Write Time (micros)
 
-= - FST (preferSpeed=true, Unsafe enabled) (4)
-====== - FST (Unsafe enabled) (20)
-====================================== - Kryo 2.23 UnsafeIn/Output (116)
-====== - FST  (18)
-====================================== - Kryo 2.23 (114)
-=========================== - Java built in (83)
+===================== - FST (preferSpeed=true, Unsafe enabled) (64)
+========================== - FST (Unsafe enabled) (78)
+======================== - Kryo 2.23 UnsafeIn/Output (72)
+========================== - FST  (79)
+================================= - Kryo 2.23 (101)
+================================================= - Java built in (149)
 
 Size (byte)
 
-================================================== - FST (preferSpeed=true, Unsafe enabled) (29806)
-================================= - FST (Unsafe enabled) (20020)
-====================================================================== - Kryo 2.23 UnsafeIn/Output (42043)
-================================= - FST  (20020)
-====================================================================== - Kryo 2.23 (42043)
-============================== - Java built in (17931)
+=========================================== - FST (preferSpeed=true, Unsafe enabled) (21917)
+============================ - FST (Unsafe enabled) (14260)
+================================ - Kryo 2.23 UnsafeIn/Output (16059)
+============================ - FST  (14260)
+========================== - Kryo 2.23 (13259)
+=================================== - Java built in (17683)
+
+
+==============================================
+Test Class: FrequentPrimitivesExternalizable[]
+==============================================
+A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double. But implementing Externalizable
+
+Read Time (micros)
+
+======================== - FST (preferSpeed=true, Unsafe enabled) (72)
+======================== - FST (Unsafe enabled) (73)
+============================= - Kryo 2.23 UnsafeIn/Output (89)
+======================== - FST  (73)
+=================================== - Kryo 2.23 (106)
+======================================== - Java built in (120)
+
+Write Time (micros)
+
+======================== - FST (preferSpeed=true, Unsafe enabled) (74)
+======================== - FST (Unsafe enabled) (72)
+============================= - Kryo 2.23 UnsafeIn/Output (87)
+======================= - FST  (71)
+================================= - Kryo 2.23 (101)
+============================== - Java built in (90)
+
+Size (byte)
+
+================================ - FST (preferSpeed=true, Unsafe enabled) (16365)
+================================ - FST (Unsafe enabled) (16274)
+================================ - Kryo 2.23 UnsafeIn/Output (16073)
+================================ - FST  (16274)
+========================== - Kryo 2.23 (13273)
+=================================== - Java built in (17795)
 

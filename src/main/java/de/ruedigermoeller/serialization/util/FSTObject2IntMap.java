@@ -40,7 +40,7 @@ public class FSTObject2IntMap<K>
     };
     private static final int GROFAC = 2;
 
-    static int adjustSize(int size) {
+    public static int adjustSize(int size) {
         for (int i = 0; i < prim.length-1; i++) {
             if ( size < prim[i] ) {
                 return prim[i];

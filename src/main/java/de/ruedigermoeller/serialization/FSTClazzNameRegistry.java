@@ -39,24 +39,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    FSTObject2IntMap<Class> clzToId = new FSTObject2IntMap<Class>(13,false);
-    FSTInt2ObjectMap idToClz = new FSTInt2ObjectMap(13);
-    int classIdCount = 3;
-    int lastCatch;
+    FSTObject2IntMap<Class> clzToId;
+    FSTInt2ObjectMap idToClz;
     FSTClazzNameRegistry parent;
+    FSTConfiguration conf;
+    int classIdCount = 3;
 
-    private FSTConfiguration conf;
 
     public FSTClazzNameRegistry(FSTClazzNameRegistry par, FSTConfiguration conf) {
         parent = par;
         this.conf = conf;
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;
+            clzToId = new FSTObject2IntMap<Class>(13,false);
+            idToClz = new FSTInt2ObjectMap(13);
+        } else {
+            clzToId = new FSTObject2IntMap<Class>(FSTObject2IntMap.adjustSize(200),false);
+            idToClz = new FSTInt2ObjectMap(FSTObject2IntMap.adjustSize(200));
         }
     }
 
     public void clear() {
-        lastCatch = 0;
         clzToId.clear();
         idToClz.clear();
         classIdCount = 3;
@@ -122,13 +125,8 @@ public class FSTClazzNameRegistry {
     }
 
     public void encodeClass(FSTObjectOutput out, Class c) throws IOException {
-//        if ( lastCatch != 0 && lastClazz == c ) {
-//            out.writeCShort((short) lastCatch);
-//            return;
-//        }
         int clid = getIdFromClazz(c);
         if ( clid != Integer.MIN_VALUE ) {
-//            lastCatch = clid; lastClazz = c;
             out.writeCShort((short) clid); // > 2 !!
         } else {
             out.writeCShort((short) 0); // no direct cl id
@@ -145,7 +143,7 @@ public class FSTClazzNameRegistry {
             Class cl = classForName(clName);
             registerClass(cl, true);
             return conf.getCLInfoRegistry().getCLInfo(cl);
-        } else { // do first as snippets are turned off since several releases. TODO: remove snippet code and checks
+        } else {
             FSTClazzInfo aClass = getClazzFromId(c);
             if ( aClass == null ) {
                 throw new RuntimeException("unable to decode class from code "+c);

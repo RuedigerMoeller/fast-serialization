@@ -135,7 +135,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             writeFByte(ARRAY);
             writeArray(referencee, toWrite);
             return;
-        } else if ( toWrite instanceof Enum ) {
+        } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
             writeFByte(ENUM);
             Class c = toWrite.getClass();
             boolean isEnumClass = c.isEnum();

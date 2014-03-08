@@ -1,11 +1,15 @@
 package data.media;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import de.ruedigermoeller.serialization.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
 /**
  * Created by ruedi on 03.03.14.
@@ -18,16 +22,48 @@ public class NoShareBench {
 
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.setShareReferences(false);
-        conf.registerClass(Image.class,Media.class,MediaContent.class,Image.Size.class,Media.Player.class);
+        final Class[] classes = {Image.class, Media.class, MediaContent.class, Image.Size.class, Media.Player.class};
+        conf.registerClass(classes);
 
 //        FSTObjectOutput out = new FSTObjectOutput(conf);
         FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
         FSTObjectInput in = new FSTObjectInputNoShared(conf);
 
+        Kryo kry = new Kryo();
+        kry.setReferences(false);
+        kry.setRegistrationRequired(true);
+        for (int i = 0; i < classes.length; i++) {
+            Class aClass = classes[i];
+            kry.register(aClass);
+        }
+        kry.register(ArrayList.class);
+        Input kin = new Input(new byte[2000]);
+        Output kout = new Output();
+
         final int iters = 100000;
-        bench(medpa, out, in, iters);
-        while (true)
+        while (true) {
             bench(medpa, out, in, iters*10);
+            benchK(medpa,kry,kout,kin,iters*10);
+        }
+    }
+
+    static byte buf[] = new byte[2000];
+
+    private static void benchK(Object medpa, Kryo k, Output out, Input in, int iters) throws IOException, ClassNotFoundException {
+        long rt = 0; long wt=0;
+        for ( int i = 0; i < iters; i++) {
+            long tim = System.nanoTime();
+            out.setBuffer(buf);
+            k.writeClassAndObject(out, medpa);
+            final byte[] buf = out.toBytes();
+            wt+=System.nanoTime()-tim;
+
+            tim =System.nanoTime();
+            in.setBuffer(buf);
+            final Object read = k.readClassAndObject(in);
+            rt += System.nanoTime()-tim;
+        }
+        System.out.println("k wt:"+(wt/iters)+" rt:"+(rt/iters));
     }
 
     private static void bench(Object medpa, FSTObjectOutput out, FSTObjectInput in, int iters) throws IOException, ClassNotFoundException {
@@ -44,6 +80,6 @@ public class NoShareBench {
             final Object read = in.readObject();
             rt += System.nanoTime()-tim;
         }
-        System.out.println("wt:"+(wt/iters)+" rt:"+(rt/iters));
+        System.out.println("f wt:"+(wt/iters)+" rt:"+(rt/iters));
     }
 }

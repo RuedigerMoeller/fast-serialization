@@ -692,37 +692,32 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                         boolcount++;
                         subInfo.setBooleanValue(newObj, val);
                     } else {
+                        int integralType = subInfo.getIntegralType();
                         if (preferSpeed) {
-                            if (subInfTzpe == int.class) {
-                                subInfo.setIntValue(newObj, readFInt());
-                            } else if (subInfTzpe == long.class) {
-                                subInfo.setLongValue(newObj, readFLong());
-                            } else if (subInfTzpe == byte.class) {
-                                subInfo.setByteValue(newObj, readFByte());
-                            } else if (subInfTzpe == char.class) {
-                                subInfo.setCharValue(newObj, readFChar());
-                            } else if (subInfTzpe == short.class) {
-                                subInfo.setShortValue(newObj, readFShort());
-                            } else if (subInfTzpe == double.class) {
-                                subInfo.setDoubleValue(newObj, readFDouble());
-                            } else if (subInfTzpe == float.class) {
-                                subInfo.setFloatValue(newObj, readFFloat());
+                            switch (integralType) { // fixme: change also unsafee variant
+                                case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, readFByte()); break;
+                                case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, readFChar()); break;
+                                case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, readFShort()); break;
+                                case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readFInt()); break;
+                                case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readFLong()); break;
+                                case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, readFFloat()); break;
+                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, readFDouble()); break;
                             }
                         } else {
-                            if (subInfTzpe == int.class) {
+                            if (integralType==FSTClazzInfo.FSTFieldInfo.INT) {
                                 subInfo.setIntValue(newObj, readCInt());
-                            } else if (subInfTzpe == long.class) {
+                            } else if ( integralType == FSTClazzInfo.FSTFieldInfo.LONG ) {
                                 subInfo.setLongValue(newObj, readCLong());
-                            } else if (subInfTzpe == byte.class) {
-                                subInfo.setByteValue(newObj, readFByte());
-                            } else if (subInfTzpe == char.class) {
-                                subInfo.setCharValue(newObj, readCChar());
-                            } else if (subInfTzpe == short.class) {
-                                subInfo.setShortValue(newObj, readCShort());
-                            } else if (subInfTzpe == double.class) {
-                                subInfo.setDoubleValue(newObj, readCDouble());
-                            } else if (subInfTzpe == float.class) {
-                                subInfo.setFloatValue(newObj, readCFloat());
+                            } else {
+                                switch (integralType) {
+                                    case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, readFByte()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, readCChar()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, readCShort()); break;
+//                                    case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readCInt()); break;
+//                                    case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readCLong()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, readCFloat()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, readCDouble()); break;
+                                }
                             }
                         }
                     }
@@ -952,68 +947,68 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
      */
     public Object readFPrimitiveArray( Class componentType, int len ) {
         try {
-        Object array = Array.newInstance(componentType, len);
-        if (componentType == byte.class) {
-            byte[] arr = (byte[]) array;
-            ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
-            read(arr);
-            return arr;
-        } else if (componentType == char.class) {
-            char[] arr = (char[]) array;
-            for (int j = 0; j < len; j++) {
-                arr[j] = readCChar();
-            }
-            return arr;
-        } else if (componentType == short.class) {
-            short[] arr = (short[]) array;
-            ensureReadAhead(arr.length*2);
-            for (int j = 0; j < len; j++) {
-                arr[j] = readFShort();
-            }
-            return arr;
-        } else if (componentType == int.class) {
-            final int[] arr = (int[]) array;
-            if ( FSTUtil.unsafe != null && UNSAFE_COPY_ARRAY_INT) {
-                readPlainIntArrUnsafe(arr);
-            } else {
-                readFIntArr(len, arr);
-            }
-            return arr;
-        } else if (componentType == float.class) {
-            float[] arr = (float[]) array;
-            ensureReadAhead(arr.length*4);
-            for (int j = 0; j < len; j++) {
-                arr[j] = readFFloat();
-            }
-            return arr;
-        } else if (componentType == double.class) {
-            double[] arr = (double[]) array;
-            ensureReadAhead(arr.length*8);
-            for (int j = 0; j < len; j++) {
-                arr[j] = readFDouble();
-            }
-            return arr;
-        } else if (componentType == long.class) {
-            long[] arr = (long[]) array;
-            ensureReadAhead(arr.length*8);
-            if ( FSTUtil.unsafe != null && UNSAFE_COPY_ARRAY_LONG) {
-                readLongArrUnsafe(arr);
-            } else {
+            Object array = Array.newInstance(componentType, len);
+            if (componentType == byte.class) {
+                byte[] arr = (byte[]) array;
+                ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
+                read(arr);
+                return arr;
+            } else if (componentType == char.class) {
+                char[] arr = (char[]) array;
                 for (int j = 0; j < len; j++) {
-                    arr[j] = readFLong();
+                    arr[j] = readCChar();
                 }
+                return arr;
+            } else if (componentType == short.class) {
+                short[] arr = (short[]) array;
+                ensureReadAhead(arr.length*2);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFShort();
+                }
+                return arr;
+            } else if (componentType == int.class) {
+                final int[] arr = (int[]) array;
+                if ( FSTUtil.unsafe != null && UNSAFE_COPY_ARRAY_INT) {
+                    readPlainIntArrUnsafe(arr);
+                } else {
+                    readFIntArr(len, arr);
+                }
+                return arr;
+            } else if (componentType == float.class) {
+                float[] arr = (float[]) array;
+                ensureReadAhead(arr.length*4);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFFloat();
+                }
+                return arr;
+            } else if (componentType == double.class) {
+                double[] arr = (double[]) array;
+                ensureReadAhead(arr.length*8);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFDouble();
+                }
+                return arr;
+            } else if (componentType == long.class) {
+                long[] arr = (long[]) array;
+                ensureReadAhead(arr.length*8);
+                if ( FSTUtil.unsafe != null && UNSAFE_COPY_ARRAY_LONG) {
+                    readLongArrUnsafe(arr);
+                } else {
+                    for (int j = 0; j < len; j++) {
+                        arr[j] = readFLong();
+                    }
+                }
+                return arr;
+            } else if (componentType == boolean.class) {
+                boolean[] arr = (boolean[]) array;
+                ensureReadAhead(arr.length);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readBoolean();
+                }
+                return arr;
+            } else {
+                throw new RuntimeException("unexpected primitive type " + componentType);
             }
-            return arr;
-        } else if (componentType == boolean.class) {
-            boolean[] arr = (boolean[]) array;
-            ensureReadAhead(arr.length);
-            for (int j = 0; j < len; j++) {
-                arr[j] = readBoolean();
-            }
-            return arr;
-        } else {
-            throw new RuntimeException("unexpected primitive type " + componentType);
-        }
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -1057,7 +1052,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                         } else {
                             readFIntArr(len, arr);
                         }
-                }
+                    }
                 } else if (arrType == float.class) {
                     float[] arr = (float[]) array;
                     ensureReadAhead(arr.length*4);
