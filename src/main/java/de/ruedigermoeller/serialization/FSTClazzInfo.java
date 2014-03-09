@@ -79,6 +79,7 @@ public final class FSTClazzInfo {
     boolean flat; // never share instances of this class
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
+    
     Class clazz;
     Object[] enumConstants;
     Constructor cons;
@@ -107,7 +108,8 @@ public final class FSTClazzInfo {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
                 if (annotation != null) {
                     predict = annotation.value();
-                } else { //default predictions (disabled, no speedup)
+                } else { 
+                      //default predictions (disabled, no speedup)
 //                    if ( clazz == List.class ) {
 //                        predict = new Class[]{ArrayList.class};
 //                    } else if ( clazz == Map.class ) {
@@ -123,6 +125,7 @@ public final class FSTClazzInfo {
         if (cons != null) {
             cons.setAccessible(true);
         }
+
     }
 
     public int getClzId() {

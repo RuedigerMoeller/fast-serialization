@@ -26,7 +26,11 @@ import java.io.Serializable;
  * <p/>
  * Date: 02.03.14
  * Time: 13:20
- * To change this template use File | Settings | File Templates.
+ */
+/**
+ * Subclass optimized for "unshared mode". Cycles and Objects referenced more than once will not be detected.
+ * Additionally JDK compatibility is not supported (read/writeObject and stuff). Use case is highperformance
+ * serialization of plain cycle free data (e.g. messaging). Can perform significantly faster (20-40%).
  */
 public class FSTObjectOutputNoShared extends FSTObjectOutput {
 

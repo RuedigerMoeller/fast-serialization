@@ -34,6 +34,10 @@ import java.util.*;
  * Time: 12:26
  * To change this template use File | Settings | File Templates.
  */
+
+/**
+ * replacement of ObjectOutputStream
+ */
 public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
 
@@ -95,7 +99,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
     protected FSTObjectRegistry objects;
     protected FSTOutputStream buffout;
-    protected FSTSerialisationListener listener;
 
     protected int curDepth = 0;
 
@@ -288,27 +291,27 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         curDepth--;
     }
 
-    public FSTSerialisationListener getListener() {
-        return listener;
-    }
+    /**
+     * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
+     * @param obj
+     * @param streamPosition
+     */
+    protected void objectWillBeWritten( Object obj, int streamPosition ) {}
 
     /**
-     * note this might slowdown serialization significatly
-     * @param listener
+     * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
+     * @param obj
+     * @param oldStreamPosition
+     * @param streamPosition
      */
-    public void setListener(FSTSerialisationListener listener) {
-        this.listener = listener;
-    }
-
+    protected void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {}
+    
     int tmp[] = {0};
     // splitting this slows down ...
     protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
-        int startPosition = 0;
+        int startPosition = getWritten();
         boolean dontShare = objects.disabled;
-        if (listener != null) {
-            startPosition = getWritten();
-            listener.objectWillBeWritten(toWrite,startPosition);
-        }
+        objectWillBeWritten(toWrite,startPosition);
 
         try {
             if ( toWrite == null ) {
@@ -413,8 +416,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
             }
         } finally {
-            if ( listener != null )
-                listener.objectHasBeenWritten(toWrite,startPosition,getWritten());
+            objectHasBeenWritten(toWrite,startPosition,getWritten());
         }
     }
 
@@ -491,7 +493,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     break;
                 }
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                if ( subInfo.getType() != boolean.class ) {
+                if ( subInfo.getIntegralType() != subInfo.BOOL ) {
                     if ( boolcount > 0 ) {
                         writeFByte(booleanMask<<(8-boolcount));
                     }

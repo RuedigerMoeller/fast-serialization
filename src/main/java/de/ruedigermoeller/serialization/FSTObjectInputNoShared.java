@@ -24,7 +24,12 @@ import java.io.InputStream;
  * <p/>
  * Date: 03.03.14
  * Time: 20:07
- * To change this template use File | Settings | File Templates.
+ */
+
+ /** 
+ * Subclass optimized for "unshared mode". Cycles and Objects referenced more than once will not be detected.
+ * Additionally JDK compatibility is not supported (read/writeObject and stuff). Use case is highperformance
+ * serialization of plain cycle free data (e.g. messaging). Can perform significantly faster (20-40%).
  */
 public class FSTObjectInputNoShared extends FSTObjectInput {
 

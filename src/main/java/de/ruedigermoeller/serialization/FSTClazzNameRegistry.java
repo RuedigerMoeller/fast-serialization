@@ -54,8 +54,8 @@ public class FSTClazzNameRegistry {
             clzToId = new FSTObject2IntMap<Class>(13,false);
             idToClz = new FSTInt2ObjectMap(13);
         } else {
-            clzToId = new FSTObject2IntMap<Class>(FSTObject2IntMap.adjustSize(200),false);
-            idToClz = new FSTInt2ObjectMap(FSTObject2IntMap.adjustSize(200));
+            clzToId = new FSTObject2IntMap<Class>(FSTObject2IntMap.adjustSize(400),false);
+            idToClz = new FSTInt2ObjectMap(FSTObject2IntMap.adjustSize(400));
         }
     }
 

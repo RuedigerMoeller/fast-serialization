@@ -38,6 +38,9 @@ import java.util.*;
  * Time: 11:53
  * To change this template use File | Settings | File Templates.
  */
+/**
+ * replacement of ObjectInputStream
+ */
 public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
     private static final boolean UNSAFE_COPY_ARRAY_LONG = true;
@@ -672,7 +675,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         }
     }
 
-    void readObjectFieldsSafe(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected void readObjectFieldsSafe(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         int booleanMask = 0;
         int boolcount = 8;
         final int length = fieldInfo.length;
@@ -681,8 +684,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             try {
                 FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
                 if (subInfo.isPrimitive()) {
-                    final Class subInfTzpe = subInfo.getType();
-                    if (subInfTzpe == boolean.class) {
+                    int integralType = subInfo.getIntegralType();
+                    if (integralType == FSTClazzInfo.FSTFieldInfo.BOOL) {
                         if (boolcount == 8) {
                             booleanMask = ((int) readFByte() + 256) &0xff;
                             boolcount = 0;
@@ -692,16 +695,21 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                         boolcount++;
                         subInfo.setBooleanValue(newObj, val);
                     } else {
-                        int integralType = subInfo.getIntegralType();
                         if (preferSpeed) {
-                            switch (integralType) { // fixme: change also unsafee variant
-                                case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, readFByte()); break;
-                                case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, readFChar()); break;
-                                case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, readFShort()); break;
-                                case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readFInt()); break;
-                                case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readFLong()); break;
-                                case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, readFFloat()); break;
-                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, readFDouble()); break;
+                            if (integralType==FSTClazzInfo.FSTFieldInfo.INT) {
+                                subInfo.setIntValue(newObj, readFInt());
+                            } else if ( integralType == FSTClazzInfo.FSTFieldInfo.LONG ) {
+                                subInfo.setLongValue(newObj, readFLong());
+                            } else {
+                                switch (integralType) { // fixme: change also unsafee variant
+                                    case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, readFByte()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, readFChar()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, readFShort()); break;
+    //                                case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readFInt()); break;
+    //                                case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readFLong()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, readFFloat()); break;
+                                    case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, readFDouble()); break;
+                                }
                             }
                         } else {
                             if (integralType==FSTClazzInfo.FSTFieldInfo.INT) {
@@ -1373,9 +1381,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     public final int readCInt() throws IOException {
-        if ( FSTUtil.unsafe != null && UNSAFE_READ_CINT ) {
-            return readCIntUnsafe();
-        }
         ensureReadAhead(5);
         final byte buf[] = input.buf;
         int count = input.pos;
