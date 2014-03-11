@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    FSTObject2IntMap<Class> clzToId;
+    FSTIdentity2IdMap clzToId;
     FSTInt2ObjectMap idToClz;
     FSTClazzNameRegistry parent;
     FSTConfiguration conf;
@@ -51,10 +51,10 @@ public class FSTClazzNameRegistry {
         this.conf = conf;
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;
-            clzToId = new FSTObject2IntMap<Class>(13,false);
+            clzToId = new FSTIdentity2IdMap(13);
             idToClz = new FSTInt2ObjectMap(13);
         } else {
-            clzToId = new FSTObject2IntMap<Class>(FSTObject2IntMap.adjustSize(400),false);
+            clzToId = new FSTIdentity2IdMap(FSTObject2IntMap.adjustSize(400));
             idToClz = new FSTInt2ObjectMap(FSTObject2IntMap.adjustSize(400));
         }
     }
