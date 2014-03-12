@@ -103,6 +103,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         return conf;
     }
 
+
     static class CallbackEntry {
         ObjectInputValidation cb;
         int prio;
@@ -260,6 +261,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
     FSTClazzInfo.FSTFieldInfo infoCache;
     public Object readObjectInternal(Class... expected) throws ClassNotFoundException, IOException, IllegalAccessException, InstantiationException {
+//        System.out.println("read:"+input.pos);
 //        if ( curDepth == 0 ) {
 //            throw new RuntimeException("do not call this directly. only for internal use (incl. Serializers)");
 //        }
@@ -860,6 +862,24 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             return readStringUTFUnsafe();
         }
         return readStringUTFDef();
+    }
+
+
+    byte ascStringCache[];
+
+    /**
+     * len < 127 !!!!!
+     * @return
+     * @throws IOException
+     */
+    public String readStringAsc() throws IOException {
+        int len = readFByte();
+        if (ascStringCache == null || ascStringCache.length < len)
+            ascStringCache = new byte[len];
+        ensureReadAhead(len);
+        System.arraycopy(input.buf,input.pos,ascStringCache,0,len);
+        input.pos+=len;
+        return new String(ascStringCache,0,0,len);
     }
 
     private String readStringUTFDef() throws IOException {

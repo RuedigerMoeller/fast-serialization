@@ -69,7 +69,7 @@ public class SpecialsTest {
         FSTObjectInput in = new FSTObjectInput(conf);
         in.resetForReuseUseArray(out.getBuffer(),0,out.getWritten());
         Object ex = in.readObject();
-        System.out.println("BREAK");
+        System.out.println("success "+ex);
     }
 
     public static void main(String[]s) throws IOException, ClassNotFoundException {

@@ -20,23 +20,30 @@ public class NoShareBench {
         ObjectInputStream oin = new ObjectInputStream(new FileInputStream(".\\src\\test\\java\\data\\test.os"));
         final Object medpa = oin.readObject();
 
+        boolean register = false;
+
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.setShareReferences(false);
         final Class[] classes = {Image.class, Media.class, MediaContent.class, Image.Size.class, Media.Player.class};
-        conf.registerClass(classes);
+        if (register)
+            conf.registerClass(classes);
 
-//        FSTObjectOutput out = new FSTObjectOutput(conf);
-        FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
-        FSTObjectInput in = new FSTObjectInputNoShared(conf);
+        FSTObjectOutput out = new FSTObjectOutput(conf);
+//        FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
+        FSTObjectInput in = new FSTObjectInput(conf);
+//        FSTObjectInput in = new FSTObjectInputNoShared(conf);
 
         Kryo kry = new Kryo();
         kry.setReferences(false);
-        kry.setRegistrationRequired(true);
-        for (int i = 0; i < classes.length; i++) {
-            Class aClass = classes[i];
-            kry.register(aClass);
+
+        if (register) {
+            kry.setRegistrationRequired(true);
+            for (int i = 0; i < classes.length; i++) {
+                Class aClass = classes[i];
+                kry.register(aClass);
+            }
+            kry.register(ArrayList.class);
         }
-        kry.register(ArrayList.class);
         Input kin = new Input(new byte[2000]);
         Output kout = new Output();
 
@@ -67,19 +74,20 @@ public class NoShareBench {
     }
 
     private static void bench(Object medpa, FSTObjectOutput out, FSTObjectInput in, int iters) throws IOException, ClassNotFoundException {
-        long rt = 0; long wt=0;
+        long rt = 0; long wt=0; int len = 0;
         for ( int i = 0; i < iters; i++) {
             long tim = System.nanoTime();
             out.resetForReUse();
             out.writeObject(medpa);
             final byte[] buf = out.getCopyOfWrittenBuffer();
             wt+=System.nanoTime()-tim;
+            len = out.getWritten();
 
             tim =System.nanoTime();
             in.resetForReuseUseArray(buf);
             final Object read = in.readObject();
             rt += System.nanoTime()-tim;
         }
-        System.out.println("f wt:"+(wt/iters)+" rt:"+(rt/iters));
+        System.out.println("f wt:"+(wt/iters)+" rt:"+(rt/iters)+" l:"+len);
     }
 }

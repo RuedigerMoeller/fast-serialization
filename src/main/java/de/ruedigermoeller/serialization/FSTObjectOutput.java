@@ -296,7 +296,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * @param obj
      * @param streamPosition
      */
-    protected void objectWillBeWritten( Object obj, int streamPosition ) {}
+    protected void objectWillBeWritten( Object obj, int streamPosition ) {
+//        System.out.println("write:"+obj.getClass()+" "+streamPosition);
+    }
 
     /**
      * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
@@ -304,7 +306,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * @param oldStreamPosition
      * @param streamPosition
      */
-    protected void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {}
+    protected void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {
+//        System.out.println("ewrite:"+obj.getClass()+" "+streamPosition);
+    }
     
     int tmp[] = {0};
     // splitting this slows down ...
@@ -782,7 +786,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         Class<?> componentType = array.getClass().getComponentType();
         if ( ! componentType.isArray() ) {
             if ( componentType == byte.class ) {
-                writeFByteArr((byte[]) array);
+                writeFByteArr((byte[]) array,len);
             } else
             if ( componentType == char.class ) {
                 writeCCharArr((char[]) array);
@@ -900,19 +904,27 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             writeFShort(arr[i]);
     }
 
-    public void writeFCharArr(char[] array) throws IOException {
-        writeCCharArr(array);
-    }
+// dangerous !
+//    public void writeFCharArr(char[] array) throws IOException {
+//        writeCCharArr(array);
+//    }
 
-    public void writeCCharArr(char[] array) throws IOException {
-        char[] arr = (char[])array;
+    public void writeCCharArr(char[] arr) throws IOException {
         for ( int i = 0; i < arr.length; i++ )
             writeCChar(arr[i]);
     }
 
-    public void writeFByteArr(byte[] array) throws IOException {
-        byte[] arr = (byte[])array;
-        write(arr);
+    /**
+     * does not write length, just plain bytes
+     * @param array
+     * @param length
+     * @throws IOException
+     */
+    public void writeFByteArr(byte[] array, int length) throws IOException {
+        buffout.ensureFree(length);
+        System.arraycopy(array,0,buffout.buf,buffout.pos, length);
+        written+= length;
+        buffout.pos+= length;
     }
 
     public void writeFLongArrayUnsafe(long[] arr) throws IOException {
@@ -1858,28 +1870,24 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         return conf;
     }
 
-    public static void main(String arg[]) throws IOException {
-        ByteArrayOutputStream out1 = new ByteArrayOutputStream(5000);
-        FSTObjectOutput ou = new FSTObjectOutput(out1, FSTConfiguration.createDefaultConfiguration() );
-        String str = "word frequencies, tend to vary. More recent analyses show that letter frequencies, like word frequencies, tend to vary, both by writer and by subject. This is a standard text sequence which might get packed. One cannot write an essay about x-rays without using frequent Xs, and the essay will have an especially strange letter frequency if the essay is about the frequent use of x-rays to treat zebras in Qatar.";
-        System.out.println(str.length()+" => "+ou.writeStringCompressed(str));
-        String str1 = "Kann auch mal ein deutscher Text sein, oder ?";
-        System.out.println(str1.length()+" => "+ou.writeStringCompressed(str1));
-        String str2 = "Imagine is a song written and performed by English musician John Lennon. The best selling single of his solo career, its lyrical statement is one of idealistic collectivism. It challenges the listener to imagine a world at peace, without the divisiveness and barriers of borders, religious denominations and nationalities, and to consider the possibility that the focus of humanity should be living a life unattached to material possessions. Lennon and Yoko Ono co-produced the song and album of the same name with Phil Spector. One month after the September 1971 release of the LP, Lennon released Imagine as a single in the United States; the song peaked at number 3 on the Billboard Hot 100 and the album became the most commercially successful and critically acclaimed of his solo career. Lennon released \"Imagine\" as a single in the United Kingdom in 1975, and the song has since sold more than 1.6 million copies in the UK. It earned a Grammy Hall of Fame Award, was inducted into the Rock and Roll Hall of Fame's 500 Songs that Shaped Rock and Roll, and Rolling Stone ranked it number 3 in their list of \"The 500 Greatest Songs of All Time\". (Full article...)";
-        System.out.println(str2.length()+" => "+ou.writeStringCompressed(str2));
-        String str3 = "standard default waiting state init finish end";
-        System.out.println(str3.length()+" => "+ou.writeStringCompressed(str3));
-        ou.close();
-
-        FSTObjectInput inp = new FSTObjectInput(new ByteArrayInputStream(out1.toByteArray()),ou.getConf() );
-        String ins = inp.readStringCompressed();
-        System.out.println(str.equals(ins));
-        System.out.println(str1.equals(inp.readStringCompressed()));
-        System.out.println(str2.equals(inp.readStringCompressed()));
-        System.out.println(str3.equals(inp.readStringCompressed()));
-    }
-
     public int getWritten() {
         return written;
+    }
+
+    byte[] ascStringCache;
+
+    /**
+     * length < 127 !!!!!
+     * @param name
+     * @throws IOException
+     */
+    void writeStringAsc(String name) throws IOException {
+        int len = name.length();
+        writeFByte((byte) len);
+        buffout.ensureFree(len);
+        if (ascStringCache == null || ascStringCache.length < len)
+            ascStringCache = new byte[len];
+        name.getBytes(0,len,ascStringCache,0);
+        writeFByteArr(ascStringCache,len);
     }
 }
