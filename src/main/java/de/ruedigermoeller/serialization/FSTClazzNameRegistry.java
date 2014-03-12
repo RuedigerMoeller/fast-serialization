@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    public static final int LOWEST_CLZ_ID = 4;
+    public static final int LOWEST_CLZ_ID = 3;
     FSTIdentity2IdMap clzToId;
     FSTInt2ObjectMap idToClz;
     FSTClazzNameRegistry parent;
@@ -126,20 +126,22 @@ public class FSTClazzNameRegistry {
                 if ( clid != Integer.MIN_VALUE ) {
                     out.writeCShort((short) clid); // > 2 !!
                 } else {
-                    byte[] lastWrittenClzName = out.lastWrittenClzName;
                     final byte[] bufferedName = ci.getBufferedName();
-                    if ( lastWrittenClzName != null && lastWrittenClzName[0] == bufferedName[0] ) {
-                        out.writeCShort((short) 2); // compressed
-                        int i = 1; int max = Math.min(lastWrittenClzName.length,bufferedName.length);
-                        while( i < max && lastWrittenClzName[i] == bufferedName[i] ) {
-                            i++;
-                        }
-                        out.writeFByte(i); // write len
-                        out.writeFByte((char) (bufferedName.length-i) );
-                        out.writeFByteArr(bufferedName,i,bufferedName.length-i);
-                        registerClassNoLookup(aClass);
-                        out.lastWrittenClzName = bufferedName;
-                    } else {
+                    // does not pay off probably due to cache misses
+//                    byte[] lastWrittenClzName = out.lastWrittenClzName;
+//                    if ( false && lastWrittenClzName != null && lastWrittenClzName[0] == bufferedName[0] ) {
+//                        out.writeCShort((short) 2); // compressed
+//                        int i = 1; int max = Math.min(lastWrittenClzName.length,bufferedName.length);
+//                        while( i < max && lastWrittenClzName[i] == bufferedName[i] ) {
+//                            i++;
+//                        }
+//                        out.writeFByte(i); // write len
+//                        out.writeFByte((char) (bufferedName.length-i) );
+//                        out.writeFByteArr(bufferedName,i,bufferedName.length-i);
+//                        registerClassNoLookup(aClass);
+//                        out.lastWrittenClzName = bufferedName;
+//                    } else 
+                    {
                         out.writeCShort((short) 1); // no direct cl id ascii enc
     //                    out.writeStringAsc(aClass.getName());
                         out.writeFByte((char) bufferedName.length);
@@ -177,25 +179,27 @@ public class FSTClazzNameRegistry {
             if ( c==0)
                 clName = in.readStringUTF();
             else {
-                if ( c == 2) {
-                    int common = in.readFByte(); // shared part
-                    int len = in.readFByte(); // written part
-                    in.ensureReadAhead(len);
-                    char chars[] = in.getCharBuf(len+common);
-                    byte buf[] = in.input.buf;
-                    int inIndex = in.input.pos;
-                    int max = inIndex + len;
-                    String lastReadClName = in.lastReadClName;
-                    lastReadClName.getChars(0, common,chars,0);
-                    for ( int i=inIndex; i < max; i++) {
-                        chars[i-inIndex+common] = (char) buf[i];
-                    }
-                    in.input.pos += len;
-                    clName = new String(chars,0,common+len);
-                } else {
+                // does not payoff, see above
+//                if ( c == 2) {
+//                    int common = in.readFByte(); // shared part
+//                    int len = in.readFByte(); // written part
+//                    in.ensureReadAhead(len);
+//                    char chars[] = in.getCharBuf(len+common);
+//                    byte buf[] = in.input.buf;
+//                    int inIndex = in.input.pos;
+//                    int max = inIndex + len;
+//                    String lastReadClName = in.lastReadClName;
+//                    lastReadClName.getChars(0, common,chars,0);
+//                    for ( int i=inIndex; i < max; i++) {
+//                        chars[i-inIndex+common] = (char) buf[i];
+//                    }
+//                    in.input.pos += len;
+//                    clName = new String(chars,0,common+len);
+//                } else 
+                {
                     clName = in.readStringAsc();
                 }
-                in.lastReadClName = clName;
+//                in.lastReadClName = clName;
             }
             Class cl = classForName(clName);
             registerClassNoLookup(cl);

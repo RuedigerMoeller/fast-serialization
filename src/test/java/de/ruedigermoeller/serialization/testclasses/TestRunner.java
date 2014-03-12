@@ -162,8 +162,8 @@ public class TestRunner {
         runner.charter.text("<i>intel i7 3770K 3,4 ghz, 4 core, 8 threads</i>");
         runner.charter.text("<i>"+System.getProperty("java.runtime.version")+","+System.getProperty("java.vm.name")+","+System.getProperty("os.name")+"</i>");
 
-        SerTest.WarmUP = 20000; SerTest.Run = SerTest.WarmUP*1+1;
-//        SerTest.WarmUP = 200; SerTest.Run = 3000;
+//        SerTest.WarmUP = 20000; SerTest.Run = SerTest.WarmUP*1+1;
+        SerTest.WarmUP = 200; SerTest.Run = 3000;
         runner.runAll(FrequentPrimitives.getArray(200));
         runner.runAll(FrequentPrimitivesExternalizable.getArray(200));
         runner.runAll(new FrequentCollections());
