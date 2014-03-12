@@ -77,7 +77,7 @@ public final class FSTClazzInfo {
     boolean equalIsBinary;
     boolean externalizable;
     boolean flat; // never share instances of this class
-    boolean isAsciiName = false;
+    boolean isAsciiNameShortString = false;
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
     
@@ -129,10 +129,10 @@ public final class FSTClazzInfo {
 
         final String name = clazz.getName();
         if (name.length()<127) {
-            isAsciiName = true;
+            isAsciiNameShortString = true;
             for (int i=0; i < name.length();i++) {
                 if (name.charAt(i) > 127) {
-                    isAsciiName = false;
+                    isAsciiNameShortString = false;
                     break;
                 }
             }
@@ -148,8 +148,8 @@ public final class FSTClazzInfo {
         return bufferedName;
     }
 
-    public boolean isAsciiName() {
-        return isAsciiName;
+    public boolean isAsciiNameShortString() {
+        return isAsciiNameShortString;
     }
 
     public int getClzId() {

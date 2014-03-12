@@ -28,10 +28,10 @@ public class NoShareBench {
         if (register)
             conf.registerClass(classes);
 
-        FSTObjectOutput out = new FSTObjectOutput(conf);
-//        FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
-        FSTObjectInput in = new FSTObjectInput(conf);
-//        FSTObjectInput in = new FSTObjectInputNoShared(conf);
+//        FSTObjectOutput out = new FSTObjectOutput(conf);
+        FSTObjectOutput out = new FSTObjectOutputNoShared(conf);
+//        FSTObjectInput in = new FSTObjectInput(conf);
+        FSTObjectInput in = new FSTObjectInputNoShared(conf);
 
         Kryo kry = new Kryo();
         kry.setReferences(false);

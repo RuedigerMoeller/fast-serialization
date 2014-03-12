@@ -105,6 +105,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
     protected Unsafe unsafe;
 
+    public byte[] lastWrittenClzName;
+    
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
      * underlying output stream.
@@ -786,7 +788,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         Class<?> componentType = array.getClass().getComponentType();
         if ( ! componentType.isArray() ) {
             if ( componentType == byte.class ) {
-                writeFByteArr((byte[]) array,len);
+                writeFByteArr((byte[]) array,0,len);
             } else
             if ( componentType == char.class ) {
                 writeCCharArr((char[]) array);
@@ -920,9 +922,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * @param length
      * @throws IOException
      */
-    public void writeFByteArr(byte[] array, int length) throws IOException {
+    public void writeFByteArr(byte[] array, int start, int length) throws IOException {
         buffout.ensureFree(length);
-        System.arraycopy(array,0,buffout.buf,buffout.pos, length);
+        System.arraycopy(array,start,buffout.buf,buffout.pos, length);
         written+= length;
         buffout.pos+= length;
     }
@@ -1582,6 +1584,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * for internal use only, the state of the outputstream is not reset properly
      */
     void reset() {
+        lastWrittenClzName = null;
         written = 0;
         buffout.reset();
         unsafe = FSTUtil.unsafe;
@@ -1888,6 +1891,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         if (ascStringCache == null || ascStringCache.length < len)
             ascStringCache = new byte[len];
         name.getBytes(0,len,ascStringCache,0);
-        writeFByteArr(ascStringCache,len);
+        writeFByteArr(ascStringCache,0,len);
     }
 }

@@ -58,6 +58,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     final static long intscal;
     final static long longscal;
     final static long chscal;
+    static ByteArrayInputStream empty = new ByteArrayInputStream(new byte[0]);
 
     static {
         Unsafe unsafe = FSTUtil.getUnsafe();
@@ -96,8 +97,9 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     // done
     ConditionalCallback conditionalCallback;
     int readExternalReadAHead = 8000;
+    
+    public String lastReadClName;
 
-    static ByteArrayInputStream empty = new ByteArrayInputStream(new byte[0]);
 
     public FSTConfiguration getConf() {
         return conf;
@@ -845,7 +847,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
     char chBufS[];
 
-    private char[] getCharBuf(int siz) {
+    char[] getCharBuf(int siz) {
         char chars[] = chBufS;
         if (chars == null || chars.length < siz) {
             chars = new char[Math.max(siz,15)];
@@ -1257,6 +1259,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     public void reset() throws IOException {
+        lastReadClName = null;
         input.reset();
     }
 
