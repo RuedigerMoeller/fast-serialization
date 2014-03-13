@@ -40,45 +40,6 @@ import java.util.*;
  */
 public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
-
-    private static final boolean UNSAFE_MEMCOPY_ARRAY_INT = true;
-    private static final boolean UNSAFE_MEMCOPY_ARRAY_LONG = true;
-    private static final boolean UNSAFE_WRITE_CINT_ARR = true;
-    private static final boolean UNSAFE_WRITE_CINT = true;
-    private static final boolean UNSAFE_WRITE_FINT = true;
-    private static final boolean UNSAFE_WRITE_FLONG = true;
-    private static final boolean UNSAFE_WRITE_UTF = true;
-
-    final static long bufoff;
-    final static long choff;
-    final static long intoff;
-    final static long longoff;
-    final static long intscal;
-    final static long longscal;
-    final static long chscal;
-
-    static {
-        Unsafe unsafe = FSTUtil.getUnsafe();
-        if ( unsafe != null ) {
-            bufoff = unsafe.arrayBaseOffset(byte[].class);
-            intoff = unsafe.arrayBaseOffset(int[].class);
-            longoff = unsafe.arrayBaseOffset(long[].class);
-            longscal = unsafe.arrayIndexScale(long[].class);
-            intscal = unsafe.arrayIndexScale(int[].class);
-            chscal = unsafe.arrayIndexScale(char[].class);
-            choff = unsafe.arrayBaseOffset(char[].class);
-        } else {
-            longoff = 0;
-            longscal = 0;
-            bufoff = 0;
-            intoff = 0;
-            intscal = 0;
-            choff = 0;
-            chscal = 0;
-        }
-    }
-
-
     static final byte ONE_OF = -18;
     static final byte BIG_BOOLEAN_FALSE = -17;
     static final byte BIG_BOOLEAN_TRUE = -16;
@@ -103,7 +64,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected int curDepth = 0;
 
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
-    protected Unsafe unsafe;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -126,7 +86,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      */
     public FSTObjectOutput(OutputStream out, FSTConfiguration conf) {
         super(null);
-        unsafe = FSTUtil.unsafe;
         this.conf = conf;
 
         buffout = (FSTOutputStream) conf.getCachedObject(FSTOutputStream.class);
@@ -208,14 +167,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         conf.returnObject(buffout,objects,clnames);
     }
 
-
-//    private void reUse(OutputStream out) {
-//        buffout.reset();
-//        buffout.setOutstream(out);
-//        objects.clear();
-//        clnames.clear();
-//        written = 0;
-//    }
 
     /**
      * since the stock writeXX methods on InputStream are final, i can't ensure sufficient bufferSize on the output buffer
@@ -337,7 +288,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 }
                 if (dontShare) {
                     writeFByte(STRING);
-                    writeStringUTFDef((String) toWrite);
+                    writeStringUTF((String) toWrite);
                     return;
                 }
             } else if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
@@ -476,14 +427,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     }
 
     private void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo) throws IOException {
-        if ( unsafe != null ) {
-            writeObjectFieldsUnsafe(toWrite, serializationInfo, fieldInfo, !conf.preferSpeed);
-        } else {
-            writeObjectFieldsSafe(toWrite, serializationInfo, fieldInfo, !conf.preferSpeed);
-        }
-    }
-
-    private void writeObjectFieldsSafe(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, final boolean compact) throws IOException {
         try {
             int booleanMask = 0;
             int boolcount = 0;
@@ -519,26 +462,14 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();
-                    if ( compact ) {
-                        switch (integralType) {
-                            case FSTClazzInfo.FSTFieldInfo.BYTE:   writeFByte(subInfo.getByteValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.CHAR:   writeCChar((char) subInfo.getCharValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.SHORT:  writeCShort((short) subInfo.getShortValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.INT:    writeCInt(subInfo.getIntValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.LONG:   writeCLong(subInfo.getLongValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.FLOAT:  writeCFloat(subInfo.getFloatValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.DOUBLE: writeCDouble(subInfo.getDoubleValue(toWrite)); break;
-                        }
-                    } else {
-                        switch (integralType) {
-                            case FSTClazzInfo.FSTFieldInfo.BYTE:   writeFByte(subInfo.getByteValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.CHAR:   writeFChar((char) subInfo.getCharValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.SHORT:  writeFShort((short) subInfo.getShortValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.INT:    writeFInt(subInfo.getIntValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.LONG:   writeFLong(subInfo.getLongValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.FLOAT:  writeFFloat(subInfo.getFloatValue(toWrite)); break;
-                            case FSTClazzInfo.FSTFieldInfo.DOUBLE: writeFDouble(subInfo.getDoubleValue(toWrite)); break;
-                        }
+                    switch (integralType) {
+                        case FSTClazzInfo.FSTFieldInfo.BYTE:   writeFByte(subInfo.getByteValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.CHAR:   writeCChar((char) subInfo.getCharValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.SHORT:  writeCShort((short) subInfo.getShortValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.INT:    writeCInt(subInfo.getIntValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.LONG:   writeCLong(subInfo.getLongValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.FLOAT:  writeCFloat(subInfo.getFloatValue(toWrite)); break;
+                        case FSTClazzInfo.FSTFieldInfo.DOUBLE: writeCDouble(subInfo.getDoubleValue(toWrite)); break;
                     }
                 } else if (subInfo.isConditional())
                 {
@@ -562,115 +493,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     Object subObject = subInfo.getObjectValue(toWrite);
                     if ( subObject == null ) {
                         writeFByte(NULL);
-                    } else {
-                        writeObjectWithContext(subInfo, subObject);
-                    }
-                }
-            }
-        } catch (IllegalAccessException ex) {
-            throw FSTUtil.rethrow(ex);
-        }
-    }
-
-    private void writeObjectFieldsUnsafe(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, final boolean compact) throws IOException {
-        try {
-            int booleanMask = 0;
-            int boolcount = 0;
-            final int length = fieldInfo.length;
-            int j = 0;
-            for (;; j++) {
-                if ( j == length ) {
-                    if ( boolcount > 0 ) {
-                        writeFByteUnsafe(booleanMask<<(8-boolcount));
-                    }
-                    break;
-                }
-                final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                if ( subInfo.getType() != boolean.class ) {
-                    if ( boolcount > 0 ) {
-                        writeFByteUnsafe(booleanMask<<(8-boolcount));
-                    }
-                    break;
-                } else {
-                    if ( boolcount == 8 ) {
-                        writeFByteUnsafe(booleanMask<<(8-boolcount));
-                        boolcount = 0; booleanMask = 0;
-                    }
-                    boolean booleanValue = unsafe.getBoolean(toWrite,subInfo.memOffset);
-                    booleanMask = booleanMask<<1;
-                    booleanMask = (booleanMask|(booleanValue?1:0));
-                    boolcount++;
-                }
-            }
-            for (int i = j; i < length; i++)
-            {
-                final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
-                if ( subInfo.isPrimitive() ) {
-                    // speed unsafe
-                    int integralType = subInfo.getIntegralType();
-                    if (integralType == FSTClazzInfo.FSTFieldInfo.INT ) {
-                        // inline
-                        if ( compact ) {
-                            writeCIntUnsafe(unsafe.getInt(toWrite,subInfo.memOffset));
-                        } else {
-                            int val = unsafe.getInt(toWrite,subInfo.memOffset);
-                            buffout.ensureFree(4);
-                            unsafe.putInt(buffout.buf,buffout.pos+bufoff,val);
-                            buffout.pos += 4;
-                            written += 4;
-                        }
-                    } else if ( integralType == FSTClazzInfo.FSTFieldInfo.LONG ) {
-                        // inline
-                        if ( compact ) {
-                            writeCLong(unsafe.getLong(toWrite,subInfo.memOffset));
-                        } else {
-                            long lval = unsafe.getLong(toWrite,subInfo.memOffset);
-                            buffout.ensureFree(8);
-                            unsafe.putLong(buffout.buf,buffout.pos+bufoff,lval);
-                            buffout.pos += 8;
-                            written += 8;
-                        }
-                    } else {
-                        if ( compact ) {
-                            switch (integralType) {
-                                case FSTClazzInfo.FSTFieldInfo.BYTE:  writeFByteUnsafe(unsafe.getByte(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.CHAR:  writeCChar(unsafe.getChar(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.SHORT: writeCShort(unsafe.getShort(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.FLOAT: writeCFloatUnsafe(unsafe.getFloat(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: writeCDoubleUnsafe(unsafe.getDouble(toWrite,subInfo.memOffset)); break;
-                            }
-                        } else {
-                            switch (integralType) {
-                                case FSTClazzInfo.FSTFieldInfo.BYTE:  writeFByteUnsafe(unsafe.getByte(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.CHAR:  writeFChar(unsafe.getChar(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.SHORT: writeFShort(unsafe.getShort(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.FLOAT: writeFFloat(unsafe.getFloat(toWrite,subInfo.memOffset)); break;
-                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: writeFDoubleUnsafe(unsafe.getDouble(toWrite,subInfo.memOffset)); break;
-                            }
-                        }
-                    }
-                } else if (subInfo.isConditional())
-                {
-                    final int conditional = buffout.pos;
-                    buffout.pos +=4;
-                    written+=4;
-                    // object
-                    Object subObject = subInfo.getObjectValueUnsafe(toWrite);
-                    if ( subObject == null ) {
-                        writeFByteUnsafe(NULL);
-                    } else {
-                        writeObjectWithContext(subInfo, subObject);
-                    }
-                    int v = buffout.pos;
-                    buffout.buf[conditional] = (byte) ((v >>> 24) & 0xFF);
-                    buffout.buf[conditional+1] = (byte) ((v >>> 16) & 0xFF);
-                    buffout.buf[conditional+2] = (byte) ((v >>>  8) & 0xFF);
-                    buffout.buf[conditional+3] = (byte) ((v >>> 0) & 0xFF);
-                } else {
-                    // object
-                    Object subObject = subInfo.getObjectValueUnsafe(toWrite);
-                    if ( subObject == null ) {
-                        writeFByteUnsafe(NULL);
                     } else {
                         writeObjectWithContext(subInfo, subObject);
                     }
@@ -878,12 +700,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
 
     public void writeFLongArr(long[] array) throws IOException {
         long[] arr = (long[])array;
-        if ( unsafe != null && UNSAFE_MEMCOPY_ARRAY_LONG) {
-            writeFLongArrayUnsafe(arr);
-        } else {
-            for ( int i = 0; i < arr.length; i++ )
-                writeFLong(arr[i]);
-        }
+        for ( int i = 0; i < arr.length; i++ )
+            writeFLong(arr[i]);
     }
 
     public void writeFFloatArr(float[] array) throws IOException {
@@ -904,11 +722,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             writeFShort(arr[i]);
     }
 
-// dangerous !
-//    public void writeFCharArr(char[] array) throws IOException {
-//        writeCCharArr(array);
-//    }
-
     public void writeCCharArr(char[] arr) throws IOException {
         for ( int i = 0; i < arr.length; i++ )
             writeCChar(arr[i]);
@@ -925,16 +738,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         System.arraycopy(array,start,buffout.buf,buffout.pos, length);
         written+= length;
         buffout.pos+= length;
-    }
-
-    public void writeFLongArrayUnsafe(long[] arr) throws IOException {
-        int length = arr.length;
-        buffout.ensureFree((int) (longscal * length));
-        final byte buf[] = buffout.buf;
-        long siz = length * longscal;
-        unsafe.copyMemory(arr, longoff, buf, buffout.pos + bufoff, siz);
-        buffout.pos += siz;
-        written += siz;
     }
 
     static int charMap[] = new int[256];
@@ -1019,20 +822,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     }
 
     public void writeStringUTF(String str) throws IOException {
-        if ( conf.isPreferSpeed() ) {
-            writeStringUTFSpeed(str);
-            return;
-        }
-        if ( unsafe != null && UNSAFE_WRITE_UTF) {
-            writeStringUTFUnsafe(str);
-            return;
-        }
-
-        writeStringUTFDef(str);
-    }
-
-    // save condition testing
-    protected void writeStringUTFDef(String str) throws IOException {
         final int strlen = str.length();
 
         writeCInt(strlen);
@@ -1051,73 +840,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         }
         written += count-buffout.pos;
         buffout.pos = count;
-    }
-
-    char charBuf[];
-    public void writeStringUTFSpeed(String str) throws IOException {
-        final int strlen = str.length();
-        if ( unsafe != null && UNSAFE_WRITE_UTF) {
-            writeFIntUnsafe(strlen);
-            int added = (int) (chscal * strlen);
-            buffout.ensureFree(added);
-            if (charBuf == null || charBuf.length < strlen) {
-                charBuf = new char[strlen];
-            }
-            str.getChars(0,strlen,charBuf,0);
-            unsafe.copyMemory(charBuf,choff,buffout.buf,buffout.pos+bufoff,strlen*chscal);
-            written += added;
-            buffout.pos += added;
-//            int count = buffout.pos+bufoff;
-//            for (int i=0; i<strlen; i++) {
-//                final char c = str.charAt(i);
-//                unsafe.putChar(buffout.buf,count,c);
-//                written += chscal;
-//                buffout.pos += chscal;
-//                count+=chscal;
-//            }
-            return;
-        } else {
-            writeFInt(strlen);
-            buffout.ensureFree(strlen*2);
-
-            final byte[] bytearr = buffout.buf;
-            int count = buffout.pos;
-            for (int i=0; i<strlen; i++) {
-                final int c = str.charAt(i);
-                bytearr[count++] = (byte) ((c >>> 0) & 0xFF);
-                bytearr[count++] = (byte) ((c >>> 8) & 0xFF);
-                written += 2;
-            }
-            buffout.pos = count;
-        }
-    }
-
-    public void writeStringUTFUnsafe(String str) throws IOException {
-        final byte buf[] = buffout.buf;
-        final int strlen = str.length();
-
-        if ( UNSAFE_WRITE_CINT )
-            writeCIntUnsafe(strlen);
-        else
-            writeCInt(strlen);
-        buffout.ensureFree(strlen*3);
-
-        final byte[] bytearr = buffout.buf;
-        long count = buffout.pos+bufoff;
-
-        for (int i=0; i<strlen; i++) {
-            final int c = str.charAt(i);
-            if ( c < 255 ) {
-                unsafe.putByte(bytearr,count++,(byte)c);
-                written++;
-            } else {
-                unsafe.putByte(bytearr,count++, (byte) 255);
-                unsafe.putByte(bytearr,count++, (byte) ((c >>> 8) & 0xFF));
-                unsafe.putByte(bytearr,count++, (byte) ((c >>> 0) & 0xFF));
-                written += 3;
-            }
-        }
-        buffout.pos = (int) (count-bufoff);
     }
 
     public final void writeClass(Class cl) throws IOException {
@@ -1204,27 +926,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         written++;
     }
 
-    public final void writeFByteUnsafe( int v ) throws IOException {
-        buffout.ensureFree(1);
-        final byte buf[] = buffout.buf;
-        unsafe.putByte(buf, buffout.pos + bufoff, (byte) v);
-        buffout.pos++;
-        written++;
-    }
-
-    public final void writeFIntUnsafe( int v ) throws IOException {
-        buffout.ensureFree(4);
-        final byte buf[] = buffout.buf;
-        unsafe.putInt(buf,buffout.pos+bufoff,v);
-        buffout.pos += 4;
-        written += 4;
-    }
-
     public void writeFInt( int v ) throws IOException {
-        if ( unsafe != null && UNSAFE_WRITE_FINT) {
-            writeFIntUnsafe(v);
-            return;
-        }
         buffout.ensureFree(4);
         byte[] buf = buffout.buf;
         int count = buffout.pos;
@@ -1236,19 +938,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         written += 4;
     }
 
-    public void writeFLongUnsafe( long v ) throws IOException {
-        buffout.ensureFree(8);
-        final byte buf[] = buffout.buf;
-        unsafe.putLong(buf,buffout.pos+bufoff,v);
-        buffout.pos += 8;
-        written += 8;
-    }
-
     public void writeFLong( long v ) throws IOException {
-        if ( unsafe != null && UNSAFE_WRITE_FLONG) {
-            writeFLongUnsafe(v);
-            return;
-        }
         buffout.ensureFree(8);
         byte[] buf = buffout.buf;
         int count = buffout.pos;
@@ -1353,21 +1043,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         }
     }
 
-    public void writePlainIntArrUnsafe(int v[]) throws IOException {
-        int length = v.length;
-        buffout.ensureFree(4*length);
-        final byte buf[] = buffout.buf;
-        int siz = (int) (length * intscal);
-        unsafe.copyMemory(v, intoff, buf, buffout.pos + bufoff, siz);
-        buffout.pos += siz;
-        written += siz;
-    }
-
     public void writeFIntArr(int v[]) throws IOException {
-        if ( unsafe != null && UNSAFE_MEMCOPY_ARRAY_INT) {
-            writePlainIntArrUnsafe(v);
-            return;
-        }
         final int free = 4 * v.length;
         buffout.ensureFree(free);
         final byte[] buf = buffout.buf;
@@ -1384,10 +1060,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     }
 
     public void writeCIntArr(int v[]) throws IOException {
-        if (unsafe!=null && UNSAFE_WRITE_CINT_ARR) {
-            writeCIntArrUnsafe(v);
-            return;
-        }
         final int free = 5 * v.length;
         buffout.ensureFree(free);
         final byte[] buf = buffout.buf;
@@ -1415,38 +1087,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         buffout.pos = count;
     }
 
-    public void writeCIntArrUnsafe(int v[]) throws IOException {
-        final int free = 5 * v.length;
-        buffout.ensureFree(free);
-        final byte buf[] = buffout.buf;
-        long count = buffout.pos+bufoff;
-        for (int i = 0; i < v.length; i++) {
-            final int anInt = v[i];
-            if ( anInt > -127 && anInt <=127 ) {
-                unsafe.putByte(buf,count++,(byte)anInt);
-            } else
-            if ( anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE ) {
-                unsafe.putByte(buf,count++,(byte)-128);
-                unsafe.putByte(buf,count++,(byte) ((anInt >>>  8) & 0xFF));
-                unsafe.putByte(buf,count++,(byte) ((anInt >>>  0) & 0xFF));
-            } else {
-                unsafe.putByte(buf,count++,(byte)-127);
-                unsafe.putByte(buf,count++,(byte) ((anInt >>> 24) & 0xFF));
-                unsafe.putByte(buf,count++,(byte) ((anInt >>> 16) & 0xFF));
-                unsafe.putByte(buf,count++,(byte) ((anInt >>>  8) & 0xFF));
-                unsafe.putByte(buf,count++,(byte) ((anInt >>>  0) & 0xFF));
-            }
-        }
-        int i = (int) (count - bufoff);
-        written += i-buffout.pos;
-        buffout.pos = i;
-    }
-
     public void writeCInt(int anInt) throws IOException {
-        if ( unsafe != null && UNSAFE_WRITE_CINT ) {
-            writeCIntUnsafe(anInt);
-            return;
-        }
         // -128 = short byte, -127 == 4 byte
         if ( anInt > -127 && anInt <=127 ) {
             if ( buffout.buf.length <= buffout.pos +1 )
@@ -1482,41 +1123,9 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         }
     }
 
-    private void writeCIntUnsafe(int anInt) throws IOException {
-        buffout.ensureFree(5);
-        final byte buf[] = buffout.buf;
-        long count = buffout.pos+bufoff;
-        if ( anInt > -127 && anInt <=127 ) {
-            unsafe.putByte(buf,count,(byte)anInt);
-            buffout.pos++;
-            written++;
-        } else
-        if ( anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE ) {
-            unsafe.putByte(buf,count++,(byte)-128);
-            unsafe.putByte(buf,count++,(byte) ((anInt >>>  8) & 0xFF));
-            unsafe.putByte(buf,count++,(byte) ((anInt >>> 0) & 0xFF));
-            buffout.pos += 3;
-            written += 3;
-        } else {
-            unsafe.putByte(buf,count++,(byte)-127);
-            unsafe.putByte(buf,count++,(byte) ((anInt >>> 24) & 0xFF));
-            unsafe.putByte(buf,count++,(byte) ((anInt >>> 16) & 0xFF));
-            unsafe.putByte(buf,count++,(byte) ((anInt >>> 8) & 0xFF));
-            unsafe.putByte(buf,count++,(byte) ((anInt >>> 0) & 0xFF));
-            buffout.pos += 5;
-            written += 5;
-        }
-
-    }
-
     /** Writes a 4 byte float. */
     public void writeCFloat (float value) throws IOException {
         writeFInt(Float.floatToIntBits(value));
-    }
-
-    /** Writes a 4 byte float. */
-    public void writeCFloatUnsafe(float value) throws IOException {
-        writeFIntUnsafe(Float.floatToIntBits(value));
     }
 
     /** Writes a 4 byte float. */
@@ -1527,38 +1136,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         writeFLong(Double.doubleToLongBits(value));
     }
 
-    public void writeCDoubleUnsafe(double value) throws IOException {
-        writeFLongUnsafe(Double.doubleToLongBits(value));
-    }
-
     public void writeFDouble (double value) throws IOException {
         writeFLong(Double.doubleToLongBits(value));
-    }
-
-    public void writeFDoubleUnsafe(double value) throws IOException {
-        buffout.ensureFree(8);
-        final byte buf[] = buffout.buf;
-        unsafe.putDouble(buf,buffout.pos+bufoff,value);
-        buffout.pos += 8;
-        written += 8;
-//        writeFLongUnsafe(Double.doubleToLongBits(value));
-    }
-
-    public void writeCLongUnsafe(long anInt) throws IOException {
-// -128 = short byte, -127 == 4 byte
-        if ( anInt > -126 && anInt <=127 ) {
-            writeFByteUnsafe((int) anInt);
-        } else
-        if ( anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE ) {
-            writeFByteUnsafe(-128);
-            writeFShort((int) anInt);
-        } else if ( anInt >= Integer.MIN_VALUE && anInt <= Integer.MAX_VALUE ) {
-            writeFByteUnsafe(-127);
-            writeFIntUnsafe((int) anInt);
-        } else {
-            writeFByteUnsafe(-126);
-            writeFLongUnsafe(anInt);
-        }
     }
 
     public void writeCLong(long anInt) throws IOException {
@@ -1584,7 +1163,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     void reset() {
         written = 0;
         buffout.reset();
-        unsafe = FSTUtil.unsafe;
     }
 
     void resetAndClearRefs() {
@@ -1599,7 +1177,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * @param out
      */
     public void resetForReUse( OutputStream out ) {
-        unsafe = FSTUtil.unsafe;
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         reset();
@@ -1620,7 +1197,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     }
 
     public void resetForReUse( byte[] out ) {
-        unsafe = FSTUtil.unsafe;
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         reset();

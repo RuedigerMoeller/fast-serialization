@@ -130,7 +130,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 }
             }
             writeFByte(STRING);
-            writeStringUTFDef((String) toWrite);
+            writeStringUTF((String) toWrite);
             return;
         } else if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
         } else if ( clazz == Long.class ) { writeFByte(BIG_LONG); writeCLong(((Long) toWrite).longValue()); return;
