@@ -105,8 +105,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
     protected Unsafe unsafe;
 
-    public byte[] lastWrittenClzName;
-    
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
      * underlying output stream.
@@ -363,7 +361,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                     }
                     writeClass(c);
                 } else {
-                    writeClass(toWrite);
+                    writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
                 }
                 writeCInt(((Enum) toWrite).ordinal());
                 return;
@@ -1584,7 +1582,6 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
      * for internal use only, the state of the outputstream is not reset properly
      */
     void reset() {
-        lastWrittenClzName = null;
         written = 0;
         buffout.reset();
         unsafe = FSTUtil.unsafe;

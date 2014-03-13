@@ -8,30 +8,18 @@ A class with a typical distribution of primitve fields: 2 short Strings, 3 boole
 
 Read Time (micros)
 
-========================= - FST (preferSpeed=true, Unsafe enabled) (75)
-========================== - FST (Unsafe enabled) (78)
-============================= - Kryo 2.23 UnsafeIn/Output (87)
-============================= - FST  (89)
-=================================== - Kryo 2.23 (107)
-=================================================== - Java built in (154)
+============================= - FST  (87)
+================================ - Kryo 2.23 (96)
 
 Write Time (micros)
 
-===================== - FST (preferSpeed=true, Unsafe enabled) (64)
-========================== - FST (Unsafe enabled) (78)
-======================== - Kryo 2.23 UnsafeIn/Output (72)
-========================== - FST  (79)
-================================= - Kryo 2.23 (101)
-================================================= - Java built in (149)
+========================= - FST  (75)
+============================== - Kryo 2.23 (91)
 
 Size (byte)
 
-=========================================== - FST (preferSpeed=true, Unsafe enabled) (21917)
-============================ - FST (Unsafe enabled) (14260)
-================================ - Kryo 2.23 UnsafeIn/Output (16059)
 ============================ - FST  (14260)
 ========================== - Kryo 2.23 (13259)
-=================================== - Java built in (17683)
 
 
 ==============================================
@@ -41,28 +29,247 @@ A class with a typical distribution of primitve fields: 2 short Strings, 3 boole
 
 Read Time (micros)
 
-======================== - FST (preferSpeed=true, Unsafe enabled) (72)
-======================== - FST (Unsafe enabled) (73)
-============================= - Kryo 2.23 UnsafeIn/Output (89)
-======================== - FST  (73)
-=================================== - Kryo 2.23 (106)
-======================================== - Java built in (120)
+======================= - FST  (71)
+================================ - Kryo 2.23 (98)
 
 Write Time (micros)
 
-======================== - FST (preferSpeed=true, Unsafe enabled) (74)
-======================== - FST (Unsafe enabled) (72)
-============================= - Kryo 2.23 UnsafeIn/Output (87)
-======================= - FST  (71)
-================================= - Kryo 2.23 (101)
-============================== - Java built in (90)
+======================== - FST  (74)
+============================== - Kryo 2.23 (90)
 
 Size (byte)
 
-================================ - FST (preferSpeed=true, Unsafe enabled) (16365)
-================================ - FST (Unsafe enabled) (16274)
-================================ - Kryo 2.23 UnsafeIn/Output (16073)
 ================================ - FST  (16274)
 ========================== - Kryo 2.23 (13273)
-=================================== - Java built in (17795)
+
+
+===============================
+Test Class: FrequentCollections
+===============================
+Measures serialization of most popular collection classes. (HashMap and an ArrayList filled with Integer and Long).
+
+Read Time (micros)
+
+=========== - FST  (33)
+============================ - Kryo 2.23 (85)
+
+Write Time (micros)
+
+======= - FST  (22)
+=========== - Kryo 2.23 (33)
+
+Size (byte)
+
+========= - FST  (4671)
+========= - Kryo 2.23 (4611)
+
+
+=============================
+Test Class: LargeNativeArrays
+=============================
+measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression, so the increased size of kryo in this test will not be observable in most real world data.
+
+Read Time (micros)
+
+=============== - FST  (47)
+=============================================================================== - Kryo 2.23 (238)
+
+Write Time (micros)
+
+============ - FST  (36)
+======================= - Kryo 2.23 (70)
+
+Size (byte)
+
+============================================================== - FST  (31219)
+===================================================================== - Kryo 2.23 (34946)
+
+
+=============================
+Test Class: StringPerformance
+=============================
+measures serialization of mid size to very long Strings
+
+Read Time (micros)
+
+============= - FST  (41)
+============================================================================== - Kryo 2.23 (236)
+
+Write Time (micros)
+
+========= - FST  (27)
+================================================ - Kryo 2.23 (146)
+
+Size (byte)
+
+================================= - FST  (20020)
+====================================================================== - Kryo 2.23 (42043)
+
+
+========================
+Test Class: Primitives[]
+========================
+A broad test of primitive values and specials such as Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. 
+ plus opaque private field with same name in a private subclass
+
+Read Time (micros)
+
+==================================================================== - FST  (205)
+
+Write Time (micros)
+
+====================================================================================== - FST  (259)
+
+Size (byte)
+
+================================= - FST  (16602)
+==================== - Kryo 2.23 (10171)
+
+
+=============================
+Test Class: PrimitiveArrays[]
+=============================
+Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimensional arrays.
+
+Read Time (micros)
+
+=================================== - FST  (107)
+=============================== - Kryo 2.23 (95)
+
+Write Time (micros)
+
+======================== - FST  (72)
+============================== - Kryo 2.23 (90)
+
+Size (byte)
+
+============================================= - FST  (22743)
+=================== - Kryo 2.23 (9728)
+
+
+=============================
+Test Class: CommonCollections
+=============================
+In depth test of collections incl. collections of collections.
+ (ArrayList, ArrayDeque, ConcurrentLinkedQueue, Vector, TreeSet, LinkedList, TreeMap, ConcurrentHashMap, Hashtable, HashMap). Note: has been modified to workaround Kryo-specific Issue.
+
+Read Time (micros)
+
+============================ - FST  (86)
+=============================================================== - Kryo 2.23 (191)
+
+Write Time (micros)
+
+==================== - FST  (61)
+=========================== - Kryo 2.23 (83)
+
+Size (byte)
+
+================= - FST  (8502)
+================ - Kryo 2.23 (8323)
+
+
+==================
+Test Class: Trader
+==================
+Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.
+
+Read Time (micros)
+
+========================== - FST  (80)
+====================================== - Kryo 2.23 (115)
+
+Write Time (micros)
+
+======================== - FST  (73)
+=================================== - Kryo 2.23 (105)
+
+Size (byte)
+
+========== - FST  (5129)
+=========== - Kryo 2.23 (5919)
+
+
+=========================
+Test Class: ManyClasses[]
+=========================
+Tests speed serializing a complex object graph of many different classes with few primitive fields.
+
+Read Time (micros)
+
+=================== - FST  (58)
+========================= - Kryo 2.23 (76)
+
+Write Time (micros)
+
+=============== - FST  (45)
+===================== - Kryo 2.23 (64)
+
+Size (byte)
+
+======= - FST  (3996)
+======== - Kryo 2.23 (4152)
+
+
+==============================
+Test Class: ExternalizableTest
+==============================
+Performance of Externalizable objects.
+
+Read Time (micros)
+
+================================ - FST  (98)
+=============================================== - Kryo 2.23 (143)
+
+Write Time (micros)
+
+========================================== - FST  (127)
+========================================== - Kryo 2.23 (127)
+
+Size (byte)
+
+==================== - FST  (10137)
+========= - Kryo 2.23 (4733)
+
+
+=====================
+Test Class: BigObject
+=====================
+A bigger object graph consisting of some of the test objects at once
+
+Read Time (micros)
+
+=================== - FST  (58)
+======================================= - Kryo 2.23 (119)
+
+Write Time (micros)
+
+================= - FST  (53)
+============================= - Kryo 2.23 (89)
+
+Size (byte)
+
+==================================== - FST  (498227)
+====================================================================== - Kryo 2.23 (956781)
+
+
+========================
+Test Class: HeavyNesting
+========================
+Heavily nested Objects
+
+Read Time (micros)
+
+======================================= - FST  (118)
+============================================ - Kryo 2.23 (134)
+
+Write Time (micros)
+
+============================================= - FST  (136)
+==================================================== - Kryo 2.23 (158)
+
+Size (byte)
+
+======= - FST  (3747)
+========== - Kryo 2.23 (5009)
 

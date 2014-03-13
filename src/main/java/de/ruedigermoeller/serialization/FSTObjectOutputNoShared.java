@@ -153,7 +153,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 }
                 writeClass(c);
             } else {
-                writeClass(toWrite);
+                writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
             }
             writeCInt(((Enum) toWrite).ordinal());
             return;

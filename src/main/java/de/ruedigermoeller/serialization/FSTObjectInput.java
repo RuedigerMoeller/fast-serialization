@@ -98,9 +98,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     ConditionalCallback conditionalCallback;
     int readExternalReadAHead = 8000;
     
-    public String lastReadClName;
-
-
     public FSTConfiguration getConf() {
         return conf;
     }
@@ -1259,7 +1256,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     public void reset() throws IOException {
-        lastReadClName = null;
         input.reset();
     }
 
