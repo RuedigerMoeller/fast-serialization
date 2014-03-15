@@ -13,11 +13,6 @@ import com.cedarsoftware.util.DeepEquals;
 
 import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.FrequentCollections;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.LargeNativeArrays;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.PrimitiveArrays;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.Primitives;
-import de.ruedigermoeller.serialization.testclasses.enterprise.Trader;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -53,11 +48,12 @@ public class FSTTestApp {
         try {
             fout = new FileOutputStream("/tmp/test-"+i+".tmp");
             Object[] toWrite = {
-                    PrimitiveArrays.createPrimArray(),
-                    Trader.generateTrader(i, true),
-                    new FrequentCollections(),
-                    new LargeNativeArrays(),
-                    Primitives.createPrimArray()
+                    // fixme
+//                    PrimitiveArrays.createPrimArray(),
+//                    Trader.generateTrader(i, true),
+//                    new FrequentCollections(),
+//                    new LargeNativeArrays(),
+//                    Primitives.createPrimArray()
             };
 
             mywriteMethod(fout, toWrite);

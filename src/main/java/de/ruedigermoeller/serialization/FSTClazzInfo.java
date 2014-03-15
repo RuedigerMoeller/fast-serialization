@@ -725,10 +725,6 @@ public final class FSTClazzInfo {
             return field.getBoolean(obj);
         }
 
-        public final Object getObjectValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unsafe.getObject(obj,memOffset);
-        }
-
         public final Object getObjectValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
                 return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
@@ -741,10 +737,6 @@ public final class FSTClazzInfo {
                 return FSTUtil.unFlaggedUnsafe.getFloat(obj,memOffset);
             }
             return field.getFloat(obj);
-        }
-
-        public final double getDoubleValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unsafe.getDouble(obj,memOffset);
         }
 
         public final void setCharValue(Object newObj, char c) throws IllegalAccessException {
@@ -763,10 +755,6 @@ public final class FSTClazzInfo {
             field.setShort(newObj, i1);
         }
 
-        public final void setObjectValueUnsafe(Object newObj, Object i1) throws IllegalAccessException {
-            FSTUtil.unsafe.putObject(newObj,memOffset,i1);
-        }
-
         public final void setObjectValue(Object newObj, Object i1) throws IllegalAccessException {
             if (memOffset >= 0  ) {
                 FSTUtil.unFlaggedUnsafe.putObject(newObj, memOffset, i1);
@@ -783,24 +771,12 @@ public final class FSTClazzInfo {
             field.setFloat(newObj, l);
         }
 
-        public final void setDoubleValueUnsafe(Object newObj, double l) throws IllegalAccessException {
-            FSTUtil.unsafe.putDouble(newObj,memOffset,l);
-        }
-
         public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
             if (memOffset >= 0  ) {
                 FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
             }
             field.setDouble(newObj, l);
-        }
-
-        public final void setIntValueUnsafe(Object newObj, int i1) throws IllegalAccessException {
-            FSTUtil.unsafe.putInt(newObj,memOffset,i1);
-        }
-
-        public final void setLongValueUnsafe(Object newObj, long i1) throws IllegalAccessException {
-            FSTUtil.unsafe.putLong(newObj,memOffset,i1);
         }
 
         public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {

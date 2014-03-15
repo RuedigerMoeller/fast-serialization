@@ -39,13 +39,9 @@ public class FSTUtil {
     static int[] EmptyIntArray = new int[10000];
     static Object[] EmptyObjArray = new Object[10000];
     static ObjectStreamField[] NO_FIELDS = new ObjectStreamField[0];
-    public static Unsafe unsafe;
     public static Unsafe unFlaggedUnsafe = FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
 
     static {
-        if ( System.getProperty("fst.unsafe","false").equals("true") ) {
-            FSTUtil.unsafe = unFlaggedUnsafe;
-        }
         if ( unFlaggedUnsafe != null ) {
             bufoff = unFlaggedUnsafe.arrayBaseOffset(byte[].class);
             intoff = unFlaggedUnsafe.arrayBaseOffset(int[].class);

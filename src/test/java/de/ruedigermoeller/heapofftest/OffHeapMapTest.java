@@ -1,11 +1,11 @@
 package de.ruedigermoeller.heapofftest;
 
 import de.ruedigermoeller.heapoff.FSTOffHeapMap;
-import de.ruedigermoeller.serialization.FSTConfiguration;
+import de.ruedigermoeller.serialization.testclasses.HasDescription;
 import de.ruedigermoeller.serialization.testclasses.HtmlCharter;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.SmallThing;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -30,6 +30,12 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 public class OffHeapMapTest {
+
+    public static class SmallThing implements Serializable {
+        int ageSum = 10;
+        String bla = "bla";
+
+    }
 
     public static void benchMap(HtmlCharter charter) throws IOException {
 
