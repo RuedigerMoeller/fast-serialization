@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Fast-serialization : FST: fast java serialization drop in-replacement" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Fast-serialization</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/RuedigerMoeller/fast-serialization">View on GitHub</a>
+
+          <h1 id="project_title">Fast-serialization</h1>
+          <h2 id="project_tagline">FST: fast java serialization drop in-replacement</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/RuedigerMoeller/fast-serialization/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/RuedigerMoeller/fast-serialization/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="fast-serialization" class="anchor" href="#fast-serialization"><span class="octicon octicon-link"></span></a>fast-serialization</h1>
+
+<ul>
+<li>
+<strong>Fast Serialization</strong> reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. </li>
+<li>
+<strong>FSTStructs</strong> implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software, huge (&gt;32GB) of static offheap data, data exchange with other languages, reduction of FullGC by 'flattening' or offheaping complex object graphs, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. </li>
+</ul><h4>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>features:</h4>
+
+<ul>
+<li>Faster serialization and smaller object size. </li>
+<li>
+<strong>drop-in replacement</strong>. Does not require special getters/setters/Constructors/Interfaces to serialize a class. Extends Outputstream, implements <code>ObjectInput/ObjectOutput</code>. Few code changes required.</li>
+<li>Full support of JDK-serialization features such as Externalizable writeObject/readObject/readReplace/validation/putField/getField, hooks etc.. If an object is serializable with JDK, it should be serializable with FST without any further work.</li>
+<li>preserves links inside the serialized object graph same as JDK default serialization</li>
+<li>custom optimization using <em>annotations</em>, custom serializers</li>
+<li>conditional decoding (skip decoding parts of an object/stream in case)</li>
+</ul><p>Supports java 1.7+</p>
+
+<ul>
+<li>Fast serialization should be adaptable to 1.6 (no use of 1.7 features)</li>
+<li>FST-structs does require 1.7 API</li>
+</ul><h4>
+<a name="maven-download" class="anchor" href="#maven-download"><span class="octicon octicon-link"></span></a>Maven, Download</h4>
+
+<p>download non-maven build at the releases section:
+<a href="https://github.com/RuedigerMoeller/fast-serialization/releases/">https://github.com/RuedigerMoeller/fast-serialization/releases/</a></p>
+
+<p>Note: fixes+updates are delivered with some delay to maven central, check downloads first
+for newest version</p>
+
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.40<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
+
+<h4>
+<a name="state-of-this-project" class="anchor" href="#state-of-this-project"><span class="octicon octicon-link"></span></a>State of this project</h4>
+
+<p>FST Serialization should be pretty stable and JDK-serialization compatible today. It is used in a large distributed <a href="http://java-is-the-new-c.blogspot.de/2013/12/big-data-reactive-way.html">high performance application</a>. Additionally a lot of remaining corner cases (mostly JDK-serialization-compatibility-issues) have been fixed when replacing JDK-serialization in a prime-faces webflow webapp (lot's of rarely used constructs in there).</p>
+
+<h4>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h4>
+
+<p>see <a href="https://github.com/RuedigerMoeller/fast-serialization/wiki">Wiki</a>, some documents are still not moved/ported from <a href="https://code.google.com/p/fast-serialization/">https://code.google.com/p/fast-serialization/</a>. Read them there.</p>
+
+<p>Also see this <a href="http://java-is-the-new-c.blogspot.de/2013/10/still-using-externalizable-to-get.html">blog post</a>.</p>
+
+<h4>
+<a name="limits" class="anchor" href="#limits"><span class="octicon octicon-link"></span></a>Limits</h4>
+
+<ul>
+<li>specialized on java-to-java, no inter language operability.</li>
+<li>no support for versioning. Reader and writer need to have identical versions of the classes serialized.</li>
+<li>reads/writes to a temporary buffer in memory to speed up things. This might impose a problem when reading/writing huge objects &gt; 100MB</li>
+<li>emulating JDK built in <code>Externalizable</code> is somewhat tricky. FST needs to speculate on the maximum size of a single externalizable instance. Default setting is 8kb. In case you use <code>Externalizable</code> and write large binary data from one single <code>Externalizable</code> instance without return control to the serializer, you have to increase both <code>externalReadAhead</code> and <code>externalWriteAhead</code> at the <code>FSTObjectOutput</code> and <code>FSTObjectInput</code> class. You might also consider to just replace <code>Externalizable</code> by <code>Serializable</code>. In fact FST frequently does <code>Serializable</code> faster than built in JDK <code>Externalizable</code> implementations.</li>
+</ul><h4>
+<a name="benchmark" class="anchor" href="#benchmark"><span class="octicon octicon-link"></span></a>Benchmark</h4>
+
+<p>I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of <code>ByteArrayStreams</code> etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).</p>
+
+<p><a href="https://github.com/RuedigerMoeller/fast-serialization/wiki/Benchmark">current results</a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Fast-serialization maintained by <a href="https://github.com/RuedigerMoeller">RuedigerMoeller</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
