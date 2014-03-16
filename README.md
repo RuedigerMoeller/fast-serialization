@@ -31,7 +31,7 @@ for newest version
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.40</version>
+    <version>[latest release, check maven.org, search fst]</version>
 </dependency>
 ```
 
