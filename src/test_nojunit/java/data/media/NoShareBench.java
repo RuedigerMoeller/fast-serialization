@@ -17,10 +17,10 @@ import java.util.ArrayList;
 public class NoShareBench {
 
     public static void main( String a[] ) throws IOException, ClassNotFoundException {
-        ObjectInputStream oin = new ObjectInputStream(new FileInputStream(".\\src\\test\\java\\data\\test.os"));
+        ObjectInputStream oin = new ObjectInputStream(new FileInputStream(".\\src\\test_nojunit\\java\\data\\test.os"));
         final Object medpa = oin.readObject();
 
-        boolean register = false;
+        boolean register = true;
 
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.setShareReferences(false);
