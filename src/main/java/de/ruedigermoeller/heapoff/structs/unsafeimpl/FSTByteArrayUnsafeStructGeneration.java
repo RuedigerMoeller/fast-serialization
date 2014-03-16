@@ -1,5 +1,6 @@
 package de.ruedigermoeller.heapoff.structs.unsafeimpl;
 
+import de.ruedigermoeller.heapoff.structs.FSTStruct;
 import de.ruedigermoeller.serialization.FSTClazzInfo;
 import javassist.*;
 import javassist.expr.FieldAccess;
@@ -28,7 +29,7 @@ import javassist.expr.FieldAccess;
  */
 public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
 
-    public static boolean trackChanges = true;
+    public static boolean trackChanges = false;
 
     @Override
     public FSTStructGeneration newInstance() {
@@ -391,6 +392,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
         boolean vola = fieldInfo.isVolatile();
         validateAnnotations(fieldInfo,vola);
         String insert = "";
+        String statement = "";
         if ( vola ) {
             insert = "Volatile";
         }
@@ -421,17 +423,21 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                 f.replace("$_ = ___bytes.getDouble"+insert+"("+off+"+___offset);");
             } else { // object ref
                 String typeString = type.getName();
-                f.replace("{ int tmpIdx = ___bytes.getInt( "+off+" + ___offset); if (tmpIdx < 0) return null;" +
+                if ( ! FSTStruct.class.isAssignableFrom(Class.forName( typeString) ) ) {
+                    throw new RuntimeException("invalid type, require at least FSTStruct "+fieldInfo);
+                }
+                statement = "{ int tmpIdx = ___bytes.getInt( " + off + " + ___offset); if (tmpIdx < 0) return null;" +
                         "long __tmpOff = ___offset + tmpIdx; " +
-                        ""+typeString+" tmp = ("+ typeString +")___fac.getStructPointerByOffset(___bytes,__tmpOff); " +
-                        "if ( tmp == null ) return null;"+
-                        "tmp.tracker = new de.ruedigermoeller.heapoff.structs.FSTStructChange(tracker,\""+fieldInfo.getField().getName()+"\"); " +
+                        "" + typeString + " tmp = (" + typeString + ")___fac.getStructPointerByOffset(___bytes,__tmpOff); " +
+                        "if ( tmp == null ) return null;" +
+                        "tmp.tracker = new de.ruedigermoeller.heapoff.structs.FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " +
                         "$_ = tmp; " +
-                        "}");
+                        "}";
+                f.replace(statement);
 //                f.replace("{ Object _o = unsafe.toString(); $_ = _o; }");
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new RuntimeException(""+fieldInfo+" "+statement,ex);
         }
     }
 }

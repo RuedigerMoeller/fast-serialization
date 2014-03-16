@@ -1,7 +1,6 @@
 package de.ruedigermoeller.heapofftest;
 
 import de.ruedigermoeller.heapoff.FSTOffHeapMap;
-import de.ruedigermoeller.serialization.testclasses.HasDescription;
 import de.ruedigermoeller.serialization.testclasses.HtmlCharter;
 
 import java.io.IOException;

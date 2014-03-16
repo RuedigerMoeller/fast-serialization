@@ -43,18 +43,22 @@ public class FSTUtil {
 
     static {
         if ( unFlaggedUnsafe != null ) {
+            refoff = unFlaggedUnsafe.arrayBaseOffset(Object[].class);
             bufoff = unFlaggedUnsafe.arrayBaseOffset(byte[].class);
             intoff = unFlaggedUnsafe.arrayBaseOffset(int[].class);
             longoff = unFlaggedUnsafe.arrayBaseOffset(long[].class);
             longscal = unFlaggedUnsafe.arrayIndexScale(long[].class);
             intscal = unFlaggedUnsafe.arrayIndexScale(int[].class);
             chscal = unFlaggedUnsafe.arrayIndexScale(char[].class);
+            refscal = unFlaggedUnsafe.arrayIndexScale(Object[].class);
             choff = unFlaggedUnsafe.arrayBaseOffset(char[].class);
             doubleoff = unFlaggedUnsafe.arrayBaseOffset(double[].class);
             doublescal = unFlaggedUnsafe.arrayIndexScale(double[].class);
             floatoff = unFlaggedUnsafe.arrayBaseOffset(float[].class);
             floatscal = unFlaggedUnsafe.arrayIndexScale(float[].class);
         } else {
+            refscal = 0;
+            refoff = 0;
             longoff = 0;
             longscal = 0;
             bufoff = 0;
@@ -69,6 +73,8 @@ public class FSTUtil {
         }
     }
 
+    public final static long refoff;
+    public final static long refscal;
     public final static long bufoff;
     public final static long choff;
     public final static long intoff;

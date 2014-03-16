@@ -52,7 +52,7 @@ public class FSTIdentity2IdMap
     private static final int GROFAC = 2;
 
     private int mask;
-    private Object  mKeys[];
+    public Object[]  mKeys;
     private int klen;
     private int     mValues[];
     private int     mNumberOfElements;

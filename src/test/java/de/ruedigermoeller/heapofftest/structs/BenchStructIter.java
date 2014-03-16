@@ -87,7 +87,7 @@ public class BenchStructIter {
         final FSTTypedStructAllocator<TestInstrument> alloc = new FSTTypedStructAllocator<TestInstrument>(TestInstrument.createInstrumentTemplate(),SIZE);
 
 
-        charter.heading("Instantiation Time (CMS Collector)");
+        charter.heading("Instantiation Time (Default Collector)");
         charter.text("Duration to allocate and initialize an array[" + SIZE + "] of complex Objects (TestInstrument containing a list of embedded TestInstrumentLeg Objects).");
         charter.text("Note: Instantiation time differs depending on GC-Algorithm, difference in Full GC stays across DefaultGC, CMS and G1. " +
                 "G1 and Default GC are significantly faster in on-heap allocation. <br>");

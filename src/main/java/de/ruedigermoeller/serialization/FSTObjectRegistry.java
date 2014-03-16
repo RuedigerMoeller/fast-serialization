@@ -34,9 +34,9 @@ public final class FSTObjectRegistry {
 
     public static final int OBJ_DIVISOR = 16;
     boolean disabled = false;
-    FSTIdentity2IdMap objects = new FSTIdentity2IdMap(97); // object => id
-    FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(17);
-    FSTObject2IntMap equalsMap = new FSTObject2IntMap(17,true); // object => handle
+    FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
+    FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
+    FSTObject2IntMap equalsMap = new FSTObject2IntMap(7,true); // object => handle
 
     FSTConfiguration conf;
     FSTClazzInfoRegistry reg;
@@ -59,17 +59,29 @@ public final class FSTObjectRegistry {
 
     public void clearForRead() {
         disabled = !conf.isShareReferences();
-        if (!disabled) {
-            idToObject.clear();
-            FSTUtil.clear(reuseMap,highestPos);
+        if ( !disabled ) {
+            if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
+                // avoid cleaning huge mem areas after having written a large object
+                idToObject = new FSTInt2ObjectMap(idToObject.size());
+            } else {
+                idToObject.clear();
+            }
+            if ( highestPos > 0 )
+                FSTUtil.clear(reuseMap,highestPos);
         }
         highestPos = 0;
     }
 
     public void clearForWrite() {
-        objects.clear();
-        equalsMap.clear();
         disabled = !conf.isShareReferences();
+        if ( ! disabled ) {
+            if ( objects.size() > 0 && objects.mKeys.length > 6 * objects.size() ) {
+                objects = new FSTIdentity2IdMap(objects.size());
+            } else {
+                objects.clear();
+            }
+            equalsMap.clear();
+        }
     }
 
     public Object getReadRegisteredObject(int handle) {

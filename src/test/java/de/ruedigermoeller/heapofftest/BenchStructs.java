@@ -37,20 +37,20 @@ import java.util.*;
 public class BenchStructs {
 
     public static class SimpleTest extends FSTStruct {
-        protected Object nullObject = null;
+        protected FSTStruct nullObject = null;
         protected long id = 12345;
-        protected Object [] anArray = { null, null, new StructString("NotNull"), null };
+        protected FSTStruct [] anArray = { null, null, new StructString("NotNull"), null };
 
-        public Object getNullObject() {
+        public FSTStruct getNullObject() {
             return nullObject;
         }
 
-        public void setNullObject(Object nullObject) {
+        public void setNullObject(FSTStruct nullObject) {
             this.nullObject = nullObject;
         }
 
-        public Object anArray(int i) { return anArray[i]; }
-        public void anArray(int i, Object val) { anArray[i] = val; }
+        public FSTStruct anArray(int i) { return anArray[i]; }
+        public void anArray(int i, FSTStruct val) { anArray[i] = val; }
         public int anArrayLen() { return anArray.length; }
 
 
@@ -60,9 +60,9 @@ public class BenchStructs {
         protected StructString testString = new StructString("HalloTest");
         protected long id = 12345;
         protected int legs[] = {19,18,17,16};
-        protected Object [] anArray = { new StructString("Hello"), new StructString("Oha") };
+        protected FSTStruct [] anArray = { new StructString("Hello"), new StructString("Oha") };
 
-        protected Object nullobj = null;
+        protected FSTStruct nullobj = null;
 
         public long getId() {
             return id;
@@ -72,11 +72,11 @@ public class BenchStructs {
             return testString;
         }
 
-        public Object getNullobj() {
+        public FSTStruct getNullobj() {
             return nullobj;
         }
 
-        public void setNullobj(Object nullobj) {
+        public void setNullobj(FSTStruct nullobj) {
             this.nullobj = nullobj;
         }
 
@@ -84,8 +84,8 @@ public class BenchStructs {
         public void legs(int i, int val) {legs[i] = val;}
         public int legsLen() { return legs.length; }
 
-        public Object anArray(int i) { return anArray[i]; }
-        public void anArray(int i, Object val) { anArray[i] = val; }
+        public FSTStruct anArray(int i) { return anArray[i]; }
+        public void anArray(int i, FSTStruct val) { anArray[i] = val; }
         public int anArrayLen() { return anArray.length; }
 
     }
@@ -300,12 +300,13 @@ public class BenchStructs {
             StructString toSearch = new StructString("oij"+11);
             StructString toNotFind = new StructString("notThere");
             long tim = System.currentTimeMillis();
-            for ( int i = 0; i < 8000000; i++) {
+            int iterations = 8000;
+            for ( int i = 0; i < iterations; i++) {
                 if ( testMap.get(toSearch) == null ) {
                     System.out.println("bug");
                 }
             }
-            for ( int i = 0; i < 8000000; i++) {
+            for ( int i = 0; i < iterations; i++) {
                 if ( testMap.get(toNotFind) != null ) {
                     System.out.println("bug");
                 }
@@ -313,12 +314,12 @@ public class BenchStructs {
             System.out.println("lookup hashmap "+(System.currentTimeMillis()-tim));
 
             tim = System.currentTimeMillis();
-            for ( int i = 0; i < 8000000; i++) {
+            for ( int i = 0; i < iterations; i++) {
                 if ( stMap.get(toSearch) == null ) {
                     System.out.println("bug");
                 }
             }
-            for ( int i = 0; i < 8000000; i++) {
+            for ( int i = 0; i < iterations; i++) {
                 if ( stMap.get(toNotFind) != null ) {
                     System.out.println("bug");
                 }
@@ -328,12 +329,12 @@ public class BenchStructs {
             stMap = fac.toStruct(stMap);
 
             tim = System.currentTimeMillis();
-            for ( int i = 0; i < 8000000; i++) {
+            for ( int i = 0; i < iterations; i++) {
                 if ( stMap.get(toSearch) == null ) {
                     System.out.println("bug");
                 }
             }
-            for ( int i = 0; i < 8000000; i++) {
+            for ( int i = 0; i < iterations; i++) {
                 if ( stMap.get(toNotFind) != null ) {
                     System.out.println("bug");
                 }

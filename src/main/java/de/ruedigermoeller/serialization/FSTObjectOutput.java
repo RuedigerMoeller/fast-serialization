@@ -201,7 +201,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     public void writeObject(Object obj, Class... possibles) throws IOException {
         curDepth++;
         try {
-            if ( possibles != null ) {
+            if ( possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
                     clnames.registerClass(possible);

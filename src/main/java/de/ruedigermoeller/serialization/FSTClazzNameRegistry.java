@@ -60,8 +60,10 @@ public class FSTClazzNameRegistry {
     }
 
     public void clear() {
-        clzToId.clear();
-        idToClz.clear();
+        if ( clzToId.size() > 0 ) {
+            clzToId.clear();
+            idToClz.clear();
+        }
         classIdCount = LOWEST_CLZ_ID;
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;

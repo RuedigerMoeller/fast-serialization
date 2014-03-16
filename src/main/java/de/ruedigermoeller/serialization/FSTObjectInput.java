@@ -201,7 +201,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
         try {
-            if (possibles != null) {
+            if (possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
                     clnames.registerClass(possible);
@@ -833,7 +833,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         input.reset();
         clnames.clear();
         input.initFromStream(in);
-        objects.clearForRead(); clnames.clear();
+        objects.clearForRead(); 
+        clnames.clear();
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
@@ -857,7 +858,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         input.reset();
-        objects.clearForRead(); clnames.clear();
+        objects.clearForRead(); 
+        clnames.clear();
         input.count = len+off;
         input.buf = bytes;
         input.pos = off;
