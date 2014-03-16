@@ -137,21 +137,6 @@
             <version>3.18.1-GA</version>
         </dependency>
 
-				<!-- test dependencies -->
-				<dependency>
-					<groupId>com.esotericsoftware.kryo</groupId>
-					<artifactId>kryo</artifactId>
-					<version>2.23.0</version>
-					<scope>test</scope>
-				</dependency>
-				
-				<dependency>
-					<groupId>com.cedarsoftware</groupId>
-					<artifactId>java-util</artifactId>
-					<version>1.4.0</version>
-					<scope>test</scope>
-				</dependency>
-
     </dependencies>
 
 </project>
