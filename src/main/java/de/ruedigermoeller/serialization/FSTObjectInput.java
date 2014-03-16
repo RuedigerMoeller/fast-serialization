@@ -670,6 +670,73 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         return new String(ascStringCache,0,0,len);
     }
 
+    /**
+     * utility for fast-cast
+     * @param componentType
+     * @param len
+     * @return
+     */
+    public Object readFPrimitiveArray( Class componentType, int len ) {
+        try {
+            Object array = Array.newInstance(componentType, len);
+            if (componentType == byte.class) {
+                byte[] arr = (byte[]) array;
+                ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
+                read(arr);
+                return arr;
+            } else if (componentType == char.class) {
+                char[] arr = (char[]) array;
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readCChar();
+                }
+                return arr;
+            } else if (componentType == short.class) {
+                short[] arr = (short[]) array;
+                ensureReadAhead(arr.length*2);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFShort();
+                }
+                return arr;
+            } else if (componentType == int.class) {
+                final int[] arr = (int[]) array;
+                readFIntArr(len, arr);
+                return arr;
+            } else if (componentType == float.class) {
+                float[] arr = (float[]) array;
+                ensureReadAhead(arr.length*4);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFFloat();
+                }
+                return arr;
+            } else if (componentType == double.class) {
+                double[] arr = (double[]) array;
+                ensureReadAhead(arr.length*8);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFDouble();
+                }
+                return arr;
+            } else if (componentType == long.class) {
+                long[] arr = (long[]) array;
+                ensureReadAhead(arr.length*8);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFLong();
+                }
+                return arr;
+            } else if (componentType == boolean.class) {
+                boolean[] arr = (boolean[]) array;
+                ensureReadAhead(arr.length);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readBoolean();
+                }
+                return arr;
+            } else {
+                throw new RuntimeException("unexpected primitive type " + componentType);
+            }
+        } catch (IOException e) {
+            throw FSTUtil.rethrow(e);  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+    
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class arrCl = readClass().getClazz();
         final int len = readCInt();

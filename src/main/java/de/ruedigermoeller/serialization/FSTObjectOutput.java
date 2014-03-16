@@ -727,6 +727,10 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
             writeCChar(arr[i]);
     }
 
+    public void writeFByteArr(byte[] array) throws IOException {
+        writeFByteArr(array,0,array.length);
+    }
+
     /**
      * does not write length, just plain bytes
      * @param array
