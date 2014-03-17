@@ -161,7 +161,7 @@ public class StructString extends FSTStruct implements Comparable {
         return false;
     }
 
-    @Override
+    @Override @NoAssist
     public int compareTo(Object o) {
         if ( o instanceof StructString) {
             return compareTo((StructString)o);
