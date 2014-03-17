@@ -2,8 +2,13 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="1.5"
+version="1.51"
 
+targetCompatibility = 1.7
+sourceCompatibility = 1.7
+
+compileJava.options.debugOptions.debugLevel = "source,lines,vars"
+compileTestJava.options.debugOptions.debugLevel = "source,lines,vars"
 
 jar.baseName='fst'
 
