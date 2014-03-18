@@ -63,7 +63,7 @@ for newest version</p>
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>1.5<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.51<span class="nt">&lt;/version&gt;</span>
 <span class="nt">&lt;/dependency&gt;</span>
 </pre></div>
 
@@ -88,7 +88,7 @@ for newest version</p>
 <li>reads/writes to a temporary buffer in memory to speed up things. This might impose a problem when reading/writing huge objects &gt; 100MB</li>
 <li>emulating JDK built in <code>Externalizable</code> is somewhat tricky. FST needs to speculate on the maximum size of a single externalizable instance. Default setting is 8kb. In case you use <code>Externalizable</code> and write large binary data from one single <code>Externalizable</code> instance without return control to the serializer, you have to increase both <code>externalReadAhead</code> and <code>externalWriteAhead</code> at the <code>FSTObjectOutput</code> and <code>FSTObjectInput</code> class. You might also consider to just replace <code>Externalizable</code> by <code>Serializable</code>. In fact FST frequently does <code>Serializable</code> faster than built in JDK <code>Externalizable</code> implementations.</li>
 </ul><h4>
-<a name="benchmark" class="anchor" href="#benchmark"><span class="octicon octicon-link"></span></a>Benchmark</h4>
+<a name="benchmark" class="anchor" href="#benchmark"><span class="octicon octicon-link"></span></a><a href="https://github.com/RuedigerMoeller/fast-serialization/wiki/Benchmark">Benchmark</a></h4>
 
 <p>I measure different typical use cases (both classes with lots of native data and structural complex object graphs). The benchmarks assures, that only serialization speed is measured. Creation of <code>ByteArrayStreams</code> etc. is not included in the benchmark times. Additionally for each library best efforts are made to use them in the best possible way (e.g. reuse heavy weight objects if possible).</p>
 
