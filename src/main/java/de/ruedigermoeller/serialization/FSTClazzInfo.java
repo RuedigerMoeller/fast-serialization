@@ -78,6 +78,8 @@ public final class FSTClazzInfo {
     boolean externalizable;
     boolean flat; // never share instances of this class
     boolean isAsciiNameShortString = false;
+    boolean requiresInit = false;
+    boolean hasTransient;
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
     
@@ -138,9 +140,11 @@ public final class FSTClazzInfo {
             }
         }
 
+        requiresInit = isExternalizable() || useCompatibleMode() || hasTransient;
     }
 
     byte[] bufferedName;
+
     public byte[] getBufferedName() {
         if (bufferedName == null) {
             bufferedName = getClazz().getName().getBytes();
@@ -193,7 +197,7 @@ public final class FSTClazzInfo {
 
     public final Object newInstance() {
         try {
-            if ( FSTUtil.unFlaggedUnsafe != null ) { // no performance improvement here, keep for nasty constructables ..
+            if (!requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
             return cons.newInstance();
@@ -202,6 +206,12 @@ public final class FSTClazzInfo {
         }
     }
 
+    /**
+     * Sideeffect: sets hasTransient
+     * @param c
+     * @param res
+     * @return
+     */
     public final List<Field> getAllFields(Class c, List<Field> res) {
         if (res == null) {
             res = new ArrayList<Field>();
@@ -217,8 +227,10 @@ public final class FSTClazzInfo {
         }
         for (int i = 0; i < res.size(); i++) {
             Field field = res.get(i);
-            if ( Modifier.isStatic(field.getModifiers()) || isTransient(c,field) )
-            {
+            if (Modifier.isStatic(field.getModifiers()) || isTransient(c, field)) {
+                if ( isTransient(c, field) ) {
+                    hasTransient = true;
+                }
                 res.remove(i);
                 i--;
             }
@@ -626,6 +638,7 @@ public final class FSTClazzInfo {
 
         /**
          * only set if is not an array, but a direct native field type
+         *
          * @return
          */
         public int getIntegralType() {
@@ -650,6 +663,7 @@ public final class FSTClazzInfo {
         public String toString() {
             return getDesc();
         }
+
         public boolean isFlat() {
             return flat;
         }
