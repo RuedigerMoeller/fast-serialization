@@ -1,5 +1,6 @@
 package de.ruedigermoeller.serialization.mix;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -121,17 +122,24 @@ public class Mix {
         protected Object readObject(byte typeTag) {
             switch (typeTag&0xf) {
                 case INT_8:
-                    return new IntValue(readInt(typeTag));
+                    return new IntValue(typeTag,readInt(typeTag));
                 case DOUBLE:
                     return new DoubleValue(Double.longBitsToDouble(readInt(typeTag)));
                 case TUPEL:
                     return readTupel();
                 case ARRAY:
-                    break;
+                    return readArray();
                 default:
                     throw new RuntimeException("expected tupel or array");
             }
-            return null;
+//            return null;
+        }
+
+        private Object readArray() {
+            IntValue len = (IntValue) readObject();
+            byte type = read();
+            ArrayValue val = new ArrayValue(type, (int) len.longValue());
+            return val;
         }
 
         protected Object readTupel() {
@@ -140,22 +148,58 @@ public class Mix {
 
     }
 
-    public static class DoubleValue {
+    public static class Value {
+        protected byte type;
+    }
+
+    public static class ArrayValue extends Value {
+        Object array;
+        public ArrayValue(byte type, int len) {
+            this.type = type;
+            switch (type>>>4) {
+                case 0: array = new byte[len]; break;
+                case 1: array = new short[len]; break;
+                case 2: array = new int[len]; break;
+                case 3: array = new long[len]; break;
+                default: throw new RuntimeException("unknown array type");
+            }
+        }
+
+        public void setDouble( int index, double val ) {
+            Array.setLong(array, index, Double.doubleToLongBits(val));
+        }
+
+        public void setInt( int index, long val ) {
+            switch (type>>>4) {
+                case 0: Array.setByte(array, index, (byte) val); break;
+                case 1: Array.setShort(array, index, (short) val); break;
+                case 2: Array.setInt(array, index, (int) val); break;
+                case 3: Array.setLong(array, index, val); break;
+                default: throw new RuntimeException("unknown array type");
+            }
+        }
+
+    }
+
+    public static class DoubleValue extends Value {
         double val;
         public DoubleValue(double val) {
             this.val = val;
+            type = DOUBLE;
         }
     }
 
-    public static class IntValue {
+    public static class IntValue extends Value {
         long val;
-        public IntValue(long val) {
+        public IntValue(byte type, long val) {
             this.val = val;
+            this.type = type;
         }
+        long longValue() { return val; }
     }
 
     public static class Tupel {
-        ArrayList contents;
+        ArrayList content;
     }
     
 }
