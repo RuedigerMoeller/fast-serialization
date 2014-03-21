@@ -26,13 +26,13 @@ import java.util.ArrayList;
  */
 public class Mix {
 
-    public final static byte INT_8 = 0b00000001;
+    public final static byte INT_8  = 0b00000001;
     public final static byte INT_16 = 0b00010001;
     public final static byte INT_32 = 0b00100001;
     public final static byte INT_64 = 0b00110001;
     public final static byte DOUBLE = 0b0010;
-    public final static byte ARRAY = 0b0011; // len type elems..
-    public final static byte TUPEL = 0b0100; // len id elems..
+    public final static byte ARRAY  = 0b0011; // len type elems..
+    public final static byte TUPEL  = 0b0100; // len id elems..
 
     public static class Out {
 
@@ -106,6 +106,10 @@ public class Mix {
 
         public long readInt() {
             byte type = read();
+            return readInt(type);
+        }
+
+        private long readInt(byte type) {
             long res = 0;
             for ( int i = 0; i < (type&0xf); i++ ) {
                 int b = (read()+256)&0xff;
@@ -113,9 +117,13 @@ public class Mix {
             }
             return res;
         }
-        
+
         protected Object readObject(byte typeTag) {
-            switch (typeTag) {
+            switch (typeTag&0xf) {
+                case INT_8:
+                    return new IntValue(readInt(typeTag));
+                case DOUBLE:
+                    return new DoubleValue(Double.longBitsToDouble(readInt(typeTag)));
                 case TUPEL:
                     return readTupel();
                 case ARRAY:
@@ -131,7 +139,21 @@ public class Mix {
         }
 
     }
-    
+
+    public static class DoubleValue {
+        double val;
+        public DoubleValue(double val) {
+            this.val = val;
+        }
+    }
+
+    public static class IntValue {
+        long val;
+        public IntValue(long val) {
+            this.val = val;
+        }
+    }
+
     public static class Tupel {
         ArrayList contents;
     }
