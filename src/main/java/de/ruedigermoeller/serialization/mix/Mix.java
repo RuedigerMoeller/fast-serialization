@@ -1,7 +1,10 @@
 package de.ruedigermoeller.serialization.mix;
 
+import com.cedarsoftware.util.DeepEquals;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -27,179 +30,421 @@ import java.util.ArrayList;
  */
 public class Mix {
 
-    public final static byte INT_8  = 0b00000001;
-    public final static byte INT_16 = 0b00010001;
-    public final static byte INT_32 = 0b00100001;
-    public final static byte INT_64 = 0b00110001;
-    public final static byte DOUBLE = 0b0010;
-    public final static byte ARRAY  = 0b0011; // len type elems..
-    public final static byte TUPEL  = 0b0100; // len id elems..
+    // numbers: low 4bit == 1, high 4 bit denote length of int. if > int 64 length of floating point id
+    public final static byte INT_8      = 0b00000001;
+    public final static byte INT_16     = 0b00010001;
+    public final static byte INT_32     = 0b00100001;
+    public final static byte INT_64     = 0b00110001;
+
+    public final static byte ARRAY_MASK = (byte)0b10000000; // next item expected to be length
+    public final static byte UNSIGN_MASK =  0b01000000; // next item expected to be unsigned
+
+    public final static byte CHAR       = INT_16|UNSIGN_MASK;
+    
+    //    public final static byte FLOAT      = 0b01000001;
+    public final static byte DOUBLE     = 0b00000010;
+
+    public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contains len if < 16
+    public final static byte ATOM     = 0b00000100; // nr of atom .. OR top 4 bits contains atom id if < 16
+
+    // default atoms, required
+    public final static byte NULL     = 0b00010100;
+    public final static byte TUPEL_END = 0b00100100;
+
+    // default atoms, optional
+    public final static byte STR_8    = 0b00110100;
+    public final static byte STR_16   = 0b01000100;
+
+    // global Atom instances 
+    private static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END);
+    private static final Atom ATOM_NULL = new Atom("null", NULL);
+    private static final Atom ATOM_STR_8 = new Atom("string8", STR_8);
+    private static final Atom ATOM_STR_16 = new Atom("string16", STR_16);
+
+    public static byte extractNumBytes(byte type) {
+        return (byte) ((type&0b110000)>>>4);
+    }
 
     public static class Out {
 
-        public void write(byte b) {
-        }
-
-        public void writeArrayHeader( byte type, int len ) {
-            write(ARRAY);
-            if ( len < Short.MAX_VALUE )
-                writeInt(INT_16,len);
-            else
-                writeInt(INT_32,len);
-            if ( (type & 0xF) > 2 ) {
-                throw new RuntimeException("An array may only contain primitive values");
-            }
-            write(type);
+        byte bytez[] = new byte[1000];
+        int pos = 0;
+        
+        public void writeOut(byte b) {
+            bytez[pos++] = b;
         }
 
         /**
-         * writes tag+len. First next object must be tupel tag, then len elements
+         * writes tag+len. First next object must be tupel tag, then len elements.
+         * If len is unknown, -1 can be provided. The end of the tupel must be marked with
+         * a TUPEL_END atom
          * @param len
          */
-        public void writeTupelHeader( int len ) {
-            write(TUPEL);
-            if ( len < Short.MAX_VALUE )
-                writeInt(INT_16,len);
-            else
-                writeInt(INT_32,len);
-            write(TUPEL);
-        }
-
-        public void writeInt( byte type,   long data ) {
-            write(type);
-            if ( type == DOUBLE) {
-                type = INT_64;
-            }
-            writeRawInt(type, data);
-        }
-
-        public void writeRawInt(byte type, long data) {
-            for ( int i = 0; i < (type&0xf); i++ ) {
-                write( (byte) (data&0xFF) );
-                data >>>= 8;
-            }
-        }
-
-        public void writeRawDouble(byte type, double data) {
-            writeRawInt(INT_64, Double.doubleToLongBits(data));
+        public void writeTupelHeader( long len ) {
+            writeOut(TUPEL);
+            writeIntPacked(len);
         }
 
         public void writeDouble( double d ) {
-            write(DOUBLE);
-            writeRawDouble(DOUBLE, Double.doubleToLongBits(d));
+            writeOut(DOUBLE);
+            writeRawInt((byte) 4, Double.doubleToLongBits(d));
         }
 
+        public void writeInt( byte type, long data ) {
+            writeOut(type);
+            writeRawInt(extractNumBytes(type), data);
+        }
+
+        /**
+         * 
+         * @param numBytes - 0 = 1 byte, 1 = 2 byte, 2 = 4 byte, 3 = 8 byte
+         * @param data
+         */
+        protected void writeRawInt(byte numBytes, long data) {
+            numBytes = (byte) (1<<numBytes);
+            for ( int i = 0; i < numBytes; i++ ) {
+                writeOut((byte) (data&0xff));
+                data = data >>> 8;
+            }
+        }
+
+        public void writeIntPacked(long data) {
+            if ( data <= Byte.MAX_VALUE && data >= Byte.MIN_VALUE )
+                writeInt(INT_8, data);
+            else if ( data <= Short.MAX_VALUE && data >= Short.MIN_VALUE )
+                writeInt(INT_16, data);
+            else if ( data <= Integer.MAX_VALUE && data >= Integer.MIN_VALUE )
+                writeInt(INT_32, data);
+            else if ( data <= Long.MAX_VALUE && data >= Long.MIN_VALUE )
+                writeInt(INT_64, data);
+        }
+
+        public void writeArray( Object primitiveArray, int start, int len ) {
+            byte type = ARRAY_MASK;
+            Class<?> componentType = primitiveArray.getClass().getComponentType();
+            if ( componentType == boolean.class ) type |= INT_8;
+            else if ( componentType == byte.class ) type |= INT_8;
+            else if ( componentType == short.class ) type |= INT_16;
+            else if ( componentType == char.class ) type |= INT_16 | UNSIGN_MASK;
+            else if ( componentType == int.class ) type |= INT_32;
+            else if ( componentType == long.class ) type |= INT_64;
+            else if ( componentType == double.class ) type |= DOUBLE;
+            else throw new RuntimeException("unsupported type "+componentType.getName());
+            writeOut(type);
+            writeIntPacked(len);
+            int numBytes = extractNumBytes(type);
+            for ( int i = start; i < start+len; i++ ) {
+                if ( componentType == boolean.class )
+                    writeRawInt((byte) numBytes, Array.getBoolean(primitiveArray,i) ? 1 : 0 );
+                else if ( componentType == double.class )
+                    writeRawInt((byte) numBytes, Double.doubleToLongBits(Array.getDouble(primitiveArray,i)));
+                else
+                    writeRawInt((byte) numBytes, Array.getLong(primitiveArray, i));
+            }
+        }
+        
     }
 
     public static class In {
-        
-        public byte read() {
-            return 0;
+
+        protected byte bytez[];
+        protected int pos;
+
+        public In(byte[] bytez, int pos) {
+            this.bytez = bytez;
+            this.pos = pos;
+        }
+
+        public byte readIn() {
+            return bytez[pos++];
         }
         
-        public Object readObject() {
-            return readObject(read());
+        public long readInt() {
+            byte type = readIn();
+            if ( (type & 0xf) >= DOUBLE || ((type&ARRAY_MASK)!=0)) {
+                pos--;
+                throw new RuntimeException("no integer based id avaiable");
+            }
+            byte numBytes = extractNumBytes(type);
+            long l = readRawInt(numBytes);
+            if ( (type & UNSIGN_MASK) == 0 ) {
+                switch (numBytes) {
+                    case 0:
+                        return (long) (byte) l;
+                    case 1:
+                        return (long) (short) l;
+                    case 2:
+                        return (long) (int) l;
+                    case 3:
+                        return l;
+                }
+            }
+            return l;
         }
 
         public double readDouble() {
-            return Double.longBitsToDouble(readInt());
+            byte type = readIn();
+            if ( (type & 0xf) != DOUBLE ) {
+                pos--;
+                throw new RuntimeException("no double id avaiable");
+            }
+            return Double.longBitsToDouble(readRawInt((byte) 3));
         }
 
-        public long readInt() {
-            byte type = read();
-            return readInt(type);
+        public Object readValue() {
+            return readValue(readIn());
         }
 
-        private long readInt(byte type) {
+        protected Object readValue(byte typeTag) {
+            int rawType = typeTag & 0xf;
+            switch (rawType) {
+                case INT_8:
+                    if ( (typeTag&ARRAY_MASK) != 0 )
+                        return readArray(typeTag);
+                    byte len = extractNumBytes(typeTag);
+                    switch ( len ) {
+                        case 0: return (byte)readRawInt(len);
+                        case 1: if ((typeTag&UNSIGN_MASK) == 0) 
+                                    return new Short((short) readRawInt(len));
+                                else
+                                    return new Character((char) readRawInt(len));
+                        case 2: return (int)readRawInt(len);
+                        case 3: return new Long(readRawInt(len));
+                    }
+                case DOUBLE:
+                    if ( (typeTag&ARRAY_MASK) != 0 )
+                        return readArray(typeTag);
+                    return Double.longBitsToDouble(readRawInt((byte) 3));
+                case TUPEL:
+                    return readTupel();
+                case ATOM:
+                    if ( typeTag == TUPEL_END)
+                        return ATOM_TUPEL_END;
+                    if ( typeTag == STR_16)
+                        return ATOM_STR_16;
+                    if ( typeTag == STR_8)
+                        return ATOM_STR_8;
+                    if ( typeTag == TUPEL_END)
+                        return ATOM_TUPEL_END;
+                    if ( (typeTag>>>4) == 0 ) 
+                        return new Atom((int) readInt());
+                    else
+                        return new Atom(typeTag>>>4);
+                default:
+                    throw new RuntimeException("unknown type "+typeTag);
+            }
+        }
+
+        private long readRawInt(byte numBytes) {
             long res = 0;
-            for ( int i = 0; i < (type&0xf); i++ ) {
-                int b = (read()+256)&0xff;
-                res += b<<(i*2);
+            numBytes = (byte) (1<<numBytes);
+            int shift = 0;
+            for ( int i = 0; i < numBytes; i++ ) {
+                long b = (readIn()+256) & 0xff;
+                res += b<<shift;
+                shift+=8;
             }
             return res;
         }
 
-        protected Object readObject(byte typeTag) {
-            switch (typeTag&0xf) {
-                case INT_8:
-                    return new IntValue(typeTag,readInt(typeTag));
-                case DOUBLE:
-                    return new DoubleValue(Double.longBitsToDouble(readInt(typeTag)));
-                case TUPEL:
-                    return readTupel();
-                case ARRAY:
-                    return readArray();
-                default:
-                    throw new RuntimeException("expected tupel or array");
-            }
-//            return null;
+        private Object readArray(byte type) {
+            byte typelen = extractNumBytes(type);
+            byte baseType = (byte) (type&0xf);
+            int len = (int) readInt(); 
+            Object result = null;
+            if ( baseType == INT_8 ) {
+                switch (typelen) {
+                    case 0:
+                        result = new byte[len];
+                        break;
+                    case 1:
+                        if ((type & UNSIGN_MASK) != 0)
+                            result = new char[len];
+                        else
+                            result = new short[len];
+                        break;
+                    case 2:
+                        result = new int[len];
+                        break;
+                    case 3:
+                        result = new long[len];
+                        break;
+                    default:
+                        throw new RuntimeException("unknown array type");
+                }
+            } else if (baseType == DOUBLE) {
+                result = new double[len];        
+            } else
+                throw new RuntimeException("unknown array structure");
+            return readArrayRaw(typelen, len, result);
         }
 
-        private Object readArray() {
-            IntValue len = (IntValue) readObject();
-            byte type = read();
-            ArrayValue val = new ArrayValue(type, (int) len.longValue());
-            return val;
+        /**
+         * read into preallocated array, allows to write to different type (e.g. boolean[] from byte[])
+         * @param typelen 0..2 number of bytes-1 per int.
+         * @param len
+         * @param result
+         * @return
+         */
+        public Object readArrayRaw(byte typelen, int len, Object result) {
+            Class componentType = result.getClass().getComponentType();
+            for ( int i = 0; i < len; i++ ) {
+                if ( componentType == boolean.class )
+                    Array.setBoolean(result, i, readRawInt(typelen) == 0 ? false : true);
+                else if ( componentType == double.class )
+                    Array.setDouble(result, i, Double.longBitsToDouble(readRawInt(typelen)) );
+                else  if ( componentType == byte.class )
+                    Array.setByte(result, i, (byte) readRawInt(typelen));
+                else  if ( componentType == short.class )
+                    Array.setShort(result, i, (short) readRawInt(typelen));
+                else  if ( componentType == char.class )
+                    Array.setChar(result, i, (char) readRawInt(typelen));
+                else  if ( componentType == int.class )
+                    Array.setInt(result, i, (int) readRawInt(typelen));
+                else  if ( componentType == long.class )
+                    Array.setLong(result, i, readRawInt(typelen));
+            }
+            return result;
         }
 
         protected Object readTupel() {
-            return null;            
-        }
-
-    }
-
-    public static class Value {
-        protected byte type;
-    }
-
-    public static class ArrayValue extends Value {
-        Object array;
-        public ArrayValue(byte type, int len) {
-            this.type = type;
-            switch (type>>>4) {
-                case 0: array = new byte[len]; break;
-                case 1: array = new short[len]; break;
-                case 2: array = new int[len]; break;
-                case 3: array = new long[len]; break;
-                default: throw new RuntimeException("unknown array type");
+            int len = (int) readInt();
+            Object type = readValue(); // id
+            if ( len == -1 ) { // unknown length
+                ArrayList cont = new ArrayList();
+                Object read;
+                while( (read = readValue()) != ATOM_TUPEL_END ) {
+                    cont.add(read);
+                }
+                return new Tupel(type,cont.toArray());
+            } else {
+                Object res[] = new Object[len];
+                for ( int i = 0; i < len; i++ ) {
+                    res[i++] = readValue();
+                }
+                return new Tupel(type,res);
             }
         }
 
-        public void setDouble( int index, double val ) {
-            Array.setLong(array, index, Double.doubleToLongBits(val));
-        }
-
-        public void setInt( int index, long val ) {
-            switch (type>>>4) {
-                case 0: Array.setByte(array, index, (byte) val); break;
-                case 1: Array.setShort(array, index, (short) val); break;
-                case 2: Array.setInt(array, index, (int) val); break;
-                case 3: Array.setLong(array, index, val); break;
-                default: throw new RuntimeException("unknown array type");
-            }
-        }
-
-    }
-
-    public static class DoubleValue extends Value {
-        double val;
-        public DoubleValue(double val) {
-            this.val = val;
-            type = DOUBLE;
-        }
-    }
-
-    public static class IntValue extends Value {
-        long val;
-        public IntValue(byte type, long val) {
-            this.val = val;
-            this.type = type;
-        }
-        long longValue() { return val; }
     }
 
     public static class Tupel {
-        ArrayList content;
+        Object content[];
+        Object id;
+
+        public Tupel(Object id, Object[] content) {
+            this.content = content;
+            this.id = id;
+        }
+
+        public Object[] getContent() {
+            return content;
+        }
+
+        @Override
+        public String toString() {
+            return "Tupel{ id= "+id+", "+
+                    "content=" + Arrays.deepToString(content) +
+                    '}';
+        }
     }
     
+    public static class Atom {
+        int id = 0;
+        String name;
+        public Atom(int value) {
+            this.id = value;
+        }
+        public Atom(String name, int value) {
+            this.id = value;
+            this.name = name;
+        }
+        
+        @Override
+        public int hashCode() { return id; }
+        @Override
+        public boolean equals( Object o ) { return o instanceof Atom && ((Atom) o).id == id; }
+        public int getId() { return id; }
+        @Override
+        public String toString() {
+            return "Atom{" +
+                    "name='" + name + '\'' +
+                    ", id=" + id +
+                    '}';
+        }
+    }
+
+
+    public static void main( String a[] ) {
+        Mix.Out out = new Out();
+        boolean bool[] = { true, false, false, false, true };
+        byte bytes[] = { 0,1,-1,Byte.MAX_VALUE, Byte.MIN_VALUE };
+        char chars[] = { 45345, 24234, 354, 0, 65535 };
+        short shorts[] = { 5345, -24234, 354, 0, 5535 };
+        int ints[] = { -345345, 234234234, -234234654, 0, -1 };
+        double doubles[] = { 345.345, 123123.459867, 0.0 };
+        long longs[] = {123123123123l,-4356456456456l,12313,3,-1, Long.MAX_VALUE, Long.MIN_VALUE };
+
+        out.writeInt(INT_8, 99);
+        out.writeInt(INT_8, -126);
+        out.writeInt(CHAR, 34533);
+        out.writeInt(CHAR, 14533);
+        out.writeInt(INT_16, Short.MAX_VALUE);
+        out.writeInt(INT_16, Short.MIN_VALUE);
+        out.writeInt(INT_32, 1234567);
+        out.writeInt(INT_32, -1234567);
+        out.writeInt(INT_32, Integer.MAX_VALUE);
+        out.writeInt(INT_32, Integer.MIN_VALUE);
+        out.writeInt(INT_64, Long.MAX_VALUE);
+        out.writeInt(INT_64, Long.MIN_VALUE);
+        out.writeArray(bool, 0, bool.length);
+        out.writeArray(bytes, 0, bytes.length);
+        out.writeArray(chars,0,chars.length);
+        out.writeArray(shorts,0,shorts.length);
+        out.writeArray(longs, 0, longs.length);
+        out.writeArray(ints, 0, ints.length);
+        out.writeArray(doubles,0,doubles.length);
+        
+        out.writeTupelHeader(-1);
+        out.writeOut(STR_8); // type of tupel (optional/hint)
+        out.writeArray("Hello".getBytes(),0,5);
+        out.writeOut(TUPEL_END);
+
+        out.writeTupelHeader(1);
+        out.writeOut(STR_8); // type of tupel (optional/hint)
+        out.writeArray("hallO".getBytes(), 0, 5);
+
+        out.writeOut(TUPEL_END);
+        System.out.println("POK");
+
+        In in = new In(out.bytez, 0);
+        Object read = null;
+        do {
+            read = in.readValue();
+            if ( read instanceof Character )
+                System.out.println(read.getClass().getSimpleName()+" "+(int)((Character) read).charValue());
+            else
+                System.out.println(read.getClass().getSimpleName()+" "+read);
+
+            if ( read instanceof byte[] && ((byte[]) read).length != 5 ) { // one wrong because of bool[]
+                System.out.println("BYTES:"+DeepEquals.deepEquals(read,bytes));
+            }
+            if ( read instanceof char[] ) {
+                System.out.println("CHARS:"+DeepEquals.deepEquals(read,chars));
+            }
+            if ( read instanceof short[] ) {
+                System.out.println("SHORTS:"+DeepEquals.deepEquals(read,shorts));
+            }
+            if ( read instanceof int[] ) {
+                System.out.println("INTS:"+DeepEquals.deepEquals(read,ints));
+            }
+            if ( read instanceof double[] ) {
+                System.out.println("DBLS:"+DeepEquals.deepEquals(read,doubles));
+            }
+            if ( read instanceof long[] ) {
+                System.out.println("LONG:"+DeepEquals.deepEquals(read,longs));
+            }
+        } while( read != ATOM_TUPEL_END);
+    }
+
 }
