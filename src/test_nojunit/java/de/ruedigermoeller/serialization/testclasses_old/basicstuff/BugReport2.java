@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 
+import com.cedarsoftware.util.DeepEquals;
 import de.ruedigermoeller.serialization.FSTConfiguration;
 import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
@@ -56,6 +57,10 @@ public class BugReport2
             FSTObjectInput in = new FSTObjectInput(iptStream, sm_conf);
             testFstClass tmpa = (testFstClass) in.readObject();
 
+            if ( !DeepEquals.deepEquals(t,tmpa) ) {
+                throw new RuntimeException("FAIL");
+            }
+
         }
         catch (IOException e)
         {
@@ -83,6 +88,16 @@ class testFstClass implements Serializable
 
     // use this name cause Exception
     public int bbbbb = 23;
+
+    Integer bigInt = -238475638;
+    Double  bigD = -2334234.0;
+    Boolean bigBool = Boolean.TRUE;
+
+    Byte bigByte = -4;
+    Short bigShort = -15;
+    Character bigChar = 34534;
+    Long bigLong = -344239847234l;
+    Float bigFloat = -28347.435f;
 
     // use this name is fine
     // public int wqxcxzggsdgxcv;
