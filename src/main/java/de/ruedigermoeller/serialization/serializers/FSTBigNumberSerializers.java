@@ -84,7 +84,7 @@ public class FSTBigNumberSerializers {
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            Object res = new Float(in.readFloat());
+            Object res = new Float(in.readCFloat());
             return res;
         }
 
