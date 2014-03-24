@@ -30,6 +30,7 @@ import java.util.HashMap;
  * Time: 16:35
  * To change this template use File | Settings | File Templates.
  */
+// read/writeReplace
 public class SpecialsTest {
 
     static class ToWrite implements Serializable{
