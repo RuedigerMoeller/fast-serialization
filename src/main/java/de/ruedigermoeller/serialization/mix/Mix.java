@@ -5,6 +5,7 @@ import com.cedarsoftware.util.DeepEquals;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -47,20 +48,27 @@ public class Mix {
     public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contains len if < 16
     public final static byte ATOM     = 0b00000100; // nr of atom .. OR top 4 bits contains atom id if < 16
 
-    // default atoms, required
-    public final static byte NULL     = 0b00010100;
+    // default atoms full ids (hi 4 = id, low 4 = atom
+    public final static byte NULL      = 0b00010100;
     public final static byte TUPEL_END = 0b00100100;
-
-    // default atoms, optional
-    public final static byte STR_8    = 0b00110100;
-    public final static byte STR_16   = 0b01000100;
+    public final static byte STR_8     = 0b00110100;
+    public final static byte STR_16    = 0b01000100;
+    public final static byte MAP       = 0b01010100;
+    public final static byte DATE      = 0b01100100;
 
     // global Atom instances 
-    private static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END);
-    private static final Atom ATOM_NULL = new Atom("null", NULL);
-    private static final Atom ATOM_STR_8 = new Atom("string8", STR_8);
-    private static final Atom ATOM_STR_16 = new Atom("string16", STR_16);
+    private static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END>>>4);
+    private static final Atom ATOM_NULL = new Atom("nil", NULL>>>4);
+    private static final Atom ATOM_STR_8 = new Atom("string8", STR_8>>>4);
+    private static final Atom ATOM_STR_16 = new Atom("string", STR_16>>>4);
+    private static final Atom ATOM_MAP = new Atom("map", MAP>>>4); // key, val, key, val, ....
+    private static final Atom ATOM_DATE = new Atom("date", DATE>>>4); // long
 
+    /**
+     *
+     * @param type
+     * @return 0 - 1 byte, 1 = 2 byte, 2 = 4 byte, 3 = 8 byte
+     */
     public static byte extractNumBytes(byte type) {
         return (byte) ((type&0b110000)>>>4);
     }
@@ -70,7 +78,7 @@ public class Mix {
         byte bytez[] = new byte[1000];
         int pos = 0;
         
-        public void writeOut(byte b) {
+        private void writeOut(byte b) {
             bytez[pos++] = b;
         }
 
@@ -81,13 +89,18 @@ public class Mix {
          * @param len
          */
         public void writeTupelHeader( long len ) {
-            writeOut(TUPEL);
-            writeIntPacked(len);
+            if (len < 16 && len > 0 )
+                writeOut((byte) (TUPEL|len<<4));
+            else {
+                writeOut(TUPEL);
+                writeIntPacked(len);
+            }
         }
 
         public void writeDouble( double d ) {
             writeOut(DOUBLE);
-            writeRawInt((byte) 4, Double.doubleToLongBits(d));
+            final long data = Double.doubleToLongBits(d);
+            writeRawInt((byte) 3, data);
         }
 
         public void writeInt( byte type, long data ) {
@@ -137,12 +150,50 @@ public class Mix {
                 if ( componentType == boolean.class )
                     writeRawInt((byte) numBytes, Array.getBoolean(primitiveArray,i) ? 1 : 0 );
                 else if ( componentType == double.class )
-                    writeRawInt((byte) numBytes, Double.doubleToLongBits(Array.getDouble(primitiveArray,i)));
+                    writeRawInt((byte) 3, Double.doubleToLongBits(Array.getDouble(primitiveArray,i)));
                 else
                     writeRawInt((byte) numBytes, Array.getLong(primitiveArray, i));
             }
         }
-        
+
+        /////////////////////////////////////////////////////////////////////////
+        // standard atoms
+        //
+
+        public void writeDate(Date d) {
+            writeTupelHeader(1);
+            writeAtom(ATOM_DATE);
+            writeInt(INT_64,d.getTime());
+        }
+
+        public void writeString( String s ) {
+            writeTupelHeader(1);
+            boolean isAsc = true;
+            for (int i=0; i < s.length(); i++) {
+                if (s.charAt(i) >= 127 ) {
+                    isAsc = false;
+                    break;
+                }
+            }
+            if (isAsc) {
+                writeAtom(ATOM_STR_8);
+                final byte[] bytes = s.getBytes();
+                writeArray(bytes, 0, bytes.length );
+            } else {
+                writeAtom(ATOM_STR_16);
+                final char[] chars = s.toCharArray();
+                writeArray(chars, 0, chars.length );
+            }
+        }
+
+        public void writeAtom(Atom atom) {
+            if (atom.getId() < 16 )
+                writeOut((byte) (ATOM|atom.getId()<<4));
+            else {
+                writeOut(ATOM);
+                writeIntPacked(atom.getId());
+            }
+        }
     }
 
     public static class In {
@@ -216,7 +267,7 @@ public class Mix {
                         return readArray(typeTag);
                     return Double.longBitsToDouble(readRawInt((byte) 3));
                 case TUPEL:
-                    return readTupel();
+                    return readTupel(typeTag);
                 case ATOM:
                     if ( typeTag == TUPEL_END)
                         return ATOM_TUPEL_END;
@@ -224,9 +275,11 @@ public class Mix {
                         return ATOM_STR_16;
                     if ( typeTag == STR_8)
                         return ATOM_STR_8;
-                    if ( typeTag == TUPEL_END)
-                        return ATOM_TUPEL_END;
-                    if ( (typeTag>>>4) == 0 ) 
+                    if ( typeTag == MAP)
+                        return ATOM_MAP;
+                    if ( typeTag == DATE)
+                        return ATOM_DATE;
+                    if ( (typeTag>>>4) == 0 )
                         return new Atom((int) readInt());
                     else
                         return new Atom(typeTag>>>4);
@@ -292,7 +345,7 @@ public class Mix {
                 if ( componentType == boolean.class )
                     Array.setBoolean(result, i, readRawInt(typelen) == 0 ? false : true);
                 else if ( componentType == double.class )
-                    Array.setDouble(result, i, Double.longBitsToDouble(readRawInt(typelen)) );
+                    Array.setDouble(result, i, Double.longBitsToDouble(readRawInt((byte) 3)) );
                 else  if ( componentType == byte.class )
                     Array.setByte(result, i, (byte) readRawInt(typelen));
                 else  if ( componentType == short.class )
@@ -307,9 +360,36 @@ public class Mix {
             return result;
         }
 
-        protected Object readTupel() {
-            int len = (int) readInt();
+        protected Object readTupel(byte tag) {
+            int len;
+            if ( (tag>>>4) > 0)
+                len = (tag>>>4)&0xf;
+            else
+                len = (int) readInt();
             Object type = readValue(); // id
+            Object res = readCustomTupel( len, type );
+            if ( res == null ) {
+                res = readBuiltInTupel(len, type);
+            }
+            if ( res == null ) {
+                return readDefaultTupel(len, type);
+            }
+            return res;
+        }
+
+        protected Object readBuiltInTupel(int len, Object type) {
+            if (type==ATOM_STR_8) {
+                final byte[] bytes = (byte[]) readValue();
+                return new String(bytes, 0, 0, bytes.length );
+            }
+            if (type==ATOM_STR_16) {
+                final char[] chars = (char[]) readValue();
+                return new String(chars, 0, chars.length );
+            }
+            return null;
+        }
+
+        protected Object readDefaultTupel(int len, Object type) {
             if ( len == -1 ) { // unknown length
                 ArrayList cont = new ArrayList();
                 Object read;
@@ -320,10 +400,14 @@ public class Mix {
             } else {
                 Object res[] = new Object[len];
                 for ( int i = 0; i < len; i++ ) {
-                    res[i++] = readValue();
+                    res[i] = readValue();
                 }
                 return new Tupel(type,res);
             }
+        }
+
+        protected Object readCustomTupel(int len, Object type) {
+            return null;
         }
 
     }
@@ -367,10 +451,7 @@ public class Mix {
         public int getId() { return id; }
         @Override
         public String toString() {
-            return "Atom{" +
-                    "name='" + name + '\'' +
-                    ", id=" + id +
-                    '}';
+            return "#" + name + "("+ id +')';
         }
     }
 
@@ -397,6 +478,8 @@ public class Mix {
         out.writeInt(INT_32, Integer.MIN_VALUE);
         out.writeInt(INT_64, Long.MAX_VALUE);
         out.writeInt(INT_64, Long.MIN_VALUE);
+        out.writeDouble(1.234);
+        out.writeDouble(-1.234);
         out.writeArray(bool, 0, bool.length);
         out.writeArray(bytes, 0, bytes.length);
         out.writeArray(chars,0,chars.length);
@@ -405,17 +488,25 @@ public class Mix {
         out.writeArray(ints, 0, ints.length);
         out.writeArray(doubles,0,doubles.length);
         
-        out.writeTupelHeader(-1);
-        out.writeOut(STR_8); // type of tupel (optional/hint)
-        out.writeArray("Hello".getBytes(),0,5);
-        out.writeOut(TUPEL_END);
+        out.writeString("Hallo");
+        out.writeString("Hallöää");
 
         out.writeTupelHeader(1);
-        out.writeOut(STR_8); // type of tupel (optional/hint)
+        out.writeAtom(ATOM_STR_8); // type of tupel (optional/hint)
         out.writeArray("hallO".getBytes(), 0, 5);
 
-        out.writeOut(TUPEL_END);
-        System.out.println("POK");
+        out.writeTupelHeader(8);
+        out.writeAtom(ATOM_MAP);
+        out.writeString("key"); out.writeString("value");
+        out.writeString("key1"); out.writeInt(INT_32, 23423);
+        out.writeString("wide"); out.writeString("üölPÖÄ");
+        out.writeString("date"); out.writeDate(new Date());
+
+        out.writeAtom(ATOM_TUPEL_END);
+
+
+
+        System.out.println("POK"+out.pos);
 
         In in = new In(out.bytez, 0);
         Object read = null;
