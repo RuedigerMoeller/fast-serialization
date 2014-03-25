@@ -1,10 +1,7 @@
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.serialization.util.FSTUtil;
-
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -89,22 +86,22 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     protected void writeObjectHeader(FSTClazzInfo clsInfo, FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         if ( toWrite.getClass() == referencee.getType() )
         {
-            writeFByte(TYPED);
+            codec.writeFByte(TYPED);
         } else {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
-                writeFByte(OBJECT);
+                codec.writeFByte(OBJECT);
                 writeClass(clsInfo);
             } else {
                 final int length = possibleClasses.length;
                 for (int j = 0; j < length; j++) {
                     final Class possibleClass = possibleClasses[j];
                     if ( possibleClass == toWrite.getClass() ) {
-                        writeFByte(j+1);
+                        codec.writeFByte(j + 1);
                         return;
                     }
                 }
-                writeFByte(OBJECT);
+                codec.writeFByte(OBJECT);
                 writeClass(clsInfo);
             }
         }
@@ -113,7 +110,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     @Override
     protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         if ( toWrite == null ) {
-            writeFByte(NULL);
+            codec.writeFByte(NULL);
             return;
         }
         final Class clazz = toWrite.getClass();
@@ -123,24 +120,29 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 for (int i = 0; i < oneOf.length; i++) {
                     String s = oneOf[i];
                     if ( s.equals(toWrite) ) {
-                        writeFByte(ONE_OF);
-                        writeFByte(i);
+                        codec.writeFByte(ONE_OF);
+                        codec.writeFByte(i);
                         return;
                     }
                 }
             }
-            writeFByte(STRING);
-            writeStringUTF((String) toWrite);
+            codec.writeFByte(STRING);
+            codec.writeStringUTF((String) toWrite);
             return;
-        } else if ( clazz == Integer.class ) { writeFByte(BIG_INT); writeCInt(((Integer) toWrite).intValue()); return;
-        } else if ( clazz == Long.class ) { writeFByte(BIG_LONG); writeCLong(((Long) toWrite).longValue()); return;
-        } else if ( clazz == Boolean.class ) { writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
+        } else if ( clazz == Integer.class ) {
+            codec.writeFByte(BIG_INT);
+            codec.writeCInt(((Integer) toWrite).intValue()); return;
+        } else if ( clazz == Long.class ) {
+            codec.writeFByte(BIG_LONG);
+            codec.writeCLong(((Long) toWrite).longValue()); return;
+        } else if ( clazz == Boolean.class ) {
+            codec.writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
         } else if ( clazz.isArray() ) {
-            writeFByte(ARRAY);
+            codec.writeFByte(ARRAY);
             writeArray(referencee, toWrite);
             return;
         } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-            writeFByte(ENUM);
+            codec.writeFByte(ENUM);
             Class c = toWrite.getClass();
             boolean isEnumClass = c.isEnum();
             if ( ! isEnumClass ) {
@@ -155,7 +157,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             } else {
                 writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
             }
-            writeCInt(((Enum) toWrite).ordinal());
+            codec.writeCInt(((Enum) toWrite).ordinal());
             return;
         }
 
@@ -167,7 +169,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             defaultWriteObject(toWrite, serializationInfo);
         } else {
             // write object depending on type (custom, externalizable, serializable/java, default)
-            ser.writeObject(this, toWrite, serializationInfo, referencee, written);
+            ser.writeObject(this, toWrite, serializationInfo, referencee, getWritten());
         }
     }
 
@@ -176,10 +178,8 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             throw new RuntimeException("Can't reuse closed stream");
         reset();
         if ( out != null ) {
-            buffout.setOutstream(out);
-        } else {
-            this.out = buffout;
-        }
+            codec.getBuffout().setOutstream(out);
+        } 
         clnames.clear();
     }
 
@@ -187,8 +187,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         reset();
-        this.out = buffout;
-        buffout.reset(out);
+        codec.getBuffout().reset(out);
         clnames.clear();
     }
 

@@ -3,3 +3,137 @@ JVM:Oracle Corporation 1.7.0_51
 CPU:Intel64 Family 6 Model 58 Stepping 9, GenuineIntel os-arch:AMD64
 Cores (incl HT):8
 1.7.0_51-b13,Java HotSpot(TM) 64-Bit Server VM,Windows 8
+
+================================
+Test Class: FrequentPrimitives[]
+================================
+A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          3468           2762           6230            836
+</pre>
+
+
+===============================
+Test Class: FrequentCollections
+===============================
+Measures serialization of most popular collection classes. (HashMap and an ArrayList filled with Integer and Long).
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         18924          13884          32808           4671
+</pre>
+
+
+=============================
+Test Class: LargeNativeArrays
+=============================
+measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression, so the increased size of kryo in this test will not be observable in most real world data.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         28486          23476          51962          31219
+</pre>
+
+
+=============================
+Test Class: StringPerformance
+=============================
+measures serialization of mid size to very long Strings
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         28900          17995          46895          20020
+</pre>
+
+
+======================
+Test Class: Primitives
+======================
+A broad test of primitive values and specials such as Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. 
+ plus opaque private field with same name in a private subclass
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         10684          12024          22708           1483
+</pre>
+
+
+====================
+Test Class: Arrays[]
+====================
+Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimensional arrays.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         75492          48306         123798          22764
+</pre>
+
+
+=============================
+Test Class: CommonCollections
+=============================
+In depth test of collections incl. collections of collections.
+ (ArrayList, ArrayDeque, ConcurrentLinkedQueue, Vector, TreeSet, LinkedList, TreeMap, ConcurrentHashMap, Hashtable, HashMap). Note: has been modified to workaround Kryo-specific Issue.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         57624          45060         102684           8502
+</pre>
+
+
+==================
+Test Class: Trader
+==================
+Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         55381          54194         109575           5192
+</pre>
+
+
+=======================
+Test Class: ManyClasses
+=======================
+Tests speed serializing a complex object graph of many different classes with few primitive fields.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          6209           3753           9962           1000
+</pre>
+
+
+========================
+Test Class: HeavyNesting
+========================
+Heavily nested Objects
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         57165          57316         114481           3747
+</pre>
+
+
+===========================
+Test Class: ShortRemoteCall
+===========================
+measures overhead of stream initialization+classname decoding. Only one very short object is serialized
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           282            187            469             15
+</pre>
+
+
+======================
+Test Class: SmallThing
+======================
+only one int. benches pure init time
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           156            137            293              2
+</pre>
+
