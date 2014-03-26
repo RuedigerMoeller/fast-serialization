@@ -73,8 +73,8 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        input.reset();
-        input.initFromStream(in);
+        codec.getInput().reset();
+        codec.getInput().initFromStream(in);
         clnames.clear();
     }
 
@@ -82,11 +82,11 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        input.reset();
+        codec.getInput().reset();
         clnames.clear();
-        input.ensureCapacity(len);
-        input.count = len;
-        System.arraycopy(bytes, off, input.buf, 0, len);
+        codec.getInput().ensureCapacity(len);
+        codec.getInput().count = len;
+        System.arraycopy(bytes, off, codec.getInput().buf, 0, len);
     }
 
     private Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -97,7 +97,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         }
         if ( clzSerInfo.isExternalizable() )
         {
-            ensureReadAhead(readExternalReadAHead);
+            codec.ensureReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clzSerInfo.getFieldInfo();

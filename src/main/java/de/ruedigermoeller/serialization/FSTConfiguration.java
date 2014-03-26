@@ -224,32 +224,6 @@ public final class FSTConfiguration {
         return (int) (dur*1000000/iterations);
     }
 
-    /**
-     * for optimization purposes, do not use to benchmark processing time or in a regular program as
-     * this methods creates a temporary binaryoutputstream and serializes the object in order to measure the
-     * read time in picoseconds.
-     *
-     * give ~500.000 to 1.000.000 for small objects in order to get accurate results
-     * for large objects you can decrease the iterations (give at least 10000)
-     */
-    public int calcObjectReadTimeNotAUtility( int iterations, Object obj ) throws Exception {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream(10000);
-        FSTObjectOutput ou = new FSTObjectOutput(bout,this);
-        ou.writeObject(obj, obj.getClass());
-        ou.close();
-        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
-        FSTObjectInput in = new FSTObjectInput(bin,this);
-        long tim = System.currentTimeMillis();
-        for ( int i = 0; i < iterations; i++ ) {
-            Object res = in.readObject(obj.getClass());
-            bin.reset();
-            in.input.reset();
-            in.input.initFromStream(bin);
-        }
-        long dur = System.currentTimeMillis()-tim;
-        return (int) (dur*1000000/iterations);
-    }
-
     public Object getCachedObject( Class cl ) {
         synchronized (cachedObjects) {
             List<SoftReference> li = cachedObjects.get(cl);

@@ -20,27 +20,23 @@ public class FSTEnccoder {
             writeFByte(arr[i] ? 1 : 0);
     }
 
-    public void writeFLongArr(long[] array) throws IOException {
-        long[] arr = (long[]) array;
+    public void writeFLongArr(long[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFLong(arr[i]);
     }
 
-    public void writeFFloatArr(float[] array) throws IOException {
-        float[] arr = (float[]) array;
-        for (int i = 0; i < array.length; i++)
+    public void writeFFloatArr(float[] arr) throws IOException {
+        for (int i = 0; i < arr.length; i++)
             writeFFloat(arr[i]);
     }
 
-    public void writeFDoubleArr(double[] array) throws IOException {
-        double[] arr = array;
+    public void writeFDoubleArr(double[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFDouble(arr[i]);
     }
 
-    public void writeFShortArr(short[] array) throws IOException {
-        short[] arr = array;
-        for (int i = 0; i < array.length; i++)
+    public void writeFShortArr(short[] arr) throws IOException {
+        for (int i = 0; i < arr.length; i++)
             writeFShort(arr[i]);
     }
 
@@ -76,11 +72,12 @@ public class FSTEnccoder {
 
         for (int i = 0; i < strlen; i++) {
             final char c = str.charAt(i);
+            // inlined
             bytearr[count++] = (byte) c;
             if (c >= 255) {
                 bytearr[count - 1] = (byte) 255;
-                bytearr[count++] = (byte) ((c >>> 8) & 0xFF);
-                bytearr[count++] = (byte) ((c >>> 0) & 0xFF);
+                bytearr[count++] = (byte) (c >>> 0);
+                bytearr[count++] = (byte) (c >>> 8);
             }
         }
         buffout.pos = count;
@@ -110,7 +107,7 @@ public class FSTEnccoder {
             writeFByte(c);
         } else {
             writeFByte(255);
-            writeFShort(c);
+            writePlainShort(c);
         }
     }
 
@@ -124,8 +121,8 @@ public class FSTEnccoder {
             byte[] buf = buffout.buf;
             int count = buffout.pos;
             buf[count++] = (byte) 255;
-            buf[count++] = (byte) ((c >>> 8) & 0xFF);
-            buf[count++] = (byte) ((c >>> 0) & 0xFF);
+            buf[count++] = (byte) (c >>> 0);
+            buf[count++] = (byte) (c >>> 8);
             buffout.pos += 3;
         }
     }
@@ -154,18 +151,19 @@ public class FSTEnccoder {
         int count = buffout.pos;
         for (int i = 0; i < v.length; i++) {
             final int anInt = v[i];
+            // inlined ..
             if (anInt > -127 && anInt <= 127) {
                 buffout.buf[count++] = (byte) anInt;
             } else if (anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE) {
                 buf[count++] = -128;
-                buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 0) & 0xFF);
+                buf[count++] = (byte) (anInt >>> 0);
+                buf[count++] = (byte) (anInt >>> 8);
             } else {
                 buf[count++] = -127;
-                buf[count++] = (byte) ((anInt >>> 24) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 16) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 0) & 0xFF);
+                buf[count++] = (byte) (anInt >>> 0);
+                buf[count++] = (byte) (anInt >>> 8);
+                buf[count++] = (byte) (anInt >>> 16);
+                buf[count++] = (byte) (anInt >>> 24);
             }
         }
         buffout.pos = count;
@@ -179,25 +177,11 @@ public class FSTEnccoder {
             }
             buffout.buf[buffout.pos++] = (byte) anInt;
         } else if (anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE) {
-            if (buffout.buf.length <= buffout.pos + 2) {
-                buffout.ensureFree(3);
-            }
-            final byte[] buf = buffout.buf;
-            int count = buffout.pos;
-            buf[count++] = -128;
-            buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
-            buf[count++] = (byte) ((anInt >>> 0) & 0xFF);
-            buffout.pos += 3;
+            writeFByte(-128);
+            writePlainShort(anInt);
         } else {
-            buffout.ensureFree(5);
-            final byte[] buf = buffout.buf;
-            int count = buffout.pos;
-            buf[count++] = -127;
-            buf[count++] = (byte) ((anInt >>> 24) & 0xFF);
-            buf[count++] = (byte) ((anInt >>> 16) & 0xFF);
-            buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
-            buf[count++] = (byte) ((anInt >>> 0) & 0xFF);
-            buffout.pos = count;
+            writeFByte(-127);
+            writePlainInt(anInt);
         }
     }
 
@@ -218,13 +202,13 @@ public class FSTEnccoder {
             writeFByte((int) anInt);
         } else if (anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE) {
             writeFByte(-128);
-            writeFShort((short)anInt);
+            writePlainShort((short)anInt);
         } else if (anInt >= Integer.MIN_VALUE && anInt <= Integer.MAX_VALUE) {
             writeFByte(-127);
-            writeFInt((int) anInt);
+            writePlainInt((int) anInt);
         } else {
             writeFByte(-126);
-            writeFLong(anInt);
+            writePlainLong(anInt);
         }
     }
 
@@ -258,10 +242,10 @@ public class FSTEnccoder {
      * @param v
      */
     public void writeInt32At(int position, int v) {
-        buffout.buf[position] = (byte) ((v >>> 24) & 0xFF);
-        buffout.buf[position+1] = (byte) ((v >>> 16) & 0xFF);
-        buffout.buf[position+2] = (byte) ((v >>>  8) & 0xFF);
-        buffout.buf[position+3] = (byte) ((v >>> 0) & 0xFF);
+        buffout.buf[position] = (byte)  (v >>> 0);
+        buffout.buf[position+1] = (byte) (v >>> 8);
+        buffout.buf[position+2] = (byte) (v >>> 16);
+        buffout.buf[position+3] = (byte) (v >>> 24);
     }
 
     /**
@@ -303,4 +287,50 @@ public class FSTEnccoder {
     public void reset(byte[] out) {
         buffout.reset(out);
     }
+
+    private void writePlainLong(long v) throws IOException {
+        buffout.ensureFree(8);
+        byte[] buf = buffout.buf;
+        int count = buffout.pos;
+        buf[count++] = (byte) (v >>> 0);
+        buf[count++] = (byte) (v >>> 8);
+        buf[count++] = (byte) (v >>> 16);
+        buf[count++] = (byte) (v >>> 24);
+        buf[count++] = (byte) (v >>> 32);
+        buf[count++] = (byte) (v >>> 40);
+        buf[count++] = (byte) (v >>> 48);
+        buf[count++] = (byte) (v >>> 56);
+        buffout.pos += 8;
+    }
+
+    private void writePlainShort(int v) throws IOException {
+        buffout.ensureFree(2);
+        byte[] buf = buffout.buf;
+        int count = buffout.pos;
+        buf[count++] = (byte) (v >>> 0);
+        buf[count++] = (byte) (v >>> 8);
+        buffout.pos += 2;
+    }
+
+    private void writePlainChar(int v) throws IOException {
+        buffout.ensureFree(2);
+        byte[] buf = buffout.buf;
+        int count = buffout.pos;
+        buf[count++] = (byte) (v >>> 0);
+        buf[count++] = (byte) (v >>> 8);
+        buffout.pos += 2;
+    }
+
+    private void writePlainInt(int v) throws IOException {
+        buffout.ensureFree(4);
+        byte[] buf = buffout.buf;
+        int count = buffout.pos;
+        buf[count++] = (byte) (v >>> 0);
+        buf[count++] = (byte) (v >>> 8);
+        buf[count++] = (byte) (v >>> 16);
+        buf[count++] = (byte) (v >>> 24);
+        buffout.pos += 4;
+    }
+
 }
+
