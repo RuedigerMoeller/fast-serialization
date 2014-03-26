@@ -105,7 +105,9 @@ public final class FSTClazzInfo {
                 externalizable = false;
                 cons = FSTUtil.findConstructorForSerializable(clazz);
             } else {
-                throw new RuntimeException("Class "+clazz.getName()+" does not implement Serializable or externalizable");
+                if (getSer() == null ) {
+                    throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
+                }
             }
             if ( ! ignoreAnnotations ) {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
