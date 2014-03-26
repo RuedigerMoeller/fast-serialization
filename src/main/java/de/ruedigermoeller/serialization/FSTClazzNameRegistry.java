@@ -113,18 +113,18 @@ public class FSTClazzNameRegistry {
     public void encodeClass(FSTObjectOutput out, FSTClazzInfo ci) throws IOException {
         int clzId = ci.getClzId();
         if ( clzId >= 0 ) {
-            out.writeCShort((short) clzId); // > 2 !!
+            out.writeShort((short) clzId); // > 2 !!
         } else {
             if ( ci.isAsciiNameShortString) {
                 final Class aClass = ci.getClazz();
                 int clid = getIdFromClazz(aClass);
                 if ( clid != Integer.MIN_VALUE ) {
-                    out.writeCShort((short) clid); // > 2 !!
+                    out.writeShort((short) clid); // > 2 !!
                 } else {
                     final byte[] bufferedName = ci.getBufferedName();
-                    out.writeCShort((short) 1); // no direct cl id ascii enc
-                    out.writeFByte((char) bufferedName.length);
-                    out.writeFByteArr(bufferedName,0,bufferedName.length);
+                    out.writeShort((short) 1); // no direct cl id ascii enc
+                    out.writeByte((char) bufferedName.length);
+                    out.write(bufferedName,0,bufferedName.length);
                     registerClassNoLookup(aClass,ci);
                 }
             } else {
@@ -136,14 +136,14 @@ public class FSTClazzNameRegistry {
     public void encodeClass(FSTObjectOutput out, Class c) throws IOException {
         int clid = getIdFromClazz(c);
         if ( clid != Integer.MIN_VALUE ) {
-            out.writeCShort((short) clid); // > 2 !!
+            out.writeShort((short) clid); // > 2 !!
         } else {
             encodeClassName(out, c);
         }
     }
 
     private void encodeClassName(FSTObjectOutput out, Class c) throws IOException {
-        out.writeCShort((short) 0); // no direct cl id
+        out.writeShort((short) 0); // no direct cl id
         out.writeStringUTF(c.getName());
         registerClassNoLookup(c,null);
     }

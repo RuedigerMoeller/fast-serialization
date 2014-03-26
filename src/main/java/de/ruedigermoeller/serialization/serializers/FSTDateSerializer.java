@@ -35,7 +35,7 @@ import java.util.*;
 public class FSTDateSerializer extends FSTBasicObjectSerializer {
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-        out.writeFLong(((Date)toWrite).getTime());
+        out.writeLong(((Date)toWrite).getTime());
     }
 
     /**

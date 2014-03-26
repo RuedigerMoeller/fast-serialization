@@ -131,10 +131,10 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             return;
         } else if ( clazz == Integer.class ) {
             codec.writeFByte(BIG_INT);
-            codec.writeCInt(((Integer) toWrite).intValue()); return;
+            codec.writeFInt(((Integer) toWrite).intValue()); return;
         } else if ( clazz == Long.class ) {
             codec.writeFByte(BIG_LONG);
-            codec.writeCLong(((Long) toWrite).longValue()); return;
+            codec.writeFLong(((Long) toWrite).longValue()); return;
         } else if ( clazz == Boolean.class ) {
             codec.writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
         } else if ( clazz.isArray() ) {
@@ -157,7 +157,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             } else {
                 writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
             }
-            codec.writeCInt(((Enum) toWrite).ordinal());
+            codec.writeFInt(((Enum) toWrite).ordinal());
             return;
         }
 
@@ -176,9 +176,9 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     public void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        reset();
+        codec.reset();
         if ( out != null ) {
-            codec.getBuffout().setOutstream(out);
+            codec.setOutstream(out);
         } 
         clnames.clear();
     }
@@ -186,8 +186,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     public void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        reset();
-        codec.getBuffout().reset(out);
+        codec.reset(out);
         clnames.clear();
     }
 

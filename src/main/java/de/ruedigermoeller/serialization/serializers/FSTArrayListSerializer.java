@@ -52,7 +52,7 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         ArrayList col = (ArrayList)toWrite;
         int size = col.size();
-        out.writeCInt(size);
+        out.writeInt(size);
         Class[] possibleClasses = referencedBy.getPossibleClasses();
         for (int i = 0; i < size; i++) {
             Object o = col.get(i);

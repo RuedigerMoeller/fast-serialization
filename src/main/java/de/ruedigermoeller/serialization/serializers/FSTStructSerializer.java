@@ -46,7 +46,7 @@ public class FSTStructSerializer extends FSTBasicObjectSerializer {
             str = str.toOffHeap();
         }
         int byteSize = str.getByteSize();
-        out.writeFInt(byteSize);
+        out.writeInt(byteSize);
         if ( COMPRESS ) {
             long base = str.___offset;
             int intsiz = byteSize/4;
@@ -55,15 +55,15 @@ public class FSTStructSerializer extends FSTBasicObjectSerializer {
                 value = (value << 1) ^ (value >> 31);
                 str.___offset+=4;
                 while ((value & 0xFFFFFF80) != 0L) {
-                    out.writeFByte((value & 0x7F) | 0x80);
+                    out.writeByte((value & 0x7F) | 0x80);
                     value >>>= 7;
                 }
-                out.writeFByte(value & 0x7F);
+                out.writeByte(value & 0x7F);
             }
             int remainder = byteSize&3;
             for ( int i = 0; i < remainder; i++) {
                 byte aByte = str.getByte();
-                out.writeFByte(aByte);
+                out.writeByte(aByte);
                 str.___offset++;
             }
             str.___offset = base;

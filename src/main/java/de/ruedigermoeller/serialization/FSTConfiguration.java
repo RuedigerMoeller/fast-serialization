@@ -149,8 +149,8 @@ public final class FSTConfiguration {
     }
 
     /**
-     * reuse heavy weight objects. If a FSTStream is clsoed, objects are returned and can be reused by new stream instances.
-     * the objects are held in soft references, so there should be no memory issues
+     * reuse heavy weight objects. If a FSTStream is closed, objects are returned and can be reused by new stream instances.
+     * the objects are held in soft references, so there should be no memory issues. FIXME: point of contention !
      * @param cachedObs
      */
     public void returnObject( Object ... cachedObs ) {

@@ -40,7 +40,7 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         EnumSet enset = (EnumSet) toWrite;
         int count = 0;
-        out.writeCInt(enset.size());
+        out.writeInt(enset.size());
         if ( enset.isEmpty() ) { //WTF only way to determine enumtype ..
             EnumSet compl = EnumSet.complementOf(enset);
             out.writeClass(compl.iterator().next());

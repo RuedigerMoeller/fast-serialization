@@ -36,7 +36,7 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         Map col = (Map)toWrite;
-        out.writeCInt(col.size());
+        out.writeInt(col.size());
         Class[] possibleClasses = referencedBy.getPossibleClasses();
         if ( (possibleClasses == null || possibleClasses.length == 0) ) {
             Class possibleKeys[] = {null};

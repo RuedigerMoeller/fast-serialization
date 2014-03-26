@@ -20,7 +20,7 @@ public class FSTBigNumberSerializers {
     public static class FSTByteSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeFByte(((Byte)toWrite).byteValue());
+            out.writeByte(((Byte)toWrite).byteValue());
         }
 
         @Override
@@ -43,7 +43,7 @@ public class FSTBigNumberSerializers {
     static public class FSTCharSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeCChar(((Character)toWrite).charValue());
+            out.writeChar(((Character)toWrite).charValue());
         }
 
         @Override
@@ -61,7 +61,7 @@ public class FSTBigNumberSerializers {
     static public class FSTShortSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeCShort(((Short)toWrite).shortValue());
+            out.writeShort(((Short)toWrite).shortValue());
         }
 
         @Override
@@ -79,7 +79,7 @@ public class FSTBigNumberSerializers {
     static public class FSTFloatSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeCFloat(((Float) toWrite).floatValue());
+            out.writeFloat(((Float) toWrite).floatValue());
         }
 
         @Override
@@ -97,7 +97,7 @@ public class FSTBigNumberSerializers {
     static public class FSTDoubleSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeFDouble(((Double) toWrite).doubleValue());
+            out.writeDouble(((Double) toWrite).doubleValue());
         }
 
         @Override
