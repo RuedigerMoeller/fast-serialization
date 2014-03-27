@@ -832,7 +832,8 @@ public class FSTObjectInput implements ObjectInput {
     public void close() throws IOException {
         closed = true;
         resetAndClearRefs();
-        conf.returnObject(objects, clnames);
+        conf.returnObject(objects);
+        conf.returnObject(clnames);
     }
 
     ////////////////////////////////////////////////////// epic compatibility hack /////////////////////////////////////////////////////////

@@ -43,11 +43,11 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
         out.writeInt(enset.size());
         if ( enset.isEmpty() ) { //WTF only way to determine enumtype ..
             EnumSet compl = EnumSet.complementOf(enset);
-            out.writeClass(compl.iterator().next());
+            out.writeClassTag(compl.iterator().next().getClass());
         } else {
             for (Object element : enset) {
                 if ( count == 0 ) {
-                    out.writeClass(element);
+                    out.writeClassTag(element.getClass());
                 }
                 out.writeObjectInternal(element, Enum.class);
                 count++;

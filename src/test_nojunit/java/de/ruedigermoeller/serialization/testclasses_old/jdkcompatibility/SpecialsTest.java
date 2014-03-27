@@ -68,7 +68,7 @@ public class SpecialsTest {
         out.writeObject(e);
         out.flush();
         FSTObjectInput in = new FSTObjectInput(conf);
-        in.resetForReuseUseArray(out.getBuffer(),0,out.getWritten());
+        in.resetForReuseUseArray(out.getBuffer(),out.getWritten());
         Object ex = in.readObject();
         System.out.println("success "+ex);
     }
@@ -87,7 +87,7 @@ public class SpecialsTest {
         b = out.getBuffer();
 
         FSTObjectInput in = new FSTObjectInput(conf);
-        in.resetForReuseUseArray(b,0,b.length);
+        in.resetForReuseUseArray(b,b.length);
         Object res = in.readObject();
 
         if ( !res.equals("bla") ) {

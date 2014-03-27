@@ -8,24 +8,18 @@ import java.io.OutputStream;
  */
 public interface FSTEncoder {
 
-    /**
-     * does not write length, just plain array
-     */
-    void writeFBooleanArr(boolean[] arr) throws IOException;
-    void writeFLongArr(long[] arr) throws IOException;
-    void writeFFloatArr(float[] arr) throws IOException;
-    void writeFDoubleArr(double[] arr) throws IOException;
-    void writeFShortArr(short[] arr) throws IOException;
-    void writeFCharArr(char[] arr) throws IOException;
+    // BLOB methods (from externalizable) ..
     void writeFByteArr(byte[] array) throws IOException;
     void writeFByteArr(byte[] array, int start, int length) throws IOException;
+    void writeFCharArr(char[] chars) throws IOException;
+    // .. BLOB methods (from externalizable)
 
+    public void writePrimitiveArray(Object array) throws IOException;
     void writeStringUTF(String str) throws IOException;
 
     void writeFShort(short c) throws IOException;
     void writeFChar(char c) throws IOException;
     void writeFByte(int v) throws IOException;
-    void writeFIntArr(int v[]) throws IOException;
     void writeFInt(int anInt) throws IOException;
     void writeFLong(long anInt) throws IOException;
     void writeFFloat(float value) throws IOException;
@@ -66,4 +60,9 @@ public interface FSTEncoder {
 
     byte[] getBuffer();
 
+    void registerClass(Class possible);
+
+    void writeClass(FSTObjectOutput out, Class cl);
+    void writeClass(FSTObjectOutput out,FSTClazzInfo clInf);
+    
 }

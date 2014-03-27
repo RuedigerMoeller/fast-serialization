@@ -52,7 +52,7 @@ public class ReadResolve
         b = out.getBuffer();
 
         FSTObjectInput in = new FSTObjectInput(conf);
-        in.resetForReuseUseArray(b,0,b.length);
+        in.resetForReuseUseArray(b,b.length);
         Object res = in.readObject();
 
         checkEquals(Holder.class, res.getClass());

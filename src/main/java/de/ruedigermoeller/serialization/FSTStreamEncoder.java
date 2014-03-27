@@ -1,51 +1,55 @@
 package de.ruedigermoeller.serialization;
 
 import de.ruedigermoeller.serialization.util.FSTOutputStream;
+import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 
 public class FSTStreamEncoder implements FSTEncoder {
 
     private final FSTConfiguration conf;
+    
+    private FSTClazzNameRegistry clnames;
     private FSTOutputStream buffout;
     private byte[] ascStringCache;
 
     public FSTStreamEncoder(FSTConfiguration conf) {
         this.conf = conf;
+        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
+        if ( clnames == null ) {
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+        } else {
+            clnames.clear();
+        }
     }
 
-    @Override
     public void writeFBooleanArr(boolean[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFByte(arr[i] ? 1 : 0);
     }
 
-    @Override
     public void writeFLongArr(long[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFLong(arr[i]);
     }
 
-    @Override
     public void writeFFloatArr(float[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFFloat(arr[i]);
     }
 
-    @Override
     public void writeFDoubleArr(double[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFDouble(arr[i]);
     }
 
-    @Override
     public void writeFShortArr(short[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFShort(arr[i]);
     }
 
-    @Override
     public void writeFCharArr(char[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFChar(arr[i]);
@@ -56,6 +60,44 @@ public class FSTStreamEncoder implements FSTEncoder {
         writeFByteArr(array, 0, array.length);
     }
 
+    /**
+     * write len + array
+     * @param array
+     * @throws IOException
+     */
+    public void writePrimitiveArray(Object array) throws IOException {
+        final int len = Array.getLength(array);
+        writeFInt(len);
+        Class<?> componentType = array.getClass().getComponentType();
+        if ( componentType == byte.class ) {
+            writeFByteArr((byte[]) array, 0, len);
+        } else
+        if ( componentType == char.class ) {
+            writeFCharArr((char[]) array);
+        } else
+        if ( componentType == short.class ) {
+            writeFShortArr((short[]) array);
+        } else
+        if ( componentType == int.class ) {
+            writeFIntArr((int[]) array);
+        } else
+        if ( componentType == double.class ) {
+            writeFDoubleArr((double[]) array);
+        } else
+        if ( componentType == float.class ) {
+            writeFFloatArr((float[]) array);
+        } else
+        if ( componentType == long.class ) {
+            writeFLongArr((long[]) array);
+        } else
+        if ( componentType == boolean.class ) {
+            writeFBooleanArr((boolean[]) array);
+        } else {
+            throw new RuntimeException("expected primitive array");
+        }
+    }
+    
+    
     /**
      * does not write length, just plain bytes
      *
@@ -144,7 +186,6 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.buf[buffout.pos++] = (byte) v;
     }
 
-    @Override
     public void writeFIntArr(int v[]) throws IOException {
         final int free = 5 * v.length;
         buffout.ensureFree(free);
@@ -229,11 +270,18 @@ public class FSTStreamEncoder implements FSTEncoder {
     @Override
     public void close() throws IOException {
         buffout.close();
+        conf.returnObject(clnames);
+    }
+
+    @Override
+    public void reset(byte[] out) {
+        buffout.reset(out); // fixme: classname clearing ?
     }
 
     @Override
     public void reset() {
         buffout.reset();
+        clnames.clear();
     }
 
     @Override
@@ -294,10 +342,28 @@ public class FSTStreamEncoder implements FSTEncoder {
         return buffout.buf;
     }
 
-    @Override
-    public void reset(byte[] out) {
-        buffout.reset(out);
+    public void registerClass(Class possible) {
+        clnames.registerClass(possible);
     }
+
+    @Override
+    public final void writeClass(FSTObjectOutput out, Class cl) {
+        try {
+            clnames.encodeClass(out,cl);
+        } catch ( IOException e) {
+            FSTUtil.rethrow(e);
+        }
+    }
+
+    @Override
+    public final void writeClass(FSTObjectOutput out,FSTClazzInfo clInf) {
+        try {
+            clnames.encodeClass(out, clInf);
+        } catch ( IOException e) {
+            FSTUtil.rethrow(e);
+        }
+    }
+    
 
     private void writePlainLong(long v) throws IOException {
         buffout.ensureFree(8);

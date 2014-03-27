@@ -151,19 +151,16 @@ public final class FSTConfiguration {
     /**
      * reuse heavy weight objects. If a FSTStream is closed, objects are returned and can be reused by new stream instances.
      * the objects are held in soft references, so there should be no memory issues. FIXME: point of contention !
-     * @param cachedObs
+     * @param cached
      */
-    public void returnObject( Object ... cachedObs ) {
+    public void returnObject( Object cached ) {
         synchronized (cachedObjects) {
-            for (int i = 0; i < cachedObs.length; i++) {
-                Object cached = cachedObs[i];
-                List<SoftReference> li = cachedObjects.get(cached.getClass());
-                if ( li == null ) {
-                    li = new ArrayList<SoftReference>();
-                    cachedObjects.put(cached.getClass(),li);
-                }
-                li.add(new SoftReference(cached));
+            List<SoftReference> li = cachedObjects.get(cached.getClass());
+            if ( li == null ) {
+                li = new ArrayList<SoftReference>();
+                cachedObjects.put(cached.getClass(),li);
             }
+            li.add(new SoftReference(cached));
         }
     }
 

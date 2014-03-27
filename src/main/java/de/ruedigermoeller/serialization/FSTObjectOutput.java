@@ -53,7 +53,6 @@ public class FSTObjectOutput implements ObjectOutput {
     static final byte OBJECT = 0;
     protected FSTEncoder codec;
 
-    public FSTClazzNameRegistry clnames; // immutable
     protected FSTConfiguration conf; // immutable
 
     protected FSTObjectRegistry objects;
@@ -90,12 +89,6 @@ public class FSTObjectOutput implements ObjectOutput {
             objects.disabled = !conf.isShareReferences();
         } else {
             objects.clearForWrite();
-        }
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if ( clnames == null ) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
-        } else {
-            clnames.clear();
         }
     }
 
@@ -151,7 +144,7 @@ public class FSTObjectOutput implements ObjectOutput {
         closed = true;
         codec.close();
         resetAndClearRefs();
-        conf.returnObject(objects,clnames);
+        conf.returnObject(objects);
     }
 
 
@@ -269,7 +262,7 @@ public class FSTObjectOutput implements ObjectOutput {
             if ( possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
-                    clnames.registerClass(possible);
+                    codec.registerClass(possible);
                 }
             }
             writeObjectInternal(obj, possibles);
@@ -380,9 +373,9 @@ public class FSTObjectOutput implements ObjectOutput {
                     if ( c == null ) {
                         throw new RuntimeException("Can't handle this enum: "+toWrite.getClass());
                     }
-                    writeClass(c);
+                    codec.writeClass(this,c);
                 } else {
-                    writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
+                    codec.writeClass(this, getFstClazzInfo(referencee, toWrite.getClass()));
                 }
                 codec.writeFInt(((Enum) toWrite).ordinal());
                 return;
@@ -641,7 +634,7 @@ public class FSTObjectOutput implements ObjectOutput {
     protected void writeObjectHeader(final FSTClazzInfo clsInfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
         if (clsInfo.isEqualIsBinary() ) {
             codec.writeFByte(OBJECT);
-            writeClass(clsInfo);
+            codec.writeClass(this, clsInfo);
             return;
         }
         if ( toWrite.getClass() == referencee.getType()
@@ -652,7 +645,7 @@ public class FSTObjectOutput implements ObjectOutput {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
                 codec.writeFByte(OBJECT);
-                writeClass(clsInfo);
+                codec.writeClass(this, clsInfo);
             } else {
                 final int length = possibleClasses.length;
                 for (int j = 0; j < length; j++) {
@@ -663,47 +656,25 @@ public class FSTObjectOutput implements ObjectOutput {
                     }
                 }
                 codec.writeFByte(OBJECT);
-                writeClass(clsInfo);
+                codec.writeClass(this, clsInfo);
             }
         }
     }
 
     protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
         if ( array == null ) {
-            writeClass(Object.class);
+            codec.writeClass(this,Object.class);
             codec.writeFInt(-1);
             return;
         }
-
         final int len = Array.getLength(array);
-        writeClass(array);
-        codec.writeFInt(len);
+        codec.writeClass(this,array.getClass());
         Class<?> componentType = array.getClass().getComponentType();
         if ( ! componentType.isArray() ) {
-            if ( componentType == byte.class ) {
-                codec.writeFByteArr((byte[]) array, 0, len);
-            } else
-            if ( componentType == char.class ) {
-                codec.writeFCharArr((char[]) array);
-            } else
-            if ( componentType == short.class ) {
-                codec.writeFShortArr((short[]) array);
-            } else
-            if ( componentType == int.class ) {
-                codec.writeFIntArr((int[]) array);
-            } else
-            if ( componentType == double.class ) {
-                codec.writeFDoubleArr((double[]) array);
-            } else
-            if ( componentType == float.class ) {
-                codec.writeFFloatArr((float[]) array);
-            } else
-            if ( componentType == long.class ) {
-                codec.writeFLongArr((long[]) array);
-            } else
-            if ( componentType == boolean.class ) {
-                codec.writeFBooleanArr((boolean[]) array);
+            if ( componentType.isPrimitive() ) {
+                codec.writePrimitiveArray(array);
             } else {
+                codec.writeFInt(len);
                 Object arr[] = (Object[])array;
                 for ( int i = 0; i < len; i++ )
                 {
@@ -716,6 +687,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
         } else {
+            codec.writeFInt(len);
             Object[] arr = (Object[])array;
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, conf.getCLInfoRegistry().isIgnoreAnnotations());
             for ( int i = 0; i < len; i++ ) {
@@ -730,39 +702,13 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    static int charMap[] = new int[256];
-    static String enc = "e itsanhurdmwgvl";//fbkopjxczyq";
-    static {
-        charMap[32] = 0;
-        for (int i = 0; i < charMap.length; i++) {
-            charMap[i] =999;
-        }
-        for (int i=0; i < enc.length();i++) {
-            charMap[enc.charAt(i)] = i;
-        }
-    }
-
     public void writeStringUTF(String str) throws IOException {
-
         codec.writeStringUTF(str);
-    }
-
-    public final void writeClass(Class cl) throws IOException {
-        clnames.encodeClass(this,cl);
-    }
-
-    public final void writeClass(FSTClazzInfo clInf) throws IOException {
-        clnames.encodeClass(this,clInf);
-    }
-
-    public final void writeClass(Object toWrite) throws IOException {
-        clnames.encodeClass(this,toWrite.getClass());
     }
 
     void resetAndClearRefs() {
         codec.reset();
         objects.clearForWrite();
-        clnames.clear();
     }
 
     /**
@@ -778,7 +724,6 @@ public class FSTObjectOutput implements ObjectOutput {
             codec.setOutstream(out);
         }
         objects.clearForWrite();
-        clnames.clear();
     }
 
     /**
@@ -794,7 +739,6 @@ public class FSTObjectOutput implements ObjectOutput {
         codec.reset();
         codec.reset(out);
         objects.clearForWrite();
-        clnames.clear();
     }
 
     public FSTClazzInfoRegistry getClassInfoRegistry() {
@@ -1039,5 +983,9 @@ public class FSTObjectOutput implements ObjectOutput {
 
     public int getWritten() {
         return codec.getWritten();
+    }
+
+    public void writeClassTag(Class aClass) {
+        codec.writeClass(this,aClass);
     }
 }
