@@ -61,7 +61,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         try {
             Object res = null;
-            int len = in.readCInt();
+            int len = in.readInt();
             if ( objectClass == ArrayList.class ) {
                 res = new ArrayList(len);
             } else

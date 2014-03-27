@@ -19,10 +19,7 @@
  */
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.serialization.util.FSTInputStream;
-import de.ruedigermoeller.serialization.util.FSTInt2ObjectMap;
 import de.ruedigermoeller.serialization.util.FSTUtil;
-
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -38,11 +35,11 @@ import java.util.*;
 /**
  * replacement of ObjectInputStream
  */
-public class FSTObjectInput extends DataInputStream implements ObjectInput {
+public class FSTObjectInput implements ObjectInput {
 
     static ByteArrayInputStream empty = new ByteArrayInputStream(new byte[0]);
     
-    protected FSTDecoder codec = new FSTDecoder(this);
+    protected FSTDecoder codec;
 
     public FSTClazzNameRegistry clnames;
     FSTObjectRegistry objects;
@@ -61,6 +58,81 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     
     public FSTConfiguration getConf() {
         return conf;
+    }
+
+    @Override
+    public void readFully(byte[] b) throws IOException {
+
+    }
+
+    @Override
+    public void readFully(byte[] b, int off, int len) throws IOException {
+
+    }
+
+    @Override
+    public int skipBytes(int n) throws IOException {
+        return 0;
+    }
+
+    @Override
+    public boolean readBoolean() throws IOException {
+        return false;
+    }
+
+    @Override
+    public byte readByte() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int readUnsignedByte() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public short readShort() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int readUnsignedShort() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int readInt() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public long readLong() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public float readFloat() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public double readDouble() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public String readLine() throws IOException {
+        return null;
+    }
+
+    @Override
+    public String readUTF() throws IOException {
+        return null;
     }
 
     static class CallbackEntry {
@@ -92,7 +164,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
      * @param in the specified input stream
      */
     public FSTObjectInput(InputStream in) throws IOException {
-        this(in,FSTConfiguration.getDefaultConfiguration());
+        this(in, FSTConfiguration.getDefaultConfiguration());
     }
 
     /**
@@ -105,10 +177,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
      * @param in the specified input stream
      */
     public FSTObjectInput(InputStream in, FSTConfiguration conf) {
-//        super(in);
-//        input = new InputStreamWrapper(this.in);
-        super(new FSTInputStream(in));
-        codec.input = (FSTInputStream) this.in;
+        codec = new FSTStreamDecoder(conf);
+        codec.setInputStream(in);
         this.conf = conf;
         initRegistries();
     }
@@ -163,9 +233,33 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         try {
             return readObject((Class[]) null);
         } catch (Exception e) {
-            dumpDebugStack();
             throw new IOException(e);
         }
+    }
+
+    @Override
+    public int read() throws IOException {
+        return codec.readFByte();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public int available() throws IOException {
+        return 0;
     }
 
     void processValidation() throws InvalidObjectException {
@@ -188,15 +282,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         }
     }
 
-    private void dumpDebugStack() {
-//        if (DEBUGSTACK) {
-//            for (int i = 0; i < debugStack.size(); i++) {
-//                String s = debugStack.get(i);
-//                System.err.println(i + ":" + s);
-//            }
-//        }
-    }
-
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
         try {
@@ -210,7 +295,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             processValidation();
             return res;
         } catch (Throwable th) {
-            dumpDebugStack();
             throw FSTUtil.rethrow(th);
         } finally {
             curDepth--;
@@ -237,7 +321,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
         FSTClazzInfo clzSerInfo;
         Class c;
-        final int readPos = codec.getInput().pos- codec.getInput().off; // incase of pointing to larger array => general issue in both in and output stream when start is !=0 !
+        final int readPos = codec.getInputPos();
         byte code = codec.readFByte();
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
@@ -275,7 +359,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         {
             switch (code) {
                 case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
-                case FSTObjectOutput.BIG_LONG: { return new Long(codec.readCLong()); }
+                case FSTObjectOutput.BIG_LONG: { return new Long(codec.readFLong()); }
                 case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[codec.readFByte()]; }
@@ -301,16 +385,16 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     private Object instantiateHandle(FSTClazzInfo.FSTFieldInfo referencee) throws IOException {
-        int handle = codec.readCInt();
+        int handle = codec.readFInt();
         Object res = objects.getReadRegisteredObject(handle);
         if (res == null) {
-            throw new IOException("unable to ressolve handle " + handle + " " + referencee.getDesc() + " " + codec.getInput().pos);
+            throw new IOException("unable to ressolve handle " + handle + " " + referencee.getDesc() + " " + codec.getInputPos() );
         }
         return res;
     }
 
     private Object instantiateCopyHandle() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        int handle = codec.readCInt(); // = streamposition
+        int handle = codec.readFInt(); // = streamposition
         Object res = objects.getReadRegisteredObject(handle);
         if (res == null) {
             throw new IOException("unable to ressolve handle " + handle);
@@ -333,7 +417,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         Class c;
         clzSerInfo = readClass();
         c = clzSerInfo.getClazz();
-        int ordinal = codec.readCInt();
+        int ordinal = codec.readFInt();
         Object[] enumConstants = clzSerInfo.getEnumConstants();
         if ( enumConstants == null ) {
             // pseudo enum of anonymous classes tom style ?
@@ -347,7 +431,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     private Object instantiateBigInt() throws IOException {
-        int val = codec.readCInt();
+        int val = codec.readFInt();
         if (val >= 0 && val < FSTConfiguration.intObjects.length) {
             return FSTConfiguration.intObjects[val];
         }
@@ -411,11 +495,8 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         return copy;
     }
 
-    ByteArrayOutputStream copyStream;
-    FSTInt2ObjectMap<byte[]> mCopyHash;
-
     protected Object defaultCopy(Object toCopy, int streamPosition) throws IOException, ClassNotFoundException {
-        final byte[] buf = codec.getInput().buf;
+        final byte[] buf = codec.getBuffer();
         final int pos = streamPosition;
         try {
             codec.push(buf, pos, buf.length);
@@ -492,27 +573,27 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                         subInfo.setBooleanValue(newObj, val);
                     } else {
                         if (integralType==FSTClazzInfo.FSTFieldInfo.INT) {
-                            subInfo.setIntValue(newObj, codec.readCInt());
+                            subInfo.setIntValue(newObj, codec.readFInt());
                         } else if ( integralType == FSTClazzInfo.FSTFieldInfo.LONG ) {
-                            subInfo.setLongValue(newObj, codec.readCLong());
+                            subInfo.setLongValue(newObj, codec.readFLong());
                         } else {
                             switch (integralType) {
                                 case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, codec.readFByte()); break;
-                                case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, codec.readCChar()); break;
-                                case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, codec.readCShort()); break;
+                                case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, codec.readFChar()); break;
+                                case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, codec.readFShort()); break;
 //                                    case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readCInt()); break;
 //                                    case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readCLong()); break;
-                                case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, codec.readCFloat()); break;
-                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, codec.readCDouble()); break;
+                                case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, codec.readFFloat()); break;
+                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, codec.readFDouble()); break;
                             }
                         }
                     }
                 } else {
                     if ( subInfo.isConditional() ) {
                         if ( conditional == 0 ) {
-                            conditional = codec.readFInt();
+                            conditional = codec.readPlainInt();
                             if ( skipConditional(newObj, conditional, subInfo) ) {
-                                codec.getInput().pos = conditional;
+                                codec.moveTo(conditional);
                                 continue;
                             }
                         }
@@ -555,17 +636,17 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                     if (subInfoType == byte.class) {
                         res.put(subInfo.getField().getName(), codec.readFByte());
                     } else if (subInfoType == char.class) {
-                        res.put(subInfo.getField().getName(), codec.readCChar());
+                        res.put(subInfo.getField().getName(), codec.readFChar());
                     } else if (subInfoType == short.class) {
-                        res.put(subInfo.getField().getName(), codec.readCShort());
+                        res.put(subInfo.getField().getName(), codec.readFShort());
                     } else if (subInfoType == int.class) {
-                        res.put(subInfo.getField().getName(), codec.readCInt());
+                        res.put(subInfo.getField().getName(), codec.readFInt());
                     } else if (subInfoType == double.class) {
-                        res.put(subInfo.getField().getName(), codec.readCDouble());
+                        res.put(subInfo.getField().getName(), codec.readFDouble());
                     } else if (subInfoType == float.class) {
-                        res.put(subInfo.getField().getName(), codec.readCFloat());
+                        res.put(subInfo.getField().getName(), codec.readFFloat());
                     } else if (subInfoType == long.class) {
-                        res.put(subInfo.getField().getName(), codec.readCLong());
+                        res.put(subInfo.getField().getName(), codec.readFLong());
                     }
                 } else {
                     // object
@@ -583,47 +664,9 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         codec.ensureReadAhead(bytes);
     }
 
-    public String readStringCompressed() throws IOException {
-        int len = codec.readCInt();
-        char[] charBuf = codec.getCharBuf(len * 3);
-        codec.ensureReadAhead(len * 3);
-        byte buf[] = codec.getInput().buf;
-        int count = codec.getInput().pos;
-        int chcount = 0;
-        while ( chcount < len ) {
-            char head = (char) ((buf[count++] + 256) &0xff);
-            if (head >= 0 && head < 254) {
-                charBuf[chcount++] = head;
-            } else {
-                if ( head == 254 ) {
-                    int nibbles = ((buf[count++] + 256) &0xff);
-                    for ( int ii = 0; ii < nibbles; ii++) {
-                        int bufVal = ((buf[count]+256)&0xff);
-                        if ((ii&1) == 0 ) {
-                            charBuf[chcount++] = FSTObjectOutput.enc.charAt(bufVal &0xf);
-                            if (ii==nibbles-1) {
-                                count++;
-                            }
-                        } else {
-                            charBuf[chcount++] = FSTObjectOutput.enc.charAt((bufVal>>>4)&0xf);
-                            count++;
-                        }
-                    }
-                } else {
-                    int ch1 = ((buf[count++] + 256) &0xff);
-                    int ch2 = ((buf[count++] + 256) &0xff);
-                    charBuf[chcount++] = (char) ((ch1 << 8) + (ch2 << 0));
-                }
-            }
-        }
-        codec.getInput().pos = count;
-        return new String(charBuf, 0, chcount);
-    }
-
     public String readStringUTF() throws IOException {
         return codec.readStringUTF();
     }
-
 
     /**
      * len < 127 !!!!!
@@ -646,23 +689,23 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class arrCl = readClass().getClazz();
-        final int len = codec.readCInt();
+        final int len = codec.readFInt();
         if (len == -1) {
             return null;
         }
         Class arrType = arrCl.getComponentType();
         if (!arrCl.getComponentType().isArray()) {
             Object array = Array.newInstance(arrType, len);
-            objects.registerObjectForRead(array, codec.getInput().pos - codec.getInput().off );
+            objects.registerObjectForRead(array, codec.getInputPos() );
             if (arrCl.getComponentType().isPrimitive()) {
                 if (arrType == byte.class) {
                     byte[] arr = (byte[]) array;
-                    codec.ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
+                    codec.ensureReadAhead(arr.length);
                     read(arr);
                 } else if (arrType == char.class) {
                     char[] arr = (char[]) array;
                     for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readCChar();
+                        arr[j] = codec.readFChar();
                     }
                 } else if (arrType == short.class) {
                     short[] arr = (short[]) array;
@@ -672,13 +715,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                     }
                 } else if (arrType == int.class) {
                     final int[] arr = (int[]) array;
-                    if ( referencee.isThin() ) {
-                        readThinArray(len, arr);
-                    } else if (referencee.isCompressed() ) {
-                        readCompressedArray(len,arr);
-                    } else {
-                        codec.readFIntArr(len, arr);
-                    }
+                    codec.readFIntArr(len, arr);
                 } else if (arrType == float.class) {
                     float[] arr = (float[]) array;
                     codec.ensureReadAhead(arr.length * 4);
@@ -708,28 +745,16 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                 }
             } else {
                 Object arr[] = (Object[]) array;
-                if ( referencee.isThin() ) {
-                    for (int i = 0; i < len; i++) {
-                        int idx = codec.readCInt();
-                        if ( idx == len ) {
-                            break;
-                        }
-                        Object subArray = readObjectWithHeader(referencee);
-                        arr[idx] = subArray;
-                    }
-                } else
-                {
-                    for (int i = 0; i < len; i++) {
-                        Object value = readObjectWithHeader(referencee);
-                        arr[i] = value;
-                    }
+                for (int i = 0; i < len; i++) {
+                    Object value = readObjectWithHeader(referencee);
+                    arr[i] = value;
                 }
             }
             return array;
         } else {
             Object array[] = (Object[]) Array.newInstance(arrType, len);
             if (!FSTUtil.isPrimitiveArray(arrType) && ! referencee.isFlat() ) {
-                objects.registerObjectForRead(array, codec.getInput().pos - codec.getInput().off);
+                objects.registerObjectForRead(array, codec.getInputPos());
             }
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, clInfoRegistry.isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
@@ -737,43 +762,6 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
                 array[i] = subArray;
             }
             return array;
-        }
-    }
-
-    public void readCompressedArray(int len, int arr[]) throws IOException {
-        int type = codec.readFByte();
-        switch (type) {
-            case 0: readDiffArr(len,arr); break;
-            case 1:
-                codec.readCIntArr(len, arr); break;
-            case 2: readThinArray(len, arr); break;
-            case 3: readOffsShortArr(len, arr); break;
-        }
-    }
-
-    private void readOffsShortArr(int len, int[] arr) throws IOException {
-        int min = codec.readCInt();
-        for ( int i=0; i < len; i++) {
-            arr[i]= min + readShort();
-        }
-    }
-
-    private void readDiffArr(int len, int[] arr) throws IOException {
-        int start = codec.readCInt();
-        arr[0] = start;
-        for ( int i=1; i < len; i++) {
-            arr[i]= arr[i-1] + codec.readCInt();
-        }
-    }
-
-    private void readThinArray(int len, int[] arr) throws IOException {
-        for (int i = 0; i < len; i++) {
-            final int index = codec.readCInt();
-            if ( index == len ) {
-                break;
-            }
-            final int val = codec.readCInt();
-            arr[index] = val;
         }
     }
 
@@ -798,16 +786,16 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
     }
 
     public void reset() throws IOException {
-        codec.getInput().reset();
+        codec.reset();
     }
 
     public void resetForReuse(InputStream in) throws IOException {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.getInput().reset();
+        codec.reset();
         clnames.clear();
-        codec.getInput().initFromStream(in);
+        codec.setInputStream(in);
         objects.clearForRead(); 
         clnames.clear();
     }
@@ -816,104 +804,32 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.getInput().reset();
+        codec.reset();
         objects.clearForRead();
         clnames.clear();
-        codec.getInput().ensureCapacity(len);
-        codec.getInput().count = len;
-        System.arraycopy(bytes, off, codec.getInput().buf, 0, len);
+        codec.resetToCopyOf(bytes, off, len);
     }
 
     public void resetForReuseUseArray(byte bytes[]) throws IOException {
-        resetForReuseUseArray(bytes, 0, bytes.length);
+        resetForReuseUseArray(bytes, bytes.length);
     }
 
-    public void resetForReuseUseArray(byte bytes[], int off, int len) throws IOException {
+    public void resetForReuseUseArray(byte bytes[], int len) throws IOException {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.getInput().reset();
-        objects.clearForRead(); 
+        objects.clearForRead();
         clnames.clear();
-        codec.getInput().count = len+off;
-        codec.getInput().buf = bytes;
-        codec.getInput().pos = off;
-        codec.getInput().off = off;
+        codec.resetWith(bytes,len);
     }
 
     public final int readFInt() throws IOException {
         return codec.readFInt();
     }
 
-    public void readFIntArr(int len, int[] arr) throws IOException {
-        codec.readFIntArr(len, arr);
-    }
-
-    private void readCIntArr(int len, int[] arr) throws IOException {
-        codec.readCIntArr(len, arr);
-    }
-
-    public final int readCInt() throws IOException {
-        // -128 = short byte, -127 == 4 byte
-        return codec.readCInt();
-    }
-
-    public double readFDouble() throws IOException {
-        return codec.readFDouble();
-    }
-
-    public final byte readFByte() throws IOException {
-        return codec.readFByte();
-    }
-
-    public long readFLong() throws IOException {
-        return codec.readFLong();
-    }
-
-    public long readCLong() throws IOException {
-        // -128 = short byte, -127 == 4 byte
-        return codec.readCLong();
-    }
-
-    public char readFChar() throws IOException {
-        return codec.readFChar();
-    }
-
-    public char readCChar() throws IOException {
-        // -128 = short byte, -127 == 4 byte
-        return codec.readCChar();
-    }
-
-    /**
-     * Reads a 4 byte float.
-     */
-    public float readCFloat() throws IOException {
-        return codec.readCFloat();
-    }
-
-    public float readFFloat() throws IOException {
-        return codec.readFFloat();
-    }
-
-    /**
-     * Reads an 8 bytes double.
-     */
-    public double readCDouble() throws IOException {
-        return codec.readCDouble();
-    }
-
-    public short readFShort() throws IOException {
-        return codec.readFShort();
-    }
-
-    public short readCShort() throws IOException {
-        return codec.readCShort();
-    }
-
     boolean closed = false;
     @Override
     public void close() throws IOException {
-        super.close();
         closed = true;
         resetAndClearRefs();
         conf.returnObject(objects, clnames);
@@ -1192,7 +1108,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
             @Override
             public void mark(int readlimit) {
-                FSTObjectInput.this.mark(readlimit);
+                throw new RuntimeException("not implemented");
             }
 
             @Override
@@ -1202,7 +1118,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
             @Override
             public boolean markSupported() {
-                return FSTObjectInput.this.markSupported();
+                return false;
             }
         };
         if ( fakeWrapper == null ) {
@@ -1378,7 +1294,4 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         }
     }
 
-    public FSTInputStream getInput() {
-        return codec.getInput();
-    }
 }

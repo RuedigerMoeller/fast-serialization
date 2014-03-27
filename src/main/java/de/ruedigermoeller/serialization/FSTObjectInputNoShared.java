@@ -73,8 +73,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.getInput().reset();
-        codec.getInput().initFromStream(in);
+        codec.setInputStream(in);
         clnames.clear();
     }
 
@@ -82,11 +81,8 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.getInput().reset();
         clnames.clear();
-        codec.getInput().ensureCapacity(len);
-        codec.getInput().count = len;
-        System.arraycopy(bytes, off, codec.getInput().buf, 0, len);
+        codec.resetToCopyOf(bytes,off,len);
     }
 
     private Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {

@@ -51,7 +51,7 @@ public abstract class FSTCompressed<T> {
             return res;
         }
         byte[] array = getArray();
-        FSTObjectInput objectIn = getConf().getObjectInput(array,0,array.length);
+        FSTObjectInput objectIn = getConf().getObjectInput(array,array.length);
         try {
             res = (T) objectIn.readObject(clazz);
             cached = new WeakReference<T>(res);

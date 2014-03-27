@@ -5,46 +5,53 @@ import de.ruedigermoeller.serialization.util.FSTOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class FSTEnccoder {
+public class FSTStreamEncoder implements FSTEncoder {
 
     private final FSTConfiguration conf;
     private FSTOutputStream buffout;
     private byte[] ascStringCache;
 
-    public FSTEnccoder(FSTConfiguration conf) {
+    public FSTStreamEncoder(FSTConfiguration conf) {
         this.conf = conf;
     }
 
+    @Override
     public void writeFBooleanArr(boolean[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFByte(arr[i] ? 1 : 0);
     }
 
+    @Override
     public void writeFLongArr(long[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFLong(arr[i]);
     }
 
+    @Override
     public void writeFFloatArr(float[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFFloat(arr[i]);
     }
 
+    @Override
     public void writeFDoubleArr(double[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFDouble(arr[i]);
     }
 
+    @Override
     public void writeFShortArr(short[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFShort(arr[i]);
     }
 
+    @Override
     public void writeFCharArr(char[] arr) throws IOException {
         for (int i = 0; i < arr.length; i++)
             writeFChar(arr[i]);
     }
 
+    @Override
     public void writeFByteArr(byte[] array) throws IOException {
         writeFByteArr(array, 0, array.length);
     }
@@ -56,12 +63,14 @@ public class FSTEnccoder {
      * @param length
      * @throws java.io.IOException
      */
+    @Override
     public void writeFByteArr(byte[] array, int start, int length) throws IOException {
         buffout.ensureFree(length);
         System.arraycopy(array, start, buffout.buf, buffout.pos, length);
         buffout.pos += length;
     }
 
+    @Override
     public void writeStringUTF(String str) throws IOException {
         final int strlen = str.length();
 
@@ -102,6 +111,7 @@ public class FSTEnccoder {
         writeFByteArr(ascStringCache, 0, len);
     }
 
+    @Override
     public void writeFShort(short c) throws IOException {
         if (c < 255 && c >= 0) {
             writeFByte(c);
@@ -111,6 +121,7 @@ public class FSTEnccoder {
         }
     }
 
+    @Override
     public void writeFChar(char c) throws IOException {
         // -128 = short byte, -127 == 4 byte
         if (c < 255 && c >= 0) {
@@ -127,23 +138,13 @@ public class FSTEnccoder {
         }
     }
 
+    @Override
     public final void writeFByte(int v) throws IOException {
         buffout.ensureFree(1);
         buffout.buf[buffout.pos++] = (byte) v;
     }
 
-    public void writeFIntThin(int v[]) throws IOException {
-        final int length = v.length;
-        for (int i = 0; i < length; i++) {
-            final int anInt = v[i];
-            if (anInt != 0) {
-                writeFInt(i);
-                writeFInt(anInt);
-            }
-        }
-        writeFInt(length); // stop marker
-    }
-
+    @Override
     public void writeFIntArr(int v[]) throws IOException {
         final int free = 5 * v.length;
         buffout.ensureFree(free);
@@ -151,24 +152,20 @@ public class FSTEnccoder {
         int count = buffout.pos;
         for (int i = 0; i < v.length; i++) {
             final int anInt = v[i];
-            // inlined ..
             if (anInt > -127 && anInt <= 127) {
                 buffout.buf[count++] = (byte) anInt;
             } else if (anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE) {
-                buf[count++] = -128;
-                buf[count++] = (byte) (anInt >>> 0);
-                buf[count++] = (byte) (anInt >>> 8);
+                writeFByte(-128);
+                writePlainShort(anInt);
             } else {
-                buf[count++] = -127;
-                buf[count++] = (byte) (anInt >>> 0);
-                buf[count++] = (byte) (anInt >>> 8);
-                buf[count++] = (byte) (anInt >>> 16);
-                buf[count++] = (byte) (anInt >>> 24);
+                writeFByte(-127);
+                writePlainInt(anInt);
             }
         }
         buffout.pos = count;
     }
 
+    @Override
     public void writeFInt(int anInt) throws IOException {
         // -128 = short byte, -127 == 4 byte
         if (anInt > -127 && anInt <= 127) {
@@ -185,17 +182,7 @@ public class FSTEnccoder {
         }
     }
 
-    /**
-     * Writes a 4 byte float.
-     */
-    public void writeFFloat(float value) throws IOException {
-        writeFInt(Float.floatToIntBits(value));
-    }
-
-    public void writeFDouble(double value) throws IOException {
-        writeFLong(Double.doubleToLongBits(value));
-    }
-
+    @Override
     public void writeFLong(long anInt) throws IOException {
 // -128 = short byte, -127 == 4 byte
         if (anInt > -126 && anInt <= 127) {
@@ -212,10 +199,25 @@ public class FSTEnccoder {
         }
     }
 
+    /**
+     * Writes a 4 byte float.
+     */
+    @Override
+    public void writeFFloat(float value) throws IOException {
+        writePlainInt(Float.floatToIntBits(value));
+    }
+
+    @Override
+    public void writeFDouble(double value) throws IOException {
+        writePlainLong(Double.doubleToLongBits(value));
+    }
+
+    @Override
     public int getWritten() {
         return buffout.pos;
     }
 
+    @Override
     public void setWritten(int written) {
         this.buffout.pos = written;
     }
@@ -224,14 +226,17 @@ public class FSTEnccoder {
      * close and flush to underlying stream if present. The stream is also closed
      * @throws IOException
      */
+    @Override
     public void close() throws IOException {
         buffout.close();
     }
 
+    @Override
     public void reset() {
         buffout.reset();
     }
 
+    @Override
     public void skip(int i) {
         buffout.pos+=i;
     }
@@ -241,6 +246,7 @@ public class FSTEnccoder {
      * @param position
      * @param v
      */
+    @Override
     public void writeInt32At(int position, int v) {
         buffout.buf[position] = (byte)  (v >>> 0);
         buffout.buf[position+1] = (byte) (v >>> 8);
@@ -252,6 +258,7 @@ public class FSTEnccoder {
      * if output stream is null, just encode into a byte array 
      * @param outstream
      */
+    @Override
     public void setOutstream(OutputStream outstream) {
         if ( buffout == null ) 
         {
@@ -272,18 +279,22 @@ public class FSTEnccoder {
      * resets stream (positions are lost)
      * @throws IOException
      */
+    @Override
     public void flush() throws IOException {
         buffout.flush();
     }
 
+    @Override
     public void ensureFree(int bytes) throws IOException {
         buffout.ensureFree(bytes);
     }
 
+    @Override
     public byte[] getBuffer() {
         return buffout.buf;
     }
 
+    @Override
     public void reset(byte[] out) {
         buffout.reset(out);
     }

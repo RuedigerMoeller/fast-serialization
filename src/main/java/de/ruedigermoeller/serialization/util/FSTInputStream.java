@@ -36,7 +36,6 @@ public final class FSTInputStream extends InputStream {
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
     public byte buf[];
     public  int pos;
-    public  int off;
     public  int count; // avaiable valid read bytes
     InputStream in;
 
@@ -46,6 +45,7 @@ public final class FSTInputStream extends InputStream {
 
     public void initFromStream(InputStream in) {
         try {
+            pos = 0;
             this.in = in;
             if (buf==null) {
                 buf = cachedBuffer.get();
@@ -107,7 +107,7 @@ public final class FSTInputStream extends InputStream {
         streamStack[sp] = buf;
         countStack[sp] = count;
         posStack[sp] = pos;
-        offStack[sp] = off;
+//        offStack[sp] = off;
         sp++;
         buf = inb; pos = newpos;
         count = newCount;
@@ -118,7 +118,7 @@ public final class FSTInputStream extends InputStream {
         buf = streamStack[sp];
         count = countStack[sp];
         pos = posStack[sp];
-        off = posStack[sp];
+//        off = posStack[sp];
     }
 
     public int read() {
@@ -167,7 +167,6 @@ public final class FSTInputStream extends InputStream {
     public void reset() {
         count = 0;
         pos = 0;
-        off = 0;
     }
 
     public void close() throws IOException {

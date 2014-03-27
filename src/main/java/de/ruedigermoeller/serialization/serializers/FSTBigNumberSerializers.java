@@ -48,7 +48,7 @@ public class FSTBigNumberSerializers {
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            Object res = new Character(in.readCChar());
+            Object res = new Character(in.readChar());
             return res;
         }
 
@@ -66,7 +66,7 @@ public class FSTBigNumberSerializers {
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            Object res = new Short(in.readCShort());
+            Object res = new Short(in.readShort());
             return res;
         }
 
@@ -84,7 +84,7 @@ public class FSTBigNumberSerializers {
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            Object res = new Float(in.readCFloat());
+            Object res = new Float(in.readFloat());
             return res;
         }
 
@@ -102,7 +102,7 @@ public class FSTBigNumberSerializers {
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            Object res = new Double(in.readFDouble());
+            Object res = new Double(in.readDouble());
             return res;
         }
 

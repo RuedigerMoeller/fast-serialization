@@ -221,7 +221,7 @@ public class FSTOffheapQueue  {
 
         public Object takeObject(int sizeResult[]) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
             if ( takeBytes(tmpRes) ) {
-                in.resetForReuseUseArray(tmpRes.b,0,tmpRes.b.length);
+                in.resetForReuseUseArray(tmpRes.b,tmpRes.b.length);
                 if ( sizeResult != null ) {
                     sizeResult[0] = tmpRes.b.length;
                 }
@@ -259,7 +259,7 @@ public class FSTOffheapQueue  {
                                 throw new RuntimeException(e);
                             }
                         }
-                        inp.resetForReuseUseArray(b, 0, b.length);
+                        inp.resetForReuseUseArray(b, b.length);
                         result = inp.readObject();
                     } catch (Exception e) {
                         throw new RuntimeException(e);

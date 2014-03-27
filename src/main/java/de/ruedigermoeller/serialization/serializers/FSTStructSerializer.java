@@ -86,7 +86,7 @@ public class FSTStructSerializer extends FSTBasicObjectSerializer {
                 int value = 0;
                 int i = 0;
                 int b;
-                while (((b = in.readFByte()) & 0x80) != 0) {
+                while (((b = in.readByte()) & 0x80) != 0) {
                     value |= (b & 0x7F) << i;
                     i += 7;
                 }
@@ -101,7 +101,7 @@ public class FSTStructSerializer extends FSTBasicObjectSerializer {
             }
             int remainder = len&3;
             for ( int i = 0; i < remainder; i++) {
-                bytes[count++] = in.readFByte();
+                bytes[count++] = in.readByte();
             }
         } else {
             in.read(bytes);

@@ -452,8 +452,6 @@ public final class FSTClazzInfo {
         int arrayDim;
         Class arrayType;
         boolean flat = false;
-        boolean thin = false;
-        boolean isCompressed = false;
         boolean isConditional = false;
 
         final Field field;
@@ -496,9 +494,7 @@ public final class FSTClazzInfo {
             calcIntegral();
             if ( fi != null && ! ignoreAnnotations ) {
                 flat = fi.isAnnotationPresent(Flat.class);
-                thin = fi.isAnnotationPresent(Thin.class);
                 isConditional = fi.isAnnotationPresent(Conditional.class);
-                isCompressed = fi.isAnnotationPresent(Compress.class);
                 if (isIntegral()) {
                     isConditional = false;
                 }
@@ -530,10 +526,6 @@ public final class FSTClazzInfo {
 
         public long getMemOffset() {
             return memOffset;
-        }
-
-        public boolean isCompressed() {
-            return isCompressed;
         }
 
         public int getAlign() {
@@ -569,10 +561,6 @@ public final class FSTClazzInfo {
 
         public final Class getType() {
             return type;
-        }
-
-        public boolean isThin() {
-            return thin;
         }
 
         public boolean isArray() {

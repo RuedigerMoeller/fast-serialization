@@ -149,7 +149,7 @@ public class FSTClazzNameRegistry {
     }
 
     public FSTClazzInfo decodeClass(FSTObjectInput in) throws IOException, ClassNotFoundException {
-        short c = in.readCShort();
+        short c = in.readShort();
         if ( c < LOWEST_CLZ_ID ) {
             // full class name
             String clName;

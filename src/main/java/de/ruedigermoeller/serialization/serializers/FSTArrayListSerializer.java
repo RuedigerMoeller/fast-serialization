@@ -63,7 +63,7 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
     @Override
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         try {
-            int len = in.readCInt();
+            int len = in.readInt();
             ArrayList res = new ArrayList(len);
             in.registerObject(res, streamPositioin,serializationInfo, referencee);
             Class[] possibleClasses = referencee.getPossibleClasses();

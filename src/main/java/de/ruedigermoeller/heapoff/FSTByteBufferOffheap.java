@@ -235,7 +235,7 @@ public class FSTByteBufferOffheap {
                 buffer.position(handle+ HEADER_SIZE);
                 buffer.get(buf);
             }
-            in.resetForReuseUseArray(buf, 0, currentEntry.length);
+            in.resetForReuseUseArray(buf, currentEntry.length);
             return (ByteBufferEntry) in.readObject(ByteBufferEntry.class);
         }
 

@@ -51,7 +51,7 @@ public class FSTObjectOutput implements ObjectOutput {
     //static final byte PRIMITIVE_ARRAY = -2;
     static final byte NULL = -1;
     static final byte OBJECT = 0;
-    protected FSTEnccoder codec;
+    protected FSTEncoder codec;
 
     public FSTClazzNameRegistry clnames; // immutable
     protected FSTConfiguration conf; // immutable
@@ -81,7 +81,7 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     public FSTObjectOutput(OutputStream out, FSTConfiguration conf) {
         this.conf = conf;
-        codec = new FSTEnccoder(conf);
+        codec = new FSTStreamEncoder(conf);
         codec.setOutstream(out);
 
         objects = (FSTObjectRegistry) conf.getCachedObject(FSTObjectRegistry.class);
@@ -151,7 +151,7 @@ public class FSTObjectOutput implements ObjectOutput {
         closed = true;
         codec.close();
         resetAndClearRefs();
-        conf.returnObject(codec,objects,clnames);
+        conf.returnObject(objects,clnames);
     }
 
 
@@ -690,15 +690,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 codec.writeFShortArr((short[]) array);
             } else
             if ( componentType == int.class ) {
-                if ( referencee.isThin() ) {
-                    codec.writeFIntThin((int[]) array);
-                } else
-                if ( referencee.isCompressed() ) {
-                    writeIntArrCompressed((int[]) array);
-                } else
-                {
-                    codec.writeFIntArr((int[]) array);
-                }
+                codec.writeFIntArr((int[]) array);
             } else
             if ( componentType == double.class ) {
                 codec.writeFDoubleArr((double[]) array);
@@ -713,25 +705,13 @@ public class FSTObjectOutput implements ObjectOutput {
                 codec.writeFBooleanArr((boolean[]) array);
             } else {
                 Object arr[] = (Object[])array;
-                if ( referencee.isThin() ) {
-                    for ( int i = 0; i < len; i++ )
-                    {
-                        Object toWrite = arr[i];
-                        if ( toWrite != null ) {
-                            codec.writeFInt(i);
-                            writeObjectWithContext(referencee, toWrite);
-                        }
-                    }
-                    codec.writeFInt(len);
-                } else {
-                    for ( int i = 0; i < len; i++ )
-                    {
-                        Object toWrite = arr[i];
-                        if ( toWrite == null ) {
-                            codec.writeFByte(NULL);
-                        } else {
-                            writeObjectWithContext(referencee, toWrite);
-                        }
+                for ( int i = 0; i < len; i++ )
+                {
+                    Object toWrite = arr[i];
+                    if ( toWrite == null ) {
+                        codec.writeFByte(NULL);
+                    } else {
+                        writeObjectWithContext(referencee, toWrite);
                     }
                 }
             }
@@ -762,74 +742,6 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    public int writeStringCompressed(String str) throws IOException {
-        final int strlen = str.length();
-
-        codec.writeFInt(strlen);
-        codec.ensureFree(strlen * 3);
-        int fourBitCnt = 0;
-
-        final byte[] bytearr = codec.getBuffer();
-        int count = codec.getWritten();
-        int initpos = count;
-        int compressBuffIdx = count;
-
-        for (int i=0; i<strlen; i++) {
-            final int c = str.charAt(i);
-            if ( c < 254 ) {
-                int mapped = charMap[c];
-                if ( mapped < 16 )
-                {
-                    fourBitCnt++;
-                } else {
-                    if ( fourBitCnt > 5 ) {
-                        count = reEncodeStr(str, fourBitCnt, bytearr, compressBuffIdx, i);
-                    }
-                    fourBitCnt = 0;
-                    compressBuffIdx = count+1;
-                }
-            } else {
-                if ( fourBitCnt > 5 ) {
-                    count = reEncodeStr(str, fourBitCnt, bytearr, compressBuffIdx, i);
-                }
-                fourBitCnt = 0;
-                compressBuffIdx = count+1;
-            }
-            if ( c < 254 ) {
-                bytearr[count++] = (byte)c;
-            } else {
-                bytearr[count++] = (byte) 255;
-                bytearr[count++] = (byte) ((c >>> 8) & 0xFF);
-                bytearr[count++] = (byte) ((c >>> 0) & 0xFF);
-            }
-        }
-        if ( fourBitCnt > 5 ) {
-            count = reEncodeStr(str, fourBitCnt, bytearr, compressBuffIdx, str.length());
-        }
-        int required = count - initpos;
-        codec.setWritten( codec.getWritten() + required );
-        return required;
-    }
-
-    private int reEncodeStr(String str, int minMaxCount, byte[] bytearr, int compressBuffIdx, int i) {
-        bytearr[compressBuffIdx++] = (byte)254;
-        bytearr[compressBuffIdx++] = (byte)minMaxCount;
-        int bc = 0;
-        for ( int ii=minMaxCount; ii>0; ii-- ) {
-            int cc = charMap[str.charAt(i-ii)];
-            if ( (bc&1) == 0 ) {
-                bytearr[compressBuffIdx] = (byte)cc;
-                if ( bc == minMaxCount-1 ) {
-                    compressBuffIdx++;
-                }
-            } else {
-                bytearr[compressBuffIdx++] |= cc<<4;
-            }
-            bc++;
-        }
-        return compressBuffIdx;
-    }
-
     public void writeStringUTF(String str) throws IOException {
 
         codec.writeStringUTF(str);
@@ -845,88 +757,6 @@ public class FSTObjectOutput implements ObjectOutput {
 
     public final void writeClass(Object toWrite) throws IOException {
         clnames.encodeClass(this,toWrite.getClass());
-    }
-
-    /**
-     * FIXME: move compression specials to codec
-     * @param v
-     * @throws IOException
-     */
-    public void writeIntArrCompressed( int v[] ) throws IOException {
-        final int length = v.length;
-        int min = Integer.MAX_VALUE; int max = Integer.MIN_VALUE;
-        int sizeNorm = 0, sizDiff = 0, sizOffs = 0, sizeThin = 0;
-        for (int i = 0; i < length; i++) {
-            final int anInt = v[i];
-            if ( anInt != 0 ) {
-                sizeThin++;
-                if ( i > 128 ) {
-                    sizeThin+=2;
-                }
-            }
-            if ( anInt < 127 ) {
-                sizeNorm++;
-                if (anInt!=0) {
-                    sizeThin++;
-                }
-            } else if ( anInt < 32767 ) {
-                sizeNorm+=3;
-                sizeThin+=3;
-            } else {
-                sizeNorm+=5;
-                sizeThin+=3;
-            }
-            min = Math.min(anInt,min);
-            max = Math.max(anInt,max);
-            if ( i > 0 ) {
-                int diff = Math.abs(anInt-v[i-1]);
-                if ( diff < 127 ) {
-                    sizDiff++;
-                } else if ( diff < 32767 ) {
-                    sizDiff+=3;
-                } else {
-                    sizDiff+=5;
-                }
-            }
-        }
-        int range = Math.abs(max-min);
-        if ( range < 127 ) {
-            sizOffs = v.length;
-        } else if ( range < 32767 ) {
-            sizOffs = v.length*2;
-        } else {
-            sizOffs = v.length*5;
-        }
-        if ( sizDiff <= sizeNorm && sizDiff <= sizeThin && sizDiff <= sizOffs ) {
-            codec.writeFByte(0);
-            writeDiffArr(v);
-        } else
-        if ( sizeNorm <= sizDiff && sizeNorm <= sizeThin && sizeNorm <= sizOffs ) {
-            codec.writeFByte(1);
-            codec.writeFIntArr(v);
-        } else
-        if ( sizeThin <= sizeNorm && sizeThin <= sizDiff && sizeThin <= sizOffs ) {
-            codec.writeFByte(2);
-            codec.writeFIntThin(v);
-        } else
-        if ( sizOffs <= sizeNorm && sizOffs <= sizeThin && sizOffs <= sizDiff ) {
-            codec.writeFByte(3);
-            writeShortOffsArr(min,v);
-        }
-    }
-
-    private void writeShortOffsArr(int min, int[] v) throws IOException {
-        codec.writeFInt(min);
-        for (int i = 0; i < v.length; i++) {
-            codec.writeFShort((short) (v[i] - min));
-        }
-    }
-
-    private void writeDiffArr(int[] v) throws IOException {
-        codec.writeFInt(v[0]);
-        for (int i = 1; i < v.length; i++) {
-            codec.writeFInt(v[i] - v[i - 1]);
-        }
     }
 
     void resetAndClearRefs() {

@@ -203,27 +203,6 @@ public final class FSTConfiguration {
         serializationInfoRegistry.setSerializerRegistryDelegate(del);
     }
 
-    /**
-     * for optimization purposes, do not use to benchmark processing time or in a regular program as
-     * this methods creates a temporary binaryoutputstream and serializes the object in order to measure the
-     * write time in micros.
-     *
-     * give ~50.000 to 100.000 for small objects in order to get accurate results
-     * for large objects you can decrease the iterations (give at least 10000)
-     */
-    public int calcObjectWriteTimeNotAUtility( int iterations, Object obj ) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream(10000);
-        FSTObjectOutput ou = new FSTObjectOutput(bout,this);
-        long tim = System.currentTimeMillis();
-        for ( int i = 0; i < iterations; i++ ) {
-            ou.writeObject(obj, obj.getClass());
-            ou.getObjectMap().clearForWrite();
-            bout.reset();
-        }
-        long dur = System.currentTimeMillis()-tim;
-        return (int) (dur*1000000/iterations);
-    }
-
     public Object getCachedObject( Class cl ) {
         synchronized (cachedObjects) {
             List<SoftReference> li = cachedObjects.get(cl);
@@ -463,19 +442,19 @@ public final class FSTConfiguration {
     }
 
     public FSTObjectInput getObjectInput( byte arr[]) {
-        return getObjectInput(arr, 0, arr.length);
+        return getObjectInput(arr, arr.length);
     }
+
     /**
      * take the given array as input. the array is NOT copied
      * @param arr
-     * @param off
      * @param len
      * @return
      */
-    public FSTObjectInput getObjectInput( byte arr[], int off, int len ) {
+    public FSTObjectInput getObjectInput( byte arr[], int len ) {
         FSTObjectInput fstObjectInput = input.get();
         try {
-            fstObjectInput.resetForReuseUseArray(arr,off,len);
+            fstObjectInput.resetForReuseUseArray(arr,len);
             return fstObjectInput;
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);
