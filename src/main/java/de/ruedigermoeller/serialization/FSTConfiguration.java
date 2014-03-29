@@ -82,31 +82,6 @@ public final class FSTConfiguration {
     public static FSTConfiguration createDefaultConfiguration() {
         FSTConfiguration conf = new FSTConfiguration();
         conf.addDefaultClazzes();
-
-        conf.copier = new FSTObjectCopy()
-        { // FIXME: move copying to serializers ?
-            @Override
-            public Object copy(Object toCopy, FSTConfiguration conf) throws IOException, ClassNotFoundException {
-                if ( toCopy instanceof Date ) {
-                    Date i = (Date) toCopy;
-                    return new Date(i.getTime());
-                } else
-                if ( toCopy instanceof Rectangle ) {
-                    Rectangle i = (Rectangle) toCopy;
-                    return new Rectangle(i.x,i.y,i.width,i.height);
-                } else
-                if ( toCopy instanceof Point ) {
-                    Point i = (Point) toCopy;
-                    return new Point(i.x,i.y);
-                } else
-                if ( toCopy instanceof Dimension ) {
-                    Dimension i = (Dimension) toCopy;
-                    return new Dimension(i.width,i.height);
-                }
-                return null;
-            }
-        };
-
         // serializers
         FSTSerializerRegistry reg = conf.serializationInfoRegistry.serializerRegistry;
         reg.putSerializer(Class.class, new FSTClassSerializer(), false);
@@ -228,17 +203,7 @@ public final class FSTConfiguration {
         }
     }
 
-    FSTObjectCopy copier = new FSTObjectCopy() {
-        @Override
-        public Object copy(Object toCopy, FSTConfiguration conf) throws IOException, ClassNotFoundException {
-            return null;
-        }
-    };
     boolean shareReferences = true;
-
-    public FSTObjectCopy getCopier() {
-        return copier;
-    }
 
     public boolean isShareReferences() {
         return shareReferences;

@@ -5,7 +5,6 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 
 public class FSTStreamEncoder implements FSTEncoder {
 
@@ -25,73 +24,73 @@ public class FSTStreamEncoder implements FSTEncoder {
         }
     }
 
-    public void writeFBooleanArr(boolean[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFByte(arr[i] ? 1 : 0);
     }
 
-    public void writeFLongArr(long[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    void writeFLongArr(long[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFLong(arr[i]);
     }
 
-    public void writeFFloatArr(float[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    public void writeFFloatArr(float[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFFloat(arr[i]);
     }
 
-    public void writeFDoubleArr(double[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    public void writeFDoubleArr(double[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFDouble(arr[i]);
     }
 
-    public void writeFShortArr(short[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    public void writeFShortArr(short[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFShort(arr[i]);
     }
 
-    public void writeFCharArr(char[] arr) throws IOException {
-        for (int i = 0; i < arr.length; i++)
+    public void writeFCharArr(char[] arr, int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
             writeFChar(arr[i]);
     }
 
-    @Override
-    public void writeFByteArr(byte[] array) throws IOException {
-        writeFByteArr(array, 0, array.length);
+    public void writeFIntArr(int v[], int off, int len) throws IOException {
+        for (int i = off; i < off+len; i++)
+            writeFInt(v[i]);
     }
 
     /**
-     * write len + array
+     * write prim array no len no tag
+     *
+     *
      * @param array
      * @throws IOException
      */
-    public void writePrimitiveArray(Object array) throws IOException {
-        final int len = Array.getLength(array);
-        writeFInt(len);
+    public void writePrimitiveArray(Object array, int off, int len) throws IOException {
         Class<?> componentType = array.getClass().getComponentType();
         if ( componentType == byte.class ) {
-            writeFByteArr((byte[]) array, 0, len);
+            writeRawBytes((byte[]) array, off, len);
         } else
         if ( componentType == char.class ) {
-            writeFCharArr((char[]) array);
+            writeFCharArr((char[]) array, off, len);
         } else
         if ( componentType == short.class ) {
-            writeFShortArr((short[]) array);
+            writeFShortArr((short[]) array, off, len);
         } else
         if ( componentType == int.class ) {
-            writeFIntArr((int[]) array);
+            writeFIntArr((int[]) array, off, len);
         } else
         if ( componentType == double.class ) {
-            writeFDoubleArr((double[]) array);
+            writeFDoubleArr((double[]) array, off, len);
         } else
         if ( componentType == float.class ) {
-            writeFFloatArr((float[]) array);
+            writeFFloatArr((float[]) array, off, len);
         } else
         if ( componentType == long.class ) {
-            writeFLongArr((long[]) array);
+            writeFLongArr((long[]) array, off, len);
         } else
         if ( componentType == boolean.class ) {
-            writeFBooleanArr((boolean[]) array);
+            writeFBooleanArr((boolean[]) array, off, len);
         } else {
             throw new RuntimeException("expected primitive array");
         }
@@ -105,8 +104,7 @@ public class FSTStreamEncoder implements FSTEncoder {
      * @param length
      * @throws java.io.IOException
      */
-    @Override
-    public void writeFByteArr(byte[] array, int start, int length) throws IOException {
+    public void writeRawBytes(byte[] array, int start, int length) throws IOException {
         buffout.ensureFree(length);
         System.arraycopy(array, start, buffout.buf, buffout.pos, length);
         buffout.pos += length;
@@ -115,23 +113,12 @@ public class FSTStreamEncoder implements FSTEncoder {
     @Override
     public void writeStringUTF(String str) throws IOException {
         final int strlen = str.length();
-
         writeFInt(strlen);
         buffout.ensureFree(strlen * 3);
-        final byte[] bytearr = buffout.buf;
-        int count = buffout.pos;
-
         for (int i = 0; i < strlen; i++) {
             final char c = str.charAt(i);
-            // inlined
-            bytearr[count++] = (byte) c;
-            if (c >= 255) {
-                bytearr[count - 1] = (byte) 255;
-                bytearr[count++] = (byte) (c >>> 0);
-                bytearr[count++] = (byte) (c >>> 8);
-            }
+            writeFChar(c);
         }
-        buffout.pos = count;
     }
 
     /**
@@ -150,7 +137,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         if (ascStringCache == null || ascStringCache.length < len)
             ascStringCache = new byte[len];
         name.getBytes(0, len, ascStringCache, 0);
-        writeFByteArr(ascStringCache, 0, len);
+        writeRawBytes(ascStringCache, 0, len);
     }
 
     @Override
@@ -184,26 +171,6 @@ public class FSTStreamEncoder implements FSTEncoder {
     public final void writeFByte(int v) throws IOException {
         buffout.ensureFree(1);
         buffout.buf[buffout.pos++] = (byte) v;
-    }
-
-    public void writeFIntArr(int v[]) throws IOException {
-        final int free = 5 * v.length;
-        buffout.ensureFree(free);
-        final byte[] buf = buffout.buf;
-        int count = buffout.pos;
-        for (int i = 0; i < v.length; i++) {
-            final int anInt = v[i];
-            if (anInt > -127 && anInt <= 127) {
-                buffout.buf[count++] = (byte) anInt;
-            } else if (anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE) {
-                writeFByte(-128);
-                writePlainShort(anInt);
-            } else {
-                writeFByte(-127);
-                writePlainInt(anInt);
-            }
-        }
-        buffout.pos = count;
     }
 
     @Override
@@ -324,12 +291,13 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
     
     /**
-     * resets stream (positions are lost)
+     * resets stream (positions are lost) and written classes
      * @throws IOException
      */
     @Override
     public void flush() throws IOException {
         buffout.flush();
+//        clnames.clear(); FIXME: need to add offset to getPosition !
     }
 
     @Override
@@ -347,18 +315,18 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     @Override
-    public final void writeClass(FSTObjectOutput out, Class cl) {
+    public final void writeClass(Class cl) {
         try {
-            clnames.encodeClass(out,cl);
+            clnames.encodeClass(this,cl);
         } catch ( IOException e) {
             FSTUtil.rethrow(e);
         }
     }
 
     @Override
-    public final void writeClass(FSTObjectOutput out,FSTClazzInfo clInf) {
+    public final void writeClass(FSTClazzInfo clInf) {
         try {
-            clnames.encodeClass(out, clInf);
+            clnames.encodeClass(this, clInf);
         } catch ( IOException e) {
             FSTUtil.rethrow(e);
         }
@@ -402,11 +370,11 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.ensureFree(4);
         byte[] buf = buffout.buf;
         int count = buffout.pos;
-        buf[count++] = (byte) (v >>> 0);
-        buf[count++] = (byte) (v >>> 8);
-        buf[count++] = (byte) (v >>> 16);
-        buf[count++] = (byte) (v >>> 24);
-        buffout.pos += 4;
+        buf[count++] = (byte) ((v >>> 0) & 0xFF);
+        buf[count++] = (byte) ((v >>>  8) & 0xFF);
+        buf[count++] = (byte) ((v >>> 16) & 0xFF);
+        buf[count++] = (byte) ((v >>> 24) & 0xFF);
+        buffout.pos = count;
     }
 
 }

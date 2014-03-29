@@ -11,7 +11,8 @@ A array[10] of objects with a typical distribution of primitve fields: 2 short S
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                          3468           2762           6230            836
+FST                                          3845           3519           7364            836
+Kryo 2.23                                    3587           3086           6673            708
 </pre>
 
 
@@ -22,7 +23,8 @@ Measures serialization of most popular collection classes. (HashMap and an Array
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         18924          13884          32808           4671
+FST                                         20047          16233          36280           4671
+Kryo 2.23                                   28984          21851          50835           4615
 </pre>
 
 
@@ -33,7 +35,8 @@ measures performance serializing a large int array, a large long array and a lar
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         28486          23476          51962          31219
+FST                                         36909          50261          87170          35119
+Kryo 2.23                                   50733          45769          96502          34946
 </pre>
 
 
@@ -44,7 +47,8 @@ measures serialization of mid size to very long Strings
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         28900          17995          46895          20020
+FST                                         63167          65469         128636          20020
+Kryo 2.23                                   73203          48045         121248          17716
 </pre>
 
 
@@ -56,7 +60,8 @@ A broad test of primitive values and specials such as Enums, EnumSets, Date, Str
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         10684          12024          22708           1483
+FST                                         12837          14425          27262           1469
+Kryo 2.23 FAIL                                  0              0              0              0
 </pre>
 
 
@@ -67,7 +72,8 @@ Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimens
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         75492          48306         123798          22764
+FST                                         62107          60484         122591          10297
+Kryo 2.23                                   72478          68200         140678           9681
 </pre>
 
 
@@ -79,7 +85,8 @@ In depth test of collections incl. collections of collections.
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         57624          45060         102684           8502
+FST                                         69651          61497         131148           8496
+Kryo 2.23                                  128092          57208         185300           8323
 </pre>
 
 
@@ -90,7 +97,8 @@ Measures serialization of a typical 'Enterprise-Object' using Value-Classes inst
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         55381          54194         109575           5192
+FST                                         66677          60894         127571           5253
+Kryo 2.23                                   86596          77066         163662           5919
 </pre>
 
 
@@ -101,7 +109,8 @@ Tests speed serializing a complex object graph of many different classes with fe
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                          6209           3753           9962           1000
+FST                                          6709           4134          10843            986
+Kryo 2.23                                    8082           5490          13572           1220
 </pre>
 
 
@@ -112,7 +121,8 @@ Heavily nested Objects
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         57165          57316         114481           3747
+FST                                         64111          61309         125420           3747
+Kryo 2.23                                   76614          80464         157078           5009
 </pre>
 
 
@@ -123,7 +133,8 @@ measures overhead of stream initialization+classname decoding. Only one very sho
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                           282            187            469             15
+FST                                           296            189            485             15
+Kryo 2.23                                     355            275            630             32
 </pre>
 
 
@@ -134,6 +145,7 @@ only one int. benches pure init time
 
 
 <pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                           156            137            293              2
+FST                                           167            151            318              2
+Kryo 2.23                                     111            103            214              2
 </pre>
 

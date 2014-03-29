@@ -110,21 +110,21 @@ public class FSTClazzNameRegistry {
         return res;
     }
 
-    public void encodeClass(FSTObjectOutput out, FSTClazzInfo ci) throws IOException {
+    public void encodeClass(FSTEncoder out, FSTClazzInfo ci) throws IOException {
         int clzId = ci.getClzId();
         if ( clzId >= 0 ) {
-            out.writeShort((short) clzId); // > 2 !!
+            out.writeFShort((short) clzId); // > 2 !!
         } else {
             if ( ci.isAsciiNameShortString) {
                 final Class aClass = ci.getClazz();
                 int clid = getIdFromClazz(aClass);
                 if ( clid != Integer.MIN_VALUE ) {
-                    out.writeShort((short) clid); // > 2 !!
+                    out.writeFShort((short) clid); // > 2 !!
                 } else {
                     final byte[] bufferedName = ci.getBufferedName();
-                    out.writeShort((short) 1); // no direct cl id ascii enc
-                    out.writeByte((char) bufferedName.length);
-                    out.write(bufferedName,0,bufferedName.length);
+                    out.writeFShort((short) 1); // no direct cl id ascii enc
+                    out.writeFByte((char) bufferedName.length);
+                    out.writeRawBytes(bufferedName,0,bufferedName.length);
                     registerClassNoLookup(aClass,ci);
                 }
             } else {
@@ -133,23 +133,23 @@ public class FSTClazzNameRegistry {
         }
     }
 
-    public void encodeClass(FSTObjectOutput out, Class c) throws IOException {
+    public void encodeClass(FSTEncoder out, Class c) throws IOException {
         int clid = getIdFromClazz(c);
         if ( clid != Integer.MIN_VALUE ) {
-            out.writeShort((short) clid); // > 2 !!
+            out.writeFShort((short) clid); // > 2 !!
         } else {
             encodeClassName(out, c);
         }
     }
 
-    private void encodeClassName(FSTObjectOutput out, Class c) throws IOException {
-        out.writeShort((short) 0); // no direct cl id
+    private void encodeClassName(FSTEncoder out, Class c) throws IOException {
+        out.writeFShort((short) 0); // no direct cl id
         out.writeStringUTF(c.getName());
         registerClassNoLookup(c,null);
     }
 
-    public FSTClazzInfo decodeClass(FSTObjectInput in) throws IOException, ClassNotFoundException {
-        short c = in.readShort();
+    public FSTClazzInfo decodeClass(FSTDecoder in) throws IOException, ClassNotFoundException {
+        short c = in.readFShort();
         if ( c < LOWEST_CLZ_ID ) {
             // full class name
             String clName;

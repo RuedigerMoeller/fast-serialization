@@ -8,13 +8,15 @@ import java.io.OutputStream;
  */
 public interface FSTEncoder {
 
-    // BLOB methods (from externalizable) ..
-    void writeFByteArr(byte[] array) throws IOException;
-    void writeFByteArr(byte[] array, int start, int length) throws IOException;
-    void writeFCharArr(char[] chars) throws IOException;
-    // .. BLOB methods (from externalizable)
-
-    public void writePrimitiveArray(Object array) throws IOException;
+    void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException;
+    /**
+     * does not write class tag and length
+     *
+     * @param array
+     * @throws IOException
+     */
+    void writePrimitiveArray(Object array, int start, int length) throws IOException;
+    
     void writeStringUTF(String str) throws IOException;
 
     void writeFShort(short c) throws IOException;
@@ -62,7 +64,7 @@ public interface FSTEncoder {
 
     void registerClass(Class possible);
 
-    void writeClass(FSTObjectOutput out, Class cl);
-    void writeClass(FSTObjectOutput out,FSTClazzInfo clInf);
-    
+    void writeClass(Class cl);
+    void writeClass(FSTClazzInfo clInf);
+
 }

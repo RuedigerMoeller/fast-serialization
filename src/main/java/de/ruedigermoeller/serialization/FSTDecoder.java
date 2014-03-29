@@ -10,7 +10,7 @@ public interface FSTDecoder {
 
     String readStringUTF() throws IOException;
     String readStringAsc() throws IOException;
-    Object readFPrimitiveArray(Class componentType, int len);
+    Object readFPrimitiveArray(Object array, Class componentType, int len);
     void readFIntArr(int len, int[] arr) throws IOException;
     int readFInt() throws IOException;
     double readFDouble() throws IOException;
@@ -21,8 +21,6 @@ public interface FSTDecoder {
     short readFShort() throws IOException;
     int readPlainInt() throws IOException;
 
-    void push(byte[] buf, int pos, int length);
-    void pop();
     byte[] getBuffer();
     int getInputPos();
     void moveTo(int position);
@@ -33,4 +31,13 @@ public interface FSTDecoder {
     void resetToCopyOf(byte[] bytes, int off, int len);
     void resetWith(byte[] bytes, int len);
 
+    FSTClazzInfo readClass() throws IOException, ClassNotFoundException;
+
+    Class classForName(String name) throws ClassNotFoundException;
+
+    void registerClass(Class possible);
+    void close();
+
+    void skip(int n);
+    void readPlainBytes(byte[] b, int off, int len);
 }

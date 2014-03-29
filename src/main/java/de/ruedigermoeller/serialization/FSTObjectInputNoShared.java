@@ -74,14 +74,12 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         codec.setInputStream(in);
-        clnames.clear();
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        clnames.clear();
         codec.resetToCopyOf(bytes,off,len);
     }
 

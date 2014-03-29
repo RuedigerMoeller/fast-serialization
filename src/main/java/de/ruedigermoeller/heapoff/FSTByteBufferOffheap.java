@@ -25,7 +25,6 @@ package de.ruedigermoeller.heapoff;
 import de.ruedigermoeller.serialization.*;
 import de.ruedigermoeller.serialization.annotations.Conditional;
 import de.ruedigermoeller.serialization.annotations.Flat;
-import de.ruedigermoeller.serialization.annotations.Predict;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -349,7 +348,6 @@ public class FSTByteBufferOffheap {
 
     }
 
-    @Predict(ByteBufferEntry.class) @Flat
     static public class ByteBufferEntry implements Serializable {
         transient int length; // pure object length
         transient int prevPosition;

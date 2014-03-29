@@ -2,7 +2,6 @@ package de.ruedigermoeller.serialization.testclasses_old.blog;
 
 import de.ruedigermoeller.serialization.annotations.Flat;
 import de.ruedigermoeller.serialization.annotations.OneOf;
-import de.ruedigermoeller.serialization.annotations.Predict;
 
 import java.io.Serializable;
 
@@ -28,7 +27,7 @@ import java.io.Serializable;
  * Time: 21:26
  * To change this template use File | Settings | File Templates.
  */
-@Flat @Predict(BlogBenchAnnotated.class)
+@Flat
 public class BlogBenchAnnotated  implements Serializable {
 
     public BlogBenchAnnotated(int index) {

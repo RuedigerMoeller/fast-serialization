@@ -36,7 +36,6 @@ public final class FSTObjectRegistry {
     boolean disabled = false;
     FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
     FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
-    FSTObject2IntMap equalsMap = new FSTObject2IntMap(7,true); // object => handle
 
     FSTConfiguration conf;
     FSTClazzInfoRegistry reg;
@@ -52,7 +51,6 @@ public final class FSTObjectRegistry {
     public void clearFully() {
         objects.clear();
         idToObject.clear();
-        equalsMap.clear();
         disabled = !conf.isShareReferences();
         FSTUtil.clear(reuseMap);
     }
@@ -80,7 +78,6 @@ public final class FSTObjectRegistry {
             } else {
                 objects.clear();
             }
-            equalsMap.clear();
         }
     }
 
@@ -148,13 +145,14 @@ public final class FSTObjectRegistry {
      * @param streamPosition
      * @return 0 if added, handle if already present
      */
-    public int registerObjectForWrite(Object o, boolean dontCheckEqual, int streamPosition, FSTClazzInfo clzInfo, int reUseType[]) {
+    public int registerObjectForWrite(Object o, int streamPosition, FSTClazzInfo clzInfo, int reUseType[]) {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
         final Class clazz = o.getClass();
         if ( clzInfo == null ) { // array oder enum oder primitive
-            clzInfo = reg.getCLInfo(clazz);
+            // unused ?
+//            clzInfo = reg.getCLInfo(clazz);
         } else if ( clzInfo.isFlat() ) {
             return Integer.MIN_VALUE;
         }
@@ -166,30 +164,7 @@ public final class FSTObjectRegistry {
             reUseType[0] = 0;
             return handle;
         }
-        boolean reUseEquals = !dontCheckEqual && clzInfo != null && !(clazz.isArray() || clazz.isPrimitive());
-        if ( reUseEquals ) {
-            reUseEquals = reUseEquals && (clzInfo.isEqualIsIdentity() || clzInfo.isEqualIsBinary());
-            if (  reUseEquals ) {
-                int integer = equalsMap.get(o);
-                if ( integer != Integer.MIN_VALUE ) {
-                    reUseType[0] = 1;
-                    return integer;
-                }
-            }
-        }
-//        objects.put(o, streamPosition); // done with putorget above
-        if ( reUseEquals ) {
-            equalsMap.put(o,streamPosition);
-        }
         return Integer.MIN_VALUE;
-    }
-
-    boolean isReuseEqualsByIdentity(Class aClass, FSTClazzInfo serializationInfo) {
-        return serializationInfo.isEqualIsIdentity();
-    }
-
-    boolean isReuseByCopy(Class aClass, FSTClazzInfo serializationInfo) {
-        return serializationInfo.isEqualIsBinary();
     }
 
     public int getObjectSize() {

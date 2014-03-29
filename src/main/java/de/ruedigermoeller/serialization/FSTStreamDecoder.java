@@ -3,7 +3,6 @@ package de.ruedigermoeller.serialization;
 import de.ruedigermoeller.serialization.util.FSTInputStream;
 import de.ruedigermoeller.serialization.util.FSTUtil;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -13,9 +12,16 @@ public class FSTStreamDecoder implements FSTDecoder {
     private FSTInputStream input;
     byte ascStringCache[];
     FSTConfiguration conf;
+    public FSTClazzNameRegistry clnames;
 
     public FSTStreamDecoder(FSTConfiguration conf) {
         this.conf = conf;
+        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
+        if (clnames == null) {
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+        } else {
+            clnames.clear();
+        }
     }
 
     public void ensureReadAhead(int bytes) {
@@ -37,20 +43,10 @@ public class FSTStreamDecoder implements FSTDecoder {
         int len = readFInt();
         char[] charBuf = getCharBuf(len * 3);
         ensureReadAhead(len * 3);
-        byte buf[] = input.buf;
-        int count = input.pos;
         int chcount = 0;
         for (int i = 0; i < len; i++) {
-            char head = (char) ((buf[count++] + 256) & 0xff);
-            if (head < 255) {
-                charBuf[chcount++] = head;
-            } else {
-                int ch1 = ((buf[count++] + 256) & 0xff);
-                int ch2 = ((buf[count++] + 256) & 0xff);
-                charBuf[chcount++] = (char) ((ch1 << 8) + (ch2 << 0));
-            }
+            charBuf[chcount++] = readFChar();
         }
-        input.pos = count;
         return new String(charBuf, 0, chcount);
     }
 
@@ -72,20 +68,20 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     /**
-     * utility for fast-cast
+     * assumes class header+len already read
      *
      * @param componentType
      * @param len
      * @return
      */
     @Override
-    public Object readFPrimitiveArray(Class componentType, int len) {
+    public Object readFPrimitiveArray(Object array, Class componentType, int len) {
         try {
-            Object array = Array.newInstance(componentType, len);
             if (componentType == byte.class) {
                 byte[] arr = (byte[]) array;
                 ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
                 System.arraycopy(input.buf,input.pos,arr,0,len);
+                input.pos += len;
                 return arr;
             } else if (componentType == char.class) {
                 char[] arr = (char[]) array;
@@ -133,7 +129,7 @@ public class FSTStreamDecoder implements FSTDecoder {
                 }
                 return arr;
             } else {
-                throw new RuntimeException("unexpected primitive type " + componentType);
+                throw new RuntimeException("unexpected primitive type " + componentType.getName());
             }
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);  //To change body of catch statement use File | Settings | File Templates.
@@ -151,12 +147,9 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public int readFInt() throws IOException {
         ensureReadAhead(5);
-        final byte buf[] = input.buf;
-        int count = input.pos;
-        final byte head = buf[count++];
+        final byte head = readFByte();
         // -128 = short byte, -127 == 4 byte
         if (head > -127 && head <= 127) {
-            input.pos = count;
             return head;
         }
         if (head == -128) {
@@ -210,32 +203,22 @@ public class FSTStreamDecoder implements FSTDecoder {
         if (head >= 0 && head < 255) {
             return head;
         }
-        int ch1 = readFByte();
-        int ch2 = readFByte();
-        return (char)((ch1 << 8) + (ch2 << 0));
+        int ch1 = readFByte() & 0xff;
+        int ch2 = readFByte() & 0xff;
+        return (char)((ch1 << 0) + (ch2 << 8));
     }
 
 
     @Override
     public short readFShort() throws IOException {
         ensureReadAhead(3);
-        int head = ((int) readFByte() + 256) & 0xff;
+        int head = readFByte() & 0xff;
         if (head >= 0 && head < 255) {
             return (short) head;
         }
-        int ch2 = readFByte();
-        int ch1 = readFByte();
-        return (short)((ch1 << 8) + (ch2 << 0));
-    }
-
-    @Override
-    public void push(byte[] buf, int pos, int length) {
-        input.push(buf,pos,length);
-    }
-
-    @Override
-    public void pop() {
-        input.pop();
+        int ch1 = readFByte() & 0xff;
+        int ch2 = readFByte() & 0xff;
+        return (short)((ch1 << 0) + (ch2 << 8));
     }
 
     private char readPlainChar() throws IOException {
@@ -263,12 +246,13 @@ public class FSTStreamDecoder implements FSTDecoder {
         ensureReadAhead(4);
         int count = input.pos;
         final byte buf[] = input.buf;
-        int ch4 = (buf[count++] + 256) & 0xff;
-        int ch3 = (buf[count++] + 256) & 0xff;
-        int ch2 = (buf[count++] + 256) & 0xff;
         int ch1 = (buf[count++] + 256) & 0xff;
+        int ch2 = (buf[count++] + 256) & 0xff;
+        int ch3 = (buf[count++] + 256) & 0xff;
+        int ch4 = (buf[count++] + 256) & 0xff;
         input.pos = count;
-        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+        int res = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
+        return res;
     }
 
     private long readPlainLong() throws IOException {
@@ -305,11 +289,16 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void reset() {
         input.reset();
+        clnames.clear();
     }
 
     @Override
     public void setInputStream(InputStream in) {
-        input.initFromStream(in);
+        if ( input == null )
+            input = new FSTInputStream(in);
+        else
+            input.initFromStream(in);
+        clnames.clear();
     }
 
     @Override
@@ -318,13 +307,45 @@ public class FSTStreamDecoder implements FSTDecoder {
         input.ensureCapacity(len);
         input.count = len;
         System.arraycopy(bytes, off, input.buf, 0, len);
+        clnames.clear();
     }
 
     @Override
     public void resetWith(byte[] bytes, int len) {
+        clnames.clear();
         input.reset();
         input.count = len;
         input.buf = bytes;
         input.pos = 0;
     }
+
+    @Override
+    public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
+        return clnames.decodeClass(this);
+    }
+
+    @Override
+    public Class classForName(String name) throws ClassNotFoundException {
+        return clnames.classForName(name);
+    }
+    @Override
+    public void registerClass(Class possible) {
+        clnames.registerClass(possible);
+    }
+    @Override
+    public void close() {
+        conf.returnObject(clnames);
+    }
+
+    @Override
+    public void skip(int n) {
+        input.pos+=n;
+    }
+
+    @Override
+    public void readPlainBytes(byte[] b, int off, int len) {
+        ensureReadAhead(b.length); 
+        System.arraycopy(input.buf,input.pos,b,off,len);       
+    }
+
 }

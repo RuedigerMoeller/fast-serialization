@@ -97,30 +97,6 @@ public final class FSTInputStream extends InputStream {
         this.count = Math.min(offset + length, buf.length);
     }
 
-    byte streamStack[][] = new byte[30][];
-    int countStack[] = new int[30];
-    int posStack[] = new int[30];
-    int offStack[] = new int[30];
-    int sp = 0;
-
-    public void push(byte[] inb, int newpos, int newCount) {
-        streamStack[sp] = buf;
-        countStack[sp] = count;
-        posStack[sp] = pos;
-//        offStack[sp] = off;
-        sp++;
-        buf = inb; pos = newpos;
-        count = newCount;
-    }
-
-    public void pop() {
-        sp--;
-        buf = streamStack[sp];
-        count = countStack[sp];
-        pos = posStack[sp];
-//        off = posStack[sp];
-    }
-
     public int read() {
         if  (pos < count) {
             return (buf[pos++] & 0xff);

@@ -91,7 +91,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
                 codec.writeFByte(OBJECT);
-                codec.writeClass(this,clsInfo);
+                codec.writeClass(clsInfo);
             } else {
                 final int length = possibleClasses.length;
                 for (int j = 0; j < length; j++) {
@@ -102,7 +102,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     }
                 }
                 codec.writeFByte(OBJECT);
-                codec.writeClass(this,clsInfo);
+                codec.writeClass(clsInfo);
             }
         }
     }
@@ -153,9 +153,9 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 if ( c == null ) {
                     throw new RuntimeException("Can't handle this enum: "+toWrite.getClass());
                 }
-                codec.writeClass(this,c);
+                codec.writeClass(c);
             } else {
-                codec.writeClass(this,getFstClazzInfo(referencee,toWrite.getClass()));
+                codec.writeClass(getFstClazzInfo(referencee,toWrite.getClass()));
             }
             codec.writeFInt(((Enum) toWrite).ordinal());
             return;

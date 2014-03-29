@@ -41,7 +41,6 @@ public class FSTObjectInput implements ObjectInput {
     
     protected FSTDecoder codec;
 
-    public FSTClazzNameRegistry clnames;
     FSTObjectRegistry objects;
 
     Stack<String> debugStack;
@@ -62,77 +61,79 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public void readFully(byte[] b) throws IOException {
-
+        readFully(b, 0, b.length);
     }
 
     @Override
     public void readFully(byte[] b, int off, int len) throws IOException {
+        codec.readPlainBytes(b,off,len);
 
     }
 
     @Override
     public int skipBytes(int n) throws IOException {
-        return 0;
+        codec.skip(n);
+        return n;
     }
 
     @Override
     public boolean readBoolean() throws IOException {
-        return false;
+        return codec.readFByte() == 0 ? false : true;
     }
 
     @Override
     public byte readByte() throws IOException {
-        return 0;
+        return codec.readFByte();
     }
 
     @Override
     public int readUnsignedByte() throws IOException {
-        return 0;
+        return ((int)codec.readFByte()+256) & 0xff;
     }
 
     @Override
     public short readShort() throws IOException {
-        return 0;
+        return codec.readFShort();
     }
 
     @Override
     public int readUnsignedShort() throws IOException {
-        return 0;
+        return ((int)readShort()+65536) & 0xffff;
     }
 
     @Override
     public char readChar() throws IOException {
-        return 0;
+        return codec.readFChar();
     }
 
     @Override
     public int readInt() throws IOException {
-        return 0;
+        return codec.readFInt();
     }
 
     @Override
     public long readLong() throws IOException {
-        return 0;
+        return codec.readFLong();
     }
 
     @Override
     public float readFloat() throws IOException {
-        return 0;
+        return codec.readFFloat();
     }
 
     @Override
     public double readDouble() throws IOException {
-        return 0;
+        return codec.readFDouble();
     }
 
     @Override
     public String readLine() throws IOException {
-        return null;
+        throw new RuntimeException("not implemented");
     }
 
     @Override
     public String readUTF() throws IOException {
-        return null;
+        return codec.readStringUTF();
     }
 
     static class CallbackEntry {
@@ -184,7 +185,7 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     public Class getClassForName(String name) throws ClassNotFoundException {
-        return clnames.classForName(name);
+        return codec.classForName(name);
     }
 
     void initRegistries() {
@@ -196,12 +197,6 @@ public class FSTObjectInput implements ObjectInput {
             objects = new FSTObjectRegistry(conf);
         } else {
             objects.clearForRead();
-        }
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if (clnames == null) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
-        } else {
-            clnames.clear();
         }
     }
 
@@ -244,17 +239,20 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public int read(byte[] b) throws IOException {
-        throw new RuntimeException("not implemented");
+        codec.readPlainBytes(b,0,b.length);
+        return b.length;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        throw new RuntimeException("not implemented");
+        codec.readPlainBytes(b,off,len);
+        return b.length;
     }
 
     @Override
     public long skip(long n) throws IOException {
-        throw new RuntimeException("not implemented");
+        codec.skip((int) n);
+        return n;
     }
 
     @Override
@@ -288,7 +286,7 @@ public class FSTObjectInput implements ObjectInput {
             if (possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
-                    clnames.registerClass(possible);
+                    codec.registerClass(possible);
                 }
             }
             Object res = readObjectInternal(possibles);
@@ -366,7 +364,6 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.STRING: return codec.readStringUTF();
                 case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
-                case FSTObjectOutput.COPYHANDLE: { return instantiateCopyHandle(); }
                 case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
                 case FSTObjectOutput.ENUM: { return instantiateEnum(referencee, readPos); }
             }
@@ -391,17 +388,6 @@ public class FSTObjectInput implements ObjectInput {
             throw new IOException("unable to ressolve handle " + handle + " " + referencee.getDesc() + " " + codec.getInputPos() );
         }
         return res;
-    }
-
-    private Object instantiateCopyHandle() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        int handle = codec.readFInt(); // = streamposition
-        Object res = objects.getReadRegisteredObject(handle);
-        if (res == null) {
-            throw new IOException("unable to ressolve handle " + handle);
-        }
-        Object copy = copy(res, handle);
-        //objects.registerObjectForWrite(copy,true, readPos, null); //fixme:no need
-        return copy;
     }
 
     private Object instantiateArray(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -485,27 +471,6 @@ public class FSTObjectInput implements ObjectInput {
             readObjectFields(referencee, clzSerInfo, fieldInfo, newObj);
         }
         return newObj;
-    }
-
-    protected Object copy(Object res, int streamPosition) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        Object copy = conf.getCopier().copy(res, conf);
-        if (copy == null) {
-            return defaultCopy(res, streamPosition);
-        }
-        return copy;
-    }
-
-    protected Object defaultCopy(Object toCopy, int streamPosition) throws IOException, ClassNotFoundException {
-        final byte[] buf = codec.getBuffer();
-        final int pos = streamPosition;
-        try {
-            codec.push(buf, pos, buf.length);
-            Object res = readObject((Class[])null);
-            codec.pop();
-            return res;
-        } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
-        }
     }
 
 
@@ -677,16 +642,6 @@ public class FSTObjectInput implements ObjectInput {
         return codec.readStringAsc();
     }
 
-    /**
-     * utility for fast-cast
-     * @param componentType
-     * @param len
-     * @return
-     */
-    public Object readFPrimitiveArray( Class componentType, int len ) {
-        return codec.readFPrimitiveArray(componentType, len);
-    }
-    
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class arrCl = readClass().getClazz();
         final int len = codec.readFInt();
@@ -698,51 +653,7 @@ public class FSTObjectInput implements ObjectInput {
             Object array = Array.newInstance(arrType, len);
             objects.registerObjectForRead(array, codec.getInputPos() );
             if (arrCl.getComponentType().isPrimitive()) {
-                if (arrType == byte.class) {
-                    byte[] arr = (byte[]) array;
-                    codec.ensureReadAhead(arr.length);
-                    read(arr);
-                } else if (arrType == char.class) {
-                    char[] arr = (char[]) array;
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readFChar();
-                    }
-                } else if (arrType == short.class) {
-                    short[] arr = (short[]) array;
-                    codec.ensureReadAhead(arr.length * 2);
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readFShort();
-                    }
-                } else if (arrType == int.class) {
-                    final int[] arr = (int[]) array;
-                    codec.readFIntArr(len, arr);
-                } else if (arrType == float.class) {
-                    float[] arr = (float[]) array;
-                    codec.ensureReadAhead(arr.length * 4);
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readFFloat();
-                    }
-                } else if (arrType == double.class) {
-                    double[] arr = (double[]) array;
-                    codec.ensureReadAhead(arr.length * 8);
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readFDouble();
-                    }
-                } else if (arrType == long.class) {
-                    long[] arr = (long[]) array;
-                    codec.ensureReadAhead(arr.length * 8);
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = codec.readFLong();
-                    }
-                } else if (arrType == boolean.class) {
-                    boolean[] arr = (boolean[]) array;
-                    codec.ensureReadAhead(arr.length);
-                    for (int j = 0; j < len; j++) {
-                        arr[j] = readBoolean();
-                    }
-                } else {
-                    throw new RuntimeException("unexpected primitive type " + arrType);
-                }
+                codec.readFPrimitiveArray(array, arrType,len);
             } else {
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {
@@ -772,14 +683,13 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        return clnames.decodeClass(this);
+        return codec.readClass();
     }
 
     void resetAndClearRefs() {
         try {
             reset();
             objects.clearForRead();
-            clnames.clear();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -794,10 +704,8 @@ public class FSTObjectInput implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         codec.reset();
-        clnames.clear();
         codec.setInputStream(in);
         objects.clearForRead(); 
-        clnames.clear();
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
@@ -806,7 +714,6 @@ public class FSTObjectInput implements ObjectInput {
         }
         codec.reset();
         objects.clearForRead();
-        clnames.clear();
         codec.resetToCopyOf(bytes, off, len);
     }
 
@@ -819,8 +726,7 @@ public class FSTObjectInput implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         objects.clearForRead();
-        clnames.clear();
-        codec.resetWith(bytes,len);
+        codec.resetWith(bytes, len);
     }
 
     public final int readFInt() throws IOException {
@@ -833,7 +739,7 @@ public class FSTObjectInput implements ObjectInput {
         closed = true;
         resetAndClearRefs();
         conf.returnObject(objects);
-        conf.returnObject(clnames);
+        codec.close();
     }
 
     ////////////////////////////////////////////////////// epic compatibility hack /////////////////////////////////////////////////////////

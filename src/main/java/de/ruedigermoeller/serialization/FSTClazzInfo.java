@@ -73,8 +73,6 @@ public final class FSTClazzInfo {
     HashMap<Class, FSTCompatibilityInfo> compInfo = new HashMap<Class, FSTCompatibilityInfo>(7);
 
     boolean requiresCompatibleMode;
-    boolean equalIsIdentity;
-    boolean equalIsBinary;
     boolean externalizable;
     boolean flat; // never share instances of this class
     boolean isAsciiNameShortString = false;
@@ -119,8 +117,6 @@ public final class FSTClazzInfo {
 //                        predict = new Class[]{HashMap.class};
 //                    }
                 }
-                equalIsIdentity = clazz.isAnnotationPresent(EqualnessIsIdentity.class);
-                equalIsBinary = clazz.isAnnotationPresent(EqualnessIsBinary.class);
                 flat = clazz.isAnnotationPresent(Flat.class);
             }
         }
@@ -177,14 +173,6 @@ public final class FSTClazzInfo {
 
     public boolean isExternalizable() {
         return externalizable;
-    }
-
-    public final boolean isEqualIsBinary() {
-        return equalIsBinary;
-    }
-
-    public final boolean isEqualIsIdentity() {
-        return equalIsIdentity;
     }
 
     public final boolean isFlat() {

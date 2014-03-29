@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,11 +14,6 @@ import com.cedarsoftware.util.DeepEquals;
 
 import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.Arrays;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.FrequentCollections;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.LargeNativeArrays;
-import de.ruedigermoeller.serialization.testclasses.basicstuff.Primitives;
-import de.ruedigermoeller.serialization.testclasses.enterprise.Trader;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -53,11 +49,11 @@ public class FSTTestApp {
         try {
             fout = new FileOutputStream("/tmp/test-"+i+".tmp");
             Object[] toWrite = {
-                    Arrays.createPrimArray(),
-                    Trader.generateTrader(i, true),
-                    new FrequentCollections(),
-                    new LargeNativeArrays(),
-                    Primitives.createPrimArray()
+//                    Arrays.createPrimArray(),
+//                    Trader.generateTrader(i, true),
+//                    new FrequentCollections(),
+//                    new LargeNativeArrays(),
+//                    Primitives.createPrimArray()
             };
 
             mywriteMethod(fout, toWrite);
