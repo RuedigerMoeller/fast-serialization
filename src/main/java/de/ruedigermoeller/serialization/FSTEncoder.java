@@ -66,4 +66,8 @@ public interface FSTEncoder {
     void writeClass(Class cl);
     void writeClass(FSTClazzInfo clInf);
 
+    // write a meta byte item
+    void writeTag(byte tag, Object info, long somValue) throws IOException;
+
+    void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
 }

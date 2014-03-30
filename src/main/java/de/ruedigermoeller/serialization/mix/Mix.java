@@ -57,14 +57,16 @@ public class Mix {
     public final static byte STR_16    = 0b01000100;
     public final static byte MAP       = 0b01010100;
     public final static byte DATE      = 0b01100100;
+    public final static byte ARR       = 0b01110100;
 
     // global Atom instances 
-    private static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END>>>4);
-    private static final Atom ATOM_NULL = new Atom("nil", NULL>>>4);
-    private static final Atom ATOM_STR_8 = new Atom("string8", STR_8>>>4);
-    private static final Atom ATOM_STR_16 = new Atom("string", STR_16>>>4);
-    private static final Atom ATOM_MAP = new Atom("map", MAP>>>4); // key, val, key, val, ....
-    private static final Atom ATOM_DATE = new Atom("date", DATE>>>4); // long
+    public static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END>>>4);
+    public static final Atom ATOM_NULL = new Atom("nil", NULL>>>4);
+    public static final Atom ATOM_STR_8 = new Atom("string8", STR_8>>>4);
+    public static final Atom ATOM_STR_16 = new Atom("string", STR_16>>>4);
+    public static final Atom ATOM_MAP = new Atom("map", MAP>>>4); // key, val, key, val, ....
+    public static final Atom ATOM_DATE = new Atom("date", DATE>>>4); // long
+    public static final Atom ATOM_ARR = new Atom("array", ARR >>> 4); // tupel array
 
     /**
      *
@@ -103,16 +105,16 @@ public class Mix {
         }
         if ( o instanceof Character )
             return "'"+o+"'("+(int)((Character) o).charValue()+")";
-        if ( o instanceof Byte )
-            return "b"+o;
-        if ( o instanceof Short )
-            return "s"+o;
-        if ( o instanceof Integer )
-            return "i"+o;
-        if ( o instanceof Long )
-            return "L"+o;
-        if ( o instanceof Double )
-            return "d"+o;
+//        if ( o instanceof Byte )
+//            return "b"+o;
+//        if ( o instanceof Short )
+//            return "s"+o;
+//        if ( o instanceof Integer )
+//            return "i"+o;
+//        if ( o instanceof Long )
+//            return "L"+o;
+//        if ( o instanceof Double )
+//            return "d"+o;
         return ""+o;
     }
 
@@ -120,13 +122,13 @@ public class Mix {
 
         byte bytez[] = new byte[1000];
         int pos = 0;
-        
+
         private void writeOut(byte b) {
             bytez[pos++] = b;
         }
 
         /**
-         * writes tag+len. First next object must be tupel tag, then len elements.
+         * writes tag+len. First object after must be tupel tag, then len elements.
          * If len is unknown, -1 can be provided. The end of the tupel must be marked with
          * a TUPEL_END atom
          * @param len
@@ -237,6 +239,14 @@ public class Mix {
                 writeIntPacked(atom.getId());
             }
         }
+
+        public int getWritten() {
+            return pos;
+        }
+
+        public byte[] getBytez() {
+            return bytez;
+        }
     }
 
     public static class In {
@@ -320,6 +330,8 @@ public class Mix {
                         return ATOM_STR_8;
                     if ( typeTag == MAP)
                         return ATOM_MAP;
+                    if ( typeTag == ARR)
+                        return ATOM_ARR;
                     if ( typeTag == DATE)
                         return ATOM_DATE;
                     if ( (typeTag>>>4) == 0 )
@@ -423,7 +435,8 @@ public class Mix {
         protected Object readBuiltInTupel(int len, Object type) {
             if (type==ATOM_STR_8) {
                 final byte[] bytes = (byte[]) readValue();
-                return new String(bytes, 0, 0, bytes.length );
+                String res = new String(bytes, 0, 0, bytes.length);
+                return res;
             }
             if (type==ATOM_STR_16) {
                 final char[] chars = (char[]) readValue();

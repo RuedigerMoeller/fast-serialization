@@ -326,7 +326,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
         try {
             if ( toWrite == null ) {
-                codec.writeFByte(NULL);
+                codec.writeTag(NULL, null, 0);
                 return;
             }
             final Class clazz = toWrite.getClass();
@@ -336,34 +336,27 @@ public class FSTObjectOutput implements ObjectOutput {
                     for (int i = 0; i < oneOf.length; i++) {
                         String s = oneOf[i];
                         if ( s.equals(toWrite) ) {
-                            codec.writeFByte(ONE_OF);
+                            codec.writeTag(ONE_OF, oneOf, i);
                             codec.writeFByte(i);
                             return;
                         }
                     }
                 }
                 if (dontShare) {
-                    codec.writeFByte(STRING);
+                    codec.writeTag(STRING, toWrite, 0);
                     codec.writeStringUTF((String) toWrite);
                     return;
                 }
             } else if ( clazz == Integer.class ) {
-                codec.writeFByte(BIG_INT);
+                codec.writeTag(BIG_INT, null, 0);
                 codec.writeFInt(((Integer) toWrite).intValue()); return;
             } else if ( clazz == Long.class ) {
-                codec.writeFByte(BIG_LONG);
+                codec.writeTag(BIG_LONG, null, 0);
                 codec.writeFLong(((Long) toWrite).longValue()); return;
             } else if ( clazz == Boolean.class ) {
-                codec.writeFByte(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE); return;
-            } else 
-//            if (clazz.isArray()) {
-//                objects.registerObjectForWrite(toWrite, codec.getWritten(), null, tmp); // fixme: shared refs
-//                codec.writeFByte(ARRAY);
-//                writeArray(referencee, toWrite);
-//                return;
-//            } else 
-            if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-                codec.writeFByte(ENUM);
+                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0); return;
+            } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
+                codec.writeTag(ENUM, toWrite, 0);
                 boolean isEnumClass = toWrite.getClass().isEnum();
                 if ( ! isEnumClass ) {
                     // weird stuff ..
@@ -392,14 +385,14 @@ public class FSTObjectOutput implements ObjectOutput {
                     final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
                     if ( isIdentical ) {
 //                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
-                        codec.writeFByte(HANDLE);
+                        codec.writeTag(HANDLE,null,handle);
                         codec.writeFInt(handle);
                         return;
                     }
                 }
             }
             if (clazz.isArray()) {
-                codec.writeFByte(ARRAY);
+                codec.writeTag(ARRAY, toWrite, 0);
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
                 // handle write replace
@@ -521,6 +514,7 @@ public class FSTObjectOutput implements ObjectOutput {
             for (int i = j; i < length; i++)
             {
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
+                codec.writeAttributeName(subInfo);
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();
@@ -547,7 +541,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     // object
                     Object subObject = subInfo.getObjectValue(toWrite);
                     if ( subObject == null ) {
-                        codec.writeFByte(NULL);
+                        codec.writeTag(NULL, null, 0);
                     } else {
                         writeObjectWithContext(subInfo, subObject);
                     }
@@ -557,7 +551,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     // object
                     Object subObject = subInfo.getObjectValue(toWrite);
                     if ( subObject == null ) {
-                        codec.writeFByte(NULL);
+                        codec.writeTag(NULL, null, 0);
                     } else {
                         writeObjectWithContext(subInfo, subObject);
                     }
@@ -568,7 +562,7 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    // write identical to other version, but take field values from hashmap
+    // write identical to other version, but take field values from hashmap (because of annoying putField/getField feature)
     private void writeCompatibleObjectFields(Object toWrite, Map fields, FSTClazzInfo.FSTFieldInfo[] fieldInfo) throws IOException {
         int booleanMask = 0;
         int boolcount = 0;
@@ -626,7 +620,6 @@ public class FSTObjectOutput implements ObjectOutput {
         }
         if ( boolcount > 0 ) {
             codec.writeFByte(booleanMask << (8 - boolcount));
-            boolcount = 0; booleanMask = 0;
         }
     }
 
@@ -634,11 +627,11 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( toWrite.getClass() == referencee.getType()
                 && ! clsInfo.useCompatibleMode() )
         {
-            codec.writeFByte(TYPED);
+            codec.writeTag(TYPED, clsInfo, 0);
         } else {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
-                codec.writeFByte(OBJECT);
+                codec.writeTag(OBJECT, clsInfo, 0);
                 codec.writeClass(clsInfo);
             } else {
                 final int length = possibleClasses.length;
@@ -649,7 +642,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         return;
                     }
                 }
-                codec.writeFByte(OBJECT);
+                codec.writeTag(OBJECT, clsInfo, 0);
                 codec.writeClass(clsInfo);
             }
         }
@@ -675,7 +668,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 {
                     Object toWrite = arr[i];
                     if ( toWrite == null ) {
-                        codec.writeFByte(NULL);
+                        codec.writeTag(NULL, null, 0);
                     } else {
                         writeObjectWithContext(referencee, toWrite);
                     }

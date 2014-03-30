@@ -159,6 +159,14 @@ public class FSTStreamEncoder implements FSTEncoder {
         }
     }
 
+    public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
+        
+    }
+    
+    public void writeTag(byte tag, Object info, long somValue) throws IOException {
+        writeFByte(tag);
+    }
+
     @Override
     public void writeFChar(char c) throws IOException {
         // -128 = short byte, -127 == 4 byte
