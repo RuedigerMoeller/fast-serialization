@@ -178,7 +178,7 @@ public class FSTObjectInput implements ObjectInput {
      * @param in the specified input stream
      */
     public FSTObjectInput(InputStream in, FSTConfiguration conf) {
-        codec = new FSTStreamDecoder(conf);
+        codec = conf.createStreamDecoder();
         codec.setInputStream(in);
         this.conf = conf;
         initRegistries();

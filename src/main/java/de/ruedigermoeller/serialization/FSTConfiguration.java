@@ -46,7 +46,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class FSTConfiguration {
 
+    StreamCoderFactory streamCoderFactory = new StreamCoderFactory() {
+        @Override
+        public FSTEncoder createStreamEncoder() {
+            return new FSTStreamEncoder(FSTConfiguration.this);
+        }
 
+        @Override
+        public FSTDecoder createStreamDecoder() {
+            return new FSTStreamDecoder(FSTConfiguration.this);
+        }
+    };
+    
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
@@ -121,6 +132,14 @@ public final class FSTConfiguration {
 
     private FSTConfiguration() {
 
+    }
+
+    public StreamCoderFactory getStreamCoderFactory() {
+        return streamCoderFactory;
+    }
+
+    public void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
+        this.streamCoderFactory = streamCoderFactory;
     }
 
     /**
@@ -459,4 +478,20 @@ public final class FSTConfiguration {
     public FSTClazzInfo getClazzInfo(Class rowClass) {
         return getCLInfoRegistry().getCLInfo(rowClass);
     }
+
+    
+    public static interface StreamCoderFactory {
+        FSTEncoder createStreamEncoder();
+        FSTDecoder createStreamDecoder();
+    }
+    
+    public FSTEncoder createStreamEncoder() {
+        return streamCoderFactory.createStreamEncoder();
+    }
+
+    public FSTDecoder createStreamDecoder() {
+        return streamCoderFactory.createStreamDecoder();
+    }
+
+
 }

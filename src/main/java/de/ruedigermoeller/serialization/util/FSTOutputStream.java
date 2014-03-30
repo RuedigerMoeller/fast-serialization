@@ -112,6 +112,11 @@ public final class FSTOutputStream extends OutputStream {
         pos += len;
     }
 
+    /**
+     * only works if no flush has been triggered (aka only write one object per stream instance)
+     * @param out
+     * @throws IOException
+     */
     public void copyTo(OutputStream out) throws IOException {
         out.write(buf, 0, pos);
     }

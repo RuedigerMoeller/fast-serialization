@@ -79,7 +79,7 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     public FSTObjectOutput(OutputStream out, FSTConfiguration conf) {
         this.conf = conf;
-        codec = new FSTStreamEncoder(conf);
+        codec = conf.createStreamEncoder();
         codec.setOutstream(out);
 
         objects = (FSTObjectRegistry) conf.getCachedObject(FSTObjectRegistry.class);

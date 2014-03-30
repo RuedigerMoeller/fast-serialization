@@ -38,17 +38,27 @@ public class FSTStreamDecoder implements FSTDecoder {
         return chars;
     }
 
-    @Override
     public String readStringUTF() throws IOException {
         int len = readFInt();
-        char[] charBuf = getCharBuf(len * 3);
+        char[] charBuf = getCharBuf(len*3);
         ensureReadAhead(len * 3);
+        byte buf[] = input.buf;
+        int count = input.pos;
         int chcount = 0;
         for (int i = 0; i < len; i++) {
-            charBuf[chcount++] = readFChar();
+            char head = (char) ((buf[count++] + 256) &0xff);
+            if (head < 255) {
+                charBuf[chcount++] = head;
+            } else {
+                int ch1 = ((buf[count++] + 256) &0xff);
+                int ch2 = ((buf[count++] + 256) &0xff);
+                charBuf[chcount++] = (char) ((ch1 << 0) + (ch2 << 8));
+            }
         }
+        input.pos = count;
         return new String(charBuf, 0, chcount);
     }
+    
 
     /**
      * len < 127 !!!!!
@@ -153,9 +163,22 @@ public class FSTStreamDecoder implements FSTDecoder {
             return head;
         }
         if (head == -128) {
-            return readPlainShort();
+            int count = input.pos;
+            final byte buf[] = input.buf;
+            int ch1 = (buf[count++] + 256) & 0xff;
+            int ch2 = (buf[count++] + 256) & 0xff;
+            input.pos = count;
+            return (short) ((ch2 << 8) + (ch1 << 0));
         } else {
-            return readPlainInt();
+            int count = input.pos;
+            final byte buf[] = input.buf;
+            int ch1 = (buf[count++] + 256) & 0xff;
+            int ch2 = (buf[count++] + 256) & 0xff;
+            int ch3 = (buf[count++] + 256) & 0xff;
+            int ch4 = (buf[count++] + 256) & 0xff;
+            input.pos = count;
+            int res = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
+            return res;
         }
     }
 
@@ -187,11 +210,36 @@ public class FSTStreamDecoder implements FSTDecoder {
             return head;
         }
         if (head == -128) {
-            return readPlainShort();
+            int count = input.pos;
+            final byte buf[] = input.buf;
+            int ch1 = (buf[count++] + 256) & 0xff;
+            int ch2 = (buf[count++] + 256) & 0xff;
+            input.pos = count;
+            return (short) ((ch2 << 8) + (ch1 << 0));
         } else if (head == -127) {
-            return readPlainInt();
+            int count = input.pos;
+            final byte buf[] = input.buf;
+            int ch1 = (buf[count++] + 256) & 0xff;
+            int ch2 = (buf[count++] + 256) & 0xff;
+            int ch3 = (buf[count++] + 256) & 0xff;
+            int ch4 = (buf[count++] + 256) & 0xff;
+            input.pos = count;
+            int res = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
+            return res;
         } else {
-            return readPlainLong();
+            ensureReadAhead(8);
+            int count = input.pos;
+            final byte buf[] = input.buf;
+            long ch8 = (buf[count++] + 256) & 0xff;
+            long ch7 = (buf[count++] + 256) & 0xff;
+            long ch6 = (buf[count++] + 256) & 0xff;
+            long ch5 = (buf[count++] + 256) & 0xff;
+            long ch4 = (buf[count++] + 256) & 0xff;
+            long ch3 = (buf[count++] + 256) & 0xff;
+            long ch2 = (buf[count++] + 256) & 0xff;
+            long ch1 = (buf[count++] + 256) & 0xff;
+            input.pos = count;
+            return ((ch1 << 56) + (ch2 << 48) + (ch3 << 40) + (ch4 << 32) + (ch5 << 24) + (ch6 << 16) + (ch7 << 8) + (ch8 << 0));
         }
     }
 
