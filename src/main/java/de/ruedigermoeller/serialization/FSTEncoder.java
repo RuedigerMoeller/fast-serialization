@@ -28,7 +28,6 @@ public interface FSTEncoder {
     void writeFDouble(double value) throws IOException;
 
     int getWritten();
-    void setWritten(int written);
     void skip(int i);
 
     /**

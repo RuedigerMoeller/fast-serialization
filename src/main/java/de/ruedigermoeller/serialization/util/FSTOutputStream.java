@@ -42,6 +42,7 @@ public final class FSTOutputStream extends OutputStream {
      */
     public int pos;
     OutputStream outstream;
+    private int off;
 
     public FSTOutputStream(OutputStream out) {
         this(32000,out);
@@ -66,14 +67,6 @@ public final class FSTOutputStream extends OutputStream {
 
     public void setBuf(byte[] buf) {
         this.buf = buf;
-    }
-
-    public int getPos() {
-        return pos;
-    }
-
-    public void setPos(int pos) {
-        this.pos = pos;
     }
 
     public final void ensureFree(int free) throws IOException {
@@ -125,6 +118,7 @@ public final class FSTOutputStream extends OutputStream {
 
     public void reset() {
         pos = 0;
+        off = 0;
     }
 
     public byte toByteArray()[] {
@@ -144,6 +138,7 @@ public final class FSTOutputStream extends OutputStream {
     public void flush() throws IOException {
         if ( pos > 0 && outstream != null && outstream != this) {
             copyTo(outstream);
+            off = pos;
             reset();
         }
         if ( outstream != this )
@@ -153,5 +148,10 @@ public final class FSTOutputStream extends OutputStream {
     public void reset(byte[] out) {
         reset();
         buf = out;
+    }
+
+    // return offset of pos to stream position
+    public int getOff() {
+        return off;
     }
 }

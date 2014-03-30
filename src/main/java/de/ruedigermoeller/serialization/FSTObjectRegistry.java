@@ -149,7 +149,7 @@ public final class FSTObjectRegistry {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
-        final Class clazz = o.getClass();
+//        final Class clazz = o.getClass();
         if ( clzInfo == null ) { // array oder enum oder primitive
             // unused ?
 //            clzInfo = reg.getCLInfo(clazz);

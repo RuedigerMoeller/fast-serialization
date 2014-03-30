@@ -6,6 +6,9 @@ import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 
 import static org.junit.Assert.assertTrue;
@@ -199,6 +202,24 @@ public class FSTObjectOutputTest {
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 
+    @Test
+    public void testFlush() throws IOException, ClassNotFoundException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream(1000*1000);
+        FSTObjectOutput fout = new FSTObjectOutput(bout);
+        Strings obj = new Strings();
+        fout.writeObject(obj);
+        fout.writeObject(new byte[1000*1000*10]);
+        fout.writeObject(obj);
+        fout.close();
+
+        FSTObjectInput fin = new FSTObjectInput(new ByteArrayInputStream(bout.toByteArray()));
+        Strings res = (Strings) fin.readObject();
+        fin.readObject();
+        Strings res1 = (Strings) fin.readObject();
+        assertTrue(res == res1);
+        assertTrue(DeepEquals.deepEquals(obj,res));
+    }
+    
     @org.junit.After
     public void tearDown() throws Exception {
 

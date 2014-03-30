@@ -643,6 +643,7 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        int pos = codec.getInputPos();
         Class arrCl = readClass().getClazz();
         final int len = codec.readFInt();
         if (len == -1) {
@@ -651,7 +652,8 @@ public class FSTObjectInput implements ObjectInput {
         Class arrType = arrCl.getComponentType();
         if (!arrCl.getComponentType().isArray()) {
             Object array = Array.newInstance(arrType, len);
-            objects.registerObjectForRead(array, codec.getInputPos() );
+            if ( ! referencee.isFlat() )
+                objects.registerObjectForRead(array, pos );
             if (arrCl.getComponentType().isPrimitive()) {
                 codec.readFPrimitiveArray(array, arrType,len);
             } else {
@@ -664,8 +666,8 @@ public class FSTObjectInput implements ObjectInput {
             return array;
         } else {
             Object array[] = (Object[]) Array.newInstance(arrType, len);
-            if (!FSTUtil.isPrimitiveArray(arrType) && ! referencee.isFlat() ) {
-                objects.registerObjectForRead(array, codec.getInputPos());
+            if ( ! referencee.isFlat() ) {
+                objects.registerObjectForRead(array, pos);
             }
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, clInfoRegistry.isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
@@ -900,7 +902,6 @@ public class FSTObjectInput implements ObjectInput {
 
             @Override
             public int read(byte[] buf, int off, int len) throws IOException {
-                codec.ensureReadAhead(len);
                 return FSTObjectInput.this.read(buf, off, len);
             }
 
@@ -915,37 +916,31 @@ public class FSTObjectInput implements ObjectInput {
 
             @Override
             public boolean readBoolean() throws IOException {
-                codec.ensureReadAhead(1);
                 return FSTObjectInput.this.readBoolean();
             }
 
             @Override
             public byte readByte() throws IOException {
-                codec.ensureReadAhead(1);
                 return codec.readFByte();
             }
 
             @Override
             public int readUnsignedByte() throws IOException {
-                codec.ensureReadAhead(1);
                 return FSTObjectInput.this.readUnsignedByte();
             }
 
             @Override
             public char readChar() throws IOException {
-                codec.ensureReadAhead(2);
-                return FSTObjectInput.this.readChar();
+                return codec.readFChar();
             }
 
             @Override
             public short readShort() throws IOException {
-                codec.ensureReadAhead(2);
-                return FSTObjectInput.this.readShort();
+                return codec.readFShort();
             }
 
             @Override
             public int readUnsignedShort() throws IOException {
-                codec.ensureReadAhead(2);
                 return FSTObjectInput.this.readUnsignedShort();
             }
 
@@ -956,37 +951,31 @@ public class FSTObjectInput implements ObjectInput {
 
             @Override
             public long readLong() throws IOException {
-                codec.ensureReadAhead(8);
                 return codec.readFLong();
             }
 
             @Override
             public float readFloat() throws IOException {
-                codec.ensureReadAhead(4);
-                return FSTObjectInput.this.readFloat();
+                return codec.readFFloat();
             }
 
             @Override
             public double readDouble() throws IOException {
-                codec.ensureReadAhead(8);
-                return FSTObjectInput.this.readDouble();
+                return codec.readFDouble();
             }
 
             @Override
             public void readFully(byte[] buf) throws IOException {
-                codec.ensureReadAhead(buf.length);
                 FSTObjectInput.this.readFully(buf);
             }
 
             @Override
             public void readFully(byte[] buf, int off, int len) throws IOException {
-                codec.ensureReadAhead(len);
                 FSTObjectInput.this.readFully(buf, off, len);
             }
 
             @Override
             public int skipBytes(int len) throws IOException {
-                codec.ensureReadAhead(len);
                 return FSTObjectInput.this.skipBytes(len);
             }
 
@@ -997,19 +986,16 @@ public class FSTObjectInput implements ObjectInput {
 
             @Override
             public String readLine() throws IOException {
-                codec.ensureReadAhead(1000);
                 return FSTObjectInput.this.readLine();
             }
 
             @Override
             public int read(byte[] b) throws IOException {
-                codec.ensureReadAhead(b.length);
                 return FSTObjectInput.this.read(b);
             }
 
             @Override
             public long skip(long n) throws IOException {
-                codec.ensureReadAhead((int) n);
                 return FSTObjectInput.this.skip(n);
             }
 

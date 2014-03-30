@@ -261,18 +261,13 @@ public class FSTObjectOutput implements ObjectOutput {
     
     public void writeObject(Object obj, Class... possibles) throws IOException {
         curDepth++;
-        try {
-            if ( possibles != null && possibles.length > 1 ) {
-                for (int i = 0; i < possibles.length; i++) {
-                    Class possible = possibles[i];
-                    codec.registerClass(possible);
-                }
+        if ( possibles != null && possibles.length > 1 ) {
+            for (int i = 0; i < possibles.length; i++) {
+                Class possible = possibles[i];
+                codec.registerClass(possible);
             }
-            writeObjectInternal(obj, possibles);
-        } finally {
-            codec.flush();
-            curDepth--;
         }
+        writeObjectInternal(obj, possibles);
     }
 
     FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
@@ -396,6 +391,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 if ( handle >= 0 ) {
                     final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
                     if ( isIdentical ) {
+//                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
                         codec.writeFByte(HANDLE);
                         codec.writeFInt(handle);
                         return;
@@ -868,13 +864,11 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void write(byte[] buf) throws IOException {
-                codec.ensureFree(buf.length);
                 FSTObjectOutput.this.write(buf);
             }
 
             @Override
             public void write(byte[] buf, int off, int len) throws IOException {
-                codec.ensureFree(len);
                 FSTObjectOutput.this.write(buf, off, len);
             }
 
@@ -889,7 +883,6 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void writeBoolean(boolean val) throws IOException {
-                codec.ensureFree(1);
                 FSTObjectOutput.this.writeBoolean(val);
             }
 
@@ -930,13 +923,11 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void writeBytes(String str) throws IOException {
-                codec.ensureFree(str.length() * 4);
                 FSTObjectOutput.this.writeBytes(str);
             }
 
             @Override
             public void writeChars(String str) throws IOException {
-                codec.ensureFree(str.length() * 4);
                 FSTObjectOutput.this.writeChars(str);
             }
 
@@ -954,14 +945,19 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     /**
-     * @return the written buffer reference. use getWritten() to obtain the length of written bytes.
+     * @return the written buffer reference. use getWritten() to obtain the length of written bytes. WARNING:
+     * if more than one objects have been written, an implicit flush is triggered, so the buffer only contains
+     * the last written object. getWritten() then has a larger size than the buffer length.
+     * only usable if one single object is written to the stream (e.g. messaging)
      */
     public byte[] getBuffer() {
         return codec.getBuffer();
     }
 
     /**
-     * @return a copy of written bytes
+     * @return a copy of written bytes. 
+     * Warning: if the stream has been flushed, this will fail with an exception.
+     * a flush is triggered after each 1st level writeObject.
      */
     public byte[] getCopyOfWrittenBuffer() {
         byte res [] = new byte[codec.getWritten()];
@@ -974,6 +970,12 @@ public class FSTObjectOutput implements ObjectOutput {
         return conf;
     }
 
+    /**
+     * @return the number of bytes written to this stream. This also is the number of
+     * valid bytes in the buffer one obtains from the various getBuffer, getCopyOfBuffer methods.
+     * Warning: if the stream has been flushed (done after each 1st level object write),
+     * the buffer will be smaller than the value given here or contain invalid bytes.
+     */
     public int getWritten() {
         return codec.getWritten();
     }

@@ -222,12 +222,7 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     @Override
     public int getWritten() {
-        return buffout.pos;
-    }
-
-    @Override
-    public void setWritten(int written) {
-        this.buffout.pos = written;
+        return buffout.pos-buffout.getOff();
     }
 
     /**
@@ -291,13 +286,12 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
     
     /**
-     * resets stream (positions are lost) and written classes
+     * writes current buffer to underlying output and resets buffer. 
      * @throws IOException
      */
     @Override
     public void flush() throws IOException {
         buffout.flush();
-//        clnames.clear(); FIXME: need to add offset to getPosition !
     }
 
     @Override
