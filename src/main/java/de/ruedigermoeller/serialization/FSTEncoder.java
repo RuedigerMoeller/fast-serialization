@@ -70,4 +70,6 @@ public interface FSTEncoder {
     void writeTag(byte tag, Object info, long somValue) throws IOException;
 
     void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
+
+    void externalEnd(); // demarkls the end of an externalizable or classes with serializer registered
 }

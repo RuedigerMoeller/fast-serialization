@@ -196,7 +196,11 @@ public class FSTMixEncoder implements FSTEncoder {
                     break;
             case FSTObjectOutput.OBJECT:
                 FSTClazzInfo clzInfo = (FSTClazzInfo) info;
-                out.writeTupelHeader(clzInfo.getFieldInfo().length*2);
+                if ( clzInfo.getSer()!=null ) {
+                    out.writeTupelHeader(-1,false);
+                } else {
+                    out.writeTupelHeader(clzInfo.getFieldInfo().length * 2, true );
+                }
                 out.writeString(clzInfo.getClazz().getSimpleName().toLowerCase());
                 break;
             case FSTObjectOutput.ONE_OF:
@@ -215,8 +219,8 @@ public class FSTMixEncoder implements FSTEncoder {
                 if ( info.getClass().isArray() && info.getClass().getComponentType().isPrimitive() ) {
                     out.writeArray(info,0, Array.getLength(info));
                 } else {
-                    out.writeTupelHeader(Array.getLength(info));
-                    out.writeAtom(Mix.ATOM_ARR);
+                    out.writeTupelHeader(Array.getLength(info),false);
+                    out.writeString(info.getClass().getSimpleName());
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -228,13 +232,15 @@ public class FSTMixEncoder implements FSTEncoder {
     
     static class MixTester implements Serializable {
         String s = "Hallo";
-//        int arr[] = {1,2,3,4,5,6};
+        int arr[] = {1,2,3,4,5,6};
+        ArrayList l = new ArrayList();
 //        HashMap mp = new HashMap();
         short sh = 34;
         int in = 34234;
-        int intArr[] = {1,2,3,4,5,6,7};
 
         public MixTester() {
+            l.add("asdasd");
+            l.add(3425);
 //            mp.put("name", 9999);
 //            mp.put(349587, "number");
         }
@@ -256,4 +262,9 @@ public class FSTMixEncoder implements FSTEncoder {
 //        } while( read != Mix.ATOM_TUPEL_END);
 //        new Mix.Tupel("doc", doc.toArray()).prettyPrint(System.out, "");
     }
+
+    public void externalEnd() {
+        out.writeAtom(Mix.ATOM_TUPEL_END);
+    }
+
 }

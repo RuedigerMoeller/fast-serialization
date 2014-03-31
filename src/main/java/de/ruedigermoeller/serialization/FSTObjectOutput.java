@@ -424,6 +424,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 writeObjectHeader(serializationInfo, referencee, toWrite);
                 // write object depending on type (custom, externalizable, serializable/java, default)
                 ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
+//                codec.externalEnd();
             }
         } finally {
             objectHasBeenWritten(toWrite,startPosition,codec.getWritten());

@@ -423,5 +423,8 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.pos = count;
     }
 
+    public void externalEnd() {
+    }
+
 }
 

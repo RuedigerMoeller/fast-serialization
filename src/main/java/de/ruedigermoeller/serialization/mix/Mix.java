@@ -47,17 +47,18 @@ public class Mix {
     //    public final static byte FLOAT      = 0b01000001;
     public final static byte DOUBLE     = 0b00000010;
 
-    public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contain len if < 16
-    public final static byte ATOM     = 0b00000100; // nr of atom .. OR top 4 bits contains atom id if < 16
+    public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contain len if < 16. == Object Array
+    public final static byte OBJECT   = 0b00000100; // id elems .. OR top 4 bits contain len if < 16  == key<String> value<Object>
+    public final static byte ATOM     = 0b00000101; // nr of atom .. OR top 4 bits contains atom id if < 16
 
     // default atoms full ids (hi 4 = id, low 4 = atom
-    public final static byte NULL      = 0b00010100;
-    public final static byte TUPEL_END = 0b00100100;
-    public final static byte STR_8     = 0b00110100;
-    public final static byte STR_16    = 0b01000100;
-    public final static byte MAP       = 0b01010100;
-    public final static byte DATE      = 0b01100100;
-    public final static byte ARR       = 0b01110100;
+    public final static byte NULL      = 0b00010000|ATOM;
+    public final static byte TUPEL_END = 0b00100000|ATOM;
+    public final static byte STR_8     = 0b00110000|ATOM;
+    public final static byte STR_16    = 0b01000000|ATOM;
+    public final static byte MAP       = 0b01010000|ATOM; // generic map key, value
+    public final static byte DATE      = 0b01100000|ATOM; 
+    public final static byte ARR       = 0b01110000|ATOM; // generic object array or collection
 
     // global Atom instances 
     public static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END>>>4);
@@ -133,11 +134,11 @@ public class Mix {
          * a TUPEL_END atom
          * @param len
          */
-        public void writeTupelHeader( long len ) {
+        public void writeTupelHeader( long len, boolean isStrMap ) {
             if (len < 16 && len > 0 )
-                writeOut((byte) (TUPEL|len<<4));
+                writeOut((byte) ( (isStrMap? OBJECT : TUPEL)|len<<4));
             else {
-                writeOut(TUPEL);
+                writeOut((isStrMap? OBJECT : TUPEL));
                 writeIntPacked(len);
             }
         }
@@ -206,13 +207,13 @@ public class Mix {
         //
 
         public void writeDate(Date d) {
-            writeTupelHeader(1);
+            writeTupelHeader(1,false);
             writeAtom(ATOM_DATE);
             writeInt(INT_64,d.getTime());
         }
 
         public void writeString( String s ) {
-            writeTupelHeader(1);
+            writeTupelHeader(1,false);
             boolean isAsc = true;
             for (int i=0; i < s.length(); i++) {
                 if (s.charAt(i) >= 127 ) {
@@ -320,6 +321,7 @@ public class Mix {
                         return readArray(typeTag);
                     return Double.longBitsToDouble(readRawInt((byte) 3));
                 case TUPEL:
+                case OBJECT:
                     return readTupel(typeTag);
                 case ATOM:
                     if ( typeTag == TUPEL_END)
@@ -427,7 +429,7 @@ public class Mix {
                 res = readBuiltInTupel(len, type);
             }
             if ( res == null ) {
-                return readDefaultTupel(len, type);
+                return readDefaultTupel(len, type, (byte) (tag&0xf));
             }
             return res;
         }
@@ -445,20 +447,20 @@ public class Mix {
             return null;
         }
 
-        protected Object readDefaultTupel(int len, Object type) {
+        protected Object readDefaultTupel(int len, Object type, byte tag) {
             if ( len == -1 ) { // unknown length
                 ArrayList cont = new ArrayList();
                 Object read;
                 while( (read = readValue()) != ATOM_TUPEL_END ) {
                     cont.add(read);
                 }
-                return new Tupel(type,cont.toArray());
+                return new Tupel(type,cont.toArray(), tag == OBJECT );
             } else {
                 Object res[] = new Object[len];
                 for ( int i = 0; i < len; i++ ) {
                     res[i] = readValue();
                 }
-                return new Tupel(type,res);
+                return new Tupel(type,res, tag == OBJECT);
             }
         }
 
@@ -475,10 +477,12 @@ public class Mix {
     public static class Tupel implements PrettyPrintable {
         Object content[];
         Object id;
+        boolean isStrMap;
 
-        public Tupel(Object id, Object[] content) {
+        public Tupel(Object id, Object[] content, boolean isStrMap) {
             this.content = content;
             this.id = id;
+            this.isStrMap = isStrMap;
         }
 
         public Object[] getContent() {
@@ -494,7 +498,7 @@ public class Mix {
             out.println(" {");
             for (int i = 0; i < content.length; i++) {
                 Object o = content[i];
-                if ( id == ATOM_MAP ) {
+                if ( id == ATOM_MAP || isStrMap ) {
                     if ( (i&1) == 1 ) {
                         if (o instanceof PrettyPrintable)
                             ((PrettyPrintable) o).prettyPrint(out,indent+"  ");
@@ -592,15 +596,15 @@ public class Mix {
         out.writeString("Hallo");
         out.writeString("Hallöää");
 
-        out.writeTupelHeader(1);
+        out.writeTupelHeader(1,false);
         out.writeAtom(ATOM_STR_8); // type of tupel (optional/hint)
         out.writeArray("hallO".getBytes(), 0, 5);
 
-        out.writeTupelHeader(10);
+        out.writeTupelHeader(10,false);
         out.writeAtom(ATOM_MAP);
         out.writeString("key"); out.writeString("value");
         out.writeString("key1");
-            out.writeTupelHeader(4);
+            out.writeTupelHeader(4,true);
             out.writeString("person");
             out.writeString("name");out.writeString("Rüdiger");
             out.writeString("city");out.writeString("Frankfurt");
@@ -644,7 +648,7 @@ public class Mix {
                 System.out.println("LONG:"+DeepEquals.deepEquals(read,longs));
             }
         } while( read != ATOM_TUPEL_END);
-        new Tupel("doc", doc.toArray()).prettyPrint(System.out,"");
+        new Tupel("doc", doc.toArray(),false).prettyPrint(System.out,"");
     }
 
 }
