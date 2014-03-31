@@ -27,4 +27,8 @@ public class FSTStringSerializer extends FSTBasicObjectSerializer {
         return s;
     }
 
+    @Override
+    public boolean writeTupleEnd() {
+        return false;
+    }
 }

@@ -392,7 +392,6 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
             if (clazz.isArray()) {
-                codec.writeTag(ARRAY, toWrite, 0);
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
                 // handle write replace
@@ -424,7 +423,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 writeObjectHeader(serializationInfo, referencee, toWrite);
                 // write object depending on type (custom, externalizable, serializable/java, default)
                 ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
-//                codec.externalEnd();
+                codec.externalEnd(serializationInfo);
             }
         } finally {
             objectHasBeenWritten(toWrite,startPosition,codec.getWritten());
@@ -651,6 +650,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
     // incoming array is already registered
     protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
+        codec.writeTag(ARRAY, array, 0);
         if ( array == null ) {
             codec.writeClass(Object.class);
             codec.writeFInt(-1);
@@ -674,14 +674,17 @@ public class FSTObjectOutput implements ObjectOutput {
                         writeObjectWithContext(referencee, toWrite);
                     }
                 }
+                codec.externalEnd(null);
             }
         } else { // multidim array. FIXME shared refs to subarrays are not tested !!!
             Object[] arr = (Object[])array;
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, conf.getCLInfoRegistry().isIgnoreAnnotations());
             for ( int i = 0; i < len; i++ ) {
                 Object subArr = arr[i];
+
                 writeArray(ref1, subArr);
             }
+            codec.externalEnd(null);
         }
     }
 

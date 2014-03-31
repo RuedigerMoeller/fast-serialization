@@ -28,7 +28,7 @@ import java.io.IOException;
  * Time: 12:09
  * To change this template use File | Settings | File Templates.
  */
-public abstract class FSTBasicObjectSerializer implements FSTObjectSerializer {
+public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerialzer {
 
     protected FSTBasicObjectSerializer() {
     }
@@ -57,5 +57,12 @@ public abstract class FSTBasicObjectSerializer implements FSTObjectSerializer {
         return null;
     }
 
+    public boolean writeTupleEnd() {
+        return true;
+    }
+
+    public boolean asMap() {
+        return false;
+    }
 
 }

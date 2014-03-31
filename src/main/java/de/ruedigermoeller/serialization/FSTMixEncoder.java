@@ -2,6 +2,7 @@ package de.ruedigermoeller.serialization;
 
 import de.ruedigermoeller.serialization.mix.Mix;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -192,13 +193,14 @@ public class FSTMixEncoder implements FSTEncoder {
                 out.writeAtom(Mix.ATOM_NULL);
                 break;
             case FSTObjectOutput.TYPED:
+            case FSTObjectOutput.OBJECT:
                 if (((FSTClazzInfo)info).getClazz() == String.class )
                     break;
-            case FSTObjectOutput.OBJECT:
                 FSTClazzInfo clzInfo = (FSTClazzInfo) info;
                 if ( clzInfo.getSer()!=null ) {
                     out.writeTupelHeader(-1,false);
-                } else {
+                } else
+                {
                     out.writeTupelHeader(clzInfo.getFieldInfo().length * 2, true );
                 }
                 out.writeString(clzInfo.getClazz().getSimpleName().toLowerCase());
@@ -219,7 +221,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 if ( info.getClass().isArray() && info.getClass().getComponentType().isPrimitive() ) {
                     out.writeArray(info,0, Array.getLength(info));
                 } else {
-                    out.writeTupelHeader(Array.getLength(info),false);
+                    out.writeTupelHeader(-1,false);
                     out.writeString(info.getClass().getSimpleName());
                 }
                 break;
@@ -229,23 +231,36 @@ public class FSTMixEncoder implements FSTEncoder {
                 throw new RuntimeException("unexpected tag "+tag);
         }
     }
-    
+
+    public void externalEnd(FSTClazzInfo clz) {
+        if ( clz == null || (clz.getSer() instanceof FSTCrossPlatformSerialzer && ((FSTCrossPlatformSerialzer) clz.getSer()).writeTupleEnd()) )
+            out.writeAtom(Mix.ATOM_TUPEL_END);
+    }
+
     static class MixTester implements Serializable {
         String s = "Hallo";
+        Object strOb = "StrObj";
+        Integer bigInt = 234;
+        Object obs[] = { 34,55d };
         int arr[] = {1,2,3,4,5,6};
         ArrayList l = new ArrayList();
-//        HashMap mp = new HashMap();
+        HashMap mp = new HashMap();
         short sh = 34;
         int in = 34234;
+        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
+        int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
 
         public MixTester() {
             l.add("asdasd");
             l.add(3425);
-//            mp.put("name", 9999);
-//            mp.put(349587, "number");
+            l.add(new Rectangle(1,2,3,4));
+            mp.put("name", 9999);
+            mp.put(349587, "number");
+            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
         }
     }
-    
+
     public static void main(String arg[]) throws IOException {
         FSTObjectOutput out = new FSTObjectOutput();
         FSTMixEncoder fstMixEncoder = new FSTMixEncoder();
@@ -263,8 +278,5 @@ public class FSTMixEncoder implements FSTEncoder {
 //        new Mix.Tupel("doc", doc.toArray()).prettyPrint(System.out, "");
     }
 
-    public void externalEnd() {
-        out.writeAtom(Mix.ATOM_TUPEL_END);
-    }
 
 }

@@ -71,5 +71,5 @@ public interface FSTEncoder {
 
     void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
 
-    void externalEnd(); // demarkls the end of an externalizable or classes with serializer registered
+    void externalEnd(FSTClazzInfo clz); // demarkls the end of an externalizable or classes with serializer registered
 }

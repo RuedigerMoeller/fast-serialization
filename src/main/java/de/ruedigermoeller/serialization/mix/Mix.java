@@ -47,8 +47,8 @@ public class Mix {
     //    public final static byte FLOAT      = 0b01000001;
     public final static byte DOUBLE     = 0b00000010;
 
-    public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contain len if < 16. == Object Array
-    public final static byte OBJECT   = 0b00000100; // id elems .. OR top 4 bits contain len if < 16  == key<String> value<Object>
+    public final static byte TUPEL    = 0b00000011; // id elems .. OR top 4 bits contain len < 16. == Object Array
+    public final static byte OBJECT   = 0b00000100; // id elems .. OR top 4 bits contain len < 16  == key<String> value<Object>
     public final static byte ATOM     = 0b00000101; // nr of atom .. OR top 4 bits contains atom id if < 16
 
     // default atoms full ids (hi 4 = id, low 4 = atom
@@ -121,7 +121,7 @@ public class Mix {
 
     public static class Out {
 
-        byte bytez[] = new byte[1000];
+        byte bytez[] = new byte[10000];
         int pos = 0;
 
         private void writeOut(byte b) {
@@ -419,10 +419,12 @@ public class Mix {
 
         protected Object readTupel(byte tag) {
             int len;
-            if ( (tag>>>4) > 0)
+            if ( (tag>>>4) > 0) {
                 len = (tag>>>4)&0xf;
-            else
+            }
+            else {
                 len = (int) readInt();
+            }
             Object type = readValue(); // id
             Object res = readCustomTupel( len, type );
             if ( res == null ) {
