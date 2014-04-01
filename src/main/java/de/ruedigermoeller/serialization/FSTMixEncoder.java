@@ -1,6 +1,8 @@
 package de.ruedigermoeller.serialization;
 
 import de.ruedigermoeller.serialization.mix.Mix;
+import de.ruedigermoeller.serialization.mix.MixIn;
+import de.ruedigermoeller.serialization.mix.MixOut;
 
 import java.awt.*;
 import java.io.IOException;
@@ -34,8 +36,15 @@ import java.util.HashMap;
  */
 public class FSTMixEncoder implements FSTEncoder {
 
-    Mix.Out out = new Mix.Out();
-    
+    MixOut out = new MixOut();
+    OutputStream outputStream;
+    FSTConfiguration conf;
+    private int offset = 0;
+
+    public FSTMixEncoder(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
     @Override
     public void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException {
         out.writeArray(bufferedName,off,length);
@@ -95,7 +104,7 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public int getWritten() {
-        return out.getWritten();
+        return out.getWritten()+offset;
     }
 
     @Override
@@ -110,17 +119,22 @@ public class FSTMixEncoder implements FSTEncoder {
      */
     @Override
     public void close() throws IOException {
-
+        if ( outputStream != null ) {
+            
+            outputStream.close();
+        }
     }
 
     @Override
     public void reset() {
-
+        offset = 0;
+        out.reset();
     }
 
     @Override
-    public void reset(byte[] out) {
-
+    public void reset(byte[] bytez) {
+        offset = 0;
+        out.reset(bytez);
     }
 
     /**
@@ -130,7 +144,11 @@ public class FSTMixEncoder implements FSTEncoder {
      */
     @Override
     public void flush() throws IOException {
-
+        if ( outputStream != null ) {
+            outputStream.write(out.getBytez(),0,out.getWritten());
+            offset = out.getWritten();
+            out.resetPosition();
+        }
     }
 
     /**
@@ -151,7 +169,7 @@ public class FSTMixEncoder implements FSTEncoder {
      */
     @Override
     public void setOutstream(OutputStream outstream) {
-
+        this.outputStream = outstream;
     }
 
     @Override
@@ -161,7 +179,7 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public byte[] getBuffer() {
-        return new byte[0];
+        return out.getBytez();
     }
 
     @Override
@@ -203,7 +221,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 {
                     out.writeTupelHeader(clzInfo.getFieldInfo().length * 2, true );
                 }
-                out.writeString(clzInfo.getClazz().getSimpleName().toLowerCase());
+                out.writeString(classToString(clzInfo.getClazz()));
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
@@ -222,7 +240,7 @@ public class FSTMixEncoder implements FSTEncoder {
                     out.writeArray(info,0, Array.getLength(info));
                 } else {
                     out.writeTupelHeader(-1,false);
-                    out.writeString(info.getClass().getSimpleName());
+                    out.writeString( classToString(info.getClass()));
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -230,6 +248,10 @@ public class FSTMixEncoder implements FSTEncoder {
             default:
                 throw new RuntimeException("unexpected tag "+tag);
         }
+    }
+
+    protected String classToString(Class clz) {
+        return conf.getCPNameForClass(clz);
     }
 
     public void externalEnd(FSTClazzInfo clz) {
@@ -262,12 +284,17 @@ public class FSTMixEncoder implements FSTEncoder {
     }
 
     public static void main(String arg[]) throws IOException {
-        FSTObjectOutput out = new FSTObjectOutput();
-        FSTMixEncoder fstMixEncoder = new FSTMixEncoder();
-        out.codec = fstMixEncoder;
+        FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
+        conf.registerCrossPlatformClassMapping( new String[][] {
+                { "rect", Rectangle.class.getName() },
+                { "dim", Dimension.class.getName() },
+                { "dim[3]", Dimension[][][].class.getName() },
+                { "dim[2]", Dimension[][].class.getName() },
+                { "dim[1]", Dimension[].class.getName() },
+        } );        
+        FSTObjectOutput out = new FSTObjectOutput(conf);
         out.writeObject(new MixTester());
-        fstMixEncoder.out.writeAtom(Mix.ATOM_TUPEL_END);
-        Mix.In in = new Mix.In(fstMixEncoder.out.getBytez(), 0);
+        MixIn in = new MixIn(out.getBuffer(), 0);
         Mix.Tupel tupel = (Mix.Tupel) in.readValue();
         tupel.prettyPrint(System.out, "");
 //        Object read = null;

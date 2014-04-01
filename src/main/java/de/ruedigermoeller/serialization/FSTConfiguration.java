@@ -19,6 +19,7 @@
  */
 package de.ruedigermoeller.serialization;
 
+import de.ruedigermoeller.heapoff.FSTOffHeapMap;
 import de.ruedigermoeller.heapoff.structs.FSTStruct;
 import de.ruedigermoeller.serialization.serializers.*;
 import de.ruedigermoeller.serialization.util.FSTInputStream;
@@ -62,6 +63,11 @@ public final class FSTConfiguration {
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false;
+    
+    // cross platform only
+    // contains symbol => full qualified name
+    private HashMap<String, String> crossPlatformNames = new HashMap<>();
+    private HashMap<String, String> crossPlatformNamesReverse = new HashMap<>();
 
     public static Integer getInt(int i) {
         if ( i >= 0 && i < intObjects.length ) {
@@ -88,6 +94,35 @@ public final class FSTConfiguration {
             singleton = createDefaultConfiguration();
         lock.set(false);
         return singleton;
+    }
+
+    public static FSTConfiguration createCrossPlatformConfiguration() {
+        final FSTConfiguration res = createDefaultConfiguration();
+        res.setStreamCoderFactory( new StreamCoderFactory() {
+            @Override
+            public FSTEncoder createStreamEncoder() {
+                return new FSTMixEncoder(res);
+            }
+
+            @Override
+            public FSTDecoder createStreamDecoder() {
+                return null;
+            }
+        });
+        res.registerCrossPlatformClassMapping( new String[][] {
+                { "map", HashMap.class.getName() },
+                { "list", ArrayList.class.getName() },
+                { "list", ArrayList.class.getName() },
+                { "long", Long.class.getName() },
+                { "integer", Integer.class.getName() },
+                { "short", Short.class.getName() },
+                { "byte", Byte.class.getName() },
+                { "char", Character.class.getName() },
+                { "float", Float.class.getName() },
+                { "double", Double.class.getName() },
+                { "array", "Ljava.lang.Object;" }
+        } );
+        return res;
     }
 
     public static FSTConfiguration createDefaultConfiguration() {
@@ -493,5 +528,32 @@ public final class FSTConfiguration {
         return streamCoderFactory.createStreamDecoder();
     }
 
+    /**
+     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
+     * @param keysAndVals
+     */
+    public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
+        for (int i = 0; i < keysAndVals.length; i++) {
+            String[] keysAndVal = keysAndVals[i];
+            crossPlatformNames.put( keysAndVal[0], keysAndVal[1]);
+            crossPlatformNamesReverse.put( keysAndVal[1], keysAndVal[0]);
+        }
+    }
+    
+    public String getCPNameForClass( Class cl ) {
+        String res = crossPlatformNamesReverse.get(cl.getName());
+        if (res == null) {
+            return cl.getName();
+        }
+        return res;
+    }
 
+    public String getClassForCPName( String name ) {
+        String res = crossPlatformNames.get(name);
+        if (res == null) {
+            return name;
+        }
+        return res;
+    }
+    
 }
