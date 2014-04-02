@@ -43,4 +43,6 @@ public interface FSTDecoder {
 
     // read fields as LeanMap. Header has already been read
     LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo);
+
+    byte readObjectHeaderTag() throws IOException;
 }

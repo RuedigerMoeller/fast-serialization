@@ -47,7 +47,7 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException {
-        out.writeArray(bufferedName,off,length);
+        out.writeArray(bufferedName, off, length);
     }
 
     /**
@@ -59,7 +59,7 @@ public class FSTMixEncoder implements FSTEncoder {
      */
     @Override
     public void writePrimitiveArray(Object array, int start, int length) throws IOException {
-        out.writeArray(array,start,length);
+        out.writeArray(array, start, length);
     }
 
     @Override
@@ -74,12 +74,12 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeFChar(char c) throws IOException {
-        out.writeInt(Mix.CHAR,c);
+        out.writeInt(Mix.CHAR, c);
     }
 
     @Override
     public void writeFByte(int v) throws IOException {
-        out.writeInt(Mix.INT_8,v);
+        out.writeInt(Mix.INT_8, v);
     }
 
     @Override
@@ -295,14 +295,15 @@ public class FSTMixEncoder implements FSTEncoder {
         } );        
         FSTObjectOutput out = new FSTObjectOutput(conf);
         out.writeObject(new MixTester());
-        
+
+        MixIn in = new MixIn(out.getBuffer(), 0);
+        Mix.Tupel tupel = (Mix.Tupel) in.readValue();
+        tupel.prettyPrint(System.out, "" );
+
         FSTObjectInput fin = new FSTObjectInput(conf); 
         fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
         Object deser = fin.readObject();
 
-        MixIn in = new MixIn(out.getBuffer(), 0);
-        Mix.Tupel tupel = (Mix.Tupel) in.readValue();
-        tupel.prettyPrint(System.out, "");
 //        Object read = null;
 //        ArrayList doc = new ArrayList();
 //        do {

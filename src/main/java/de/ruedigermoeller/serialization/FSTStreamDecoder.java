@@ -58,7 +58,10 @@ public class FSTStreamDecoder implements FSTDecoder {
         input.pos = count;
         return new String(charBuf, 0, chcount);
     }
-    
+
+    public byte readObjectHeaderTag() throws IOException {
+        return readFByte();
+    }
 
     /**
      * len < 127 !!!!!

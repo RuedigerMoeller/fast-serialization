@@ -184,12 +184,23 @@ public class FSTMixDecoder implements FSTDecoder {
         input.setBuffer(bytes,len);
     }
 
-    Mix.Tupel lastTupel;
+    int lastObjectLen;
+    public byte readObjectHeaderTag() throws IOException {
+        byte tag = input.readIn();
+        final int txpe = tag & 0xf;
+        if ( txpe == Mix.OBJECT ) {
+            lastObjectLen = tag>>4;
+            if (lastObjectLen == 0 )
+                lastObjectLen = (int) input.readInt();
+            return FSTObjectOutput.OBJECT;
+        }
+        return -77;
+    }
+
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        lastTupel = (Mix.Tupel) input.readValue();
-        String s = (String) lastTupel.getId();
-        String clzName = conf.getClassForCPName(s);
+        String name = (String) input.readValue();
+        String clzName = conf.getClassForCPName(name);
         return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
     }
 
@@ -223,7 +234,7 @@ public class FSTMixDecoder implements FSTDecoder {
 
     @Override
     public LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo) {
-        return lastTupel;
+        return null;
     }
 
 }
