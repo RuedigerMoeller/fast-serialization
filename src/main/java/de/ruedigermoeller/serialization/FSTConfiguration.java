@@ -106,7 +106,7 @@ public final class FSTConfiguration {
 
             @Override
             public FSTDecoder createStreamDecoder() {
-                return null;
+                return new FSTMixDecoder(res);
             }
         });
         res.registerCrossPlatformClassMapping( new String[][] {
@@ -120,7 +120,7 @@ public final class FSTConfiguration {
                 { "char", Character.class.getName() },
                 { "float", Float.class.getName() },
                 { "double", Double.class.getName() },
-                { "array", "Ljava.lang.Object;" }
+                { "array", "[Ljava.lang.Object;" }
         } );
         return res;
     }

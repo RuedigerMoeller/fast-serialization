@@ -283,7 +283,8 @@ public class FSTMixEncoder implements FSTEncoder {
         }
     }
 
-    public static void main(String arg[]) throws IOException {
+    public static void main(String arg[]) throws IOException, ClassNotFoundException {
+
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
                 { "rect", Rectangle.class.getName() },
@@ -294,6 +295,11 @@ public class FSTMixEncoder implements FSTEncoder {
         } );        
         FSTObjectOutput out = new FSTObjectOutput(conf);
         out.writeObject(new MixTester());
+        
+        FSTObjectInput fin = new FSTObjectInput(conf); 
+        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
+        Object deser = fin.readObject();
+
         MixIn in = new MixIn(out.getBuffer(), 0);
         Mix.Tupel tupel = (Mix.Tupel) in.readValue();
         tupel.prettyPrint(System.out, "");

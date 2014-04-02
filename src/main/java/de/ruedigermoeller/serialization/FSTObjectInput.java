@@ -517,7 +517,34 @@ public class FSTObjectInput implements ObjectInput {
         readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
     }
 
+    void readFieldsFromMap(LeanMap map, FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IllegalAccessException {
+        for (int i = 0; i < fieldInfo.length; i++) {
+            FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldInfo[i];
+            Object obj = map.get(fstFieldInfo.getField().getName());
+            if ( obj != LeanMap.NOT_FOUND ) {
+                if ( fstFieldInfo.isPrimitive() ) {
+                    Number number = (Number) obj;
+                    switch (fstFieldInfo.getIntegralType()) {
+                        case FSTClazzInfo.FSTFieldInfo.BYTE:   fstFieldInfo.setByteValue(newObj, number.byteValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.CHAR:   fstFieldInfo.setCharValue(newObj, (char)number.intValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.SHORT:  fstFieldInfo.setShortValue(newObj, number.shortValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.INT:    fstFieldInfo.setIntValue(newObj, number.intValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.LONG:   fstFieldInfo.setLongValue(newObj, number.longValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.FLOAT:  fstFieldInfo.setFloatValue(newObj, number.floatValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.DOUBLE: fstFieldInfo.setDoubleValue(newObj, number.doubleValue()); break;
+                        case FSTClazzInfo.FSTFieldInfo.BOOL: fstFieldInfo.setBooleanValue(newObj, number.byteValue() == 0 ? false : true); break;
+                    }
+                }
+            }
+        }
+    }
+    
     void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        LeanMap fieldMap = codec.readMap(referencee,serializationInfo);
+        if ( fieldMap != null ) {
+            readFieldsFromMap(fieldMap,referencee,serializationInfo,fieldInfo,newObj);
+            return;
+        }
         int booleanMask = 0;
         int boolcount = 8;
         final int length = fieldInfo.length;
@@ -537,20 +564,14 @@ public class FSTObjectInput implements ObjectInput {
                         boolcount++;
                         subInfo.setBooleanValue(newObj, val);
                     } else {
-                        if (integralType==FSTClazzInfo.FSTFieldInfo.INT) {
-                            subInfo.setIntValue(newObj, codec.readFInt());
-                        } else if ( integralType == FSTClazzInfo.FSTFieldInfo.LONG ) {
-                            subInfo.setLongValue(newObj, codec.readFLong());
-                        } else {
-                            switch (integralType) {
-                                case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, codec.readFByte()); break;
-                                case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, codec.readFChar()); break;
-                                case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, codec.readFShort()); break;
-//                                    case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, readCInt()); break;
-//                                    case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, readCLong()); break;
-                                case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, codec.readFFloat()); break;
-                                case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, codec.readFDouble()); break;
-                            }
+                        switch (integralType) {
+                            case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, codec.readFByte()); break;
+                            case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, codec.readFChar()); break;
+                            case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, codec.readFShort()); break;
+                            case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, codec.readFInt()); break;
+                            case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, codec.readFLong()); break;
+                            case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, codec.readFFloat()); break;
+                            case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, codec.readFDouble()); break;
                         }
                     }
                 } else {

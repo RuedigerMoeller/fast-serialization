@@ -396,4 +396,9 @@ public class FSTStreamDecoder implements FSTDecoder {
         System.arraycopy(input.buf,input.pos,b,off,len);       
     }
 
+    public LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo) {
+        return null;
+    } 
+        
+    
 }

@@ -1,6 +1,7 @@
 package de.ruedigermoeller.serialization.mix;
 
 import com.cedarsoftware.util.DeepEquals;
+import de.ruedigermoeller.serialization.LeanMap;
 
 import java.io.PrintStream;
 import java.lang.reflect.Array;
@@ -122,7 +123,7 @@ public class Mix {
         public void prettyPrint(PrintStream out, String indent);
     }
 
-    public static class Tupel implements PrettyPrintable {
+    public static class Tupel implements PrettyPrintable, LeanMap {
         Object content[];
         Object id;
         boolean isStrMap;
@@ -131,6 +132,14 @@ public class Mix {
             this.content = content;
             this.id = id;
             this.isStrMap = isStrMap;
+        }
+
+        public Object getId() {
+            return id;
+        }
+
+        public boolean isStrMap() {
+            return isStrMap;
         }
 
         public Object[] getContent() {
@@ -179,6 +188,17 @@ public class Mix {
                     "content=" + Arrays.deepToString(content) +
                     '}';
         }
+
+        public Object get(Object key) {
+            for (int i = 0; i < content.length; i+=2) {
+                Object o = content[i];
+                if ( o.equals(key) ) {
+                    return content[i];
+                }
+            }
+            return NOT_FOUND;
+        }
+
     }
     
     public static class Atom implements PrettyPrintable{

@@ -40,4 +40,7 @@ public interface FSTDecoder {
 
     void skip(int n);
     void readPlainBytes(byte[] b, int off, int len);
+
+    // read fields as LeanMap. Header has already been read
+    LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo);
 }

@@ -29,10 +29,13 @@ public class MixIn {
 
     protected byte bytez[];
     protected int pos;
+    int count; // length of data
 
     public MixIn(byte[] bytez, int pos) {
         this.bytez = bytez;
         this.pos = pos;
+        if ( bytez != null )
+            this.count = bytez.length;
     }
 
     public byte readIn() {
@@ -245,4 +248,21 @@ public class MixIn {
         return null;
     }
 
+    public byte[] getBuffer() {
+        return bytez;
+    }
+
+    public int getPos() {
+        return pos;
+    }
+
+    public void setBuffer(byte[] buf, int count) {
+        this.bytez = buf;
+        pos = 0;
+        this.count = count;
+    }
+
+    public void reset() {
+        setBuffer(bytez,count);
+    }
 }
