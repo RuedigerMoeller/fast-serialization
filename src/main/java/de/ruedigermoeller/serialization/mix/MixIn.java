@@ -41,7 +41,11 @@ public class MixIn {
     public byte readIn() {
         return bytez[pos++];
     }
-    
+
+    public byte peekIn() {
+        return bytez[pos];
+    }
+
     public long readInt() {
         byte type = readIn();
         if ( (type & 0xf) >= Mix.DOUBLE || ((type& Mix.ARRAY_MASK)!=0)) {

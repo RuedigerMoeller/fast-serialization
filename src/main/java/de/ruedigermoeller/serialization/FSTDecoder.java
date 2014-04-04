@@ -41,8 +41,9 @@ public interface FSTDecoder {
     void skip(int n);
     void readPlainBytes(byte[] b, int off, int len);
 
-    // read fields as LeanMap. Header has already been read
-    LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo);
-
     byte readObjectHeaderTag() throws IOException;
+
+    boolean isMapBased();
+
+    Object getDirectObject(); // in case class already resolves to read object (e.g. mix input)
 }

@@ -43,7 +43,17 @@ public class FSTMixDecoder implements FSTDecoder {
 
     @Override
     public String readStringUTF() throws IOException {
-        return (String) input.readValue();
+        Object read = input.readValue();
+        if ( read instanceof String )
+            return (String) read;
+        // in case preceding atom has been consumed b[] => str 8 char[] => str 16;
+        if ( read instanceof byte[] ) {
+            return new String((byte[])read,0,0,((byte[]) read).length);
+        } else if ( read instanceof char[] ) {
+            return new String((char[])read,0,((char[]) read).length);
+        } else if ( read == Mix.ATOM_TUPEL_END )
+            return null;
+        throw new RuntimeException("Expected String, byte[], char[] or tupel end");
     }
 
     @Override
@@ -52,10 +62,13 @@ public class FSTMixDecoder implements FSTDecoder {
     }
 
     @Override
+    /**
+     * if array is null => create own array. if len == -1 => use len read
+     */
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
         Object arr = input.readValue();
         int length = Array.getLength(arr);
-        if ( len != length)
+        if ( len != -1 && len != length)
             throw new RuntimeException("unexpected arrays size");
         Class<?> componentTypeRead = arr.getClass().getComponentType();
         if (componentTypeRead != componentType) {
@@ -185,21 +198,48 @@ public class FSTMixDecoder implements FSTDecoder {
     }
 
     int lastObjectLen;
+    int lastObjectTagType;
     public byte readObjectHeaderTag() throws IOException {
-        byte tag = input.readIn();
-        final int txpe = tag & 0xf;
-        if ( txpe == Mix.OBJECT ) {
+        byte tag = input.peekIn();
+        final int type = tag & 0xf;
+        lastObjectTagType = type;
+        if ( type == Mix.OBJECT || type == Mix.TUPEL ) {
+            input.readIn();
             lastObjectLen = tag>>4;
             if (lastObjectLen == 0 )
                 lastObjectLen = (int) input.readInt();
             return FSTObjectOutput.OBJECT;
         }
+        switch ( type ) {
+            case Mix.STR_16:
+            case Mix.STR_8:
+                return FSTObjectOutput.STRING;
+            case Mix.INT_8:
+            case Mix.CHAR:
+            case Mix.INT_16:
+            case Mix.INT_32:
+            case Mix.INT_64:
+            case Mix.DOUBLE:
+                lastReadDirectObject = input.readValue();
+                return FSTObjectOutput.DIRECT_OBJECT;
+        }
         return -77;
     }
+    
+    public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
+    {
+        Object tmp = lastReadDirectObject;
+        lastReadDirectObject = null;
+        return tmp;
+    }
 
+    Object lastReadDirectObject; // in case readClass already reads full mix value
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        String name = (String) input.readValue();
+        Object read = input.readValue();
+        if ( read == Mix.ATOM_STR_8 || read == Mix.ATOM_STR_16 )
+            return conf.getCLInfoRegistry().getCLInfo(classForName(String.class.getName()));
+        String name = (String) read;
         String clzName = conf.getClassForCPName(name);
         return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
     }
@@ -233,8 +273,8 @@ public class FSTMixDecoder implements FSTDecoder {
     }
 
     @Override
-    public LeanMap readMap(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo) {
-        return null;
+    public boolean isMapBased() {
+        return true;
     }
 
 }

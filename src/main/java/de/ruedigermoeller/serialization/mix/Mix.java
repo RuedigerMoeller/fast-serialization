@@ -1,7 +1,6 @@
 package de.ruedigermoeller.serialization.mix;
 
 import com.cedarsoftware.util.DeepEquals;
-import de.ruedigermoeller.serialization.LeanMap;
 
 import java.io.PrintStream;
 import java.lang.reflect.Array;
@@ -123,7 +122,8 @@ public class Mix {
         public void prettyPrint(PrintStream out, String indent);
     }
 
-    public static class Tupel implements PrettyPrintable, LeanMap {
+    public static class Tupel implements PrettyPrintable {
+        public static final Object NOT_FOUND = "..__NOT_FOUND__..";
         Object content[];
         Object id;
         boolean isStrMap;

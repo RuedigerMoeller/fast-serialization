@@ -190,6 +190,7 @@ public final class FSTClazzInfo {
             }
             return cons.newInstance();
         } catch (Throwable ignored) {
+            ignored.printStackTrace();
             return null;
         }
     }
@@ -745,12 +746,12 @@ public final class FSTClazzInfo {
             field.setShort(newObj, i1);
         }
 
-        public final void setObjectValue(Object newObj, Object i1) throws IllegalAccessException {
+        public final void setObjectValue(Object target, Object value) throws IllegalAccessException {
             if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putObject(newObj, memOffset, i1);
+                FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
                 return;
             }
-            field.set(newObj, i1);
+            field.set(target, value);
         }
 
         public final void setFloatValue(Object newObj,  float l) throws IllegalAccessException {

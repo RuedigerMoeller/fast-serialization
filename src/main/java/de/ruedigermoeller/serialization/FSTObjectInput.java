@@ -362,6 +362,7 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[codec.readFByte()]; }
                 case FSTObjectOutput.NULL: { return null; }
+                case FSTObjectOutput.DIRECT_OBJECT: { return codec.getDirectObject(); }
                 case FSTObjectOutput.STRING: return codec.readStringUTF();
                 case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
                 case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
@@ -373,8 +374,9 @@ public class FSTObjectInput implements ObjectInput {
 
     private FSTClazzInfo getClazzInfo(Class c, FSTClazzInfo.FSTFieldInfo referencee) {
         FSTClazzInfo clzSerInfo;
-        if ( referencee.lastInfo != null && referencee.lastInfo.clazz == c) {
-            clzSerInfo = referencee.lastInfo;
+        FSTClazzInfo lastInfo = referencee.lastInfo;
+        if ( lastInfo != null && lastInfo.clazz == c) {
+            clzSerInfo = lastInfo;
         } else {
             clzSerInfo = clInfoRegistry.getCLInfo(c);
         }
@@ -517,32 +519,10 @@ public class FSTObjectInput implements ObjectInput {
         readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
     }
 
-    void readFieldsFromMap(LeanMap map, FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IllegalAccessException {
-        for (int i = 0; i < fieldInfo.length; i++) {
-            FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldInfo[i];
-            Object obj = map.get(fstFieldInfo.getField().getName());
-            if ( obj != LeanMap.NOT_FOUND ) {
-                if ( fstFieldInfo.isPrimitive() ) {
-                    Number number = (Number) obj;
-                    switch (fstFieldInfo.getIntegralType()) {
-                        case FSTClazzInfo.FSTFieldInfo.BYTE:   fstFieldInfo.setByteValue(newObj, number.byteValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.CHAR:   fstFieldInfo.setCharValue(newObj, (char)number.intValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.SHORT:  fstFieldInfo.setShortValue(newObj, number.shortValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.INT:    fstFieldInfo.setIntValue(newObj, number.intValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.LONG:   fstFieldInfo.setLongValue(newObj, number.longValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.FLOAT:  fstFieldInfo.setFloatValue(newObj, number.floatValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.DOUBLE: fstFieldInfo.setDoubleValue(newObj, number.doubleValue()); break;
-                        case FSTClazzInfo.FSTFieldInfo.BOOL: fstFieldInfo.setBooleanValue(newObj, number.byteValue() == 0 ? false : true); break;
-                    }
-                }
-            }
-        }
-    }
-    
     void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        LeanMap fieldMap = codec.readMap(referencee,serializationInfo);
-        if ( fieldMap != null ) {
-            readFieldsFromMap(fieldMap,referencee,serializationInfo,fieldInfo,newObj);
+        
+        if ( codec.isMapBased() ) {
+            readFieldsMapBased(referencee, serializationInfo, newObj);
             return;
         }
         int booleanMask = 0;
@@ -590,6 +570,36 @@ public class FSTObjectInput implements ObjectInput {
                 }
             } catch (IllegalAccessException ex) {
                 throw new IOException(ex);
+            }
+        }
+    }
+
+    protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws IOException, IllegalAccessException, InstantiationException, ClassNotFoundException {
+        String name; 
+        while( (name=codec.readStringUTF()) != null ) {
+            FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name,null);
+            if ( fieldInfo == null ) {
+                System.out.println("warning: unknown field: "+name+" on class "+serializationInfo.getClazz().getName());
+            } else {
+                if ( fieldInfo.isPrimitive() ) {
+                    // direct primitive field
+                    switch ( fieldInfo.getIntegralType() ) {
+                        case FSTClazzInfo.FSTFieldInfo.BYTE:   fieldInfo.setByteValue(newObj, codec.readFByte()); break;
+                        case FSTClazzInfo.FSTFieldInfo.CHAR:   fieldInfo.setCharValue(newObj, codec.readFChar()); break;
+                        case FSTClazzInfo.FSTFieldInfo.SHORT:  fieldInfo.setShortValue(newObj, codec.readFShort()); break;
+                        case FSTClazzInfo.FSTFieldInfo.INT:    fieldInfo.setIntValue(newObj, codec.readFInt()); break;
+                        case FSTClazzInfo.FSTFieldInfo.LONG:   fieldInfo.setLongValue(newObj, codec.readFLong()); break;
+                        case FSTClazzInfo.FSTFieldInfo.FLOAT:  fieldInfo.setFloatValue(newObj, codec.readFFloat()); break;
+                        case FSTClazzInfo.FSTFieldInfo.DOUBLE: fieldInfo.setDoubleValue(newObj, codec.readFDouble()); break;
+                        default: throw new RuntimeException("unkown primitive type "+fieldInfo);
+                    }
+//                } else if ( fieldInfo.isArray() && fieldInfo.getType().getComponentType().isPrimitive() ) {
+//                    Object arr = codec.readFPrimitiveArray(null, fieldInfo.getType().getComponentType(), -1);
+//                    fieldInfo.setObjectValue(newObj,arr); // fixme: ref lookup
+                } else {
+                    Object toSet = readObjectWithHeader(fieldInfo);
+                    fieldInfo.setObjectValue(newObj,toSet);
+                }
             }
         }
     }

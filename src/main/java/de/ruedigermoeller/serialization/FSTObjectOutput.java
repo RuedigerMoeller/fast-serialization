@@ -47,7 +47,7 @@ public class FSTObjectOutput implements ObjectOutput {
     static final byte ARRAY = -5;
     static final byte STRING = -4;
     static final byte TYPED = -3; // var class == object written class
-    //static final byte PRIMITIVE_ARRAY = -2;
+    static final byte DIRECT_OBJECT = -2;
     static final byte NULL = -1;
     static final byte OBJECT = 0;
     protected FSTEncoder codec;
