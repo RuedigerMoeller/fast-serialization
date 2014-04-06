@@ -112,7 +112,6 @@ public final class FSTConfiguration {
         res.registerCrossPlatformClassMapping( new String[][] {
                 { "map", HashMap.class.getName() },
                 { "list", ArrayList.class.getName() },
-                { "list", ArrayList.class.getName() },
                 { "long", Long.class.getName() },
                 { "integer", Integer.class.getName() },
                 { "short", Short.class.getName() },

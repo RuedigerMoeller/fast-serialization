@@ -325,6 +325,8 @@ public class FSTObjectInput implements ObjectInput {
             // class name
             clzSerInfo = readClass();
             c = clzSerInfo.getClazz();
+            if ( c.isArray() )
+                return readArrayNoHeader(referencee,readPos,c);
         } else if ( code == FSTObjectOutput.TYPED ) {
             c = referencee.getType();
             clzSerInfo = getClazzInfo(c, referencee);
@@ -430,7 +432,7 @@ public class FSTObjectInput implements ObjectInput {
         boolean serInstance = false;
         Object newObj = ser.instantiate(c, this, clzSerInfo, referencee, readPos);
         if (newObj == null) {
-            newObj = clzSerInfo.newInstance();
+            newObj = clzSerInfo.newInstance(codec.isMapBased());
         } else
             serInstance = true;
         if (newObj == null) {
@@ -448,9 +450,9 @@ public class FSTObjectInput implements ObjectInput {
         return newObj;
     }
 
-    private Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Object newObj;
-        newObj = clzSerInfo.newInstance();
+        newObj = clzSerInfo.newInstance(codec.isMapBased());
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
@@ -576,7 +578,15 @@ public class FSTObjectInput implements ObjectInput {
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws IOException, IllegalAccessException, InstantiationException, ClassNotFoundException {
         String name; 
-        while( (name=codec.readStringUTF()) != null ) {
+        int len = codec.getObjectHeaderLen();
+        if ( len < 0 )
+            len = Integer.MAX_VALUE;
+        int count = 0;
+        while( count < len ) {
+            name=codec.readStringUTF();
+            if ( name == null )
+                break;
+            count+=2;
             FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name,null);
             if ( fieldInfo == null ) {
                 System.out.println("warning: unknown field: "+name+" on class "+serializationInfo.getClazz().getName());
@@ -676,6 +686,10 @@ public class FSTObjectInput implements ObjectInput {
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         int pos = codec.getInputPos();
         Class arrCl = readClass().getClazz();
+        return readArrayNoHeader(referencee, pos, arrCl);
+    }
+
+    private Object readArrayNoHeader(FSTClazzInfo.FSTFieldInfo referencee, int pos, Class arrCl) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         final int len = codec.readFInt();
         if (len == -1) {
             return null;

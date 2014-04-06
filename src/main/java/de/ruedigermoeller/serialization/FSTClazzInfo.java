@@ -183,9 +183,9 @@ public final class FSTClazzInfo {
         return predict;
     }
 
-    public final Object newInstance() {
+    public final Object newInstance(boolean doesRequireInit) {
         try {
-            if (!requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
+            if ( !doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
             return cons.newInstance();

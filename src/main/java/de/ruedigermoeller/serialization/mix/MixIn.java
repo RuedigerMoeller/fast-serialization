@@ -56,14 +56,10 @@ public class MixIn {
         long l = readRawInt(numBytes);
         if ( (type & Mix.UNSIGN_MASK) == 0 ) {
             switch (numBytes) {
-                case 0:
-                    return (long) (byte) l;
-                case 1:
-                    return (long) (short) l;
-                case 2:
-                    return (long) (int) l;
-                case 3:
-                    return l;
+                case 0: return (long) (byte) l;
+                case 1: return (long) (short) l;
+                case 2: return (long) (int) l;
+                case 3: return l;
             }
         }
         return l;
@@ -75,20 +71,21 @@ public class MixIn {
             pos--;
             throw new RuntimeException("no double id avaiable");
         }
-        return Double.longBitsToDouble(readRawInt((byte) 3));
+        byte[] bytes = (byte[]) readValue();
+        return Double.parseDouble(new String(bytes, 0, 0, bytes.length)); // script languages can't parse binary double
     }
 
     public Object readValue() {
-        return readValue(readIn());
+        return readValue(peekIn());
     }
 
-    protected Object readValue(byte typeTag) {
+    protected Object readValue(byte typeTag /*peeked*/) {
         int rawType = typeTag & 0xf;
         switch (rawType) {
             case Mix.INT_8:
                 if ( (typeTag& Mix.ARRAY_MASK) != 0 )
-                    return readArray(typeTag);
-                byte len = Mix.extractNumBytes(typeTag);
+                    return readArray(readIn());
+                byte len = Mix.extractNumBytes(readIn());
                 switch ( len ) {
                     case 0: return (byte)readRawInt(len);
                     case 1: if ((typeTag& Mix.UNSIGN_MASK) == 0) 
@@ -99,25 +96,18 @@ public class MixIn {
                     case 3: return new Long(readRawInt(len));
                 }
             case Mix.DOUBLE:
-                if ( (typeTag& Mix.ARRAY_MASK) != 0 )
-                    return readArray(typeTag);
-                return Double.longBitsToDouble(readRawInt((byte) 3));
+                return readDouble();
             case Mix.TUPEL:
             case Mix.OBJECT:
-                return readTupel(typeTag);
+                return readTupel(readIn());
             case Mix.ATOM:
+                readIn(); // consume
                 if ( typeTag == Mix.TUPEL_END)
                     return Mix.ATOM_TUPEL_END;
                 if ( typeTag == Mix.STR_16)
                     return Mix.ATOM_STR_16;
                 if ( typeTag == Mix.STR_8)
                     return Mix.ATOM_STR_8;
-                if ( typeTag == Mix.MAP)
-                    return Mix.ATOM_MAP;
-                if ( typeTag == Mix.ARR)
-                    return Mix.ATOM_ARR;
-                if ( typeTag == Mix.DATE)
-                    return Mix.ATOM_DATE;
                 if ( (typeTag>>>4) == 0 )
                     return new Mix.Atom((int) readInt());
                 else
@@ -146,21 +136,15 @@ public class MixIn {
         Object result = null;
         if ( baseType == Mix.INT_8 ) {
             switch (typelen) {
-                case 0:
-                    result = new byte[len];
-                    break;
+                case 0: result = new byte[len]; break;
                 case 1:
                     if ((type & Mix.UNSIGN_MASK) != 0)
                         result = new char[len];
                     else
                         result = new short[len];
                     break;
-                case 2:
-                    result = new int[len];
-                    break;
-                case 3:
-                    result = new long[len];
-                    break;
+                case 2: result = new int[len]; break;
+                case 3: result = new long[len]; break;
                 default:
                     throw new RuntimeException("unknown array type");
             }

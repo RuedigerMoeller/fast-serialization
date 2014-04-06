@@ -55,78 +55,44 @@ public class Mix {
     public final static byte TUPEL_END = 0b00100000|ATOM;
     public final static byte STR_8     = 0b00110000|ATOM;
     public final static byte STR_16    = 0b01000000|ATOM;
-    public final static byte MAP       = 0b01010000|ATOM; // generic map key, value
-    public final static byte DATE      = 0b01100000|ATOM; 
-    public final static byte ARR       = 0b01110000|ATOM; // generic object array or collection
 
     // global Atom instances 
     public static final Atom ATOM_TUPEL_END = new Atom("tuple_end", TUPEL_END>>>4);
     public static final Atom ATOM_NULL = new Atom("nil", NULL>>>4);
     public static final Atom ATOM_STR_8 = new Atom("string8", STR_8>>>4);
     public static final Atom ATOM_STR_16 = new Atom("string", STR_16>>>4);
-    public static final Atom ATOM_MAP = new Atom("map", MAP>>>4); // key, val, key, val, ....
-    public static final Atom ATOM_DATE = new Atom("date", DATE>>>4); // long
-    public static final Atom ATOM_ARR = new Atom("array", ARR >>> 4); // tupel array
 
     /**
      *
-     * @param type
+     * @param type - int tag
      * @return 0 - 1 byte, 1 = 2 byte, 2 = 4 byte, 3 = 8 byte
      */
-    public static byte extractNumBytes(byte type) {
+    static byte extractNumBytes(byte type) {
         return (byte) ((type&0b110000)>>>4);
     }
 
-    public static String arrayToString(Object o) {
-        int len = Array.getLength(o);
-        Class c = o.getClass().getComponentType();
-        String res = "[ ";
-        for (int i = 0; i < len; i++) {
-            if ( c == byte.class ) res+=Array.getByte(o,i);
-            if ( c == boolean.class ) res+=Array.getBoolean(o, i);
-            if ( c == char.class ) res+=Array.getChar(o, i);
-            if ( c == short.class ) res+=Array.getShort(o, i);
-            if ( c == int.class ) res+=Array.getInt(o, i);
-            if ( c == long.class ) res+=Array.getLong(o, i);
-            if ( c == float.class ) res+=Array.getFloat(o, i);
-            if ( c == double.class ) res+=Array.getDouble(o, i);
-            if ( i < len-1)
-                res+=",";
-        }
-        res += " ]";
+    public static byte[] toBytes(Tupel t) {
+        MixOut out = new MixOut();
+        t.write(out);
+        byte res[] = new byte[out.getWritten()];
+        System.arraycopy(out.getBytez(), 0, res, 0, out.getWritten());
         return res;
     }
 
-    public static String objectToString(Object o) {
-        if ( o.getClass().isArray() )
-            return arrayToString(o);
-        if ( o instanceof String ) {
-            return "\""+o+"\"";
-        }
-        if ( o instanceof Character )
-            return "'"+o+"'("+(int)((Character) o).charValue()+")";
-//        if ( o instanceof Byte )
-//            return "b"+o;
-//        if ( o instanceof Short )
-//            return "s"+o;
-//        if ( o instanceof Integer )
-//            return "i"+o;
-//        if ( o instanceof Long )
-//            return "L"+o;
-//        if ( o instanceof Double )
-//            return "d"+o;
-        return ""+o;
+    public static Tupel fromBytes(byte[] b) {
+        MixIn in = new MixIn(b,0);
+        return (Tupel) in.readValue();
     }
-
-    interface PrettyPrintable {
-        public void prettyPrint(PrintStream out, String indent);
-    }
-
-    public static class Tupel implements PrettyPrintable {
+    
+    public static class Tupel {
         public static final Object NOT_FOUND = "..__NOT_FOUND__..";
         Object content[];
         Object id;
         boolean isStrMap;
+
+        public Tupel(Object id, Object ... content) {
+            this( id, content, true);
+        }
 
         public Tupel(Object id, Object[] content, boolean isStrMap) {
             this.content = content;
@@ -141,45 +107,9 @@ public class Mix {
         public boolean isStrMap() {
             return isStrMap;
         }
-
+        
         public Object[] getContent() {
             return content;
-        }
-
-        public void prettyPrint(PrintStream out, String indent) {
-            if (id instanceof PrettyPrintable) {
-                ((PrettyPrintable) id).prettyPrint(out,indent+"  ");
-            }
-            else
-                out.print(objectToString(id));
-            out.println(" {");
-            for (int i = 0; i < content.length; i++) {
-                Object o = content[i];
-                if ( id == ATOM_MAP || isStrMap ) {
-                    if ( (i&1) == 1 ) {
-                        if (o instanceof PrettyPrintable)
-                            ((PrettyPrintable) o).prettyPrint(out,indent+"  ");
-                        else
-                            out.print(objectToString(o));
-                        out.println();
-                    } else {
-                        out.print(indent+"  ");
-                        if (o instanceof PrettyPrintable)
-                            ((PrettyPrintable) o).prettyPrint(out,indent+"  ");
-                        else
-                            out.print(objectToString(o));
-                        out.print(" : ");
-                    }
-                } else {
-                    out.print(indent+"  ");
-                    if (o instanceof PrettyPrintable)
-                        ((PrettyPrintable) o).prettyPrint(out,indent+"  ");
-                    else
-                        out.print(objectToString(o));
-                    out.println();
-                }
-            }
-            out.print(indent + "}");
         }
 
         @Override
@@ -187,6 +117,27 @@ public class Mix {
             return "Tupel{ id= "+id+", "+
                     "content=" + Arrays.deepToString(content) +
                     '}';
+        }
+
+        public void write( MixOut out ) {
+            out.writeTupelHeader(content.length,isStrMap);
+            writeObject(id,out);
+            for (int i = 0; i < content.length; i++) {
+                Object o = content[i];
+                writeObject(o,out);
+            }
+        }
+
+        protected void writeObject(Object object, MixOut out) {
+            if ( object instanceof String )
+                out.writeString((String) object);
+            else if ( object instanceof Number ) { // double not supported
+                out.writeIntPacked(((Number) object).longValue());
+            } else if ( object instanceof Atom) {
+                ((Atom) object).write(out);
+            } else if ( object instanceof Tupel) {
+                ((Tupel) object).write(out);
+            } else throw new RuntimeException("cant write object of type "+object.getClass().getName());
         }
 
         public Object get(Object key) {
@@ -199,9 +150,17 @@ public class Mix {
             return NOT_FOUND;
         }
 
+        public Object get(int index) {
+            return content[index];
+        }
+        
+        public int size() {
+            return content.length;
+        }
+
     }
     
-    public static class Atom implements PrettyPrintable{
+    public static class Atom {
         int id = 0;
         String name;
         public Atom(int value) {
@@ -221,102 +180,14 @@ public class Mix {
         public String toString() {
             return "#" + name + "("+ id +')';
         }
-
-        @Override
-        public void prettyPrint(PrintStream out, String indent) {
-            out.print("#" + name + "(" + id + ")");
-        }
-    }
-
-
-    public static void main( String a[] ) {
-        MixOut out = new MixOut();
-        boolean bool[] = { true, false, false, false, true };
-        byte bytes[] = { 0,1,-1,Byte.MAX_VALUE, Byte.MIN_VALUE };
-        char chars[] = { 45345, 24234, 354, 0, 65535 };
-        short shorts[] = { 5345, -24234, 354, 0, 5535 };
-        int ints[] = { -345345, 234234234, -234234654, 0, -1 };
-        double doubles[] = { 345.345, 123123.459867, 0.0 };
-        long longs[] = {123123123123l,-4356456456456l,12313,3,-1, Long.MAX_VALUE, Long.MIN_VALUE };
-
-        out.writeInt(INT_8, 99);
-        out.writeInt(INT_8, -126);
-        out.writeInt(CHAR, 34533);
-        out.writeInt(CHAR, 14533);
-        out.writeInt(INT_16, Short.MAX_VALUE);
-        out.writeInt(INT_16, Short.MIN_VALUE);
-        out.writeInt(INT_32, 1234567);
-        out.writeInt(INT_32, -1234567);
-        out.writeInt(INT_32, Integer.MAX_VALUE);
-        out.writeInt(INT_32, Integer.MIN_VALUE);
-        out.writeInt(INT_64, Long.MAX_VALUE);
-        out.writeInt(INT_64, Long.MIN_VALUE);
-        out.writeDouble(1.234);
-        out.writeDouble(-1.234);
-        out.writeArray(bool, 0, bool.length);
-        out.writeArray(bytes, 0, bytes.length);
-        out.writeArray(chars,0,chars.length);
-        out.writeArray(shorts,0,shorts.length);
-        out.writeArray(longs, 0, longs.length);
-        out.writeArray(ints, 0, ints.length);
-        out.writeArray(doubles,0,doubles.length);
         
-        out.writeString("Hallo");
-        out.writeString("Hallöää");
-
-        out.writeTupelHeader(1,false);
-        out.writeAtom(ATOM_STR_8); // type of tupel (optional/hint)
-        out.writeArray("hallO".getBytes(), 0, 5);
-
-        out.writeTupelHeader(10,false);
-        out.writeAtom(ATOM_MAP);
-        out.writeString("key"); out.writeString("value");
-        out.writeString("key1");
-            out.writeTupelHeader(4,true);
-            out.writeString("person");
-            out.writeString("name");out.writeString("Rüdiger");
-            out.writeString("city");out.writeString("Frankfurt");
-        out.writeString("wide"); out.writeString("üölPÖÄ");
-        out.writeString("date"); out.writeDate(new Date());
-        out.writeString("key2"); out.writeInt(INT_32, 23423);
-
-        out.writeAtom(ATOM_TUPEL_END);
-
-
-
-        System.out.println("POK"+out.pos);
-
-        MixIn in = new MixIn(out.bytez, 0);
-        Object read = null;
-        ArrayList doc = new ArrayList();
-        do {
-            read = in.readValue();
-            doc.add(read);
-            if ( read instanceof Character )
-                System.out.println(read.getClass().getSimpleName()+" "+(int)((Character) read).charValue());
-            else
-                System.out.println(read.getClass().getSimpleName()+" "+read);
-
-            if ( read instanceof byte[] && ((byte[]) read).length != 5 ) { // one wrong because of bool[]
-                System.out.println("BYTES:"+DeepEquals.deepEquals(read,bytes));
-            }
-            if ( read instanceof char[] ) {
-                System.out.println("CHARS:"+DeepEquals.deepEquals(read,chars));
-            }
-            if ( read instanceof short[] ) {
-                System.out.println("SHORTS:"+DeepEquals.deepEquals(read,shorts));
-            }
-            if ( read instanceof int[] ) {
-                System.out.println("INTS:"+DeepEquals.deepEquals(read,ints));
-            }
-            if ( read instanceof double[] ) {
-                System.out.println("DBLS:"+DeepEquals.deepEquals(read,doubles));
-            }
-            if ( read instanceof long[] ) {
-                System.out.println("LONG:"+DeepEquals.deepEquals(read,longs));
-            }
-        } while( read != ATOM_TUPEL_END);
-        new Tupel("doc", doc.toArray(),false).prettyPrint(System.out,"");
+        public void write( MixOut out ) {
+            out.writeAtom(this);
+        }
+        
+        public String getName() {
+            return name;
+        }
     }
 
 }

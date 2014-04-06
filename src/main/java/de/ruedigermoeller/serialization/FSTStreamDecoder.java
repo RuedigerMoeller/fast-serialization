@@ -404,8 +404,19 @@ public class FSTStreamDecoder implements FSTDecoder {
         return false;
     }
 
+    @Override
     public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
     {
         return null;
     }
+
+    @Override
+    public int getObjectHeaderLen()
+    {
+        return -1;
+    }
+
+
+
 }
+

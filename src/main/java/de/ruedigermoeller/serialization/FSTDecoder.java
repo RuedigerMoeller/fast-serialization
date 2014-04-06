@@ -42,6 +42,7 @@ public interface FSTDecoder {
     void readPlainBytes(byte[] b, int off, int len);
 
     byte readObjectHeaderTag() throws IOException;
+    int getObjectHeaderLen(); // len field of last header read (if avaiable)
 
     boolean isMapBased();
 

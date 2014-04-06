@@ -3,6 +3,7 @@ package de.ruedigermoeller.serialization.mix;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.Date;
+import java.util.IdentityHashMap;
 
 /**
 * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -30,7 +31,7 @@ public class MixOut {
 
     byte bytez[] = new byte[500];
     int pos = 0;
-
+    
     private void writeOut(byte b) {
         if ( pos == bytez.length - 1 ) {
             byte tmp[] = new byte[Math.min(bytez.length + 50 * 1000 * 1000, bytez.length * 2)];
@@ -43,7 +44,7 @@ public class MixOut {
     /**
      * writes tag+len. First object after must be tupel tag, then len elements.
      * If len is unknown, -1 can be provided. The end of the tupel must be marked with
-     * a TUPEL_END atom
+     * a TUPEL_END atom then
      * @param len
      */
     public void writeTupelHeader( long len, boolean isStrMap ) {
@@ -57,8 +58,9 @@ public class MixOut {
 
     public void writeDouble( double d ) {
         writeOut(Mix.DOUBLE);
-        final long data = Double.doubleToLongBits(d);
-        writeRawInt((byte) 3, data);
+        // many script languages are challenged with binary double encoding, fall back to string rep
+        byte[] bytes = Double.toString(d).getBytes();
+        writeArray(bytes, 0, bytes.length);
     }
 
     public void writeInt( byte type, long data ) {
@@ -67,7 +69,7 @@ public class MixOut {
     }
 
     /**
-     * 
+     * encode int without header tag
      * @param numBytes - 0 = 1 byte, 1 = 2 byte, 2 = 4 byte, 3 = 8 byte
      * @param data
      */
@@ -79,6 +81,10 @@ public class MixOut {
         }
     }
 
+    /**
+     * encode int using only as much bytes as needed to represent it
+     * @param data
+     */
     public void writeIntPacked(long data) {
         if ( data <= Byte.MAX_VALUE && data >= Byte.MIN_VALUE )
             writeInt(Mix.INT_8, data);
@@ -107,8 +113,10 @@ public class MixOut {
         for ( int i = start; i < start+len; i++ ) {
             if ( componentType == boolean.class )
                 writeRawInt((byte) numBytes, Array.getBoolean(primitiveArray, i) ? 1 : 0 );
-            else if ( componentType == double.class )
-                writeRawInt((byte) 3, Double.doubleToLongBits(Array.getDouble(primitiveArray,i)));
+            else if ( componentType == double.class ) {
+                byte[] bytes = Double.toString(Array.getDouble(primitiveArray, i)).getBytes();
+                writeArray(bytes,0, bytes.length);
+            }
             else
                 writeRawInt((byte) numBytes, Array.getLong(primitiveArray, i));
         }
@@ -117,12 +125,6 @@ public class MixOut {
     /////////////////////////////////////////////////////////////////////////
     // standard atoms
     //
-
-    public void writeDate(Date d) {
-        writeTupelHeader(1,false);
-        writeAtom(Mix.ATOM_DATE);
-        writeInt(Mix.INT_64,d.getTime());
-    }
 
     public void writeString( String s ) {
         writeTupelHeader(1,false);

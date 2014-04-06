@@ -83,9 +83,9 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         codec.resetToCopyOf(bytes,off,len);
     }
 
-    private Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Object newObj;
-        newObj = clzSerInfo.newInstance();
+        newObj = clzSerInfo.newInstance(codec.isMapBased());
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }

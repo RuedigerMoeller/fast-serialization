@@ -197,9 +197,15 @@ public class FSTMixDecoder implements FSTDecoder {
         input.setBuffer(bytes,len);
     }
 
+    public int getObjectHeaderLen() // len field of last header read (if avaiable)
+    {
+        return lastObjectLen;
+    }
+
     int lastObjectLen;
     int lastObjectTagType;
     public byte readObjectHeaderTag() throws IOException {
+        lastObjectLen = -1;
         byte tag = input.peekIn();
         final int type = tag & 0xf;
         lastObjectTagType = type;

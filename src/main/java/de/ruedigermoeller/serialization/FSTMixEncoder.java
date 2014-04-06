@@ -3,6 +3,7 @@ package de.ruedigermoeller.serialization;
 import de.ruedigermoeller.serialization.mix.Mix;
 import de.ruedigermoeller.serialization.mix.MixIn;
 import de.ruedigermoeller.serialization.mix.MixOut;
+import de.ruedigermoeller.serialization.mix.MixPrinter;
 
 import java.awt.*;
 import java.io.IOException;
@@ -260,6 +261,7 @@ public class FSTMixEncoder implements FSTEncoder {
     }
 
     static class MixTester implements Serializable {
+        double d = 233453453454.2234234;
         String s = "Hallo";
         Object strOb = "StrObj";
         Integer bigInt = 234;
@@ -287,6 +289,7 @@ public class FSTMixEncoder implements FSTEncoder {
 
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
+                { "mixtest", MixTester.class.getName() },
                 { "rect", Rectangle.class.getName() },
                 { "dim", Dimension.class.getName() },
                 { "dim[3]", Dimension[][][].class.getName() },
@@ -297,12 +300,35 @@ public class FSTMixEncoder implements FSTEncoder {
         out.writeObject(new MixTester());
 
         MixIn in = new MixIn(out.getBuffer(), 0);
-        Mix.Tupel tupel = (Mix.Tupel) in.readValue();
-        tupel.prettyPrint(System.out, "" );
+        MixPrinter.printMessage(out.getBuffer(), System.out);
 
         FSTObjectInput fin = new FSTObjectInput(conf); 
         fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
         Object deser = fin.readObject();
+        System.out.println("");
+        System.out.println("SIZE "+out.getWritten());
+
+        FSTObjectOutput serOut = new FSTObjectOutput(FSTConfiguration.createDefaultConfiguration());
+        serOut.writeObject(new MixTester());
+        System.out.println("std size "+serOut.getWritten());
+
+        byte[] bytes = Mix.toBytes(
+                new Mix.Tupel("map", new Object[] {
+                        2,
+                        1,
+                        new Mix.Tupel("dim", "width", 100, "height", 100),
+                        2,
+                        new Mix.Tupel("dim", "width", 2, "height", 3)
+                    }, 
+                    false 
+                )
+         );
+        MixPrinter.printMessage(Mix.fromBytes(bytes),System.out);
+
+        FSTObjectInput ffin = new FSTObjectInput(conf); 
+        ffin.resetForReuseUseArray(bytes);
+        Object x = ffin.readObject();
+        System.out.println(x+" "+x.getClass());
 
 //        Object read = null;
 //        ArrayList doc = new ArrayList();

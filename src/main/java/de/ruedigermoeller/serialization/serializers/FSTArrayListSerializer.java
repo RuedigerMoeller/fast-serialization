@@ -76,4 +76,5 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
             throw FSTUtil.rethrow(th);
         }
     }
+
 }
