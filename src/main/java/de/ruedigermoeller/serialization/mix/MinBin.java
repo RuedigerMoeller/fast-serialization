@@ -2,6 +2,7 @@ package de.ruedigermoeller.serialization.mix;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -26,6 +27,9 @@ import java.util.Arrays;
  * To change this template use File | Settings | File Templates.
  */
 public class MinBin {
+    
+    public static MinBin DefaultInstance = new MinBin();    
+    
     public final static byte INT_8  = 0b0001;
     public final static byte INT_16 = 0b0010;
     public final static byte INT_32 = 0b0011;
@@ -48,28 +52,126 @@ public class MinBin {
     /** is primitieve type an array */
     static boolean isArray(byte type) {  return (type & 0b111) < TAG && (type & ARRAY_MASK) == 0; }
 
-    static interface TagSerializer {
+    HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
+    int tagCount = 0;
+    private TagSerializer nullTagSer = new TagSerializer() {
+        @Override
+        public void writeTag(Object data, Out out) {
+        }
+        @Override
+        public Object readTag(In in) {
+            return null;
+        }
+        @Override
+        public Class getClassEncoded() {
+            return Object.class;
+        }
+    };
+
+    public MinBin() {
+        
+        registerTag(nullTagSer);
+        registerTag(new TagSerializer() {
+            @Override
+            public void writeTag(Object data, Out out) {
+                String s = (String) data;
+                boolean isAsc = true;
+                for (int i=0; i < s.length(); i++) {
+                    if (s.charAt(i) >= 127 ) {
+                        isAsc = false;
+                        break;
+                    }
+                }
+                if (isAsc) {
+                    byte[] strBytes = s.getBytes();
+                    out.writeArray(strBytes, 0, strBytes.length);
+                } else {
+                    final char[] chars = s.toCharArray();
+                    out.writeArray(chars, 0, chars.length);
+                }
+            }
+            @Override
+            public Object readTag(In in) {
+                return null;
+            }
+            @Override
+            public Class getClassEncoded() {
+                return String.class;
+            }
+        });
+        registerTag(new TagSerializer() {
+            @Override
+            public void writeTag(Object data, Out out) {
+                byte[] bytes = Double.toString((Double) data).getBytes();
+                out.writeArray(bytes, 0, bytes.length);
+            }
+            @Override
+            public Object readTag(In in) {
+                return null;
+            }
+            @Override
+            public Class getClassEncoded() {
+                return Double.class;
+            }
+        });
+    }
+
+    public void registerTag(TagSerializer ts) {
+        registerTag(ts.getClassEncoded(),ts);
+    }
+    public void registerTag(Class clazz,TagSerializer ts) {
+        ts.setTagId(tagCount++);
+        clz2Ser.put(clazz,ts);
+    }
+
+    private TagSerializer getSerializerFor(Object toWrite) {
+        if ( toWrite == null ) {
+            return nullTagSer;
+        }
+        return clz2Ser.get(toWrite.getClass());
+    }
+
+
+    public static abstract class TagSerializer {
+        int tagId;
+        public int getTagId() {
+            return tagId;
+        }
+        public void setTagId(int tagId) {
+            this.tagId = tagId;
+        }
         /**
          * tag is already written. break down the given object into more tags or primitives
          * @param data
          * @param out
          */
-        public void writeTag(Object data, Out out);
+        public abstract void writeTag(Object data, Out out);
         /**
          * tag is already read, reconstruct the object
          * @param in
          * @return
          */
-        public Object readTag(In in);
+        public abstract Object readTag(In in);
         /**
          * @return the class this tag serializer is responsible for
          */
-        public Class classEncoded();
+        public abstract Class getClassEncoded();
     }
     
     public static class Out {
         byte bytez[] = new byte[500];
         int pos = 0;
+        
+        MinBin mb;
+
+        public Out() {
+            this(MinBin.DefaultInstance);
+        }
+
+        public Out(MinBin mb) {
+            this.mb = mb;
+        }
+
         /**
          * write single byte, grow byte array if needed
          * @param b
@@ -141,8 +243,14 @@ public class MinBin {
             }
         }
 
-        public void writeTag(byte tagId) {
+        public void writeTagHeader(byte tagId) {
             writeOut(getTagCode(tagId));
+        }
+        
+        public void writeTag( Object obj ) {
+            TagSerializer tagSerializer = mb.getSerializerFor(obj);
+            writeTagHeader((byte) tagSerializer.getTagId());
+            tagSerializer.writeTag(obj,this);
         }
 
         public int getWritten() {  return pos; }
