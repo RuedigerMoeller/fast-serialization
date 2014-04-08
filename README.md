@@ -12,6 +12,6 @@ this project was hosted in googlecode, documentation is still not fully moved. (
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
-<b>Note that instrumentation done for fst-structs works only if debug info is turned on during compile. Reason is that generating methods at runtime with javassist fails (probably a javassist bug ..). 
+<b>Note</b> that instrumentation done for fst-structs works only if debug info is turned on during compile. Reason is that generating methods at runtime with javassist fails (probably a javassist bug ..). 
 
-This does not affect the serialization implementation. </b>
+<b>This does not affect the serialization implementation. </b>
