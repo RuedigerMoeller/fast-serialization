@@ -69,7 +69,7 @@ public class MBIn {
         byte type = readIn();
         if ( !MinBin.isPrimitive(type) || MinBin.isArray(type)) {
             pos--;
-            throw new RuntimeException("no integer based id avaiable");
+            throw new RuntimeException("no integer based id avaiable:"+type);
         }
         int numBytes = MinBin.extractNumBytes(type);
         long l = readRawInt(type);
@@ -88,7 +88,7 @@ public class MBIn {
     public Object readArray() {
         byte type = readIn();
         if ( ! MinBin.isArray(type) || ! MinBin.isPrimitive(type) )
-            throw new RuntimeException("not a primitive array");
+            throw new RuntimeException("not a primitive array "+type);
         int len = (int) readInt();
         byte baseType = MinBin.getBaseType(type);
         Object result;
@@ -140,6 +140,9 @@ public class MBIn {
     
     public Object readObject() {
         byte type = peekIn();
+        if (type==MinBin.END) {
+            return MinBin.END_MARKER;
+        }
         if ( MinBin.isPrimitive(type) ) {
             if ( MinBin.isArray(type) ) {
                 return readArray();
@@ -150,7 +153,7 @@ public class MBIn {
                 case MinBin.CHAR: return (char)readInt();
                 case MinBin.INT_32: return (int)readInt();
                 case MinBin.INT_64: return (long)readInt();
-                default: throw new RuntimeException("unexpected primitive type"+type);
+                default: throw new RuntimeException("unexpected primitive type:"+type);
             }
             
         } else {

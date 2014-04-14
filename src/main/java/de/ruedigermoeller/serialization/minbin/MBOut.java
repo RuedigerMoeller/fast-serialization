@@ -114,6 +114,10 @@ public class MBOut {
     }
     
     public void writeTag( Object obj ) {
+        if (obj==MinBin.END_MARKER) {
+            writeOut(MinBin.END);
+            return;
+        }
         MinBin.TagSerializer tagSerializer = mb.getSerializerFor(obj);
         if ( tagSerializer == null ) {
             throw new RuntimeException("no tag serializer found for "+obj.getClass().getName());

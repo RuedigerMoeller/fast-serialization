@@ -1,9 +1,8 @@
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.serialization.mix.Mix;
-import de.ruedigermoeller.serialization.mix.MixIn;
-import de.ruedigermoeller.serialization.mix.MixOut;
-import de.ruedigermoeller.serialization.mix.MixPrinter;
+import de.ruedigermoeller.serialization.minbin.MBOut;
+import de.ruedigermoeller.serialization.minbin.MBPrinter;
+import de.ruedigermoeller.serialization.minbin.MinBin;
 
 import java.awt.*;
 import java.io.IOException;
@@ -37,7 +36,7 @@ import java.util.HashMap;
  */
 public class FSTMixEncoder implements FSTEncoder {
 
-    MixOut out = new MixOut();
+    MBOut out = new MBOut();
     OutputStream outputStream;
     FSTConfiguration conf;
     private int offset = 0;
@@ -65,42 +64,42 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeStringUTF(String str) throws IOException {
-        out.writeString(str);
+        out.writeTag(str);
     }
 
     @Override
     public void writeFShort(short c) throws IOException {
-        out.writeInt(Mix.INT_16,c);
+        out.writeInt(MinBin.INT_16,c);
     }
 
     @Override
     public void writeFChar(char c) throws IOException {
-        out.writeInt(Mix.CHAR, c);
+        out.writeInt(MinBin.CHAR, c);
     }
 
     @Override
     public void writeFByte(int v) throws IOException {
-        out.writeInt(Mix.INT_8, v);
+        out.writeInt(MinBin.INT_8, v);
     }
 
     @Override
     public void writeFInt(int anInt) throws IOException {
-        out.writeInt(Mix.INT_32,anInt);
+        out.writeInt(MinBin.INT_32,anInt);
     }
 
     @Override
     public void writeFLong(long anInt) throws IOException {
-        out.writeInt(Mix.INT_64,anInt);
+        out.writeInt(MinBin.INT_64,anInt);
     }
 
     @Override
     public void writeFFloat(float value) throws IOException {
-        out.writeDouble(value);
+        out.writeTag(value);
     }
 
     @Override
     public void writeFDouble(double value) throws IOException {
-        out.writeDouble(value);
+        out.writeTag(value);
     }
 
     @Override
@@ -202,14 +201,14 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
-        out.writeString(subInfo.getField().getName());
+        out.writeTag(subInfo.getField().getName());
     }
     
     @Override
     public void writeTag(byte tag, Object info, long somValue) throws IOException {
         switch (tag) {
             case FSTObjectOutput.NULL:
-                out.writeAtom(Mix.ATOM_NULL);
+                out.writeTag(null);
                 break;
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
@@ -217,12 +216,14 @@ public class FSTMixEncoder implements FSTEncoder {
                     break;
                 FSTClazzInfo clzInfo = (FSTClazzInfo) info;
                 if ( clzInfo.getSer()!=null ) {
-                    out.writeTupelHeader(-1,false);
+                    out.writeTagHeader(MinBin.SEQUENCE);
+                    out.writeIntPacked(-1); // END Marker required
                 } else
                 {
-                    out.writeTupelHeader(clzInfo.getFieldInfo().length * 2, true );
+                    out.writeTagHeader(MinBin.OBJECT);
+                    out.writeIntPacked(clzInfo.getFieldInfo().length);
                 }
-                out.writeString(classToString(clzInfo.getClazz()));
+                out.writeTag(classToString(clzInfo.getClazz()));
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
@@ -240,8 +241,9 @@ public class FSTMixEncoder implements FSTEncoder {
                 if ( info.getClass().isArray() && info.getClass().getComponentType().isPrimitive() ) {
                     out.writeArray(info,0, Array.getLength(info));
                 } else {
-                    out.writeTupelHeader(-1,false);
-                    out.writeString( classToString(info.getClass()));
+                    out.writeTagHeader(MinBin.SEQUENCE);
+                    out.writeIntPacked(-1); // end marker required
+                    out.writeTag(classToString(info.getClass()));
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -257,11 +259,11 @@ public class FSTMixEncoder implements FSTEncoder {
 
     public void externalEnd(FSTClazzInfo clz) {
         if ( clz == null || (clz.getSer() instanceof FSTCrossPlatformSerialzer && ((FSTCrossPlatformSerialzer) clz.getSer()).writeTupleEnd()) )
-            out.writeAtom(Mix.ATOM_TUPEL_END);
+            out.writeTag(MinBin.END_MARKER);
     }
 
     static class MixTester implements Serializable {
-        double d = 233453453454.2234234;
+        double d = 2334534.223434;
         String s = "Hallo";
         Object strOb = "StrObj";
         Integer bigInt = 234;
@@ -298,44 +300,45 @@ public class FSTMixEncoder implements FSTEncoder {
         } );        
         FSTObjectOutput out = new FSTObjectOutput(conf);
         out.writeObject(new MixTester());
+        MBPrinter.printMessage(out.getBuffer(), System.out);
 
-        MixIn in = new MixIn(out.getBuffer(), 0);
-        MixPrinter.printMessage(out.getBuffer(), System.out);
-
-        FSTObjectInput fin = new FSTObjectInput(conf); 
-        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
-        Object deser = fin.readObject();
-        System.out.println("");
-        System.out.println("SIZE "+out.getWritten());
-
-        FSTObjectOutput serOut = new FSTObjectOutput(FSTConfiguration.createDefaultConfiguration());
-        serOut.writeObject(new MixTester());
-        System.out.println("std size "+serOut.getWritten());
-
-        byte[] bytes = Mix.toBytes(
-                new Mix.Tupel("map", new Object[] {
-                        2,
-                        1,
-                        new Mix.Tupel("dim", "width", 100, "height", 100),
-                        2,
-                        new Mix.Tupel("dim", "width", 2, "height", 3)
-                    }, 
-                    false 
-                )
-         );
-        MixPrinter.printMessage(Mix.fromBytes(bytes),System.out);
-
-        FSTObjectInput ffin = new FSTObjectInput(conf); 
-        ffin.resetForReuseUseArray(bytes);
-        Object x = ffin.readObject();
-        System.out.println(x+" "+x.getClass());
+//        MixIn in = new MixIn(out.getBuffer(), 0);
+//        MixPrinter.printMessage(out.getBuffer(), System.out);
+//
+//        FSTObjectInput fin = new FSTObjectInput(conf); 
+//        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
+//        Object deser = fin.readObject();
+//        System.out.println("");
+//        System.out.println("SIZE "+out.getWritten());
+//
+//        FSTObjectOutput serOut = new FSTObjectOutput(FSTConfiguration.createDefaultConfiguration());
+//        serOut.writeObject(new MixTester());
+//        System.out.println("std size "+serOut.getWritten());
+//
+//        byte[] bytes = MinBin.toBytes(
+//                new MinBin.Tupel("map", new Object[] {
+//                        2,
+//                        1,
+//                        new MinBin.Tupel("dim", "width", 100, "height", 100),
+//                        2,
+//                        new MinBin.Tupel("dim", "width", 2, "height", 3)
+//                    }, 
+//                    false 
+//                )
+//         );
+//        MixPrinter.printMessage(MinBin.fromBytes(bytes),System.out);
+//
+//        FSTObjectInput ffin = new FSTObjectInput(conf); 
+//        ffin.resetForReuseUseArray(bytes);
+//        Object x = ffin.readObject();
+//        System.out.println(x+" "+x.getClass());
 
 //        Object read = null;
 //        ArrayList doc = new ArrayList();
 //        do {
 //            doc.add(read = in.readValue());
-//        } while( read != Mix.ATOM_TUPEL_END);
-//        new Mix.Tupel("doc", doc.toArray()).prettyPrint(System.out, "");
+//        } while( read != MinBin.ATOM_TUPEL_END);
+//        new MinBin.Tupel("doc", doc.toArray()).prettyPrint(System.out, "");
     }
 
 

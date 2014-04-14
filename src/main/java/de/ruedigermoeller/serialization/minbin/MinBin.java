@@ -25,7 +25,8 @@ import java.util.HashMap;
  * To change this template use File | Settings | File Templates.
  */
 public class MinBin {
-    
+
+    public static final Object END_MARKER = "END";
     public static MinBin DefaultInstance = new MinBin();    
     
     public final static byte INT_8  = 0b0001;
@@ -33,6 +34,7 @@ public class MinBin {
     public final static byte INT_32 = 0b0011;
     public final static byte INT_64 = 0b0100;
     public final static byte TAG    = 0b0101; // top 5 bits contains tag id 
+    public final static byte END    = 0b0110; // end marker 
 
     public final static byte UNSIGN_MASK = 0b01000; // int only
     public final static byte ARRAY_MASK = 0b10000;// int only, next item expected to be length
@@ -52,7 +54,10 @@ public class MinBin {
     public static boolean isArray(byte type) {  return (type & 0b111) < TAG && (type & ARRAY_MASK) != 0; }
     public static byte extractNumBytes(byte type) { return (byte) (1 << ((type & 0b111)-1)); }
 
-
+    // predefined tag id's
+    public static final byte OBJECT = 5;
+    public static final byte SEQUENCE = 6;
+        
     HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
     HashMap<Integer, TagSerializer> tag2Ser = new HashMap<>();
     int tagCount = 0;
@@ -60,7 +65,6 @@ public class MinBin {
     private TagSerializer nullTagSer = new MBTags.NullTagSer();
 
     public MinBin() {
-        registerTag(nullTagSer);
         registerTag(new MBTags.StringTagSer());       // 0
         registerTag(new MBTags.FloatTagSer());        // 1
         registerTag(new MBTags.DoubleTagSer());       // 2
@@ -68,6 +72,7 @@ public class MinBin {
         registerTag(new MBTags.FloatArrTagSer());     // 4
         registerTag(new MBTags.MBObjectTagSer());     // 5
         registerTag(new MBTags.MBSequenceTagSer());   // 6
+        registerTag(nullTagSer);                      // 7
     }
 
     public void registerTag(TagSerializer ts) {

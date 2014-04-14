@@ -186,8 +186,8 @@ public class MBTags {
         @Override
         public void writeTag(Object data, MBOut out) {
             MBObject ob = (MBObject) data;
-            out.writeObject(ob.getTypeInfo());
             out.writeIntPacked(ob.size());
+            out.writeObject(ob.getTypeInfo());
             for (Iterator iterator = ob.keyIterator(); iterator.hasNext(); ) {
                 String next = (String) iterator.next();
                 out.writeTag(next);
@@ -203,11 +203,17 @@ public class MBTags {
          */
         @Override
         public Object readTag(MBIn in) {
+            int len = (int) in.readInt();
+            if ( len == -1 ) { // read to end marker
+                len = Integer.MAX_VALUE;
+            }
             Object typeInfo = in.readObject();
             MBObject obj = new MBObject(typeInfo);
-            int len = (int) in.readInt();
             for ( int i=0; i < len; i++ ) {
-                obj.put((String) in.readObject(),in.readObject());
+                Object key = in.readObject();
+                if (key==MinBin.END_MARKER)
+                    break;
+                obj.put((String) key,in.readObject());
             }
             return obj;
         }
@@ -232,8 +238,8 @@ public class MBTags {
         @Override
         public void writeTag(Object data, MBOut out) {
             MBSequence ob = (MBSequence) data;
-            out.writeTag(ob.getTypeInfo());
             out.writeIntPacked(ob.size());
+            out.writeTag(ob.getTypeInfo());
             for (int i = 0; i < ob.size(); i++) {
                 Object o = ob.get(i);
                 out.writeObject(o);
@@ -248,11 +254,17 @@ public class MBTags {
          */
         @Override
         public Object readTag(MBIn in) {
+            int len = (int) in.readInt();
+            if ( len == -1 ) { // read to end marker
+                len = Integer.MAX_VALUE;
+            }
             Object typeInfo = in.readObject();
             MBSequence obj = new MBSequence(typeInfo);
-            int len = (int) in.readInt();
             for ( int i=0; i < len; i++ ) {
-                obj.add(in.readObject());
+                Object o = in.readObject();
+                if ( o == MinBin.END_MARKER )
+                    break;
+                obj.add(o);
             }
             return obj;
         }
