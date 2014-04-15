@@ -263,6 +263,7 @@ public class FSTMixEncoder implements FSTEncoder {
     }
 
     static class MixTester implements Serializable {
+//        boolean x;
         double d = 2334534.223434;
         String s = "Hallo";
         Object strOb = "StrObj";
@@ -273,6 +274,7 @@ public class FSTMixEncoder implements FSTEncoder {
         HashMap mp = new HashMap();
         short sh = 34;
         int in = 34234;
+//        boolean y;
         Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
         int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
         Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
@@ -297,7 +299,9 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "dim[3]", Dimension[][][].class.getName() },
                 { "dim[2]", Dimension[][].class.getName() },
                 { "dim[1]", Dimension[].class.getName() },
-        } );        
+                { "int[2]", int[][].class.getName() },
+                { "int[3]", int[][][].class.getName() },
+        } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
         out.writeObject(new MixTester());
         MBPrinter.printMessage(out.getBuffer(), System.out);

@@ -65,13 +65,13 @@ public class MBPrinter {
 
     protected void prettyPrintSequence(MBSequence t, PrintStream out, String indent) {
         prettyPrintStreamObject(t.getTypeInfo(),out,indent);
-        out.println(" {");
+        out.println(" [");
         for (int i = 0; i < t.size(); i++) {
             out.print(indent+"  ");
             prettyPrintStreamObject(t.get(i), out, indent);
             out.println();
         }
-        out.print(indent + "}");
+        out.print(indent + "]");
     }
 
     protected String arrayToString(Object o) {

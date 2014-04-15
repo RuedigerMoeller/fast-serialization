@@ -141,6 +141,7 @@ public class MBIn {
     public Object readObject() {
         byte type = peekIn();
         if (type==MinBin.END) {
+            readIn();
             return MinBin.END_MARKER;
         }
         if ( MinBin.isPrimitive(type) ) {
