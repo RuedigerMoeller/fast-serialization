@@ -163,8 +163,9 @@ public class FSTStreamEncoder implements FSTEncoder {
         
     }
     
-    public void writeTag(byte tag, Object info, long somValue) throws IOException {
+    public boolean writeTag(byte tag, Object info, long somValue) throws IOException {
         writeFByte(tag);
+        return false;
     }
 
     @Override

@@ -650,7 +650,8 @@ public class FSTObjectOutput implements ObjectOutput {
 
     // incoming array is already registered
     protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
-        codec.writeTag(ARRAY, array, 0);
+        if (codec.writeTag(ARRAY, array, 0))
+            return; // some codecs handle priimitive arrays like an int
         if ( array == null ) {
             codec.writeClass(Object.class);
             codec.writeFInt(-1);

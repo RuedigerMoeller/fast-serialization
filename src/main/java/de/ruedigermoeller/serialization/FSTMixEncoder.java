@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -205,7 +203,7 @@ public class FSTMixEncoder implements FSTEncoder {
     }
     
     @Override
-    public void writeTag(byte tag, Object info, long somValue) throws IOException {
+    public boolean writeTag(byte tag, Object info, long somValue) throws IOException {
         switch (tag) {
             case FSTObjectOutput.NULL:
                 out.writeTag(null);
@@ -240,6 +238,7 @@ public class FSTMixEncoder implements FSTEncoder {
             case FSTObjectOutput.ARRAY:
                 if ( info.getClass().isArray() && info.getClass().getComponentType().isPrimitive() ) {
                     out.writeArray(info,0, Array.getLength(info));
+                    return true;
                 } else {
                     out.writeTagHeader(MinBin.SEQUENCE);
                     out.writeIntPacked(-1); // end marker required
@@ -251,6 +250,7 @@ public class FSTMixEncoder implements FSTEncoder {
             default:
                 throw new RuntimeException("unexpected tag "+tag);
         }
+        return false;
     }
 
     protected String classToString(Class clz) {
@@ -276,7 +276,8 @@ public class FSTMixEncoder implements FSTEncoder {
 //        int in = 34234;
 //        boolean y;
 //        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
-        int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+        //int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+        Object iii = new int[][] {{1,2,3},{4,5,6}};
 //        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
 
         public MixTester() {
@@ -303,7 +304,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new MixTester());
+        out.writeObject(new int[][] {{1,2,3},{4,5,6}});
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
 //        MixIn in = new MixIn(out.getBuffer(), 0);
