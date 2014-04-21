@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.54</version>
+    <version>1.55</version>
 
     <description>a fast java serialization drop in-replacement + some serialization based utils (Structs, OffHeap Memory)</description>
     <url>https://code.google.com/p/fast-serialization/</url>

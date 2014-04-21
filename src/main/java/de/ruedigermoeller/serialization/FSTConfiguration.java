@@ -27,6 +27,8 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 import java.awt.*;
 import java.io.*;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -51,6 +53,7 @@ public final class FSTConfiguration {
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false;
+    ClassLoader classLoader = getClass().getClassLoader();
 
     public static Integer getInt(int i) {
         if ( i >= 0 && i < intObjects.length ) {
@@ -77,6 +80,10 @@ public final class FSTConfiguration {
             singleton = createDefaultConfiguration();
         lock.set(false);
         return singleton;
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
     public static FSTConfiguration createDefaultConfiguration() {
@@ -447,7 +454,7 @@ public final class FSTConfiguration {
 
 
     public ClassLoader getClassLoader() {
-        return getClass().getClassLoader();
+        return classLoader;
     }
 
     public FSTClazzInfo getClassInfo(Class type) {

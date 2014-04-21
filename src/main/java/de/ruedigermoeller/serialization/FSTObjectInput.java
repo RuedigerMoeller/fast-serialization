@@ -930,7 +930,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         input.count = len+off;
         input.buf = bytes;
         input.pos = off;
-        input.off = off;
+        input.off = 0;
     }
 
     public final int readFInt() throws IOException {
