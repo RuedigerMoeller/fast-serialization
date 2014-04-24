@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -264,29 +266,29 @@ public class FSTMixEncoder implements FSTEncoder {
 
     static class MixTester implements Serializable {
 //        boolean x;
-//        double d = 2334534.223434;
-//        String s = "Hallo";
-//        Object strOb = "StrObj";
-//        Integer bigInt = 234;
-//        Object obs[] = { 34,55d };
-//        int arr[] = {1,2,3,4,5,6};
-//        ArrayList l = new ArrayList();
-//        HashMap mp = new HashMap();
-//        short sh = 34;
-//        int in = 34234;
+        double d = 2334534.223434;
+        String s = "Hallo";
+        Object strOb = "StrObj";
+        Integer bigInt = 234;
+        Object obs[] = { 34,55d };
+        int arr[] = {1,2,3,4,5,6};
+        ArrayList l = new ArrayList();
+        HashMap mp = new HashMap();
+        short sh = 34;
+        int in = 34234;
 //        boolean y;
-//        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
-        //int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
-        Object iii = new int[][] {{1,2,3},{4,5,6}};
-//        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
+        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
+        int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+//        Object iii = new int[][] {{1,2,3},{4,5,6}};
+        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
 
         public MixTester() {
-//            l.add("asdasd");
-//            l.add(3425);
-//            l.add(new Rectangle(1,2,3,4));
-//            mp.put("name", 9999);
-//            mp.put(349587, "number");
-//            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
+            l.add("asdasd");
+            l.add(3425);
+            l.add(new Rectangle(1,2,3,4));
+            mp.put("name", 9999);
+            mp.put(349587, "number");
+            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
         }
     }
 
@@ -304,7 +306,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new int[][] {{1,2,3},{4,5,6}});
+        out.writeObject(new MixTester());
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
 //        MixIn in = new MixIn(out.getBuffer(), 0);

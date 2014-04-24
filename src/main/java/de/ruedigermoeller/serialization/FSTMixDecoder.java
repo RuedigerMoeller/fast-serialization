@@ -1,7 +1,7 @@
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.serialization.mix.Mix;
-import de.ruedigermoeller.serialization.mix.MixIn;
+import de.ruedigermoeller.serialization.minbin.MBIn;
+import de.ruedigermoeller.serialization.minbin.MinBin;
 import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
@@ -33,17 +33,17 @@ import java.lang.reflect.Array;
 public class FSTMixDecoder implements FSTDecoder {
     
     FSTConfiguration conf;
-    MixIn input;
+    MBIn input;
     private InputStream inputStream;
 
     public FSTMixDecoder(FSTConfiguration conf) {
         this.conf = conf;
-        input = new MixIn(null,0);
+        input = new MBIn(null,0);
     }
 
     @Override
     public String readStringUTF() throws IOException {
-        Object read = input.readValue();
+        Object read = input.readObject();
         if ( read instanceof String )
             return (String) read;
         // in case preceding atom has been consumed b[] => str 8 char[] => str 16;
@@ -51,14 +51,14 @@ public class FSTMixDecoder implements FSTDecoder {
             return new String((byte[])read,0,0,((byte[]) read).length);
         } else if ( read instanceof char[] ) {
             return new String((char[])read,0,((char[]) read).length);
-        } else if ( read == Mix.ATOM_TUPEL_END )
+        } else if ( read == MinBin.END_MARKER )
             return null;
         throw new RuntimeException("Expected String, byte[], char[] or tupel end");
     }
 
     @Override
     public String readStringAsc() throws IOException {
-        return (String) input.readValue();
+        return (String) input.readObject();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class FSTMixDecoder implements FSTDecoder {
      * if array is null => create own array. if len == -1 => use len read
      */
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
-        Object arr = input.readValue();
+        Object arr = input.readObject();
         int length = Array.getLength(arr);
         if ( len != -1 && len != length)
             throw new RuntimeException("unexpected arrays size");
@@ -80,7 +80,7 @@ public class FSTMixDecoder implements FSTDecoder {
 
     @Override
     public void readFIntArr(int len, int[] arr) throws IOException {
-        int res[] = (int[]) input.readValue();
+        int res[] = (int[]) input.readObject();
         for (int i = 0; i < len; i++) {
               arr[i] = res[i];
         }
@@ -93,12 +93,12 @@ public class FSTMixDecoder implements FSTDecoder {
 
     @Override
     public double readFDouble() throws IOException {
-        return input.readDouble();
+        return (double) input.readObject();
     }
 
     @Override
     public float readFFloat() throws IOException {
-        return (float) input.readDouble();
+        return (float) input.readObject();
     }
 
     @Override
@@ -207,9 +207,8 @@ public class FSTMixDecoder implements FSTDecoder {
     public byte readObjectHeaderTag() throws IOException {
         lastObjectLen = -1;
         byte tag = input.peekIn();
-        final int type = tag & 0xf;
-        lastObjectTagType = type;
-        if ( type == Mix.OBJECT || type == Mix.TUPEL ) {
+        lastObjectTagType = tag;
+        if ( MinBin.isTag(tag) ) {
             input.readIn();
             lastObjectLen = tag>>4;
             if (lastObjectLen == 0 )
@@ -226,7 +225,7 @@ public class FSTMixDecoder implements FSTDecoder {
             case Mix.INT_32:
             case Mix.INT_64:
             case Mix.DOUBLE:
-                lastReadDirectObject = input.readValue();
+                lastReadDirectObject = input.readObject();
                 return FSTObjectOutput.DIRECT_OBJECT;
         }
         return -77;
@@ -242,7 +241,7 @@ public class FSTMixDecoder implements FSTDecoder {
     Object lastReadDirectObject; // in case readClass already reads full mix value
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        Object read = input.readValue();
+        Object read = input.readObject();
         if ( read == Mix.ATOM_STR_8 || read == Mix.ATOM_STR_16 )
             return conf.getCLInfoRegistry().getCLInfo(classForName(String.class.getName()));
         String name = (String) read;

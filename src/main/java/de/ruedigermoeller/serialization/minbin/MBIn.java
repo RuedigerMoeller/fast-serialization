@@ -161,4 +161,22 @@ public class MBIn {
             return readTag(readIn());
         }
     }
+
+    public byte[] getBuffer() {
+        return bytez;
+    }
+
+    public int getPos() {
+        return pos;
+    }
+
+    public void setBuffer(byte[] buf, int count) {
+        this.bytez = buf;
+        pos = 0;
+        this.count = count;
+    }
+
+    public void reset() {
+        setBuffer(bytez,count);
+    }
 }
