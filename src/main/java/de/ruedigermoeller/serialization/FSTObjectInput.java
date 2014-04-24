@@ -586,7 +586,7 @@ public class FSTObjectInput implements ObjectInput {
             name=codec.readStringUTF();
             if ( name == null )
                 break;
-            count+=2;
+            count++;
             FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name,null);
             if ( fieldInfo == null ) {
                 System.out.println("warning: unknown field: "+name+" on class "+serializationInfo.getClazz().getName());

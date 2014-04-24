@@ -1,7 +1,5 @@
 package de.ruedigermoeller.serialization.mix;
 
-import com.cedarsoftware.util.DeepEquals;
-
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;

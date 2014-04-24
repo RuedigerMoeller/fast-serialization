@@ -199,6 +199,8 @@ public class FSTMixDecoder implements FSTDecoder {
 
     public int getObjectHeaderLen() // len field of last header read (if avaiable)
     {
+        if ( lastObjectLen < 0 )
+            return (int) input.readInt();
         return lastObjectLen;
     }
 
@@ -209,26 +211,13 @@ public class FSTMixDecoder implements FSTDecoder {
         byte tag = input.peekIn();
         lastObjectTagType = tag;
         if ( MinBin.isTag(tag) ) {
+            if ( MinBin.getTagCode(tag) == MinBin.STRING )
+                return FSTObjectOutput.STRING;
             input.readIn();
-            lastObjectLen = tag>>4;
-            if (lastObjectLen == 0 )
-                lastObjectLen = (int) input.readInt();
             return FSTObjectOutput.OBJECT;
         }
-        switch ( type ) {
-            case Mix.STR_16:
-            case Mix.STR_8:
-                return FSTObjectOutput.STRING;
-            case Mix.INT_8:
-            case Mix.CHAR:
-            case Mix.INT_16:
-            case Mix.INT_32:
-            case Mix.INT_64:
-            case Mix.DOUBLE:
-                lastReadDirectObject = input.readObject();
-                return FSTObjectOutput.DIRECT_OBJECT;
-        }
-        return -77;
+        lastReadDirectObject = input.readObject();
+        return FSTObjectOutput.DIRECT_OBJECT;
     }
     
     public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
@@ -238,12 +227,10 @@ public class FSTMixDecoder implements FSTDecoder {
         return tmp;
     }
 
-    Object lastReadDirectObject; // in case readClass already reads full mix value
+    Object lastReadDirectObject; // in case readClass already reads full minbin value
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
         Object read = input.readObject();
-        if ( read == Mix.ATOM_STR_8 || read == Mix.ATOM_STR_16 )
-            return conf.getCLInfoRegistry().getCLInfo(classForName(String.class.getName()));
         String name = (String) read;
         String clzName = conf.getClassForCPName(name);
         return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));

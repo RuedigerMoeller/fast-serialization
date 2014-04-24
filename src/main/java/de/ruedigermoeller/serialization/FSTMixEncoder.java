@@ -1,5 +1,6 @@
 package de.ruedigermoeller.serialization;
 
+import de.ruedigermoeller.serialization.minbin.MBIn;
 import de.ruedigermoeller.serialization.minbin.MBOut;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import de.ruedigermoeller.serialization.minbin.MinBin;
@@ -217,13 +218,14 @@ public class FSTMixEncoder implements FSTEncoder {
                 FSTClazzInfo clzInfo = (FSTClazzInfo) info;
                 if ( clzInfo.getSer()!=null ) {
                     out.writeTagHeader(MinBin.SEQUENCE);
+                    out.writeTag(classToString(clzInfo.getClazz()));
                     out.writeIntPacked(-1); // END Marker required
                 } else
                 {
                     out.writeTagHeader(MinBin.OBJECT);
+                    out.writeTag(classToString(clzInfo.getClazz()));
                     out.writeIntPacked(clzInfo.getFieldInfo().length);
                 }
-                out.writeTag(classToString(clzInfo.getClazz()));
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
@@ -292,6 +294,17 @@ public class FSTMixEncoder implements FSTEncoder {
         }
     }
 
+    static class SimpleTest implements Serializable {
+        byte b = 10;
+        char c = 'A';
+        short s = 12323;
+        int i = 10;
+        long l = 2000l;
+        double d = 13.0;
+        String ascii = "asdbdjfhsfwoewfhiwef";
+        String fatString = "Rüdiger Möller";
+    }
+
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
 
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
@@ -306,8 +319,14 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new MixTester());
+        out.writeObject(new SimpleTest());
         MBPrinter.printMessage(out.getBuffer(), System.out);
+
+        FSTObjectInput fin = new FSTObjectInput(conf);
+        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
+        Object deser = fin.readObject();
+        System.out.println("");
+        System.out.println("SIZE "+out.getWritten());
 
 //        MixIn in = new MixIn(out.getBuffer(), 0);
 //        MixPrinter.printMessage(out.getBuffer(), System.out);

@@ -55,6 +55,7 @@ public class MinBin {
     public static byte extractNumBytes(byte type) { return (byte) (1 << ((type & 0b111)-1)); }
 
     // predefined tag id's
+    public static final byte STRING = 0;
     public static final byte OBJECT = 5;
     public static final byte SEQUENCE = 6;
         
