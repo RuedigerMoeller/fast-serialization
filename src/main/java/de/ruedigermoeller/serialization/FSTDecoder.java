@@ -47,4 +47,6 @@ public interface FSTDecoder {
     boolean isMapBased();
 
     Object getDirectObject(); // in case class already resolves to read object (e.g. mix input)
+
+    void consumeEndMarker();
 }

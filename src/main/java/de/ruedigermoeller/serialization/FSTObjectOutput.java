@@ -656,7 +656,7 @@ public class FSTObjectOutput implements ObjectOutput {
             return;
         }
         if (codec.writeTag(ARRAY, array, 0))
-            return; // some codecs handle priimitive arrays like an int
+            return; // some codecs handle primitive arrays like an int
         final int len = Array.getLength(array);
         Class<?> componentType = array.getClass().getComponentType();
         codec.writeClass(array.getClass());

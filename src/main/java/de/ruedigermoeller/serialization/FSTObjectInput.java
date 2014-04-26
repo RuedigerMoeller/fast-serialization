@@ -447,6 +447,7 @@ public class FSTObjectInput implements ObjectInput {
         }
         if ( !serInstance )
             ser.readObject(this, newObj, clzSerInfo, referencee);
+        codec.consumeEndMarker();
         return newObj;
     }
 

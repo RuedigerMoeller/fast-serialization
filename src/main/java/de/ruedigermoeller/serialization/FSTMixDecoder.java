@@ -310,4 +310,11 @@ public class FSTMixDecoder implements FSTDecoder {
         return true;
     }
 
+    public void consumeEndMarker() {
+        byte type = input.peekIn();
+        if (type==MinBin.END) {
+            input.readIn();
+        }
+    }
+
 }

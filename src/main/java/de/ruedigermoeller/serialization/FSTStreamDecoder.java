@@ -416,6 +416,8 @@ public class FSTStreamDecoder implements FSTDecoder {
         return -1;
     }
 
+    @Override
+    public void consumeEndMarker() {}
 
 
 }
