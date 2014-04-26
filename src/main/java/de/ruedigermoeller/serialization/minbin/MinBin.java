@@ -27,7 +27,7 @@ import java.util.HashMap;
 public class MinBin {
 
     public static final Object END_MARKER = "END";
-    public static MinBin DefaultInstance = new MinBin();    
+    public static MinBin DefaultInstance = new MinBin();
     
     public final static byte INT_8  = 0b0001;
     public final static byte INT_16 = 0b0010;
@@ -58,7 +58,11 @@ public class MinBin {
     public static final byte STRING = 0;
     public static final byte OBJECT = 5;
     public static final byte SEQUENCE = 6;
-        
+    public static final byte DOUBLE = 2;
+    public static final byte DOUBLE_ARR = 3;
+    public static final byte FLOAT = 1;
+    public static final byte FLOAT_ARR = 4;
+
     HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
     HashMap<Integer, TagSerializer> tag2Ser = new HashMap<>();
     int tagCount = 0;

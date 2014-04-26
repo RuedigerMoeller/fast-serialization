@@ -6,6 +6,7 @@ import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import de.ruedigermoeller.serialization.minbin.MinBin;
 
 import java.awt.*;
+import java.awt.geom.Arc2D;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -206,16 +207,20 @@ public class FSTMixEncoder implements FSTEncoder {
     }
     
     @Override
-    public boolean writeTag(byte tag, Object info, long somValue) throws IOException {
+    public boolean writeTag(byte tag, Object infoOrObject, long somValue) throws IOException {
         switch (tag) {
             case FSTObjectOutput.NULL:
                 out.writeTag(null);
                 break;
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
-                if (((FSTClazzInfo)info).getClazz() == String.class )
+                if (((FSTClazzInfo)infoOrObject).getClazz() == String.class )
                     break;
-                FSTClazzInfo clzInfo = (FSTClazzInfo) info;
+                if (((FSTClazzInfo)infoOrObject).getClazz() == Double.class )
+                    break;
+                if (((FSTClazzInfo)infoOrObject).getClazz() == Float.class )
+                    break;
+                FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
                 if ( clzInfo.getSer()!=null ) {
                     out.writeTagHeader(MinBin.SEQUENCE);
                     out.writeTag(classToString(clzInfo.getClazz()));
@@ -240,13 +245,25 @@ public class FSTMixEncoder implements FSTEncoder {
             case FSTObjectOutput.BIG_BOOLEAN_TRUE:
                 break; // ignore, header created by writing byte. FIXME: won't work
             case FSTObjectOutput.ARRAY:
-                if ( info.getClass().isArray() && info.getClass().getComponentType().isPrimitive() ) {
-                    out.writeArray(info,0, Array.getLength(info));
+                Class<?> clz = infoOrObject.getClass();
+                Class<?> componentType = clz.getComponentType();
+                if ( clz.isArray() && componentType.isPrimitive() )
+                {
+                    if ( componentType == double.class ) {
+                        out.writeTagHeader(MinBin.SEQUENCE);
+                        out.writeTag(classToString(clz));
+                        int length = Array.getLength(infoOrObject);
+                        out.writeIntPacked(length);
+                        for ( int i = 0; i < length; i++ ) {
+                            out.writeTag(Array.getDouble(infoOrObject,i));
+                        }
+                    } else {
+                        out.writeArray(infoOrObject, 0, Array.getLength(infoOrObject));
+                    }
                     return true;
                 } else {
                     out.writeTagHeader(MinBin.SEQUENCE);
-                    out.writeIntPacked(-1); // end marker required
-                    out.writeTag(classToString(info.getClass()));
+                    out.writeTag(classToString(clz));
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -268,41 +285,52 @@ public class FSTMixEncoder implements FSTEncoder {
 
     static class MixTester implements Serializable {
 //        boolean x;
+//        double dda[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
         double d = 2334534.223434;
-        String s = "Hallo";
-        Object strOb = "StrObj";
+//        String s = "Hallo";
+//        Object strOb = "StrObj";
         Integer bigInt = 234;
-        Object obs[] = { 34,55d };
-        int arr[] = {1,2,3,4,5,6};
+//        Object obs[] = { 34,55d };
+//        int arr[] = {1,2,3,4,5,6};
         ArrayList l = new ArrayList();
-        HashMap mp = new HashMap();
+//        HashMap mp = new HashMap();
         short sh = 34;
         int in = 34234;
 //        boolean y;
-        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
-        int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+//        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
+//        int iii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
 //        Object iii = new int[][] {{1,2,3},{4,5,6}};
-        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
+//        Dimension dim[][][] = new Dimension[][][] {{{new Dimension(11,10)},{new Dimension(9,10),new Dimension(1666661,11)}}};
 
         public MixTester() {
             l.add("asdasd");
             l.add(3425);
             l.add(new Rectangle(1,2,3,4));
-            mp.put("name", 9999);
-            mp.put(349587, "number");
-            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
+//            mp.put("name", 9999);
+//            mp.put(349587, "number");
+//            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
         }
     }
 
     static class SimpleTest implements Serializable {
+        //        boolean x;
         byte b = 10;
+        byte ba[] = {1,2,3,4,5};
         char c = 'A';
+        char ca[] = { 'a', 'b', 34534 };
         short s = 12323;
+        short sa[] = {12323,234,-234,4234,23444};
         int i = 10;
+        int ia[] = {112323,1234,-1234,14234,123444};
         long l = 2000l;
+        long la[] = {1112323,11234,-11234,114234,11234443453l};
         double d = 13.0;
+        double da[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
         String ascii = "asdbdjfhsfwoewfhiwef";
         String fatString = "Rüdiger Möller";
+        Double bigDA[] = {1d,23d,345d};
+        Object obs[] = { 34, 32d };
+
     }
 
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
@@ -319,7 +347,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new SimpleTest());
+        out.writeObject(new MixTester());
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
         FSTObjectInput fin = new FSTObjectInput(conf);
@@ -328,43 +356,6 @@ public class FSTMixEncoder implements FSTEncoder {
         System.out.println("");
         System.out.println("SIZE "+out.getWritten());
 
-//        MixIn in = new MixIn(out.getBuffer(), 0);
-//        MixPrinter.printMessage(out.getBuffer(), System.out);
-//
-//        FSTObjectInput fin = new FSTObjectInput(conf); 
-//        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
-//        Object deser = fin.readObject();
-//        System.out.println("");
-//        System.out.println("SIZE "+out.getWritten());
-//
-//        FSTObjectOutput serOut = new FSTObjectOutput(FSTConfiguration.createDefaultConfiguration());
-//        serOut.writeObject(new MixTester());
-//        System.out.println("std size "+serOut.getWritten());
-//
-//        byte[] bytes = MinBin.toBytes(
-//                new MinBin.Tupel("map", new Object[] {
-//                        2,
-//                        1,
-//                        new MinBin.Tupel("dim", "width", 100, "height", 100),
-//                        2,
-//                        new MinBin.Tupel("dim", "width", 2, "height", 3)
-//                    }, 
-//                    false 
-//                )
-//         );
-//        MixPrinter.printMessage(MinBin.fromBytes(bytes),System.out);
-//
-//        FSTObjectInput ffin = new FSTObjectInput(conf); 
-//        ffin.resetForReuseUseArray(bytes);
-//        Object x = ffin.readObject();
-//        System.out.println(x+" "+x.getClass());
-
-//        Object read = null;
-//        ArrayList doc = new ArrayList();
-//        do {
-//            doc.add(read = in.readValue());
-//        } while( read != MinBin.ATOM_TUPEL_END);
-//        new MinBin.Tupel("doc", doc.toArray()).prettyPrint(System.out, "");
     }
 
 

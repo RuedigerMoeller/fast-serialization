@@ -66,6 +66,20 @@ public class FSTMixDecoder implements FSTDecoder {
      * if array is null => create own array. if len == -1 => use len read
      */
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
+        if ( componentType == double.class ) {
+            double[] da = (double[]) array;
+            for (int i = 0; i < da.length; i++) {
+                da[i] = (double) input.readTag(input.readIn());
+            }
+            return da;
+        }
+        if ( componentType == float.class ) {
+            float[] da = (float[]) array;
+            for (int i = 0; i < da.length; i++) {
+                da[i] = (float) input.readTag(input.readIn());
+            }
+            return da;
+        }
         Object arr = input.readObject();
         int length = Array.getLength(arr);
         if ( len != -1 && len != length)
@@ -205,15 +219,37 @@ public class FSTMixDecoder implements FSTDecoder {
     }
 
     int lastObjectLen;
-    int lastObjectTagType;
+    Class lastDirectClass;
     public byte readObjectHeaderTag() throws IOException {
         lastObjectLen = -1;
         byte tag = input.peekIn();
-        lastObjectTagType = tag;
+        lastDirectClass = null;
         if ( MinBin.isTag(tag) ) {
-            if ( MinBin.getTagCode(tag) == MinBin.STRING )
+            if ( MinBin.getTagId(tag) == MinBin.STRING )
                 return FSTObjectOutput.STRING;
+            if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
+                    MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
+                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
+                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR
+            )
+            {
+                lastReadDirectObject = input.readObject();
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
             input.readIn();
+            if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
+                try {
+                    lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName((String) input.readObject()));
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if ( lastDirectClass.isArray() )
+                    return FSTObjectOutput.ARRAY;
+                else {
+                    input.readInt(); // consume -1 for unknown sequence length
+                    return FSTObjectOutput.OBJECT; // with serializer
+                }
+            }
             return FSTObjectOutput.OBJECT;
         }
         lastReadDirectObject = input.readObject();
@@ -230,6 +266,11 @@ public class FSTMixDecoder implements FSTDecoder {
     Object lastReadDirectObject; // in case readClass already reads full minbin value
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
+        if (lastDirectClass != null ) {
+            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(lastDirectClass);
+            lastDirectClass = null;
+            return clInfo;
+        }
         Object read = input.readObject();
         String name = (String) read;
         String clzName = conf.getClassForCPName(name);

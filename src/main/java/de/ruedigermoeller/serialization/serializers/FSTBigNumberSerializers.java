@@ -38,6 +38,12 @@ public class FSTBigNumberSerializers {
         public boolean alwaysCopy() {
             return true;
         }
+
+        @Override
+        public boolean writeTupleEnd() {
+            return false;
+        }
+
     }
 
     static public class FSTCharSerializer extends FSTBasicObjectSerializer {
@@ -56,9 +62,16 @@ public class FSTBigNumberSerializers {
         public boolean alwaysCopy() {
             return true;
         }
+
+        @Override
+        public boolean writeTupleEnd() {
+            return false;
+        }
+
     }
 
     static public class FSTShortSerializer extends FSTBasicObjectSerializer {
+
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
             out.writeShort(((Short)toWrite).shortValue());
@@ -74,9 +87,16 @@ public class FSTBigNumberSerializers {
         public boolean alwaysCopy() {
             return true;
         }
+
+        @Override
+        public boolean writeTupleEnd() {
+            return false;
+        }
+
     }
 
     static public class FSTFloatSerializer extends FSTBasicObjectSerializer {
+
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
             out.writeFloat(((Float) toWrite).floatValue());
@@ -92,9 +112,15 @@ public class FSTBigNumberSerializers {
         public boolean alwaysCopy() {
             return true;
         }
+        @Override
+        public boolean writeTupleEnd() {
+            return false;
+        }
+
     }
 
     static public class FSTDoubleSerializer extends FSTBasicObjectSerializer {
+
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
             out.writeDouble(((Double) toWrite).doubleValue());
@@ -110,6 +136,12 @@ public class FSTBigNumberSerializers {
         public boolean alwaysCopy() {
             return true;
         }
+
+        @Override
+        public boolean writeTupleEnd() {
+            return false;
+        }
+
     }
 
 }

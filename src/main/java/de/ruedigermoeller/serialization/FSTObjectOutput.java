@@ -650,19 +650,19 @@ public class FSTObjectOutput implements ObjectOutput {
 
     // incoming array is already registered
     protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
-        if (codec.writeTag(ARRAY, array, 0))
-            return; // some codecs handle priimitive arrays like an int
         if ( array == null ) {
             codec.writeClass(Object.class);
             codec.writeFInt(-1);
             return;
         }
+        if (codec.writeTag(ARRAY, array, 0))
+            return; // some codecs handle priimitive arrays like an int
         final int len = Array.getLength(array);
         Class<?> componentType = array.getClass().getComponentType();
         codec.writeClass(array.getClass());
         codec.writeFInt(len);
         if ( ! componentType.isArray() ) {
-            if ( componentType.isPrimitive() ) {
+            if ( componentType.isPrimitive() && array instanceof double[] == false && array instanceof float[] == false ) {
                 codec.writePrimitiveArray(array,0,len);
             } else { // objects
                 Object arr[] = (Object[])array;
@@ -675,7 +675,6 @@ public class FSTObjectOutput implements ObjectOutput {
                         writeObjectWithContext(referencee, toWrite);
                     }
                 }
-                codec.externalEnd(null);
             }
         } else { // multidim array. FIXME shared refs to subarrays are not tested !!!
             Object[] arr = (Object[])array;
@@ -685,7 +684,6 @@ public class FSTObjectOutput implements ObjectOutput {
 
                 writeArray(ref1, subArr);
             }
-            codec.externalEnd(null);
         }
     }
 

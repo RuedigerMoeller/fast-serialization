@@ -238,8 +238,8 @@ public class MBTags {
         @Override
         public void writeTag(Object data, MBOut out) {
             MBSequence ob = (MBSequence) data;
-            out.writeIntPacked(ob.size());
             out.writeTag(ob.getTypeInfo());
+            out.writeIntPacked(ob.size());
             for (int i = 0; i < ob.size(); i++) {
                 Object o = ob.get(i);
                 out.writeObject(o);
@@ -254,11 +254,11 @@ public class MBTags {
          */
         @Override
         public Object readTag(MBIn in) {
+            Object typeInfo = in.readObject();
             int len = (int) in.readInt();
             if ( len == -1 ) { // read to end marker
                 len = Integer.MAX_VALUE;
             }
-            Object typeInfo = in.readObject();
             MBSequence obj = new MBSequence(typeInfo);
             for ( int i=0; i < len; i++ ) {
                 Object o = in.readObject();

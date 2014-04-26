@@ -584,8 +584,7 @@ public class FSTObjectInput implements ObjectInput {
         int count = 0;
         while( count < len ) {
             name=codec.readStringUTF();
-            if ( name == null )
-                break;
+            System.out.println("read name "+name);
             count++;
             FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name,null);
             if ( fieldInfo == null ) {

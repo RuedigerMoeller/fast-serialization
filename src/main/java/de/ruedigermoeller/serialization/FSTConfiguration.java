@@ -119,7 +119,11 @@ public final class FSTConfiguration {
                 { "char", Character.class.getName() },
                 { "float", Float.class.getName() },
                 { "double", Double.class.getName() },
-                { "array", "[Ljava.lang.Object;" }
+                { "array", "[Ljava.lang.Object;" },
+                { "Double[]", "[Ljava.lang.Double;" },
+                { "Float[]", "[Ljava.lang.Float;" },
+                { "double[]", "[D" },
+                { "float[]", "[F" }
         } );
         return res;
     }
