@@ -5,7 +5,6 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 
 public class FSTStreamDecoder implements FSTDecoder {
 
@@ -418,6 +417,11 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public void consumeEndMarker() {}
+
+    @Override
+    public Class readArrayHeader() throws Exception {
+        return readClass().getClazz();
+    }
 
 
 }

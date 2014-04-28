@@ -44,9 +44,9 @@ public class MinBin {
     public static boolean isPrimitive(byte type) { return (type & 0b111) < TAG; }
     /** return wether type is a tag */
     public static boolean isTag(byte type) { return (type & 0b111) == TAG; }
-    /** extract tag id from byte  */
+    /** extract tag id/nr from byte  */
     public static byte getTagId(byte type) { return (byte) (type >>> 3); }
-    /** get tag code from tag id  */
+    /** get tag code as written to stream from tag id  */
     public static byte getTagCode(byte tagId) { return (byte) ((tagId << 3)|TAG); }
     /** is primitive type signed ? */
     public static boolean isSigned(byte type) { return (type & 0b111) < TAG && (type & UNSIGN_MASK) == 0; }

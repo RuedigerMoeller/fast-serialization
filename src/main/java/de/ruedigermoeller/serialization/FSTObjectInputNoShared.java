@@ -83,7 +83,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         codec.resetToCopyOf(bytes,off,len);
     }
 
-    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
         Object newObj;
         newObj = clzSerInfo.newInstance(codec.isMapBased());
         if (newObj == null) {

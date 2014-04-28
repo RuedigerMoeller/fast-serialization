@@ -316,7 +316,7 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
+    public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
         FSTClazzInfo clzSerInfo;
         Class c;
         final int readPos = codec.getInputPos();
@@ -348,7 +348,7 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws Exception {
         if ( code == FSTObjectOutput.STRING ) { // faster than switch ..
             return codec.readStringUTF();
         } else if ( code == FSTObjectOutput.ENUM ) {
@@ -394,7 +394,7 @@ public class FSTObjectInput implements ObjectInput {
         return res;
     }
 
-    private Object instantiateArray(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private Object instantiateArray(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
         Object res = readArray(referencee);
         if ( ! referencee.isFlat() ) {
             objects.registerObjectForRead(res, readPos);
@@ -451,7 +451,7 @@ public class FSTObjectInput implements ObjectInput {
         return newObj;
     }
 
-    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
         Object newObj;
         newObj = clzSerInfo.newInstance(codec.isMapBased());
         if (newObj == null) {
@@ -479,7 +479,7 @@ public class FSTObjectInput implements ObjectInput {
     }
 
 
-    protected Object readObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object readObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
         Class cl = serializationInfo.getClazz();
         readObjectCompatibleRecursive(referencee, newObj, serializationInfo, cl);
         if (newObj != null &&
@@ -495,7 +495,7 @@ public class FSTObjectInput implements ObjectInput {
         return newObj;
     }
 
-    protected void readObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toRead, FSTClazzInfo serializationInfo, Class cl) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    protected void readObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toRead, FSTClazzInfo serializationInfo, Class cl) throws Exception {
         FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.compInfo.get(cl);
         if (!Serializable.class.isAssignableFrom(cl)) {
             return;
@@ -517,12 +517,15 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     public void defaultReadObject(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj)
-            throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException
     {
-        readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
+        try {
+            readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
+        } catch (Exception e) {
+            FSTUtil.rethrow(e);
+        }
     }
 
-    void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws Exception {
         
         if ( codec.isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
@@ -577,7 +580,7 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws IOException, IllegalAccessException, InstantiationException, ClassNotFoundException {
+    protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
         String name; 
         int len = codec.getObjectHeaderLen();
         if ( len < 0 )
@@ -621,7 +624,7 @@ public class FSTObjectInput implements ObjectInput {
         return false;
     }
 
-    protected void readCompatibleObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Map res) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected void readCompatibleObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Map res) throws Exception {
         int booleanMask = 0;
         int boolcount = 8;
         for (int i = 0; i < fieldInfo.length; i++) {
@@ -683,13 +686,13 @@ public class FSTObjectInput implements ObjectInput {
         return codec.readStringAsc();
     }
 
-    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
         int pos = codec.getInputPos();
-        Class arrCl = readClass().getClazz();
+        Class arrCl = codec.readArrayHeader();
         return readArrayNoHeader(referencee, pos, arrCl);
     }
 
-    private Object readArrayNoHeader(FSTClazzInfo.FSTFieldInfo referencee, int pos, Class arrCl) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    private Object readArrayNoHeader(FSTClazzInfo.FSTFieldInfo referencee, int pos, Class arrCl) throws Exception {
         final int len = codec.readFInt();
         if (len == -1) {
             return null;
@@ -821,10 +824,8 @@ public class FSTObjectInput implements ObjectInput {
             public void defaultReadObject() throws IOException, ClassNotFoundException {
                 try {
                     FSTObjectInput.this.readObjectFields(referencee, clInfo, clInfo.compInfo.get(cl).getFieldArray(), toRead); // FIXME: only fields of current class
-                } catch (IllegalAccessException e) {
-                    throw new IOException(e);
-                } catch (InstantiationException e) {
-                    throw new IOException(e);
+                } catch (Exception e) {
+                    FSTUtil.rethrow(e);
                 }
             }
 
@@ -840,10 +841,8 @@ public class FSTObjectInput implements ObjectInput {
                     } else {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }
-                } catch (IllegalAccessException e) {
-                    throw new IOException(e);
-                } catch (InstantiationException e) {
-                    throw new IOException(e);
+                } catch (Exception e) {
+                    FSTUtil.rethrow(e);
                 }
                 return new GetField() {
                     @Override

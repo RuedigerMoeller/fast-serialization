@@ -49,4 +49,6 @@ public interface FSTDecoder {
     Object getDirectObject(); // in case class already resolves to read object (e.g. mix input)
 
     void consumeEndMarker();
+
+    Class readArrayHeader() throws IOException, ClassNotFoundException, Exception;
 }

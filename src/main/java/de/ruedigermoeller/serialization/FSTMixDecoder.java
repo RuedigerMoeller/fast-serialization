@@ -317,4 +317,28 @@ public class FSTMixDecoder implements FSTDecoder {
         }
     }
 
+    @Override
+    public Class readArrayHeader() throws IOException, ClassNotFoundException, Exception {
+        if ( lastDirectClass != null )
+            return readClass().getClazz();
+        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
+        if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
+            input.readIn(); // consume (multidim array)
+        } else if ( MinBin.isPrimitive(tag) ) {
+            switch (MinBin.getBaseType(tag)) {
+                case MinBin.INT_8:
+                    return byte[].class;
+                case MinBin.INT_16:
+                    if (MinBin.isSigned(tag) )
+                        return short[].class;
+                    return char[].class;
+                case MinBin.INT_32:
+                    return int[].class;
+                case MinBin.INT_64:
+                    return long[].class;
+            }
+        }
+        return readClass().getClazz();
+    }
+
 }
