@@ -83,7 +83,8 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
         super();
     }
 
-    protected void writeObjectHeader(FSTClazzInfo clsInfo, FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    protected boolean writeObjectHeader(FSTClazzInfo clsInfo, FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+        // FIXME: needs adaption to 2.0
         if ( toWrite.getClass() == referencee.getType() )
         {
             codec.writeFByte(TYPED);
@@ -98,13 +99,14 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     final Class possibleClass = possibleClasses[j];
                     if ( possibleClass == toWrite.getClass() ) {
                         codec.writeFByte(j + 1);
-                        return;
+                        return false;
                     }
                 }
                 codec.writeFByte(OBJECT);
                 codec.writeClass(clsInfo);
             }
         }
+        return false;
     }
 
     @Override

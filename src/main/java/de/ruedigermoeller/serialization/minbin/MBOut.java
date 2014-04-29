@@ -159,7 +159,7 @@ public class MBOut {
         } else if (o.getClass() == Short.class){
             writeInt(MinBin.INT_16, ((Number)o).longValue());
         } else if (o.getClass() == Character.class){
-            writeInt(MinBin.CHAR, ((Number)o).longValue());
+            writeInt(MinBin.CHAR, ((Character)o).charValue());
         } else if (o.getClass() == Integer.class){
             writeInt(MinBin.INT_32, ((Number)o).longValue());
         } else if (o.getClass() == Long.class){

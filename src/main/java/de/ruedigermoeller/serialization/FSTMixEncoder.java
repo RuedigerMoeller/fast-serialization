@@ -1,12 +1,10 @@
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.serialization.minbin.MBIn;
 import de.ruedigermoeller.serialization.minbin.MBOut;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import de.ruedigermoeller.serialization.minbin.MinBin;
 
 import java.awt.*;
-import java.awt.geom.Arc2D;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -191,14 +189,12 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeClass(Class cl) {
-        // already written in write tag
-//        out.writeString(cl.getName());
+       // already written in write tag
     }
 
     @Override
     public void writeClass(FSTClazzInfo clInf) {
         // already written in write tag
-//        out.writeString(clInf.getClazz().getName());
     }
 
     @Override
@@ -207,20 +203,36 @@ public class FSTMixEncoder implements FSTEncoder {
     }
     
     @Override
-    public boolean writeTag(byte tag, Object infoOrObject, long somValue) throws IOException {
+    public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite) throws IOException {
         switch (tag) {
             case FSTObjectOutput.NULL:
                 out.writeTag(null);
                 break;
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
-                if (((FSTClazzInfo)infoOrObject).getClazz() == String.class )
-                    break;
-                if (((FSTClazzInfo)infoOrObject).getClazz() == Double.class )
-                    break;
-                if (((FSTClazzInfo)infoOrObject).getClazz() == Float.class )
-                    break;
                 FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
+                if (clzInfo.getClazz() == String.class )
+                    break;
+                if (clzInfo.getClazz() == Double.class )
+                    break;
+                if (clzInfo.getClazz() == Float.class )
+                    break;
+                if (clzInfo.getClazz() == Byte.class )
+                    break;
+                if (clzInfo.getClazz() == Short.class )
+                    break;
+                if (clzInfo.getClazz() == Integer.class )
+                    break;
+                if (clzInfo.getClazz() == Long.class )
+                    break;
+                if (clzInfo.getClazz() == Character.class )
+                    break;
+                if (clzInfo.getClazz() == Boolean.class )
+                    break;
+//                if ( clzInfo.getClazz() == Byte.class || clzInfo.getClazz() == Short.class || clzInfo.getClazz() == Character.class ) {
+//                    out.writeObject(toWrite);
+//                    return true;
+//                }
                 if ( clzInfo.getSer()!=null ) {
                     out.writeTagHeader(MinBin.SEQUENCE);
                     out.writeTag(classToString(clzInfo.getClazz()));
@@ -259,6 +271,14 @@ public class FSTMixEncoder implements FSTEncoder {
                         for ( int i = 0; i < length; i++ ) {
                             out.writeTag(Array.getDouble(infoOrObject,i));
                         }
+                    } else if ( componentType == float.class ) {
+                        out.writeTagHeader(MinBin.SEQUENCE);
+                        out.writeTag(classToString(clz));
+                        int length = Array.getLength(infoOrObject);
+                        out.writeIntPacked(length);
+                        for ( int i = 0; i < length; i++ ) {
+                            out.writeTag(Array.getFloat(infoOrObject, i));
+                        }
                     } else {
                         out.writeArray(infoOrObject, 0, Array.getLength(infoOrObject));
                     }
@@ -290,6 +310,40 @@ public class FSTMixEncoder implements FSTEncoder {
         return true;
     }
 
+    static class BigNums implements Serializable {
+
+        Boolean _aBoolean = false;
+//        Boolean ugly[][] = {{true,false},null,{true,false}};
+
+        Byte _aByte0 = -13;
+        Object _aByte1 = Byte.MIN_VALUE;
+        Byte _aByte2 = Byte.MAX_VALUE;
+
+        Short _aShort0 = -1334;
+        Object _aShort1 = Short.MIN_VALUE;
+        Short _aShort2 = Short.MAX_VALUE;
+
+        Character _aChar0 = 35345;
+        Object _aChar1 = Character.MIN_VALUE;
+        Character _aChar2 = Character.MAX_VALUE;
+//
+        Integer _aInt0 = 35345;
+        Object _aInt1 = Integer.MIN_VALUE;
+        Integer _aInt2 = Integer.MAX_VALUE;
+
+        Long _aLong0 = -34564567l;
+        Object _aLong1 = Long.MIN_VALUE;
+        Long _aLong2 = Long.MAX_VALUE;
+
+//        Float _aFloat0 = 123.66f;
+//        Object _aFloat1 = Float.MIN_VALUE;
+//        Float _aFloat2 = Float.MAX_VALUE;
+
+        Double _aDouble0 = 123.66d;
+        Object _aDouble1 = Double.MIN_VALUE;
+        Double _aDouble2 = Double.MAX_VALUE;
+    }
+    
     static class MixTester implements Serializable {
         boolean x;
         double dda[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
@@ -328,27 +382,6 @@ public class FSTMixEncoder implements FSTEncoder {
         }
     }
 
-    static class SimpleTest implements Serializable {
-        //        boolean x;
-        byte b = 10;
-        byte ba[] = {1,2,3,4,5};
-        char c = 'A';
-        char ca[] = { 'a', 'b', 34534 };
-        short s = 12323;
-        short sa[] = {12323,234,-234,4234,23444};
-        int i = 10;
-        int ia[] = {112323,1234,-1234,14234,123444};
-        long l = 2000l;
-        long la[] = {1112323,11234,-11234,114234,11234443453l};
-        double d = 13.0;
-        double da[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
-        String ascii = "asdbdjfhsfwoewfhiwef";
-        String fatString = "Rüdiger Möller";
-        Double bigDA[] = {1d,23d,345d};
-        Object obs[] = { 34, 32d };
-
-    }
-
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
 
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
@@ -363,7 +396,8 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new MixTester());
+        out.writeObject(new BigNums());
+//        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
         FSTObjectInput fin = new FSTObjectInput(conf);
@@ -378,4 +412,7 @@ public class FSTMixEncoder implements FSTEncoder {
         return componentType.isPrimitive() && array instanceof double[] == false && array instanceof float[] == false;
     }
 
+    public boolean isTagMultiDimSubArrays() {
+        return true;
+    }
 }

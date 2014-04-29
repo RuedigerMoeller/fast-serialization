@@ -163,7 +163,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         
     }
     
-    public boolean writeTag(byte tag, Object info, long somValue) throws IOException {
+    public boolean writeTag(byte tag, Object info, long somValue, Object toWrite) throws IOException {
         writeFByte(tag);
         return false;
     }
@@ -434,6 +434,10 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     public boolean isPrimitiveArray(Object array, Class<?> componentType) {
         return componentType.isPrimitive();
+    }
+
+    public boolean isTagMultiDimSubArrays() {
+        return false;
     }
 
 }

@@ -66,8 +66,8 @@ public interface FSTEncoder {
     void writeClass(Class cl);
     void writeClass(FSTClazzInfo clInf);
 
-    // write a meta byte item. return true if encoder allows to write array as a primitive object
-    boolean writeTag(byte tag, Object info, long somValue) throws IOException;
+    // write a meta byte item. return true if encoder wrote array as a primitive object
+    boolean writeTag(byte tag, Object info, long somValue, Object toWrite) throws IOException;
 
     void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
 
@@ -76,4 +76,6 @@ public interface FSTEncoder {
     boolean isWritingAttributes();
 
     boolean isPrimitiveArray(Object array, Class<?> componentType);
+
+    boolean isTagMultiDimSubArrays();
 }
