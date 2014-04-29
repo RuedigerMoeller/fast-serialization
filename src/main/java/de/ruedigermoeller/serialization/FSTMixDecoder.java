@@ -80,16 +80,20 @@ public class FSTMixDecoder implements FSTDecoder {
             }
             return da;
         }
-        Object arr = input.readObject();
+        Object arr = array; // input.readObject();
         int length = Array.getLength(arr);
         if ( len != -1 && len != length)
             throw new RuntimeException("unexpected arrays size");
-        Class<?> componentTypeRead = arr.getClass().getComponentType();
-        if (componentTypeRead != componentType) {
-            throw new RuntimeException("expected native array of "+componentType+" found "+componentTypeRead);
-        } else {
-            return arr;
-        }
+        byte type = 0;
+        if (componentType == boolean.class)    type |= MinBin.INT_8;
+        else if (componentType == byte.class)  type |= MinBin.INT_8;
+        else if (componentType == short.class) type |= MinBin.INT_16;
+        else if (componentType == char.class)  type |= MinBin.INT_16 | MinBin.UNSIGN_MASK;
+        else if (componentType == int.class)   type |= MinBin.INT_32;
+        else if (componentType == long.class)  type |= MinBin.INT_64;
+        else throw new RuntimeException("unsupported type " + componentType.getName());
+        input.readArrayRaw(type,len,array);
+        return arr;
     }
 
     @Override
@@ -227,6 +231,10 @@ public class FSTMixDecoder implements FSTDecoder {
         if ( MinBin.isTag(tag) ) {
             if ( MinBin.getTagId(tag) == MinBin.STRING )
                 return FSTObjectOutput.STRING;
+            if ( MinBin.getTagId(tag) == MinBin.BOOL ) {
+                Boolean b = (Boolean) input.readObject();
+                return b ? FSTObjectOutput.BIG_BOOLEAN_TRUE : FSTObjectOutput.BIG_BOOLEAN_FALSE;
+            }
             if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
                     MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
                     MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
@@ -325,6 +333,7 @@ public class FSTMixDecoder implements FSTDecoder {
         if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
             input.readIn(); // consume (multidim array)
         } else if ( MinBin.isPrimitive(tag) ) {
+            input.readIn(); // consume tag
             switch (MinBin.getBaseType(tag)) {
                 case MinBin.INT_8:
                     return byte[].class;

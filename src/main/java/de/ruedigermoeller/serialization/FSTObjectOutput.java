@@ -487,28 +487,30 @@ public class FSTObjectOutput implements ObjectOutput {
             int boolcount = 0;
             final int length = fieldInfo.length;
             int j = 0;
-            for (;; j++) {
-                if ( j == length ) {
-                    if ( boolcount > 0 ) {
-                        codec.writeFByte(booleanMask << (8 - boolcount));
+            if ( ! codec.isWritingAttributes() ) {
+                for (;; j++) {
+                    if ( j == length ) {
+                        if ( boolcount > 0 ) {
+                            codec.writeFByte(booleanMask << (8 - boolcount));
+                        }
+                        break;
                     }
-                    break;
-                }
-                final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                if ( subInfo.getIntegralType() != subInfo.BOOL ) {
-                    if ( boolcount > 0 ) {
-                        codec.writeFByte(booleanMask << (8 - boolcount));
+                    final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
+                    if ( subInfo.getIntegralType() != subInfo.BOOL ) {
+                        if ( boolcount > 0 ) {
+                            codec.writeFByte(booleanMask << (8 - boolcount));
+                        }
+                        break;
+                    } else {
+                        if ( boolcount == 8 ) {
+                            codec.writeFByte(booleanMask << (8 - boolcount));
+                            boolcount = 0; booleanMask = 0;
+                        }
+                        boolean booleanValue = subInfo.getBooleanValue( toWrite);
+                        booleanMask = booleanMask<<1;
+                        booleanMask = (booleanMask|(booleanValue?1:0));
+                        boolcount++;
                     }
-                    break;
-                } else {
-                    if ( boolcount == 8 ) {
-                        codec.writeFByte(booleanMask << (8 - boolcount));
-                        boolcount = 0; booleanMask = 0;
-                    }
-                    boolean booleanValue = subInfo.getBooleanValue( toWrite);
-                    booleanMask = booleanMask<<1;
-                    booleanMask = (booleanMask|(booleanValue?1:0));
-                    boolcount++;
                 }
             }
             for (int i = j; i < length; i++)
@@ -519,6 +521,8 @@ public class FSTObjectOutput implements ObjectOutput {
                     // speed safe
                     int integralType = subInfo.getIntegralType();
                     switch (integralType) {
+                        case FSTClazzInfo.FSTFieldInfo.BOOL:
+                            codec.writeFByte(subInfo.getBooleanValue(toWrite)?1:0); break;
                         case FSTClazzInfo.FSTFieldInfo.BYTE:
                             codec.writeFByte(subInfo.getByteValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.CHAR:

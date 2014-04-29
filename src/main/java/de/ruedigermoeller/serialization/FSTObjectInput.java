@@ -597,6 +597,7 @@ public class FSTObjectInput implements ObjectInput {
                 if ( fieldInfo.isPrimitive() ) {
                     // direct primitive field
                     switch ( fieldInfo.getIntegralType() ) {
+                        case FSTClazzInfo.FSTFieldInfo.BOOL:   fieldInfo.setBooleanValue(newObj, codec.readFByte() == 0 ? false:true); break;
                         case FSTClazzInfo.FSTFieldInfo.BYTE:   fieldInfo.setByteValue(newObj, codec.readFByte()); break;
                         case FSTClazzInfo.FSTFieldInfo.CHAR:   fieldInfo.setCharValue(newObj, codec.readFChar()); break;
                         case FSTClazzInfo.FSTFieldInfo.SHORT:  fieldInfo.setShortValue(newObj, codec.readFShort()); break;
@@ -703,7 +704,7 @@ public class FSTObjectInput implements ObjectInput {
             if ( ! referencee.isFlat() )
                 objects.registerObjectForRead(array, pos );
             if (arrCl.getComponentType().isPrimitive()) {
-                codec.readFPrimitiveArray(array, arrType,len);
+                return codec.readFPrimitiveArray(array, arrType,len);
             } else {
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {

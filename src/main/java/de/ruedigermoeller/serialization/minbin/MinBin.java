@@ -35,6 +35,7 @@ public class MinBin {
     public final static byte INT_64 = 0b0100;
     public final static byte TAG    = 0b0101; // top 5 bits contains tag id 
     public final static byte END    = 0b0110; // end marker 
+    public final static byte RESERV = 0b0111; // escape for future extension
 
     public final static byte UNSIGN_MASK = 0b01000; // int only
     public final static byte ARRAY_MASK = 0b10000;// int only, next item expected to be length
@@ -62,6 +63,7 @@ public class MinBin {
     public static final byte DOUBLE_ARR = 3;
     public static final byte FLOAT = 1;
     public static final byte FLOAT_ARR = 4;
+    public static final byte BOOL = 8;
 
     HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
     HashMap<Integer, TagSerializer> tag2Ser = new HashMap<>();
@@ -78,6 +80,7 @@ public class MinBin {
         registerTag(new MBTags.MBObjectTagSer());     // 5
         registerTag(new MBTags.MBSequenceTagSer());   // 6
         registerTag(nullTagSer);                      // 7
+        registerTag(new MBTags.BigBoolTagSer());      // 8
     }
 
     public void registerTag(TagSerializer ts) {

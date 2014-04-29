@@ -427,5 +427,10 @@ public class FSTStreamEncoder implements FSTEncoder {
     public void externalEnd(FSTClazzInfo clz) {
     }
 
+    @Override
+    public boolean isWritingAttributes() {
+        return false;
+    }
+
 }
 

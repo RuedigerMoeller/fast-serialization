@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.Boolean;
 
 import static org.junit.Assert.assertTrue;
 
@@ -37,8 +38,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class BasicFSTTest {
 
-    FSTObjectOutput out;
-    FSTObjectInput in;
+    protected FSTObjectOutput out;
+    protected FSTObjectInput in;
     
     @org.junit.Before
     public void setUp() throws Exception {
@@ -115,6 +116,7 @@ public class BasicFSTTest {
     static class BigNums implements Serializable {
 
         Boolean _aBoolean = false;
+        Boolean ugly[][] = {{true,false},null,{true,false}};
 
         Byte _aByte0 = -13;
         Object _aByte1 = Byte.MIN_VALUE;

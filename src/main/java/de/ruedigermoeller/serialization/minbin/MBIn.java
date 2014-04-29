@@ -109,27 +109,27 @@ public class MBIn {
      * read into preallocated array, allows to write to different type (e.g. boolean[] from byte[])
      * @param type type tag.
      * @param len
-     * @param result
+     * @param resultingArray
      * @return
      */
-    public Object readArrayRaw(byte type, int len, Object result) {
-        Class componentType = result.getClass().getComponentType();
+    public Object readArrayRaw(byte type, int len, Object resultingArray) {
+        Class componentType = resultingArray.getClass().getComponentType();
         for ( int i = 0; i < len; i++ ) {
             if ( componentType == boolean.class )
-                Array.setBoolean(result, i, readRawInt(type) == 0 ? false : true);
+                Array.setBoolean(resultingArray, i, readRawInt(type) == 0 ? false : true);
             else  if ( componentType == byte.class )
-                Array.setByte(result, i, (byte) readRawInt(type));
+                Array.setByte(resultingArray, i, (byte) readRawInt(type));
             else  if ( componentType == short.class )
-                Array.setShort(result, i, (short) readRawInt(type));
+                Array.setShort(resultingArray, i, (short) readRawInt(type));
             else  if ( componentType == char.class )
-                Array.setChar(result, i, (char) readRawInt(type));
+                Array.setChar(resultingArray, i, (char) readRawInt(type));
             else  if ( componentType == int.class )
-                Array.setInt(result, i, (int) readRawInt(type));
+                Array.setInt(resultingArray, i, (int) readRawInt(type));
             else  if ( componentType == long.class )
-                Array.setLong(result, i, readRawInt(type));
-            else throw new RuntimeException("unsupported array type "+result.getClass().getName());
+                Array.setLong(resultingArray, i, readRawInt(type));
+            else throw new RuntimeException("unsupported array type "+resultingArray.getClass().getName());
         }
-        return result;
+        return resultingArray;
     }
     
     public Object readTag( byte tag ) {

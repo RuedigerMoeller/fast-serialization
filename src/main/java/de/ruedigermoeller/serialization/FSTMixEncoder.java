@@ -236,14 +236,16 @@ public class FSTMixEncoder implements FSTEncoder {
                 throw new RuntimeException("not implemented");
             case FSTObjectOutput.STRING:
                 break; // ignore, header created by calling writeUTF
+            case FSTObjectOutput.BIG_BOOLEAN_FALSE:
+                out.writeTag(Boolean.FALSE);
+                break; // ignore, header created by writing long. FIXME: won't work
+            case FSTObjectOutput.BIG_BOOLEAN_TRUE:
+                out.writeTag(Boolean.TRUE);
+                break; // ignore, header created by writing long. FIXME: won't work
             case FSTObjectOutput.BIG_LONG:
                 break; // ignore, header created by writing long. FIXME: won't work
             case FSTObjectOutput.BIG_INT:
                 break; // ignore, header created by writing int. FIXME: won't work
-            case FSTObjectOutput.BIG_BOOLEAN_FALSE:
-                break; // ignore, header created by writing byte. FIXME: won't work
-            case FSTObjectOutput.BIG_BOOLEAN_TRUE:
-                break; // ignore, header created by writing byte. FIXME: won't work
             case FSTObjectOutput.ARRAY:
                 Class<?> clz = infoOrObject.getClass();
                 Class<?> componentType = clz.getComponentType();
@@ -283,29 +285,38 @@ public class FSTMixEncoder implements FSTEncoder {
             out.writeTag(MinBin.END_MARKER);
     }
 
+    @Override
+    public boolean isWritingAttributes() {
+        return true;
+    }
+
     static class MixTester implements Serializable {
-//        boolean x;
-//        double dda[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
-//        double d = 2334534.223434;
-//        String s = "Hallo";
-//        Object strOb = "StrObj";
-//        Integer bigInt = 234;
-//        Object obs[] = { 34,55d };
-//        int arr[] = {1,2,3,4,5,6};
-//        ArrayList l = new ArrayList();
-//        HashMap mp = new HashMap();
-//        short sh = 34;
-//        int in = 34234;
-//        boolean y;
-//        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
-//        int iiii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
+        boolean x;
+        double dda[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
+        double d = 2334534.223434;
+        String s = "Hallo";
+        Object strOb = "StrObj";
+        Integer bigInt = 234;
+        Object obs[] = { 34,55d };
+        int arr[] = {1,2,3,4,5,6};
+        ArrayList l = new ArrayList();
+        HashMap mp = new HashMap();
+        short sh = 34;
+        int in = 34234;
+        boolean y = true;
+        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
+        int iiii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
         Object iii = new int[][] {{1,2,3},{4,5,6}};
-//        Dimension dim[][][] = new Dimension[][][] {
-//            {
-//                { new Dimension(11,10) },
-//                { new Dimension(9,10), new Dimension(1666661,11) }
-//            }
-//        };
+        Dimension dim[][][] = new Dimension[][][] {
+            {
+                { new Dimension(11,10) },
+                { new Dimension(9,10), new Dimension(1666661,11) }
+            }
+        };
+        Boolean bigBa[][] = { {true,false,true},{true,false,true,true}};
+        boolean ba[] = {true,false,true};
+        Boolean b1a[] = {true,false,true};
+        Integer bia[][] = {{1,2,3}};
 
         public MixTester() {
 //            l.add("asdasd");

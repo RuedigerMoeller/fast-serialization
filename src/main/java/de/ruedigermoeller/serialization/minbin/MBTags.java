@@ -278,4 +278,20 @@ public class MBTags {
         }
     }
 
+    public static class BigBoolTagSer extends MinBin.TagSerializer {
+        @Override
+        public void writeTag(Object data, MBOut out) {
+            out.writeInt(MinBin.INT_8,((Boolean)data)?1:0);
+        }
+
+        @Override
+        public Object readTag(MBIn in) {
+            return in.readInt() == 0 ? Boolean.FALSE:Boolean.TRUE;
+        }
+
+        @Override
+        public Class getClassEncoded() {
+            return Boolean.class;
+        }
+    }
 }
