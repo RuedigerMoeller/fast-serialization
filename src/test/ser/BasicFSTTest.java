@@ -106,9 +106,9 @@ public class BasicFSTTest {
         Object _aLong0 =new long[] { -35435345l,3948573945l,3,4,-66,-127,-128 };
         Object _aFloat0 = new float[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
         Object _aDouble = new double[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
-        
-        Object mix[] = {new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} }, new byte[]{ -13,34, 127,3,23,5,0,11 }, 
-                null, 
+
+        Object mix[] = {new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} }, new byte[]{ -13,34, 127,3,23,5,0,11 },
+                null,
                 new Object[] {(byte)-1,(char)33333,(short)-12312,(int)123313,(long)293847293847l,null,(double)10.1233,(float)2345.234} };
         Object aRef1 = mix[0];
     }
@@ -116,7 +116,7 @@ public class BasicFSTTest {
     static class BigNums implements Serializable {
 
         Boolean _aBoolean = false;
-        Boolean ugly[][] = {{true,false},null,{true,false}};
+//        Boolean ugly[][] = {{true,false},null,{true,false}};
 
         Byte _aByte0 = -13;
         Object _aByte1 = Byte.MIN_VALUE;

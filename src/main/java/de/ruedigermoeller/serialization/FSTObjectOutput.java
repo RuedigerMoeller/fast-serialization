@@ -392,6 +392,8 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
             if (clazz.isArray()) {
+                if (codec.writeTag(ARRAY, toWrite, 0))
+                    return; // some codecs handle primitive arrays like an int
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
                 // handle write replace
@@ -659,14 +661,12 @@ public class FSTObjectOutput implements ObjectOutput {
             codec.writeFInt(-1);
             return;
         }
-        if (codec.writeTag(ARRAY, array, 0))
-            return; // some codecs handle primitive arrays like an int
         final int len = Array.getLength(array);
         Class<?> componentType = array.getClass().getComponentType();
         codec.writeClass(array.getClass());
         codec.writeFInt(len);
         if ( ! componentType.isArray() ) {
-            if ( componentType.isPrimitive() && array instanceof double[] == false && array instanceof float[] == false ) {
+            if (codec.isPrimitiveArray(array, componentType)) {
                 codec.writePrimitiveArray(array,0,len);
             } else { // objects
                 Object arr[] = (Object[])array;
@@ -690,6 +690,7 @@ public class FSTObjectOutput implements ObjectOutput {
             }
         }
     }
+
 
     public void writeStringUTF(String str) throws IOException {
         codec.writeStringUTF(str);

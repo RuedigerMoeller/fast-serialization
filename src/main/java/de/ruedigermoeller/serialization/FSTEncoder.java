@@ -74,4 +74,6 @@ public interface FSTEncoder {
     void externalEnd(FSTClazzInfo clz); // demarkls the end of an externalizable or classes with serializer registered
 
     boolean isWritingAttributes();
+
+    boolean isPrimitiveArray(Object array, Class<?> componentType);
 }

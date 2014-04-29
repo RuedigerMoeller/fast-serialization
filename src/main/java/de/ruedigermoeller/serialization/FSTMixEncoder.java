@@ -374,5 +374,8 @@ public class FSTMixEncoder implements FSTEncoder {
 
     }
 
+    public boolean isPrimitiveArray(Object array, Class<?> componentType) {
+        return componentType.isPrimitive() && array instanceof double[] == false && array instanceof float[] == false;
+    }
 
 }

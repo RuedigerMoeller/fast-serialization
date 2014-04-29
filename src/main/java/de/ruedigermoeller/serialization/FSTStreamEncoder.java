@@ -432,5 +432,9 @@ public class FSTStreamEncoder implements FSTEncoder {
         return false;
     }
 
+    public boolean isPrimitiveArray(Object array, Class<?> componentType) {
+        return componentType.isPrimitive();
+    }
+
 }
 

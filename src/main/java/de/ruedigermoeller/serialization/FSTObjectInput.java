@@ -713,7 +713,7 @@ public class FSTObjectInput implements ObjectInput {
                 }
             }
             return array;
-        } else {
+        } else { // multidim array
             Object array[] = (Object[]) Array.newInstance(arrType, len);
             if ( ! referencee.isFlat() ) {
                 objects.registerObjectForRead(array, pos);
