@@ -16,8 +16,15 @@ public class BasicMinBinTest extends BasicFSTTest {
         in = new FSTObjectInput(conf);
     }
 
-    @Override @Test
+    @Override
+    @Test
     public void testStrings() throws Exception {
         super.testStrings();
     }
+
+    @Test
+    public void testPrimitiveArray() throws Exception {
+        super.testPrimitiveArray();
+    }
+
 }

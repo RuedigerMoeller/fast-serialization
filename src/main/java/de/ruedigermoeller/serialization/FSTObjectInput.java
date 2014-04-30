@@ -349,8 +349,10 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws Exception {
-        if ( code == FSTObjectOutput.STRING ) { // faster than switch ..
-            return codec.readStringUTF();
+        if ( code == FSTObjectOutput.STRING ) { // faster than switch, note: currently string tag not used by all codecs ..
+            String res = codec.readStringUTF();
+            objects.registerObjectForRead(res, readPos);
+            return res;
         } else if ( code == FSTObjectOutput.ENUM ) {
             return instantiateEnum(referencee, readPos);
         } else if ( code == FSTObjectOutput.NULL ) {
@@ -364,7 +366,11 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[codec.readFByte()]; }
                 case FSTObjectOutput.NULL: { return null; }
-                case FSTObjectOutput.DIRECT_OBJECT: { return codec.getDirectObject(); }
+                case FSTObjectOutput.DIRECT_OBJECT: {
+                    Object directObject = codec.getDirectObject();
+                    objects.registerObjectForRead(directObject,readPos);
+                    return directObject;
+                }
                 case FSTObjectOutput.STRING: return codec.readStringUTF();
                 case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
                 case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
@@ -707,7 +713,7 @@ public class FSTObjectInput implements ObjectInput {
                 objects.registerObjectForRead(array, pos );
             if (arrCl.getComponentType().isPrimitive()) {
                 return codec.readFPrimitiveArray(array, arrType,len);
-            } else {
+            } else { // Object Array
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {
                     Object value = readObjectWithHeader(referencee);
@@ -730,7 +736,7 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     public void registerObject(Object o, int streamPosition, FSTClazzInfo info, FSTClazzInfo.FSTFieldInfo referencee) {
-        if ( ! objects.disabled && !referencee.isFlat() && ! info.isFlat() ) {
+        if ( ! objects.disabled && !referencee.isFlat() && (info == null || ! info.isFlat() ) ) {
             objects.registerObjectForRead(o, streamPosition);
         }
     }

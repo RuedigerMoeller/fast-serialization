@@ -86,37 +86,38 @@ public class BasicFSTTest {
 
     static class PrimitiveArray implements Serializable {
 
-        boolean aBoolean[] = {true,false};
-        byte aByte[] = { -13,34, 127,3,23,5,0,11 };
-        short aShort0[] = { -13345,345,25645,23,-424};
-        char aChar0[] = { 35345,2,3,345,345,345,34566};
-        int aInt0[] = { 348535,-34534345,348,127,126,128,129,-127,-126,-128,-129,34544,677576777,-347563453};
-        int aInt1[][] = { { 348535,-34534345,348 }, null, {34544,677576777,-347563453} };
-        long aLong0[] = { -35435345l,3948573945l,3,4,-66,-127,-128 };
-        float aFloat0[] = { -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
-        double aDouble[] = { -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
-        Object aRef = aLong0;
+//        boolean aBoolean[] = {true,false};
+//        byte aByte[] = { -13,34, 127,3,23,5,0,11 };
+//        short aShort0[] = { -13345,345,25645,23,-424};
+//        char aChar0[] = { 35345,2,3,345,345,345,34566};
+//        int aInt0[] = { 348535,-34534345,348,127,126,128,129,-127,-126,-128,-129,34544,677576777,-347563453};
+//        int aInt1[][] = { { 348535,-34534345,348 }, null, {34544,677576777,-347563453} };
+//        long aLong0[] = { -35435345l,3948573945l,3,4,-66,-127,-128 };
+//        float aFloat0[] = { -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
+//        double aDouble[] = { -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
+//        Object aRef = aLong0;
 
-        Object _aBoolean = new boolean[]{true,false};
-        Object _aByte = new byte[]{ -13,34, 127,3,23,5,0,11 };
-        Object _aShort0 = new short[]{ -13345,345,25645,23,-424};
-        Object _aChar0 = new char[]{ 35345,2,3,345,345,345,34566};
-        Object _aInt0 = new int[]{ 348535,-34534345,348,34544,677576777,-347563453};
-        Object _aInt1 = new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} };
-        Object _aLong0 =new long[] { -35435345l,3948573945l,3,4,-66,-127,-128 };
-        Object _aFloat0 = new float[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
-        Object _aDouble = new double[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
+//        Object _aBoolean = new boolean[]{true,false};
+//        Object _aByte = new byte[]{ -13,34, 127,3,23,5,0,11 };
+//        Object _aShort0 = new short[]{ -13345,345,25645,23,-424};
+//        Object _aChar0 = new char[]{ 35345,2,3,345,345,345,34566};
+//        Object _aInt0 = new int[]{ 348535,-34534345,348,34544,677576777,-347563453};
+//        Object _aInt1 = new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} };
+//        Object _aLong0 =new long[] { -35435345l,3948573945l,3,4,-66,-127,-128 };
+//        Object _aFloat0 = new float[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
+//        Object _aDouble = new double[]{ -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
 
-        Object mix[] = {new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} }, new byte[]{ -13,34, 127,3,23,5,0,11 },
-                null,
-                new Object[] {(byte)-1,(char)33333,(short)-12312,(int)123313,(long)293847293847l,null,(double)10.1233,(float)2345.234} };
-        Object aRef1 = mix[0];
+        Object mix[] = { null, new int[][]{ { 348535,-34534345,348 }, null, {34544,677576777,-347563453} }, new byte[]{ -13,34, 127,3,23,5,0,11 },
+//                null,
+//                new Object[] {(byte)-1,(char)33333,(short)-12312,(int)123313,(long)293847293847l,null,(double)10.1233,(float)2345.234}
+        };
+//        Object aRef1 = mix[0];
     }
 
     static class BigNums implements Serializable {
 
         Boolean _aBoolean = false;
-//        Boolean ugly[][] = {{true,false},null,{true,false}};
+        Boolean ugly[][] = {{true,false},null,{true,false}};
 
         Byte _aByte0 = -13;
         Object _aByte1 = Byte.MIN_VALUE;
@@ -129,6 +130,7 @@ public class BasicFSTTest {
         Character _aChar0 = 35345;
         Object _aChar1 = Character.MIN_VALUE;
         Character _aChar2 = Character.MAX_VALUE;
+
 
         Integer _aInt0 = 35345;
         Object _aInt1 = Integer.MIN_VALUE;
@@ -152,9 +154,9 @@ public class BasicFSTTest {
     }
     
     static class Strings implements Serializable {
-//        String empty = "";
-//        String nil = null;
-//        String asc = "qpowerijdsfjgkdfg3409589275458965412354doigfoi-.,#+";
+        String empty = "";
+        String nil = null;
+        String asc = "qpowerijdsfjgkdfg3409589275458965412354doigfoi-.,#+";
         String junk = "ÄÖÜÄß";
         String aputin = "диноросс Роберт Шлегель предлагает смягчить «антипиратский» закон ко второму чтении, в частности блокировать ссылки с нелегальным видео не по IP, а по URL-адресам. Профильному думскому комитету предстоит выбор между двумя противоположными поправками, предусматривающими распространение закона либо только на кино, либо на все произведения искусства. Эксперты уверены, что новация приведет к снижению потребления легального, а не контрафактного контента.";
         String junk1 = junk;
@@ -179,8 +181,8 @@ public class BasicFSTTest {
         out.flush();
         PrimitiveArray res = (PrimitiveArray) in.readObject();
         assertTrue(DeepEquals.deepEquals(obj,res));
-        assertTrue(res.aLong0 == res.aRef);
-        assertTrue(res.aRef1 == res.mix[0]);
+//        assertTrue(res.aLong0 == res.aRef);
+//        assertTrue(res.aRef1 == res.mix[0]);
     }
 
     @Test
