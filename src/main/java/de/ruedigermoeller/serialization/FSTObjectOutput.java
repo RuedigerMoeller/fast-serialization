@@ -385,8 +385,8 @@ public class FSTObjectOutput implements ObjectOutput {
                     final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
                     if ( isIdentical ) {
 //                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
-                        codec.writeTag(HANDLE,null,handle, toWrite);
-                        codec.writeFInt(handle);
+                        if ( ! codec.writeTag(HANDLE,null,handle, toWrite) )
+                            codec.writeFInt(handle);
                         return;
                     }
                 }
@@ -705,7 +705,11 @@ public class FSTObjectOutput implements ObjectOutput {
                 Object subArr = arr[i];
                 boolean needsWrite = true;
                 if ( codec.isTagMultiDimSubArrays() ) {
-                    needsWrite = !codec.writeTag(ARRAY, subArr, 0, subArr);
+                    if ( subArr == null ) {
+                        needsWrite = !codec.writeTag(NULL, null, 0, null);
+                    } else {
+                        needsWrite = !codec.writeTag(ARRAY, subArr, 0, subArr);
+                    }
                 }
                 if ( needsWrite )
                     writeArray(ref1, subArr);

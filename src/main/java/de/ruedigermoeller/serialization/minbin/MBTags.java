@@ -1,5 +1,7 @@
 package de.ruedigermoeller.serialization.minbin;
 
+import de.ruedigermoeller.serialization.minbin.MinBin.*;
+
 import java.util.Iterator;
 
 /**
@@ -292,6 +294,23 @@ public class MBTags {
         @Override
         public Class getClassEncoded() {
             return Boolean.class;
+        }
+    }
+
+    public static class RefTagSer extends TagSerializer {
+        @Override
+        public void writeTag(Object data, MBOut out) {
+            out.writeInt(MinBin.INT_32, ((Number)data).intValue());
+        }
+
+        @Override
+        public Object readTag(MBIn in) {
+            return (int)in.readInt();
+        }
+
+        @Override
+        public Class getClassEncoded() {
+            return null;
         }
     }
 }

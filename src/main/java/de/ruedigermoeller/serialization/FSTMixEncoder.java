@@ -205,9 +205,13 @@ public class FSTMixEncoder implements FSTEncoder {
     @Override
     public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite) throws IOException {
         switch (tag) {
+            case FSTObjectOutput.HANDLE:
+                out.writeTagHeader(MinBin.HANDLE);
+                out.writeInt(MinBin.INT_32,somValue);
+                return true;
             case FSTObjectOutput.NULL:
                 out.writeTag(null);
-                break;
+                return true;
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
                 FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
@@ -313,7 +317,7 @@ public class FSTMixEncoder implements FSTEncoder {
     static class BigNums implements Serializable {
 
         Boolean _aBoolean = false;
-//        Boolean ugly[][] = {{true,false},null,{true,false}};
+        Boolean ugly[][] = {{true,false},null,{true,false}};
 
         Byte _aByte0 = -13;
         Object _aByte1 = Byte.MIN_VALUE;
@@ -326,7 +330,7 @@ public class FSTMixEncoder implements FSTEncoder {
         Character _aChar0 = 35345;
         Object _aChar1 = Character.MIN_VALUE;
         Character _aChar2 = Character.MAX_VALUE;
-//
+
         Integer _aInt0 = 35345;
         Object _aInt1 = Integer.MIN_VALUE;
         Integer _aInt2 = Integer.MAX_VALUE;
@@ -335,9 +339,9 @@ public class FSTMixEncoder implements FSTEncoder {
         Object _aLong1 = Long.MIN_VALUE;
         Long _aLong2 = Long.MAX_VALUE;
 
-//        Float _aFloat0 = 123.66f;
-//        Object _aFloat1 = Float.MIN_VALUE;
-//        Float _aFloat2 = Float.MAX_VALUE;
+        Float _aFloat0 = 123.66f;
+        Object _aFloat1 = Float.MIN_VALUE;
+        Float _aFloat2 = Float.MAX_VALUE;
 
         Double _aDouble0 = 123.66d;
         Object _aDouble1 = Double.MIN_VALUE;

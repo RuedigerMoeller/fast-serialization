@@ -229,6 +229,10 @@ public class FSTMixDecoder implements FSTDecoder {
         byte tag = input.peekIn();
         lastDirectClass = null;
         if ( MinBin.isTag(tag) ) {
+            if ( MinBin.getTagId(tag) == MinBin.HANDLE ) {
+                input.readIn(); // consume
+                return FSTObjectOutput.HANDLE;
+            }
             if ( MinBin.getTagId(tag) == MinBin.STRING )
                 return FSTObjectOutput.STRING;
             if ( MinBin.getTagId(tag) == MinBin.BOOL ) {
@@ -238,7 +242,7 @@ public class FSTMixDecoder implements FSTDecoder {
             if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
                     MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
                     MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
-                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR
+                    MinBin.getTagId(tag) == MinBin.FLOAT
             )
             {
                 lastReadDirectObject = input.readObject();
@@ -327,9 +331,13 @@ public class FSTMixDecoder implements FSTDecoder {
 
     @Override
     public Class readArrayHeader() throws IOException, ClassNotFoundException, Exception {
+        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
+        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
+            input.readIn();
+            return null;
+        }
         if ( lastDirectClass != null )
             return readClass().getClazz();
-        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
         if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
             input.readIn(); // consume (multidim array)
         } else if ( MinBin.isPrimitive(tag) ) {

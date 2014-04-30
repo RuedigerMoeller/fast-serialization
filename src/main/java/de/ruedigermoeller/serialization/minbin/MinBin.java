@@ -56,6 +56,7 @@ public class MinBin {
     public static byte extractNumBytes(byte type) { return (byte) (1 << ((type & 0b111)-1)); }
 
     // predefined tag id's
+    public static final byte NULL = 7;
     public static final byte STRING = 0;
     public static final byte OBJECT = 5;
     public static final byte SEQUENCE = 6;
@@ -64,6 +65,7 @@ public class MinBin {
     public static final byte FLOAT = 1;
     public static final byte FLOAT_ARR = 4;
     public static final byte BOOL = 8;
+    public static final byte HANDLE = 9;
 
     HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
     HashMap<Integer, TagSerializer> tag2Ser = new HashMap<>();
@@ -81,6 +83,7 @@ public class MinBin {
         registerTag(new MBTags.MBSequenceTagSer());   // 6
         registerTag(nullTagSer);                      // 7
         registerTag(new MBTags.BigBoolTagSer());      // 8
+        registerTag(new MBTags.RefTagSer());          // 9
     }
 
     public void registerTag(TagSerializer ts) {
@@ -88,7 +91,8 @@ public class MinBin {
     }
     public void registerTag(Class clazz,TagSerializer ts) {
         ts.setTagId(tagCount++);
-        clz2Ser.put(clazz,ts);
+        if ( clazz != null )
+            clz2Ser.put(clazz,ts);
         tag2Ser.put(ts.getTagId(),ts);
     }
 

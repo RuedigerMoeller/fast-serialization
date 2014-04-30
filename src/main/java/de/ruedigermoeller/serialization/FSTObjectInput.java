@@ -588,7 +588,7 @@ public class FSTObjectInput implements ObjectInput {
         int count = 0;
         while( count < len ) {
             name=codec.readStringUTF();
-            System.out.println("read name "+name);
+//            System.out.println("read name "+name);
             count++;
             FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name,null);
             if ( fieldInfo == null ) {
@@ -690,6 +690,8 @@ public class FSTObjectInput implements ObjectInput {
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
         int pos = codec.getInputPos();
         Class arrCl = codec.readArrayHeader();
+        if ( arrCl == null )
+            return null;
         return readArrayNoHeader(referencee, pos, arrCl);
     }
 
