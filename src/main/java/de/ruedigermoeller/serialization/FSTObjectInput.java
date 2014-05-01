@@ -368,6 +368,17 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.DIRECT_OBJECT: {
                     Object directObject = codec.getDirectObject();
+                    if (directObject.getClass() == byte[].class) { // fixme. special for minibin, move it there
+                        if ( referencee != null && referencee.getType() == boolean[].class )
+                        {
+                            byte[] ba = (byte[]) directObject;
+                            boolean res[] = new boolean[ba.length];
+                            for (int i = 0; i < res.length; i++) {
+                                res[i] = ba[i] != 0;
+                            }
+                            directObject = res;
+                        }
+                    }
                     objects.registerObjectForRead(directObject,readPos);
                     return directObject;
                 }
@@ -603,7 +614,7 @@ public class FSTObjectInput implements ObjectInput {
                 if ( fieldInfo.isPrimitive() ) {
                     // direct primitive field
                     switch ( fieldInfo.getIntegralType() ) {
-                        case FSTClazzInfo.FSTFieldInfo.BOOL:   fieldInfo.setBooleanValue(newObj, codec.readFByte() == 0 ? false:true); break;
+                        case FSTClazzInfo.FSTFieldInfo.BOOL:   fieldInfo.setBooleanValue(newObj, codec.readFByte() == 0 ? false : true); break;
                         case FSTClazzInfo.FSTFieldInfo.BYTE:   fieldInfo.setByteValue(newObj, codec.readFByte()); break;
                         case FSTClazzInfo.FSTFieldInfo.CHAR:   fieldInfo.setCharValue(newObj, codec.readFChar()); break;
                         case FSTClazzInfo.FSTFieldInfo.SHORT:  fieldInfo.setShortValue(newObj, codec.readFShort()); break;

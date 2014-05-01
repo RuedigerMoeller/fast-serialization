@@ -262,6 +262,8 @@ public class FSTMixDecoder implements FSTDecoder {
                     return FSTObjectOutput.OBJECT; // with serializer
                 }
             }
+            if (MinBin.getTagId(tag)==MinBin.NULL)
+                return FSTObjectOutput.NULL;
             return FSTObjectOutput.OBJECT;
         }
         lastReadDirectObject = input.readObject();
@@ -330,10 +332,11 @@ public class FSTMixDecoder implements FSTDecoder {
     }
 
     @Override
-    public Class readArrayHeader() throws IOException, ClassNotFoundException, Exception {
+    public Class readArrayHeader() throws Exception {
         byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
         if ( MinBin.getTagId(tag) == MinBin.NULL ) {
             input.readIn();
+            lastDirectClass = null;
             return null;
         }
         if ( lastDirectClass != null )

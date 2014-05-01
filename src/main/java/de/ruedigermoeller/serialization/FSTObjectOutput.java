@@ -691,11 +691,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 for ( int i = 0; i < len; i++ )
                 {
                     Object toWrite = arr[i];
-                    if ( toWrite == null ) {
-                        codec.writeTag(NULL, null, 0, toWrite);
-                    } else {
-                        writeObjectWithContext(referencee, toWrite);
-                    }
+                    writeObjectWithContext(referencee, toWrite);
                 }
             }
         } else { // multidim array. FIXME shared refs to subarrays are not tested !!!
