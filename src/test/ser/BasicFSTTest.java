@@ -4,6 +4,8 @@ import com.cedarsoftware.util.DeepEquals;
 import de.ruedigermoeller.serialization.FSTConfiguration;
 import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
+import de.ruedigermoeller.serialization.minbin.MBPrinter;
+import de.ruedigermoeller.serialization.minbin.MinBin;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -206,11 +208,15 @@ public class BasicFSTTest {
     public void testSimpleCollections() throws Exception {
         HashMap obj = new HashMap();
         ArrayList li = new ArrayList(); li.add("zero"); li.add("second");
-        obj.put("x",li);
-        obj.put("y",li);
+        obj.put("x", li);
+        obj.put("y", li);
         obj.put(3,"99999");
         out.writeObject(obj);
-        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+
+        MBPrinter.printMessage(out.getBuffer(), System.out);
+
+        final byte[] copyOfWrittenBuffer = out.getCopyOfWrittenBuffer();
+        in.resetForReuseUseArray(copyOfWrittenBuffer);
         out.flush();
         HashMap res = (HashMap) in.readObject();
         assertTrue(res.get("x") == res.get("y"));

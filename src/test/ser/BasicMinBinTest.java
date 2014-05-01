@@ -27,4 +27,9 @@ public class BasicMinBinTest extends BasicFSTTest {
         super.testPrimitiveArray();
     }
 
+    @Test
+    public void testSimpleCollections() throws Exception {
+        super.testSimpleCollections();
+    }
+
 }

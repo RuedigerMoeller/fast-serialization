@@ -400,7 +400,16 @@ public class FSTMixEncoder implements FSTEncoder {
                 { "int[3]", int[][][].class.getName() },
         } );
         FSTObjectOutput out = new FSTObjectOutput(conf);
-        out.writeObject(new BigNums());
+
+        HashMap obj = new HashMap();
+        ArrayList li = new ArrayList(); li.add("zero"); li.add("second");
+        obj.put("x", li);
+//        obj.put("in", new int[]{1,2,3,4});
+//        obj.put("y", li);
+        obj.put(4,"99999");
+
+        out.writeObject(obj);
+//        out.writeObject(new BigNums());
 //        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
