@@ -44,14 +44,16 @@ public class FSTMixDecoder implements FSTDecoder {
     @Override
     public String readStringUTF() throws IOException {
         Object read = input.readObject();
-        if ( read instanceof String )
+        if (read instanceof String)
             return (String) read;
         // in case preceding atom has been consumed b[] => str 8 char[] => str 16;
-        if ( read instanceof byte[] ) {
-            return new String((byte[])read,0,0,((byte[]) read).length);
-        } else if ( read instanceof char[] ) {
-            return new String((char[])read,0,((char[]) read).length);
-        } else if ( read == MinBin.END_MARKER )
+        if (read instanceof byte[]) {
+            return new String((byte[]) read, 0, 0, ((byte[]) read).length);
+        } else if (read instanceof char[]) {
+            return new String((char[]) read, 0, ((char[]) read).length);
+        } else if (read == MinBin.END_MARKER) {
+            return null;
+        } else if ( read == null )
             return null;
         throw new RuntimeException("Expected String, byte[], char[] or tupel end");
     }

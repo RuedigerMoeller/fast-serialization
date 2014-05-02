@@ -282,6 +282,9 @@ public class FSTObjectInput implements ObjectInput {
 
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
+        if ( conf.isCrossPlatform() ) {
+            return readObjectInternal(null); // not supported cross platform
+        }
         try {
             if (possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {

@@ -261,6 +261,9 @@ public class FSTObjectOutput implements ObjectOutput {
     
     public void writeObject(Object obj, Class... possibles) throws IOException {
         curDepth++;
+        if ( conf.isCrossPlatform() ) {
+            writeObjectInternal(obj, null); // not supported cross platform
+        }
         if ( possibles != null && possibles.length > 1 ) {
             for (int i = 0; i < possibles.length; i++) {
                 Class possible = possibles[i];

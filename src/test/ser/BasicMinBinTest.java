@@ -39,6 +39,9 @@ public class BasicMinBinTest extends BasicFSTTest {
     }
 
     @Test
+    public void testException() throws Exception { super.testException(); }
+
+        @Test
     public void testEnums() throws Exception {
         Basics obj = new Basics(123);
         out.writeObject(obj);

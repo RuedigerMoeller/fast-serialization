@@ -115,6 +115,7 @@ public final class FSTConfiguration {
         // override some serializers
         FSTSerializerRegistry reg = res.serializationInfoRegistry.serializerRegistry;
         reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
+        reg.putSerializer(Throwable.class, new FSTCPThrowableSerializer(), true);
 
         res.registerCrossPlatformClassMapping(new String[][]{
                 {"map", HashMap.class.getName()},

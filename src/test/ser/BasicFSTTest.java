@@ -232,6 +232,29 @@ public class BasicFSTTest {
     }
 
     @Test
+    public void testException() throws Exception {
+        Object exceptions[] = {
+                null, new Exception("test"), new ArrayIndexOutOfBoundsException(), new RuntimeException(new IllegalArgumentException("Blub"))
+        };
+        try {
+            throw new IOException();
+        } catch (Exception ex) {
+            exceptions[0] = ex;
+        }
+        out.writeObject(exceptions);
+        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+        out.flush();
+        Object res[] = (Object[]) in.readObject();
+//        assertTrue(DeepEquals.deepEquals(obj,res));
+        for (int i = 0; i < res.length; i++) {
+            Object ex = res[i];
+            String message = ((Throwable) exceptions[i]).getMessage();
+            String message1 = ((Throwable) ex).getMessage();
+            assertTrue(DeepEquals.deepEquals(message,message1));
+        }
+    }
+
+    @Test
     public void testEnums() throws Exception {
         Basics obj = new Basics(123);
         out.writeObject(obj);

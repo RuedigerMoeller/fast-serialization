@@ -4,12 +4,17 @@ import de.ruedigermoeller.serialization.minbin.MBOut;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import de.ruedigermoeller.serialization.minbin.MinBin;
 
+import javax.swing.text.html.StyleSheet;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 
 /**
@@ -331,83 +336,146 @@ public class FSTMixEncoder implements FSTEncoder {
         return true;
     }
 
-    static class BigNums implements Serializable {
 
-        Boolean _aBoolean = false;
-        Boolean ugly[][] = {{true,false},null,{true,false}};
+    /**
+     * Created with IntelliJ IDEA.
+     * User: ruedi
+     * Date: 12.11.12
+     * Time: 03:13
+     * To change this template use File | Settings | File Templates.
+     */
+    public static class Primitives implements Serializable {
 
-        Byte _aByte0 = -13;
-        Object _aByte1 = Byte.MIN_VALUE;
-        Byte _aByte2 = Byte.MAX_VALUE;
+        String hidden;
 
-        Short _aShort0 = -1334;
-        Object _aShort1 = Short.MIN_VALUE;
-        Short _aShort2 = Short.MAX_VALUE;
-
-        Character _aChar0 = 35345;
-        Object _aChar1 = Character.MIN_VALUE;
-        Character _aChar2 = Character.MAX_VALUE;
-
-        Integer _aInt0 = 35345;
-        Object _aInt1 = Integer.MIN_VALUE;
-        Integer _aInt2 = Integer.MAX_VALUE;
-
-        Long _aLong0 = -34564567l;
-        Object _aLong1 = Long.MIN_VALUE;
-        Long _aLong2 = Long.MAX_VALUE;
-
-        Float _aFloat0 = 123.66f;
-        Object _aFloat1 = Float.MIN_VALUE;
-        Float _aFloat2 = Float.MAX_VALUE;
-
-        Double _aDouble0 = 123.66d;
-        Object _aDouble1 = Double.MIN_VALUE;
-        Double _aDouble2 = Double.MAX_VALUE;
-    }
-    
-    static class MixTester implements Serializable {
-        boolean x;
-        double dda[] = {1112323.342,11234,-11234,114234.3,11234443453.1};
-        double d = 2334534.223434;
-        String s = "Hallo";
-        Object strOb = "StrObj";
-        Integer bigInt = 234;
-        Object obs[] = { 34,55d };
-        int arr[] = {1,2,3,4,5,6};
-        ArrayList l = new ArrayList();
-        HashMap mp = new HashMap();
-        short sh = 34;
-        int in = 34234;
-        boolean y = true;
-        Dimension _da[] = {new Dimension(1,2),new Dimension(3,4)};
-        int iiii[][][] = new int[][][] { { {1,2,3}, {4,5,6} }, { {7,8,9}, {10,11,12} } };
-        Object iii = new int[][] {{1,2,3},{4,5,6}};
-        Dimension dim[][][] = new Dimension[][][] {
-            {
-                { new Dimension(11,10) },
-                { new Dimension(9,10), new Dimension(1666661,11) }
+        public enum SpecialEnum {
+            ONE() {
+                public void run() {
+                    System.out.println("One");
+                }
+            },
+            TWO() {
+                public void run() {
+                    System.out.println("One");
+                }
+            },
+            THREE() {
+                public void run() {
+                    System.out.println("One");
+                }
             }
-        };
-        Boolean bigBa[][] = { {true,false,true},{true,false,true,true}};
-        boolean ba[] = {true,false,true};
-        Boolean b1a[] = {true,false,true};
-        Integer bia[][] = {{1,2,3}};
+            ;
 
-        public MixTester() {
-            l.add("asdasd");
-            l.add(3425);
-            l.add(new Rectangle(1,2,3,4));
-            mp.put("name", 9999);
-            mp.put(349587, "number");
-            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
+            public abstract void run();
+            SpecialEnum() {};
         }
+
+        public enum SampleEnum {
+            None("","None",0),
+            Complete("C","Complete",1),
+            Complete_GiveUp_Allowed("D","Complete Give-Up Allowed",2),
+            Complete_Position_Transaction_Allowed("E","Complete Position Transaction Allowed",3),
+            Designated("G","Designated",4),
+            Predesignated("P","Predesignated",5),
+            Predesignated_GiveUp_Allowed("Q","Predesignated Give-Up Allowed",6),
+            Predesignated_Position_Transaction_Allowed("R","Predesignated Position Transaction Allowed",7),
+            GiveUp_Allowed("X","Give-Up Allowed",8),
+            Position_Transaction_Allowed("Y","Position Transaction Allowed",9);
+
+            String value;
+            String stringRepresentation;
+            int nativeEnumValue;
+
+            SampleEnum(String value, String stringRepresentation, int nativeEnumValue)
+            {
+                this.value=value;
+                this.stringRepresentation = stringRepresentation;
+                this.nativeEnumValue = nativeEnumValue;
+            }
+        }
+
+        char w = 234, x = 33344;
+        byte y = -34, z = 126;
+        short sh0 = 127;
+
+        SpecialEnum specEn = SpecialEnum.TWO;
+
+        int gg = -122;
+        int zz = 99999;
+        int ii = -23424;
+        int jj = 0;
+        int kk = Integer.MIN_VALUE;
+        int hh = Integer.MAX_VALUE;
+
+        long lll = 123;
+        long mmm = 99999;
+
+        double dq = 300.0;
+        float t = 300.0f;
+
+        boolean a0 = true;
+        boolean a1 = false;
+        boolean a2 = false;
+        boolean a3 = true;
+
+        Integer i0 = 1, i1 = 2, i3 = 23894, i4 = 238475638;
+        Double  d1 = 2334234.0;
+        Boolean bol1 = Boolean.TRUE;
+        Boolean bol2 = new Boolean(false);
+
+        Date date = new Date(1);
+        Date date1 = new Date(2);
+
+        SampleEnum en1 = SampleEnum.Predesignated_GiveUp_Allowed;
+        EnumSet<SampleEnum> enSet = EnumSet.of(SampleEnum.Predesignated,SampleEnum.Complete);
+
+        String st;
+
+        String st1;
+        String st2;
+        String st3;
+        String st4;
+        String st5;
+        String st6;
+        String st7;
+
+        StyleSheet on = null;
+        URL on1 = null;
+        File on2 = null;
+
+// commented this and moved to FST test cases as this is not a performance test but a test for feature completeness
+//    Object exceptions[] = {
+//        null, new Exception("test"), new ArrayIndexOutOfBoundsException(), new RuntimeException(new IllegalArgumentException("Blub"))
+//    };
+
+        public Primitives() {
+        }
+
+        public Primitives(int num) {
+            st = "String"+num+"äöü";
+            st1 = "String1"+num;
+            st2 = st+"1"+num;
+            hidden = "Visible";
+            st3 = "visible its a hurdle this may be its a hurdle "+num;
+            st4 = "etwas deutsch läuft.. ";
+            st5 = st+"1"+num;
+            st6 = "Some english, text; fragment. "+num;
+            st7 = st6+" paokasd 1";
+// see comments above
+//        try {
+//            throw new IOException();
+//        } catch (Exception ex) {
+//            exceptions[0] = ex;
+//        }
+        }
+
     }
 
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
 
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
-                { "mixtest", MixTester.class.getName() },
+                { "mixtest", Primitives.class.getName() },
                 { "rect", Rectangle.class.getName() },
                 { "dim", Dimension.class.getName() },
                 { "dim[3]", Dimension[][][].class.getName() },
@@ -426,7 +494,8 @@ public class FSTMixEncoder implements FSTEncoder {
         obj.put(4,"99999");
 
 //        out.writeObject(obj);
-        out.writeObject(new MixTester());
+        Primitives obj1 = new Primitives(13);
+        out.writeObject(obj1);
 //        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
