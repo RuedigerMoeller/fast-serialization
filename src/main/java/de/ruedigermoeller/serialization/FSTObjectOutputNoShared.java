@@ -29,6 +29,7 @@ import java.io.OutputStream;
  * Additionally JDK compatibility is not supported (read/writeObject and stuff). Use case is highperformance
  * serialization of plain cycle free data (e.g. messaging). Can perform significantly faster (20-40%).
  */
+// FIXME: needs adaption to 2.0
 public class FSTObjectOutputNoShared extends FSTObjectOutput {
 
     /**
