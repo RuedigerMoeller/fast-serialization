@@ -356,22 +356,23 @@ public class FSTObjectOutput implements ObjectOutput {
             } else if ( clazz == Boolean.class ) {
                 codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return;
             } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-                codec.writeTag(ENUM, toWrite, 0, toWrite);
-                boolean isEnumClass = toWrite.getClass().isEnum();
-                if ( ! isEnumClass ) {
-                    // weird stuff ..
-                    Class c = toWrite.getClass();
-                    while ( c != null && ! c.isEnum() ) {
-                        c = toWrite.getClass().getEnclosingClass();
+                if ( ! codec.writeTag(ENUM, toWrite, 0, toWrite) ) {
+                    boolean isEnumClass = toWrite.getClass().isEnum();
+                    if (!isEnumClass) {
+                        // weird stuff ..
+                        Class c = toWrite.getClass();
+                        while (c != null && !c.isEnum()) {
+                            c = toWrite.getClass().getEnclosingClass();
+                        }
+                        if (c == null) {
+                            throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
+                        }
+                        codec.writeClass(c);
+                    } else {
+                        codec.writeClass(getFstClazzInfo(referencee, toWrite.getClass()));
                     }
-                    if ( c == null ) {
-                        throw new RuntimeException("Can't handle this enum: "+toWrite.getClass());
-                    }
-                    codec.writeClass(c);
-                } else {
-                    codec.writeClass(getFstClazzInfo(referencee, toWrite.getClass()));
+                    codec.writeFInt(((Enum) toWrite).ordinal());
                 }
-                codec.writeFInt(((Enum) toWrite).ordinal());
                 return;
             }
 
@@ -393,9 +394,10 @@ public class FSTObjectOutput implements ObjectOutput {
             }
             if (clazz.isArray()) {
                 if (codec.writeTag(ARRAY, toWrite, 0, toWrite))
-                    return; // some codecs handle primitive arrays like an int
+                    return; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
+                // default write object wihtout custom serializer
                 // handle write replace
                 if ( ! dontShare ) {
                     if ( serializationInfo.getWriteReplaceMethod() != null ) {
@@ -408,7 +410,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         if ( replaced != toWrite ) {
                             toWrite = replaced;
                             serializationInfo = getClassInfoRegistry().getCLInfo(toWrite.getClass());
-                            // fixme: update object map
+                            // fixme: update object map ?
                         }
                     }
                     // clazz uses some JDK special stuff (frequently slow)
@@ -417,13 +419,13 @@ public class FSTObjectOutput implements ObjectOutput {
                         return;
                     }
                 }
-                if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) {
+                if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
                     defaultWriteObject(toWrite, serializationInfo);
                 }
             } else {
                 // Object header (nothing written till here)
                 int pos = codec.getWritten();
-                if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) {
+                if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case code can write object as primitive
                     // write object depending on type (custom, externalizable, serializable/java, default)
                     ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
                     codec.externalEnd(serializationInfo);

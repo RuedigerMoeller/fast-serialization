@@ -17,29 +17,44 @@
  * MA 02110-1301  USA
  *
  */
-package de.ruedigermoeller.serialization;
+
+package de.ruedigermoeller.serialization.serializers;
+
+import de.ruedigermoeller.serialization.*;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.EnumSet;
 
 /**
  * Created with IntelliJ IDEA.
  * User: ruedi
  * Date: 11.11.12
- * Time: 12:09
- * To change this template use File | Settings | File Templates.
+ * Time: 04:09
+ *
+ * EnumSet Serializer for Cross Platform serialization. Writes full Strings instead of ordinals
+ *
  */
-public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerialzer {
+public class FSTCPEnumSetSerializer extends FSTBasicObjectSerializer {
 
-    protected FSTBasicObjectSerializer() {
-    }
-
+    Field elemType;
     @Override
-    public boolean willHandleClass(Class cl) {
-        return true;
-    }
-
-    @Override
-    public void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
+        EnumSet enset = (EnumSet) toWrite;
+        int count = 0;
+        out.writeInt(enset.size());
+        if ( enset.isEmpty() ) { //WTF only way to determine enumtype ..
+            EnumSet compl = EnumSet.complementOf(enset);
+            out.writeClassTag(compl.iterator().next().getClass());
+        } else {
+            for (Object element : enset) {
+                if ( count == 0 ) {
+                    out.writeStringUTF(element.getClass().getName());
+                }
+                out.writeStringUTF(element.toString());
+                count++;
+            }
+        }
     }
 
     /**
@@ -54,12 +69,14 @@ public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerial
 
     @Override
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        return null;
+        int len = in.readInt();
+        Class elemCl = in.getClassForName( in.readStringUTF() );
+        EnumSet enSet = EnumSet.noneOf(elemCl);
+        in.registerObject(enSet,streamPositioin,serializationInfo, referencee); // IMPORTANT, else tracking double objects will fail
+        for (int i = 0; i < len; i++) {
+            String val = in.readStringUTF();
+            enSet.add(Enum.valueOf(elemCl,val));
+        }
+        return enSet;
     }
-
-    public boolean writeTupleEnd() {
-        return true;
-    }
-
-
 }

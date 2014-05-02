@@ -33,33 +33,16 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 public class FSTMapSerializer extends FSTBasicObjectSerializer {
+
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         Map col = (Map)toWrite;
         out.writeInt(col.size());
         Class[] possibleClasses = referencedBy.getPossibleClasses();
-        if ( (possibleClasses == null || possibleClasses.length == 0) ) {
-            Class possibleKeys[] = {null};
-            Class possibleVals[] = {null};
-            for (Object o : col.entrySet()) {
-                Map.Entry next = (Map.Entry) o;
-                Object key = next.getKey();
-                Object value = next.getValue();
-                out.writeObjectInternal(key, possibleKeys);
-                out.writeObjectInternal(value, possibleVals);
-                if ( key != null ) {
-                    possibleKeys[0] = key.getClass();
-                }
-                if ( value != null ) {
-                    possibleVals[0] = value.getClass();
-                }
-            }
-        } else {
-            for (Iterator iterator = col.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry next = (Map.Entry) iterator.next();
-                out.writeObjectInternal(next.getKey(), possibleClasses);
-                out.writeObjectInternal(next.getValue(), possibleClasses);
-            }
+        for (Iterator iterator = col.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry next = (Map.Entry) iterator.next();
+            out.writeObjectInternal(next.getKey(), possibleClasses);
+            out.writeObjectInternal(next.getValue(), possibleClasses);
         }
     }
 
@@ -79,26 +62,10 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
         in.registerObject(res, streamPositioin,serializationInfo, referencee);
         Map col = (Map)res;
         Class[] possibleClasses = referencee.getPossibleClasses();
-        if ( (possibleClasses == null || possibleClasses.length == 0) ) {
-            Class possibleKeys[] = {null};
-            Class possibleVals[] = {null};
-            for ( int i = 0; i < len; i++ ) {
-                Object key = in.readObjectInternal(possibleKeys);
-                Object val = in.readObjectInternal(possibleVals);
-                if ( key != null ) {
-                    possibleKeys[0] = key.getClass();
-                }
-                if ( val != null ) {
-                    possibleVals[0] = val.getClass();
-                }
-                col.put(key,val);
-            }
-        } else {
-            for ( int i = 0; i < len; i++ ) {
-                Object key = in.readObjectInternal(possibleClasses);
-                Object val = in.readObjectInternal(possibleClasses);
-                col.put(key,val);
-            }
+        for ( int i = 0; i < len; i++ ) {
+            Object key = in.readObjectInternal(possibleClasses);
+            Object val = in.readObjectInternal(possibleClasses);
+            col.put(key,val);
         }
         return res;
     }

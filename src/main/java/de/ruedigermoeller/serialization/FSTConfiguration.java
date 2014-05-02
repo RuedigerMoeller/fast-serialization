@@ -59,7 +59,7 @@ public final class FSTConfiguration {
         }
     };
     
-    FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
+    FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry(this);
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false;
@@ -68,6 +68,7 @@ public final class FSTConfiguration {
     // contains symbol => full qualified name
     private HashMap<String, String> crossPlatformNames = new HashMap<>();
     private HashMap<String, String> crossPlatformNamesReverse = new HashMap<>();
+    private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
     public static Integer getInt(int i) {
         if ( i >= 0 && i < intObjects.length ) {
@@ -98,7 +99,8 @@ public final class FSTConfiguration {
 
     public static FSTConfiguration createCrossPlatformConfiguration() {
         final FSTConfiguration res = createDefaultConfiguration();
-        res.setStreamCoderFactory( new StreamCoderFactory() {
+        res.setCrossPlatform(true);
+        res.setStreamCoderFactory(new StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 return new FSTMixEncoder(res);
@@ -109,22 +111,29 @@ public final class FSTConfiguration {
                 return new FSTMixDecoder(res);
             }
         });
-        res.registerCrossPlatformClassMapping( new String[][] {
-                { "map", HashMap.class.getName() },
-                { "list", ArrayList.class.getName() },
-                { "long", Long.class.getName() },
-                { "integer", Integer.class.getName() },
-                { "short", Short.class.getName() },
-                { "byte", Byte.class.getName() },
-                { "char", Character.class.getName() },
-                { "float", Float.class.getName() },
-                { "double", Double.class.getName() },
-                { "array", "[Ljava.lang.Object;" },
-                { "Double[]", "[Ljava.lang.Double;" },
-                { "Float[]", "[Ljava.lang.Float;" },
-                { "double[]", "[D" },
-                { "float[]", "[F" }
-        } );
+
+        // override some serializers
+        FSTSerializerRegistry reg = res.serializationInfoRegistry.serializerRegistry;
+        reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
+
+        res.registerCrossPlatformClassMapping(new String[][]{
+                {"map", HashMap.class.getName()},
+                {"list", ArrayList.class.getName()},
+                {"long", Long.class.getName()},
+                {"integer", Integer.class.getName()},
+                {"short", Short.class.getName()},
+                {"byte", Byte.class.getName()},
+                {"char", Character.class.getName()},
+                {"float", Float.class.getName()},
+                {"double", Double.class.getName()},
+                {"date", Date.class.getName()},
+                {"enumSet", "java.util.RegularEnumSet" },
+                {"array", "[Ljava.lang.Object;"},
+                {"Double[]", "[Ljava.lang.Double;"},
+                {"Float[]", "[Ljava.lang.Float;"},
+                {"double[]", "[D"},
+                {"float[]", "[F"}
+        });
         return res;
     }
 
@@ -176,7 +185,7 @@ public final class FSTConfiguration {
         return streamCoderFactory;
     }
 
-    public void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
+    void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
         this.streamCoderFactory = streamCoderFactory;
     }
 
@@ -517,7 +526,15 @@ public final class FSTConfiguration {
         return getCLInfoRegistry().getCLInfo(rowClass);
     }
 
-    
+    public void setCrossPlatform(boolean crossPlatform) {
+        this.crossPlatform = crossPlatform;
+    }
+
+    public boolean isCrossPlatform() {
+        return crossPlatform;
+    }
+
+
     public static interface StreamCoderFactory {
         FSTEncoder createStreamEncoder();
         FSTDecoder createStreamDecoder();
@@ -533,7 +550,7 @@ public final class FSTConfiguration {
 
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     * @param keysAndVals
+     * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
      */
     public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
         for (int i = 0; i < keysAndVals.length; i++) {

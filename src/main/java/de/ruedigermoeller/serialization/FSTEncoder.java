@@ -78,4 +78,5 @@ public interface FSTEncoder {
     boolean isPrimitiveArray(Object array, Class<?> componentType);
 
     boolean isTagMultiDimSubArrays();
+
 }

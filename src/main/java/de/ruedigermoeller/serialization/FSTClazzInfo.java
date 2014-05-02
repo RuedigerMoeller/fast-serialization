@@ -89,7 +89,7 @@ public final class FSTClazzInfo {
 
     FSTClazzInfoRegistry reg;
 
-    public FSTClazzInfo(Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
+    public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
         reg = infoRegistry;
@@ -109,13 +109,6 @@ public final class FSTClazzInfo {
                 Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
                 if (annotation != null) {
                     predict = annotation.value();
-                } else { 
-                      //default predictions (disabled, no speedup)
-//                    if ( clazz == List.class ) {
-//                        predict = new Class[]{ArrayList.class};
-//                    } else if ( clazz == Map.class ) {
-//                        predict = new Class[]{HashMap.class};
-//                    }
                 }
                 flat = clazz.isAnnotationPresent(Flat.class);
             }
@@ -137,6 +130,8 @@ public final class FSTClazzInfo {
         }
 
         requiresInit = isExternalizable() || useCompatibleMode() || hasTransient;
+        if ( useCompatibleMode() && conf.isCrossPlatform() && getSer() == null && !clazz.isEnum() )
+            throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class "+clazz.getName() );
     }
 
     byte[] bufferedName;

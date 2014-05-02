@@ -1,7 +1,5 @@
 package de.ruedigermoeller.serialization.minbin;
 
-import de.ruedigermoeller.serialization.mix.Mix;
-
 import java.lang.reflect.Array;
 
 /**
@@ -24,7 +22,9 @@ import java.lang.reflect.Array;
 * <p/>
 * Date: 12.04.2014
 * Time: 22:10
-* To change this template use File | Settings | File Templates.
+ *
+ *
+* Input reader for minbin byte[]
 */
 public class MBIn {
 

@@ -213,8 +213,6 @@ public class BasicFSTTest {
         obj.put(3,"99999");
         out.writeObject(obj);
 
-        MBPrinter.printMessage(out.getBuffer(), System.out);
-
         final byte[] copyOfWrittenBuffer = out.getCopyOfWrittenBuffer();
         in.resetForReuseUseArray(copyOfWrittenBuffer);
         out.flush();
@@ -226,6 +224,16 @@ public class BasicFSTTest {
     @Test
     public void testBigNums() throws Exception {
         BigNums obj = new BigNums();
+        out.writeObject(obj);
+        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+        out.flush();
+        Object res = in.readObject();
+        assertTrue(DeepEquals.deepEquals(obj,res));
+    }
+
+    @Test
+    public void testEnums() throws Exception {
+        Basics obj = new Basics(123);
         out.writeObject(obj);
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();

@@ -41,7 +41,7 @@ public class FSTClazzInfoRegistry {
     boolean ignoreAnnotations = false;
     final AtomicBoolean rwLock = new AtomicBoolean(false);
     private boolean structMode = false;
-
+    FSTConfiguration conf;
 
     public static void addAllReferencedClasses(Class cl, ArrayList<String> names) {
         HashSet<String> names1 = new HashSet<String>();
@@ -115,7 +115,8 @@ public class FSTClazzInfoRegistry {
         }
     }
 
-    public FSTClazzInfoRegistry() {
+    public FSTClazzInfoRegistry(FSTConfiguration conf) {
+        this.conf = conf;
     }
 
     public FSTClazzInfo getCLInfo(Class c) {
@@ -126,7 +127,7 @@ public class FSTClazzInfoRegistry {
                 rwLock.set(false);
                 throw new NullPointerException("Class is null");
             }
-            res = new FSTClazzInfo(c, this, ignoreAnnotations);
+            res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
             mInfos.put( c, res );
         }
         rwLock.set(false);

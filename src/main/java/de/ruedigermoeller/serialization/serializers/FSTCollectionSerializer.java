@@ -82,16 +82,6 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
                 ((ArrayList)col).ensureCapacity(len);
             }
             Class[] possibleClasses = referencee.getPossibleClasses();
-//            if ( (possibleClasses == null || possibleClasses.length == 0) ) {
-//                possibleClasses = new Class[] {null};
-//                for ( int i = 0; i < len; i++ ) {
-//                    Object obj = in.readObjectInternal(possibleClasses);
-//                    col.add(obj);
-//                    if ( obj != null ) {
-//                        possibleClasses[0] = obj.getClass();
-//                    }
-//                }
-//            } else
             {
                 for ( int i = 0; i < len; i++ ) {
                     final Object o = in.readObjectInternal(possibleClasses);

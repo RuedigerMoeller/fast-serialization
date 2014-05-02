@@ -253,8 +253,15 @@ public class FSTMixDecoder implements FSTDecoder {
                 try {
                     lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName((String) input.readObject()));
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+                    FSTUtil.rethrow(e);
                 }
+                if ( lastDirectClass.isEnum() ) {
+                    input.readInt(); // consume length of 1
+                    String enumString = (String) input.readObject();
+                    lastReadDirectObject = Enum.valueOf(lastDirectClass,enumString);
+                    lastDirectClass = null;
+                    return FSTObjectOutput.DIRECT_OBJECT;
+                } else
                 if ( lastDirectClass.isArray() )
                     return FSTObjectOutput.ARRAY;
                 else {

@@ -6,6 +6,5 @@ package de.ruedigermoeller.serialization;
 public interface FSTCrossPlatformSerialzer extends FSTObjectSerializer {
 
     boolean writeTupleEnd();
-    boolean asMap();
 
 }

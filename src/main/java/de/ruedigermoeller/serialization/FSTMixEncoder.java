@@ -293,7 +293,24 @@ public class FSTMixEncoder implements FSTEncoder {
                 }
                 break;
             case FSTObjectOutput.ENUM:
-                throw new RuntimeException("not supported");
+                out.writeTagHeader(MinBin.SEQUENCE);
+                boolean isEnumClass = toWrite.getClass().isEnum();
+                Class c = toWrite.getClass();
+                if (!isEnumClass) {
+                    // weird stuff ..
+                    while (c != null && !c.isEnum()) {
+                        c = toWrite.getClass().getEnclosingClass();
+                    }
+                    if (c == null) {
+                        throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
+                    }
+                    out.writeTag(classToString(c));
+                } else {
+                    out.writeTag(classToString(c));
+                }
+                out.writeIntPacked(1);
+                out.writeObject(toWrite.toString());
+                return true;
             default:
                 throw new RuntimeException("unexpected tag "+tag);
         }
@@ -377,12 +394,12 @@ public class FSTMixEncoder implements FSTEncoder {
         Integer bia[][] = {{1,2,3}};
 
         public MixTester() {
-//            l.add("asdasd");
-//            l.add(3425);
-//            l.add(new Rectangle(1,2,3,4));
-//            mp.put("name", 9999);
-//            mp.put(349587, "number");
-//            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
+            l.add("asdasd");
+            l.add(3425);
+            l.add(new Rectangle(1,2,3,4));
+            mp.put("name", 9999);
+            mp.put(349587, "number");
+            mp.put(3497, new Dimension[] {new Dimension(0,0), new Dimension(1,1)} );
         }
     }
 
@@ -408,8 +425,8 @@ public class FSTMixEncoder implements FSTEncoder {
 //        obj.put("y", li);
         obj.put(4,"99999");
 
-        out.writeObject(obj);
-//        out.writeObject(new BigNums());
+//        out.writeObject(obj);
+        out.writeObject(new MixTester());
 //        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
@@ -428,4 +445,5 @@ public class FSTMixEncoder implements FSTEncoder {
     public boolean isTagMultiDimSubArrays() {
         return true;
     }
+
 }
