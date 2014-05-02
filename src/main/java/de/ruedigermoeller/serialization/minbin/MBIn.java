@@ -158,6 +158,9 @@ public class MBIn {
             }
             
         } else {
+            if ( MinBin.getTagId(type) == MinBin.HANDLE ) {
+                return new MBRef((Integer) readTag(readIn()));
+            }
             return readTag(readIn());
         }
     }
