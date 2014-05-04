@@ -5,6 +5,8 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class FSTStreamEncoder implements FSTEncoder {
 
@@ -29,11 +31,6 @@ public class FSTStreamEncoder implements FSTEncoder {
             writeFByte(arr[i] ? 1 : 0);
     }
 
-    void writeFLongArr(long[] arr, int off, int len) throws IOException {
-        for (int i = off; i < off+len; i++)
-            writeFLong(arr[i]);
-    }
-
     public void writeFFloatArr(float[] arr, int off, int len) throws IOException {
         for (int i = off; i < off+len; i++)
             writeFFloat(arr[i]);
@@ -54,9 +51,64 @@ public class FSTStreamEncoder implements FSTEncoder {
             writeFChar(arr[i]);
     }
 
-    public void writeFIntArr(int v[], int off, int len) throws IOException {
-        for (int i = off; i < off+len; i++)
-            writeFInt(v[i]);
+    void writeFIntArr(int[] arr, int off, int len) throws IOException {
+        int byteLen = arr.length * 4;
+        buffout.ensureFree(byteLen);
+        byte buf[] = buffout.buf;
+        int count = buffout.pos;
+        for (int i = off; i < off+len; i++) {
+            long anInt = arr[i];
+            buf[count++] = (byte) (anInt >>> 0);
+            buf[count++] = (byte) (anInt >>> 8);
+            buf[count++] = (byte) (anInt >>> 16);
+            buf[count++] = (byte) (anInt >>> 24);
+        }
+        buffout.pos+= byteLen;
+    }
+
+    // compressed version
+    public void _writeFIntArr(int v[], int off, int len) throws IOException {
+        final int free = 5 * len;
+        buffout.ensureFree(free);
+        final byte[] buf = buffout.buf;
+        int count = buffout.pos;
+        for (int i = off; i < off+len; i++) {
+            final int anInt = v[i];
+            if ( anInt > -127 && anInt <=127 ) {
+                buffout.buf[count++] = (byte)anInt;
+            } else
+            if ( anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE ) {
+                buf[count++] = -128;
+                buf[count++] = (byte) ((anInt >>>  0) & 0xFF);
+                buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
+            } else {
+                buf[count++] = -127;
+                buf[count++] = (byte) ((anInt >>>  0) & 0xFF);
+                buf[count++] = (byte) ((anInt >>>  8) & 0xFF);
+                buf[count++] = (byte) ((anInt >>> 16) & 0xFF);
+                buf[count++] = (byte) ((anInt >>> 24) & 0xFF);
+            }
+        }
+        buffout.pos = count;
+    }
+
+    void writeFLongArr(long[] arr, int off, int len) throws IOException {
+        int byteLen = arr.length * 8;
+        buffout.ensureFree(byteLen);
+        byte buf[] = buffout.buf;
+        int count = buffout.pos;
+        for (int i = off; i < off+len; i++) {
+            long anInt = arr[i];
+            buf[count++] = (byte) (anInt >>> 0);
+            buf[count++] = (byte) (anInt >>> 8);
+            buf[count++] = (byte) (anInt >>> 16);
+            buf[count++] = (byte) (anInt >>> 24);
+            buf[count++] = (byte) (anInt >>> 32);
+            buf[count++] = (byte) (anInt >>> 40);
+            buf[count++] = (byte) (anInt >>> 48);
+            buf[count++] = (byte) (anInt >>> 56);
+        }
+        buffout.pos+= byteLen;
     }
 
     /**

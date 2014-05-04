@@ -2,6 +2,9 @@ package de.ruedigermoeller.serialization.minbin;
 
 import de.ruedigermoeller.serialization.minbin.MinBin.*;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -88,10 +91,94 @@ public class MBTags {
     }
 
     public static class DoubleTagSer extends MinBin.TagSerializer {
+
+        /**
+         * Places characters representing the integer i into the
+         * character array buf. The characters are placed into
+         * the buffer backwards starting with the least significant
+         * digit at the specified index (exclusive), and working
+         * backwards from there.
+         *
+         * Will fail if i == Long.MIN_VALUE
+         */
+        byte[] getLongString(int numDigits, long l0) {
+            long l = Math.abs(l0);
+
+            byte buf[] = new byte[numDigits];
+            int idx = 0;
+            while( l != 0 ) {
+                buf[idx++] = (byte) (48+(l%10));
+                l/=10;
+            }
+//            String debug = new String(buf);
+            for (int i = 0; i < buf.length/2; i++) {
+                byte tmp = buf[i];
+                buf[i] = buf[buf.length-i-1];
+                buf[buf.length-i-1] = tmp;
+            }
+//            String debug1 = new String(buf);
+            return buf;
+        }
+
+        private static int getNumDigits(long l) {
+            int numDigits = 0;
+            while( l != 0 ) {
+                numDigits++;
+                l/=10;
+            }
+            return numDigits;
+        }
+
         @Override
         public void writeTag(Object data, MBOut out) {
-            byte[] bytes = Double.toString((Double) data).getBytes();
-            out.writeArray(bytes, 0, bytes.length);
+
+            double d = ((Double) data).doubleValue();
+
+//            long exp = (Double.doubleToLongBits(Math.abs(d))>>>52)-1023;
+//            if ( false && exp < 25 && exp > 0 ) {
+//                long l = (long) d;
+//                double remainder = d - l;
+//                long fak = 1;
+//
+//                while (remainder * fak != (double) ((long) (remainder * fak)))
+//                    fak *= 10;
+//
+//                long l1 = (long) ((d - l) * fak);
+//
+//                double d1 = l + (double) l1 / fak;
+//
+//                if (d1 == d) {
+//                    // optimize
+//                    out.writeOut((byte) (MinBin.INT_8 | MinBin.ARRAY_MASK));
+//                    int numDigits_l = getNumDigits(Math.abs(l));
+//                    int numDigits_l1 = getNumDigits(Math.abs(l1));
+//                    int len = numDigits_l + (l < 0 ? 1 : 0) + 1 + numDigits_l1;
+//                    out.writeIntPacked(len);
+////                    String debug = "";
+//                    if (d < 0) {
+//                        out.writeOut((byte) '-');
+////                        debug += "-";
+//                    }
+//                    byte[] longString = getLongString(numDigits_l, l);
+//                    out.writeRaw(longString, 0, longString.length);
+////                    debug += new String(longString);
+//                    out.writeOut((byte) '.');
+////                    debug += ".";
+//                    longString = getLongString(numDigits_l1, l1);
+//                    out.writeRaw(longString, 0, longString.length);
+////                    debug += new String(longString);
+////                    if (Double.parseDouble(debug) != d) {
+////                        System.out.println("d " + d + " opt " + debug);
+////                    }
+//                } else {
+//                    byte[] bytes = Double.toString(d).getBytes();
+//                    out.writeArray(bytes, 0, bytes.length);
+//                }
+//            } else
+            {
+                byte[] bytes = Double.toString(d).getBytes();
+                out.writeArray(bytes, 0, bytes.length);
+            }
         }
 
         @Override

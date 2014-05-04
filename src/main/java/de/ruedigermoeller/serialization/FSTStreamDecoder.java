@@ -5,6 +5,8 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class FSTStreamDecoder implements FSTDecoder {
 
@@ -128,10 +130,7 @@ public class FSTStreamDecoder implements FSTDecoder {
                 return arr;
             } else if (componentType == long.class) {
                 long[] arr = (long[]) array;
-                ensureReadAhead(arr.length * 8);
-                for (int j = 0; j < len; j++) {
-                    arr[j] = readFLong();
-                }
+                readFLongArr(len, arr);
                 return arr;
             } else if (componentType == boolean.class) {
                 boolean[] arr = (boolean[]) array;
@@ -150,10 +149,37 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public void readFIntArr(int len, int[] arr) throws IOException {
-        ensureReadAhead(4 * len);
+        int bytelen = arr.length * 4;
+        ensureReadAhead(bytelen);
+        int count = input.pos;
+        final byte buf[] = input.buf;
         for (int j = 0; j < len; j++) {
-            arr[j] = readFInt();
+            int ch1 = (buf[count++] + 256) & 0xff;
+            int ch2 = (buf[count++] + 256) & 0xff;
+            int ch3 = (buf[count++] + 256) & 0xff;
+            int ch4 = (buf[count++] + 256) & 0xff;
+            arr[j] = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
         }
+        input.pos+=bytelen;
+    }
+
+    public void readFLongArr(int len, long[] arr) throws IOException {
+        int bytelen = arr.length * 8;
+        ensureReadAhead(bytelen);
+        int count = input.pos;
+        final byte buf[] = input.buf;
+        for (int j = 0; j < len; j++) {
+            long ch8 = (buf[count++] + 256) & 0xff;
+            long ch7 = (buf[count++] + 256) & 0xff;
+            long ch6 = (buf[count++] + 256) & 0xff;
+            long ch5 = (buf[count++] + 256) & 0xff;
+            long ch4 = (buf[count++] + 256) & 0xff;
+            long ch3 = (buf[count++] + 256) & 0xff;
+            long ch2 = (buf[count++] + 256) & 0xff;
+            long ch1 = (buf[count++] + 256) & 0xff;
+            arr[j] = ((ch1 << 56) + (ch2 << 48) + (ch3 << 40) + (ch4 << 32) + (ch5 << 24) + (ch6 << 16) + (ch7 << 8) + (ch8 << 0));
+        }
+        input.pos+=bytelen;
     }
 
     @Override
