@@ -53,7 +53,7 @@ public class FSTTestApp {
 //                    Trader.generateTrader(i, true),
 //                    new FrequentCollections(),
 //                    new LargeNativeArrays(),
-//                    Primitives.createPrimArray()
+//                    Test.createPrimArray()
             };
 
             mywriteMethod(fout, toWrite);

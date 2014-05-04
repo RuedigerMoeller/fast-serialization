@@ -114,21 +114,38 @@ public class MBIn {
      */
     public Object readArrayRaw(byte type, int len, Object resultingArray) {
         Class componentType = resultingArray.getClass().getComponentType();
-        for ( int i = 0; i < len; i++ ) {
-            if ( componentType == boolean.class )
-                Array.setBoolean(resultingArray, i, readRawInt(type) == 0 ? false : true);
-            else  if ( componentType == byte.class )
-                Array.setByte(resultingArray, i, (byte) readRawInt(type));
-            else  if ( componentType == short.class )
-                Array.setShort(resultingArray, i, (short) readRawInt(type));
-            else  if ( componentType == char.class )
-                Array.setChar(resultingArray, i, (char) readRawInt(type));
-            else  if ( componentType == int.class )
-                Array.setInt(resultingArray, i, (int) readRawInt(type));
-            else  if ( componentType == long.class )
-                Array.setLong(resultingArray, i, readRawInt(type));
-            else throw new RuntimeException("unsupported array type "+resultingArray.getClass().getName());
-        }
+        if ( componentType == byte.class ) {
+            byte[] barr = (byte[]) resultingArray;
+            for ( int i = 0; i < len; i++ ) {
+                barr[i] = (byte) readRawInt(type);
+            }
+        } else  if ( componentType == short.class ) {
+            short[] sArr = (short[]) resultingArray;
+            for ( int i = 0; i < len; i++ ) {
+                sArr[i] = (short) readRawInt(type);
+            }
+        } else  if ( componentType == char.class ) {
+            char[] cArr = (char[]) resultingArray;
+            for (int i = 0; i < len; i++) {
+                cArr[i] = (char) readRawInt(type);
+            }
+        } else  if ( componentType == int.class ) {
+            int[] iArr = (int[]) resultingArray;
+            for (int i = 0; i < len; i++) {
+                iArr[i] = (int) readRawInt(type);
+            }
+        } else  if ( componentType == long.class ) {
+            long[] lArr = (long[]) resultingArray;
+            for (int i = 0; i < len; i++) {
+                lArr[i] = readRawInt(type);
+            }
+        } else if ( componentType == boolean.class ) {
+            boolean[] boolArr = (boolean[]) resultingArray;
+            for (int i = 0; i < len; i++) {
+                boolArr[i] = readRawInt(MinBin.INT_8) != 0 ? true:false;
+            }
+        } else
+            throw new RuntimeException("unsupported array type "+resultingArray.getClass().getName());
         return resultingArray;
     }
     

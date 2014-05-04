@@ -423,6 +423,11 @@ public class FSTStreamDecoder implements FSTDecoder {
         return readClass().getClazz();
     }
 
+    @Override
+    public void readExternalEnd() {
+        // do nothing for direct encoding
+    }
+
 
 }
 

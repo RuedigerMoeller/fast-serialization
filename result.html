@@ -1,149 +1,25 @@
 <html>
-OS:Windows 8<br>
-JVM:Oracle Corporation 1.7.0_51<br>
-CPU:Intel64 Family 6 Model 58 Stepping 9, GenuineIntel os-arch:AMD64<br>
-Cores (incl HT):8<br>
-<i>1.7.0_51-b13,Java HotSpot(TM) 64-Bit Server VM,Windows 8</i><br>
+OS:Linux<br>
+JVM:Oracle Corporation 1.7.0_55<br>
+CPU:null os-arch:null<br>
+Cores (incl HT):32<br>
+<i>1.7.0_55-b13,Java HotSpot(TM) 64-Bit Server VM,Linux</i><br>
 <br><h4>Test Class: FrequentPrimitives[]</h4>
 A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.<br>
 <br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3634,3684|2709,3027&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,6711&chxr=1,0,6711&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:836,708|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,836&chxr=1,0,836&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:7471,59823|5566,43674&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,103497&chxr=1,0,103497&chxt=y,x&chxl=0:|FST+cross+platform%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:836,2102|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,2102&chxr=1,0,2102&chxt=y,x&chxl=0:|FST+cross+platform%7CFST'/><br>
 <br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                          3634           2709           6343            836
-Kryo 2.23                                    3684           3027           6711            708
-</pre><br><br>
-<br><h4>Test Class: FrequentPrimitivesExternalizable[]</h4>
-A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double. But implementing Externalizable<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:2204,3676|1763,3169&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,6845&chxr=1,0,6845&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:864,722|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,864&chxr=1,0,864&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                          2204           1763           3967            864
-Kryo 2.23                                    3676           3169           6845            722
-</pre><br><br>
-<br><h4>Test Class: FrequentCollections</h4>
-Measures serialization of most popular collection classes. (HashMap and an ArrayList filled with Integer and Long).<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:20386,30103|16583,21660&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,51763&chxr=1,0,51763&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:4671,4612|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,4671&chxr=1,0,4671&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         20386          16583          36969           4671
-Kryo 2.23                                   30103          21660          51763           4612
-</pre><br><br>
-<br><h4>Test Class: LargeNativeArrays</h4>
-measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression, so the increased size of kryo in this test will not be observable in most real world data.<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:36272,50787|38852,45204&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,95991&chxr=1,0,95991&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:35119,34949|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,35119&chxr=1,0,35119&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         36272          38852          75124          35119
-Kryo 2.23                                   50787          45204          95991          34949
-</pre><br><br>
-<br><h4>Test Class: StringPerformance</h4>
-measures serialization of mid size to very long Strings<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:28731,71064|25929,43090&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,114154&chxr=1,0,114154&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:20020,17716|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,20020&chxr=1,0,20020&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         28731          25929          54660          20020
-Kryo 2.23                                   71064          43090         114154          17716
-</pre><br><br>
-<br><h4>Test Class: Primitives</h4>
-A broad test of primitive values and specials such as Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. <br> plus opaque private field with same name in a private subclass<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:11436,0|12111,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,23547&chxr=1,0,23547&chxt=y,x&chxl=0:|Kryo+2.23+FAIL+%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:1469,0|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1469&chxr=1,0,1469&chxt=y,x&chxl=0:|Kryo+2.23+FAIL+%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         11436          12111          23547           1469
-Kryo 2.23 FAIL                                  0              0              0              0
-</pre><br><br>
-<br><h4>Test Class: Arrays[]</h4>
-Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimensional arrays.<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:57355,70747|51261,65161&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,135908&chxr=1,0,135908&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:10297,9681|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,10297&chxr=1,0,10297&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         57355          51261         108616          10297
-Kryo 2.23                                   70747          65161         135908           9681
-</pre><br><br>
-<br><h4>Test Class: CommonCollections</h4>
-In depth test of collections incl. collections of collections.<br> (ArrayList, ArrayDeque, ConcurrentLinkedQueue, Vector, TreeSet, LinkedList, TreeMap, ConcurrentHashMap, Hashtable, HashMap). Note: has been modified to workaround Kryo-specific Issue.<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:62951,125214|58136,57980&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,183194&chxr=1,0,183194&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:8496,8323|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8496&chxr=1,0,8496&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         62951          58136         121087           8496
-Kryo 2.23                                  125214          57980         183194           8323
+FST                                          7471           5566          13037            836
+FST cross platform                          59823          43674         103497           2102
 </pre><br><br>
 <br><h4>Test Class: Trader</h4>
 Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.<br>
 <br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:63025,81063|52832,75706&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,156769&chxr=1,0,156769&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:5253,5919|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,5919&chxr=1,0,5919&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:105596,2412451|103860,845743&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,3258194&chxr=1,0,3258194&chxt=y,x&chxl=0:|FST+cross+platform%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:5253,43196|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,43196&chxr=1,0,43196&chxt=y,x&chxl=0:|FST+cross+platform%7CFST'/><br>
 <br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         63025          52832         115857           5253
-Kryo 2.23                                   81063          75706         156769           5919
-</pre><br><br>
-<br><h4>Test Class: ManyClasses</h4>
-Tests speed serializing a complex object graph of many different classes with few primitive fields.<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:6465,8049|3551,5564&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,13613&chxr=1,0,13613&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:986,1220|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1220&chxr=1,0,1220&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                          6465           3551          10016            986
-Kryo 2.23                                    8049           5564          13613           1220
-</pre><br><br>
-<br><h4>Test Class: ExternalizableTest</h4>
-Performance of Externalizable objects.<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:66053,87122|74481,84314&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,171436&chxr=1,0,171436&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:7772,4733|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,7772&chxr=1,0,7772&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         66053          74481         140534           7772
-Kryo 2.23                                   87122          84314         171436           4733
-</pre><br><br>
-<br><h4>Test Class: BigObject</h4>
-A bigger object graph consisting of some of the test objects at once<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3531649,4780079|3524701,3850708&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8630787&chxr=1,0,8630787&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:363958,322340|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,363958&chxr=1,0,363958&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                       3531649        3524701        7056350         363958
-Kryo 2.23                                 4780079        3850708        8630787         322340
-</pre><br><br>
-<br><h4>Test Class: HeavyNesting</h4>
-Heavily nested Objects<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:62015,71333|70891,78415&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,149748&chxr=1,0,149748&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3747,5009|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,5009&chxr=1,0,5009&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                         62015          70891         132906           3747
-Kryo 2.23                                   71333          78415         149748           5009
-</pre><br><br>
-<br><h4>Test Class: String</h4>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:180,100|157,97&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,337&chxr=1,0,337&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:2,2|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,2&chxr=1,0,2&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                           180            157            337              2
-Kryo 2.23                                     100             97            197              2
-</pre><br><br>
-<br><h4>Test Class: ShortRemoteCall</h4>
-measures overhead of stream initialization+classname decoding. Only one very short object is serialized<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:263,352|203,280&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,632&chxr=1,0,632&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:15,32|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,32&chxr=1,0,32&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                           263            203            466             15
-Kryo 2.23                                     352            280            632             32
-</pre><br><br>
-<br><h4>Test Class: SmallThing</h4>
-only one int. benches pure init time<br>
-<br>
-<b>read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:160,123|159,109&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,319&chxr=1,0,319&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:2,2|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,2&chxr=1,0,2&chxt=y,x&chxl=0:|Kryo+2.23%7CFST'/><br>
-<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
-FST                                           160            159            319              2
-Kryo 2.23                                     123            109            232              2
+FST                                        105596         103860         209456           5253
+FST cross platform                        2412451         845743        3258194          43196
 </pre><br><br>
 </html>

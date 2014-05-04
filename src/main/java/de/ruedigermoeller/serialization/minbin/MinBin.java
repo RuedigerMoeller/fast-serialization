@@ -29,12 +29,12 @@ public class MinBin {
     public static final Object END_MARKER = "END";
     public static MinBin DefaultInstance = new MinBin();
     
-    public final static byte INT_8  = 0b0001;
-    public final static byte INT_16 = 0b0010;
-    public final static byte INT_32 = 0b0011;
-    public final static byte INT_64 = 0b0100;
-    public final static byte TAG    = 0b0101; // top 5 bits contains tag id 
-    public final static byte END    = 0b0110; // end marker 
+    public final static byte INT_8  = 0b0001; // 1 (17 = array)
+    public final static byte INT_16 = 0b0010; // 2 (18 ..)
+    public final static byte INT_32 = 0b0011; // 3 (19 ..)
+    public final static byte INT_64 = 0b0100; // 4 (20 ..)
+    public final static byte TAG    = 0b0101; // 5, top 5 bits contains tag id
+    public final static byte END    = 0b0110; // 6, end marker
     public final static byte RESERV = 0b0111; // escape for future extension
 
     public final static byte UNSIGN_MASK = 0b01000; // int only
@@ -68,7 +68,7 @@ public class MinBin {
     public static final byte HANDLE = 9;
 
     HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
-    HashMap<Integer, TagSerializer> tag2Ser = new HashMap<>();
+    TagSerializer tag2Ser[] = new TagSerializer[32];
     int tagCount = 0;
 
     private TagSerializer nullTagSer = new MBTags.NullTagSer();
@@ -93,11 +93,11 @@ public class MinBin {
         ts.setTagId(tagCount++);
         if ( clazz != null )
             clz2Ser.put(clazz,ts);
-        tag2Ser.put(ts.getTagId(),ts);
+        tag2Ser[ts.getTagId()]=ts;
     }
 
     public TagSerializer getSerializerForId(int tagId) {
-        return tag2Ser.get(tagId);
+        return tag2Ser[tagId];
     }
 
     public TagSerializer getSerializerFor(Object toWrite) {

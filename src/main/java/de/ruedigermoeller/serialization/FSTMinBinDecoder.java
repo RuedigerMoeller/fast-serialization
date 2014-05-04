@@ -7,6 +7,7 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.util.HashMap;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -30,13 +31,13 @@ import java.lang.reflect.Array;
  * Time: 19:13
  * To change this template use File | Settings | File Templates.
  */
-public class FSTMixDecoder implements FSTDecoder {
+public class FSTMinBinDecoder implements FSTDecoder {
     
     FSTConfiguration conf;
     MBIn input;
     private InputStream inputStream;
 
-    public FSTMixDecoder(FSTConfiguration conf) {
+    public FSTMinBinDecoder(FSTConfiguration conf) {
         this.conf = conf;
         input = new MBIn(null,0);
     }
@@ -300,9 +301,15 @@ public class FSTMixDecoder implements FSTDecoder {
         return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
     }
 
+    HashMap<String,Class> clzCache = new HashMap<>();
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
-        return Class.forName(name);
+        Class aClass = clzCache.get(name);
+        if (aClass!=null)
+            return aClass;
+        aClass = Class.forName(name);
+        clzCache.put(name,aClass);
+        return aClass;
     }
 
     @Override
@@ -368,6 +375,13 @@ public class FSTMixDecoder implements FSTDecoder {
             }
         }
         return readClass().getClazz();
+    }
+
+    @Override
+    public void readExternalEnd() {
+        if ( input.peekIn() == MinBin.END ) {
+            input.readIn();
+        }
     }
 
 }

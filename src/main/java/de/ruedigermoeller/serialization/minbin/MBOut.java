@@ -42,14 +42,19 @@ public class MBOut {
      * write single byte, grow byte array if needed
      * @param b
      */
-    private void writeOut(byte b) {
+    void writeOut(byte b) {
         if (pos == bytez.length - 1) {
-            byte tmp[] = new byte[Math.min(bytez.length + 50 * 1000 * 1000, bytez.length * 2)];
-            System.arraycopy(bytez, 0, tmp, 0, pos);
-            bytez = tmp;
+            resize();
         }
         bytez[pos++] = b;
     }
+
+    private void resize() {
+        byte tmp[] = new byte[Math.min(bytez.length + 50 * 1000 * 1000, bytez.length * 2)];
+        System.arraycopy(bytez, 0, tmp, 0, pos);
+        bytez = tmp;
+    }
+
     /**
      * write an int type with header
      * @param type
@@ -101,11 +106,50 @@ public class MBOut {
         else throw new RuntimeException("unsupported type " + componentType.getName());
         writeOut(type);
         writeIntPacked(len);
-        for (int i = start; i < start + len; i++) {
-            if (componentType == boolean.class)
-                writeRawInt(type, Array.getBoolean(primitiveArray, i) ? 1 : 0);
-            else
-                writeRawInt(type, Array.getLong(primitiveArray, i));
+        switch (type) {
+            case MinBin.INT_8|MinBin.ARRAY_MASK: {
+                if ( componentType == boolean.class ) {
+                    boolean[] arr = (boolean[]) primitiveArray;
+                    for (int i = start; i < start + len; i++) {
+                        writeRawInt(type, arr[i] ? 1 : 0);
+                    }
+                } else {
+                    byte[] arr = (byte[]) primitiveArray;
+                    for (int i = start; i < start + len; i++) {
+                        writeRawInt(type, arr[i]);
+                    }
+                }
+            }
+            break;
+            case MinBin.CHAR|MinBin.ARRAY_MASK: {
+                char[] charArr = (char[]) primitiveArray;
+                for (int i = start; i < start + len; i++) {
+                    writeRawInt(type, charArr[i]);
+                }
+            }
+            break;
+            case MinBin.INT_32|MinBin.ARRAY_MASK: {
+                int[] arr = (int[]) primitiveArray;
+                for (int i = start; i < start + len; i++) {
+                    writeRawInt(type, arr[i]);
+                }
+            }
+            break;
+            case MinBin.INT_64|MinBin.ARRAY_MASK: {
+                long[] arr = (long[]) primitiveArray;
+                for (int i = start; i < start + len; i++) {
+                    writeRawInt(type, arr[i]);
+                }
+            }
+            break;
+            default: {
+                for (int i = start; i < start + len; i++) {
+                    if (componentType == boolean.class)
+                        writeRawInt(type, Array.getBoolean(primitiveArray, i) ? 1 : 0);
+                    else
+                        writeRawInt(type, Array.getLong(primitiveArray, i));
+                }
+            }
         }
     }
 
@@ -167,5 +211,19 @@ public class MBOut {
         } else {
             writeTag(o);
         }
+    }
+
+    /**
+     * allow write through to underlying byte for performance reasons
+     * @param bufferedName
+     * @param i
+     * @param length
+     */
+    public void writeRaw(byte[] bufferedName, int i, int length) {
+        if (pos+length >= bytez.length - 1) {
+            resize();
+        }
+        System.arraycopy(bufferedName,i,bytez,pos,length);
+        pos += length;
     }
 }

@@ -88,8 +88,10 @@ public final class FSTClazzInfo {
     int structSize = 0;
 
     FSTClazzInfoRegistry reg;
+    boolean crossPlatform;
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
+        crossPlatform = conf.isCrossPlatform();
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
         reg = infoRegistry;
@@ -130,7 +132,7 @@ public final class FSTClazzInfo {
         }
 
         requiresInit = isExternalizable() || useCompatibleMode() || hasTransient;
-        if ( useCompatibleMode() && conf.isCrossPlatform() && getSer() == null && !clazz.isEnum() )
+        if ( useCompatibleMode() && crossPlatform && getSer() == null && !clazz.isEnum() )
             throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class "+clazz.getName() );
     }
 
@@ -398,7 +400,7 @@ public final class FSTClazzInfo {
 
     private FSTFieldInfo createFieldInfo(Field field) {
         field.setAccessible(true);
-        Predict predict = field.getAnnotation(Predict.class);
+        Predict predict = crossPlatform ? null : field.getAnnotation(Predict.class); // needs to be iognored cross platform
         return new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
     }
 
@@ -449,6 +451,7 @@ public final class FSTClazzInfo {
         int structOffset = 0;
         int align = 0;
         int alignPad = 0;
+        byte[] bufferedName; // cache byte rep of field name (used for cross platform)
 
         public FSTFieldInfo(Class[] possibleClasses, Field fi, boolean ignoreAnnotations) {
             this.possibleClasses = possibleClasses;
@@ -488,6 +491,14 @@ public final class FSTClazzInfo {
                 }
             }
 
+        }
+
+        public byte[] getBufferedName() {
+            return bufferedName;
+        }
+
+        public void setBufferedName(byte[] bufferedName) {
+            this.bufferedName = bufferedName;
         }
 
         public int align(int off) {
@@ -563,7 +574,7 @@ public final class FSTClazzInfo {
             return possibleClasses;
         }
 
-        public void setPossibleClasses(Class[] possibleClasses) {
+        void setPossibleClasses(Class[] possibleClasses) {
             this.possibleClasses = possibleClasses;
         }
 

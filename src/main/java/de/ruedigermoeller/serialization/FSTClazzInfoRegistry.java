@@ -121,17 +121,20 @@ public class FSTClazzInfoRegistry {
 
     public FSTClazzInfo getCLInfo(Class c) {
         while(!rwLock.compareAndSet(false,true));
-        FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
-        if ( res == null ) {
-            if ( c == null ) {
-                rwLock.set(false);
-                throw new NullPointerException("Class is null");
+        try {
+            FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
+            if (res == null) {
+                if (c == null) {
+                    rwLock.set(false);
+                    throw new NullPointerException("Class is null");
+                }
+                res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
+                mInfos.put(c, res);
             }
-            res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
-            mInfos.put( c, res );
+            return res;
+        } finally {
+            rwLock.set(false);
         }
-        rwLock.set(false);
-        return res;
     }
 
     public final boolean isIgnoreAnnotations() {

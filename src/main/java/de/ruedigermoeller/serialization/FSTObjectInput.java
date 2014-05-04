@@ -484,6 +484,7 @@ public class FSTObjectInput implements ObjectInput {
         {
             codec.ensureReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
+            codec.readExternalEnd();
         } else if (clzSerInfo.useCompatibleMode())
         {
             Object replaced = readObjectCompatible(referencee, clzSerInfo, newObj);

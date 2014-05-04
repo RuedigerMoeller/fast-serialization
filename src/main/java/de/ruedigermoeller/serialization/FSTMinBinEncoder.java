@@ -4,17 +4,10 @@ import de.ruedigermoeller.serialization.minbin.MBOut;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import de.ruedigermoeller.serialization.minbin.MinBin;
 
-import javax.swing.text.html.StyleSheet;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.Array;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashMap;
 
 /**
@@ -39,14 +32,14 @@ import java.util.HashMap;
  * Time: 18:47
  * To change this template use File | Settings | File Templates.
  */
-public class FSTMixEncoder implements FSTEncoder {
+public class FSTMinBinEncoder implements FSTEncoder {
 
     MBOut out = new MBOut();
     OutputStream outputStream;
     FSTConfiguration conf;
     private int offset = 0;
 
-    public FSTMixEncoder(FSTConfiguration conf) {
+    public FSTMinBinEncoder(FSTConfiguration conf) {
         this.conf = conf;
     }
 
@@ -204,7 +197,20 @@ public class FSTMixEncoder implements FSTEncoder {
 
     @Override
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
-        out.writeTag(subInfo.getField().getName());
+        byte[] bufferedName = subInfo.getBufferedName();
+        if ( bufferedName != null ) {
+            out.writeRaw(bufferedName,0,bufferedName.length);
+        } else {
+            // fully cache metadata
+            int pos = out.getWritten();
+
+            out.writeTag(subInfo.getField().getName());
+
+            int len = out.getWritten() - pos;
+            bufferedName = new byte[len];
+            System.arraycopy(out.getBytez(),pos,bufferedName,0,len);
+            subInfo.setBufferedName(bufferedName);
+        }
     }
     
     @Override
@@ -242,14 +248,14 @@ public class FSTMixEncoder implements FSTEncoder {
 //                    out.writeObject(toWrite);
 //                    return true;
 //                }
-                if ( clzInfo.getSer()!=null ) {
+                if ( clzInfo.getSer()!=null || clzInfo.isExternalizable() ) {
                     out.writeTagHeader(MinBin.SEQUENCE);
-                    out.writeTag(classToString(clzInfo.getClazz()));
+                    writeSymbolicClazz(clzInfo.getClazz());
                     out.writeIntPacked(-1); // END Marker required
                 } else
                 {
                     out.writeTagHeader(MinBin.OBJECT);
-                    out.writeTag(classToString(clzInfo.getClazz()));
+                    writeSymbolicClazz(clzInfo.getClazz());
                     out.writeIntPacked(clzInfo.getFieldInfo().length);
                 }
                 break;
@@ -264,9 +270,9 @@ public class FSTMixEncoder implements FSTEncoder {
                 out.writeTag(Boolean.TRUE);
                 break; // ignore, header created by writing long. FIXME: won't work
             case FSTObjectOutput.BIG_LONG:
-                break; // ignore, header created by writing long. FIXME: won't work
+                break; // ignore, header implicitely created by writing long.
             case FSTObjectOutput.BIG_INT:
-                break; // ignore, header created by writing int. FIXME: won't work
+                break;// ignore, header implicitely created by writing int.
             case FSTObjectOutput.ARRAY:
                 Class<?> clz = infoOrObject.getClass();
                 Class<?> componentType = clz.getComponentType();
@@ -274,7 +280,7 @@ public class FSTMixEncoder implements FSTEncoder {
                 {
                     if ( componentType == double.class ) {
                         out.writeTagHeader(MinBin.SEQUENCE);
-                        out.writeTag(classToString(clz));
+                        writeSymbolicClazz(clz);
                         int length = Array.getLength(infoOrObject);
                         out.writeIntPacked(length);
                         for ( int i = 0; i < length; i++ ) {
@@ -282,7 +288,7 @@ public class FSTMixEncoder implements FSTEncoder {
                         }
                     } else if ( componentType == float.class ) {
                         out.writeTagHeader(MinBin.SEQUENCE);
-                        out.writeTag(classToString(clz));
+                        writeSymbolicClazz(clz);
                         int length = Array.getLength(infoOrObject);
                         out.writeIntPacked(length);
                         for ( int i = 0; i < length; i++ ) {
@@ -294,7 +300,7 @@ public class FSTMixEncoder implements FSTEncoder {
                     return true;
                 } else {
                     out.writeTagHeader(MinBin.SEQUENCE);
-                    out.writeTag(classToString(clz));
+                    writeSymbolicClazz(clz);
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -309,9 +315,9 @@ public class FSTMixEncoder implements FSTEncoder {
                     if (c == null) {
                         throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
                     }
-                    out.writeTag(classToString(c));
+                    writeSymbolicClazz(c);
                 } else {
-                    out.writeTag(classToString(c));
+                    writeSymbolicClazz(c);
                 }
                 out.writeIntPacked(1);
                 out.writeObject(toWrite.toString());
@@ -322,13 +328,34 @@ public class FSTMixEncoder implements FSTEncoder {
         return false;
     }
 
+    private void writeSymbolicClazz(Class<?> clz) {
+        byte b[] = conf.getCrossPlatformBinaryCache(clz.getName());
+        if ( b == null ) {
+            int pos = out.getWritten();
+
+            out.writeTag(classToString(clz));
+
+            int len = out.getWritten() - pos;
+            b = new byte[len];
+            System.arraycopy(out.getBytez(), pos, b, 0, len);
+            conf.registerCrossPlatformClassBinaryCache(clz.getName(), b);
+        } else {
+            out.writeRaw(b,0,b.length);
+        }
+        return;
+    }
+
     protected String classToString(Class clz) {
         return conf.getCPNameForClass(clz);
     }
 
     public void externalEnd(FSTClazzInfo clz) {
-        if ( clz == null || (clz.getSer() instanceof FSTCrossPlatformSerialzer && ((FSTCrossPlatformSerialzer) clz.getSer()).writeTupleEnd()) )
+        if ( clz == null ||
+             clz.isExternalizable() ||
+             ( clz.getSer() instanceof FSTCrossPlatformSerialzer && ((FSTCrossPlatformSerialzer) clz.getSer()).writeTupleEnd())
+           ) {
             out.writeTag(MinBin.END_MARKER);
+        }
     }
 
     @Override
@@ -344,138 +371,85 @@ public class FSTMixEncoder implements FSTEncoder {
      * Time: 03:13
      * To change this template use File | Settings | File Templates.
      */
-    public static class Primitives implements Serializable {
+    public static class Test implements Externalizable, Serializable {
 
-        String hidden;
+        static String staticString = "Should not serialize this";
+        final static String finalStaticString = "Should not serialize this. Should not serialize this. Should not serialize this. Should not serialize this. Should not serialize this.";
 
-        public enum SpecialEnum {
-            ONE() {
-                public void run() {
-                    System.out.println("One");
-                }
-            },
-            TWO() {
-                public void run() {
-                    System.out.println("One");
-                }
-            },
-            THREE() {
-                public void run() {
-                    System.out.println("One");
-                }
+        public static Test[] getArray(int siz) {
+            Test[] instance = new Test[siz];
+            for (int i = 0; i < instance.length; i++) {
+                instance[i] = new Test(i);
             }
-            ;
-
-            public abstract void run();
-            SpecialEnum() {};
+            return instance;
         }
 
-        public enum SampleEnum {
-            None("","None",0),
-            Complete("C","Complete",1),
-            Complete_GiveUp_Allowed("D","Complete Give-Up Allowed",2),
-            Complete_Position_Transaction_Allowed("E","Complete Position Transaction Allowed",3),
-            Designated("G","Designated",4),
-            Predesignated("P","Predesignated",5),
-            Predesignated_GiveUp_Allowed("Q","Predesignated Give-Up Allowed",6),
-            Predesignated_Position_Transaction_Allowed("R","Predesignated Position Transaction Allowed",7),
-            GiveUp_Allowed("X","Give-Up Allowed",8),
-            Position_Transaction_Allowed("Y","Position Transaction Allowed",9);
-
-            String value;
-            String stringRepresentation;
-            int nativeEnumValue;
-
-            SampleEnum(String value, String stringRepresentation, int nativeEnumValue)
-            {
-                this.value=value;
-                this.stringRepresentation = stringRepresentation;
-                this.nativeEnumValue = nativeEnumValue;
-            }
+        public Test()
+        {
         }
 
-        char w = 234, x = 33344;
-        byte y = -34, z = 126;
-        short sh0 = 127;
-
-        SpecialEnum specEn = SpecialEnum.TWO;
-
-        int gg = -122;
-        int zz = 99999;
-        int ii = -23424;
-        int jj = 0;
-        int kk = Integer.MIN_VALUE;
-        int hh = Integer.MAX_VALUE;
-
-        long lll = 123;
-        long mmm = 99999;
-
-        double dq = 300.0;
-        float t = 300.0f;
-
-        boolean a0 = true;
-        boolean a1 = false;
-        boolean a2 = false;
-        boolean a3 = true;
-
-        Integer i0 = 1, i1 = 2, i3 = 23894, i4 = 238475638;
-        Double  d1 = 2334234.0;
-        Boolean bol1 = Boolean.TRUE;
-        Boolean bol2 = new Boolean(false);
-
-        Date date = new Date(1);
-        Date date1 = new Date(2);
-
-        SampleEnum en1 = SampleEnum.Predesignated_GiveUp_Allowed;
-        EnumSet<SampleEnum> enSet = EnumSet.of(SampleEnum.Predesignated,SampleEnum.Complete);
-
-        String st;
-
-        String st1;
-        String st2;
-        String st3;
-        String st4;
-        String st5;
-        String st6;
-        String st7;
-
-        StyleSheet on = null;
-        URL on1 = null;
-        File on2 = null;
-
-// commented this and moved to FST test cases as this is not a performance test but a test for feature completeness
-//    Object exceptions[] = {
-//        null, new Exception("test"), new ArrayIndexOutOfBoundsException(), new RuntimeException(new IllegalArgumentException("Blub"))
-//    };
-
-        public Primitives() {
+        public Test(int index) {
+            // avoid benchmarking identity references instead of StringPerf
+            str = "R.Moeller"+index;
+            str1 = "R.Moeller1"+index;
         }
 
-        public Primitives(int num) {
-            st = "String"+num+"äöü";
-            st1 = "String1"+num;
-            st2 = st+"1"+num;
-            hidden = "Visible";
-            st3 = "visible its a hurdle this may be its a hurdle "+num;
-            st4 = "etwas deutsch läuft.. ";
-            st5 = st+"1"+num;
-            st6 = "Some english, text; fragment. "+num;
-            st7 = st6+" paokasd 1";
-// see comments above
-//        try {
-//            throw new IOException();
-//        } catch (Exception ex) {
-//            exceptions[0] = ex;
-//        }
+        private String str;
+        private String str1;
+        private boolean b0 = true;
+        private boolean b1 = false;
+        private boolean b2 = true;
+        private int test1 = 123456;
+        private int test2 = 234234;
+        private int test3 = 456456;
+        private int test4 = -234234344;
+        private int test5 = -1;
+        private int test6 = 0;
+        private long l1 = -38457359987788345l;
+        private long l2 = 0l;
+        private double d = 122.33;
+
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeUTF(str);
+            out.writeUTF(str1);
+            out.writeBoolean(b0);
+            out.writeBoolean(b1);
+            out.writeBoolean(b2);
+            out.writeInt(test1);
+            out.writeInt(test2);
+            out.writeInt(test3);
+            out.writeInt(test4);
+            out.writeInt(test5);
+            out.writeInt(test6);
+            out.writeLong(l1);
+            out.writeLong(l2);
+            out.writeDouble(d);
         }
 
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            str = in.readUTF();
+            str1 = in.readUTF();
+            b0 = in.readBoolean();
+            b1 = in.readBoolean();
+            b2 = in.readBoolean();
+            test1 = in.readInt();
+            test2 = in.readInt();
+            test3 = in.readInt();
+            test4 = in.readInt();
+            test5 = in.readInt();
+            test6 = in.readInt();
+            l1 = in.readLong();
+            l2 = in.readLong();
+            d = in.readDouble();
+        }
     }
+
 
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
 
         FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
-                { "mixtest", Primitives.class.getName() },
+                { "mixtest", Test.class.getName() },
                 { "rect", Rectangle.class.getName() },
                 { "dim", Dimension.class.getName() },
                 { "dim[3]", Dimension[][][].class.getName() },
@@ -494,7 +468,7 @@ public class FSTMixEncoder implements FSTEncoder {
         obj.put(4,"99999");
 
 //        out.writeObject(obj);
-        Primitives obj1 = new Primitives(13);
+        Test obj1[] = Test.getArray(10);
         out.writeObject(obj1);
 //        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
         MBPrinter.printMessage(out.getBuffer(), System.out);

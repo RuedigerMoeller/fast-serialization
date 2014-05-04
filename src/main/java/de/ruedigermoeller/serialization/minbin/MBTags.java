@@ -48,16 +48,20 @@ public class MBTags {
         @Override
         public void writeTag(Object data, MBOut out) {
             String s = (String) data;
-            boolean isAsc = true;
-            for (int i = 0; i < s.length(); i++) {
-                if (s.charAt(i) >= 127) {
-                    isAsc = false;
-                    break;
+            boolean isAsc = s.length() < 64;
+            if ( isAsc ) {
+                for (int i = 0; i < s.length(); i++) {
+                    if (s.charAt(i) >= 127) {
+                        isAsc = false;
+                        break;
+                    }
                 }
             }
             if (isAsc) {
                 byte[] strBytes = s.getBytes();
-                out.writeArray(strBytes, 0, strBytes.length);
+                out.writeOut((byte) (MinBin.INT_8|MinBin.ARRAY_MASK));
+                out.writeIntPacked(strBytes.length);
+                out.writeRaw(strBytes, 0, strBytes.length);
             } else {
                 final char[] chars = s.toCharArray();
                 out.writeArray(chars, 0, chars.length);

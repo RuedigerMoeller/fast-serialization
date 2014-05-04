@@ -424,8 +424,10 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
                     defaultWriteObject(toWrite, serializationInfo);
+                    if ( serializationInfo.isExternalizable() )
+                        codec.externalEnd(serializationInfo);
                 }
-            } else {
+            } else { // object has custom serializer
                 // Object header (nothing written till here)
                 int pos = codec.getWritten();
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case code can write object as primitive

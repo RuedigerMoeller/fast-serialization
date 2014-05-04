@@ -19,7 +19,6 @@
  */
 package de.ruedigermoeller.serialization;
 
-import de.ruedigermoeller.heapoff.FSTOffHeapMap;
 import de.ruedigermoeller.heapoff.structs.FSTStruct;
 import de.ruedigermoeller.serialization.serializers.*;
 import de.ruedigermoeller.serialization.util.FSTInputStream;
@@ -63,12 +62,23 @@ public final class FSTConfiguration {
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false;
-    
-    // cross platform only
+
+    /////////////////////////////////////
+    // cross platform stuff only
+
+    int cpAttrIdCount = 0;
+    HashMap<String, Integer> crossPlatformAttrIds = new HashMap<>();
+    HashMap<Integer, String> crossPlatformAttrIdsReverse = new HashMap<>();
     // contains symbol => full qualified name
     private HashMap<String, String> crossPlatformNames = new HashMap<>();
+    // may contain symbol => cached binary output
+    private HashMap<String, byte[]> crossPlatformNamesBytez = new HashMap<>();
+    // contains full qualified name => symbol
     private HashMap<String, String> crossPlatformNamesReverse = new HashMap<>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
+
+    // end cross platform stuff only
+    /////////////////////////////////////
 
     public static Integer getInt(int i) {
         if ( i >= 0 && i < intObjects.length ) {
@@ -87,13 +97,13 @@ public final class FSTConfiguration {
         }
     }
 
-    static AtomicBoolean lock = new AtomicBoolean(false);
+    static AtomicBoolean conflock = new AtomicBoolean(false);
     static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
-        do { } while ( !lock.compareAndSet(false, true) );
+        do { } while ( !conflock.compareAndSet(false, true) );
         if ( singleton == null )
             singleton = createDefaultConfiguration();
-        lock.set(false);
+        conflock.set(false);
         return singleton;
     }
 
@@ -103,12 +113,12 @@ public final class FSTConfiguration {
         res.setStreamCoderFactory(new StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
-                return new FSTMixEncoder(res);
+                return new FSTMinBinEncoder(res);
             }
 
             @Override
             public FSTDecoder createStreamDecoder() {
-                return new FSTMixDecoder(res);
+                return new FSTMinBinDecoder(res);
             }
         });
 
@@ -116,6 +126,10 @@ public final class FSTConfiguration {
         FSTSerializerRegistry reg = res.serializationInfoRegistry.serializerRegistry;
         reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
         reg.putSerializer(Throwable.class, new FSTCPThrowableSerializer(), true);
+
+        // for crossplatform fallback does not work => register default serializers for collections and subclasses
+        reg.putSerializer(AbstractCollection.class, new FSTCollectionSerializer(), true); // subclass should register manually
+        reg.putSerializer(AbstractMap.class, new FSTMapSerializer(), true); // subclass should register manually
 
         res.registerCrossPlatformClassMapping(new String[][]{
                 {"map", HashMap.class.getName()},
@@ -128,7 +142,7 @@ public final class FSTConfiguration {
                 {"float", Float.class.getName()},
                 {"double", Double.class.getName()},
                 {"date", Date.class.getName()},
-                {"enumSet", "java.util.RegularEnumSet" },
+                {"enumSet", "java.util.RegularEnumSet"},
                 {"array", "[Ljava.lang.Object;"},
                 {"Double[]", "[Ljava.lang.Double;"},
                 {"Float[]", "[Ljava.lang.Float;"},
@@ -155,6 +169,9 @@ public final class FSTConfiguration {
         reg.putSerializer(StringBuffer.class, new FSTStringBufferSerializer(), true);
         reg.putSerializer(StringBuilder.class, new FSTStringBuilderSerializer(), true);
         reg.putSerializer(EnumSet.class, new FSTEnumSetSerializer(), true);
+
+        // for most cases don't register for subclasses as in many cases we'd like to fallback to JDK implementation
+        // (e.g. TreeMap) in order to guarantee complete serialization
         reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false); // subclass should register manually
 //        reg.putSerializer(ArrayList.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false); // EXCEPTION !!! subclass should register manually
@@ -549,6 +566,36 @@ public final class FSTConfiguration {
         return streamCoderFactory.createStreamDecoder();
     }
 
+    public byte[] asByteArray( Serializable object ) {
+        FSTObjectOutput objectOutput = getObjectOutput();
+        try {
+            objectOutput.writeObject(object);
+        return objectOutput.getCopyOfWrittenBuffer();
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
+        }
+        return null;
+    }
+
+    AtomicBoolean cplock = new AtomicBoolean(false);
+    public void registerCrossPlatformClassBinaryCache( String fulLQName, byte[] binary ) {
+        try {
+            while (cplock.compareAndSet(false, true)) { } // spin
+            crossPlatformNamesBytez.put(fulLQName, binary);
+        } finally {
+            cplock.set(false);
+        }
+    }
+
+    public byte[] getCrossPlatformBinaryCache(String symbolicName) {
+        try {
+            while ( cplock.compareAndSet(false, true)) { } // spin
+            return crossPlatformNamesBytez.get(symbolicName);
+        } finally {
+            cplock.set(false);
+        }
+    }
+
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
@@ -560,7 +607,32 @@ public final class FSTConfiguration {
             crossPlatformNamesReverse.put( keysAndVal[1], keysAndVal[0]);
         }
     }
-    
+
+    /**
+     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
+     * @param names { "varName", .. } for each of these an id will be written instead of full name.
+     *              SENDER AND RECEIVER NEED TO BE CONFIGURED WITH EXACTLY THE SAME LIST, ORDER !!!
+     */
+    public void registerCrossPlatformAttributeNames( String ... names ) {
+        for (int i = 0; i < names.length; i++) {
+            crossPlatformAttrIds.put( names[i], cpAttrIdCount);
+            crossPlatformAttrIdsReverse.put( cpAttrIdCount, names[i]);
+        }
+    }
+
+    public String getCrossPlatformAttributeName( Integer id ) {
+        return crossPlatformAttrIdsReverse.get(id);
+    }
+
+    public Integer getCrossPlatformAttributeId( String id ) {
+        return crossPlatformAttrIds.get(id);
+    }
+
+    /**
+     * get cross platform symbolic class identifier
+     * @param cl
+     * @return
+     */
     public String getCPNameForClass( Class cl ) {
         String res = crossPlatformNamesReverse.get(cl.getName());
         if (res == null) {
