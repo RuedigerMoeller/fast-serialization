@@ -4,7 +4,7 @@ fast-serialization
 
 Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure childishness)
 
-##Documentation
+###Documentation
 
 [Quick Start](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
