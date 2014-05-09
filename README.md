@@ -7,8 +7,10 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 ##Documentation
 
 [Quick Start](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
+
 [All Pages](https://github.com/RuedigerMoeller/fast-serialization/wiki)
-this project was hosted in googlecode, documentation is still not fully moved. (see http://fast-serialization.googlecode.com)
+
+this project was hosted in googlecode, documentation is still not fully moved. see (http://fast-serialization.googlecode.com)
 
 ###how to build 
 
