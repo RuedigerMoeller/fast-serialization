@@ -46,7 +46,7 @@ var tagCount = 0;
 
 function MBIn(rawmsg) {
 
-    this.bytez = rawmsg; // Uint8Array
+    this.bytez = rawmsg; // Int8Array
     this.pos = 0;
 
     this.peekIn = function() {
@@ -96,7 +96,29 @@ function MBIn(rawmsg) {
             throw "not a primitive array "+type;
         var len = this.readInt();
         var baseType = getBaseType(type);
-        return this.readArrayRaw(type, len);
+        var result;
+        switch (baseType) {
+            case INT_8:  result = new Int8Array(len);  break;
+            case INT_16: result = new Int16Array(len); break;
+            case CHAR:   result = new Uint16Array(len);  break;
+            case INT_32: result = new Int32Array(len); break;
+            case INT_64: result = new Float64Array(len); break; // how to handle this in js ?
+            default:
+                throw "unknown array type";
+        }
+        return this.readArrayRaw(type, len, result);
+    }
+
+    this.readArrayRaw = function(type,len,array) {
+        for ( var i = 0; i < len; i++ ) {
+            array[i] = this.readRawInt(type);
+        }
+    }
+
+    this.readTag = function( tag ) {
+        var tagId = getTagId(tag);
+        MinBin.TagSerializer ts = mb.getSerializerForId(tagId);
+        return ts.readTag(this);
     }
 
 }
