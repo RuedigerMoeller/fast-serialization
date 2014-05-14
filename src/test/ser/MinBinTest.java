@@ -7,6 +7,9 @@ import de.ruedigermoeller.serialization.FSTObjectOutput;
 import de.ruedigermoeller.serialization.minbin.*;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -52,7 +55,7 @@ public class MinBinTest {
         MBSequence seq = new MBSequence("seq").add(hallo).add(null).add(123.123d).add(da).add(new Byte((byte) 1));
         MBObject me = new MBObject("me").put("prename", "Ruediger").put("name", "Moeller").put("misc", new int[]{7, 16, 45}).put("test", seq);
         out.writeTag(me);
-        
+
         MBIn in = new MBIn(out.getBytez(),0);
         Object res = in.readTag(in.readIn());
         assertTrue(DeepEquals.deepEquals(res, hallo));
@@ -64,6 +67,21 @@ public class MinBinTest {
         assertTrue(DeepEquals.deepEquals(meRead, me) );
         MBPrinter.printMessage(me,System.out);
 
+        final String name = "tagtest.minbin";
+        final byte[] bytez = out.getBytez();
+
+        writeTmp(name, bytez);
+    }
+
+    private void writeTmp(String name, byte[] bytez) {
+        new File("/tmp/jstest").mkdirs();
+        try {
+            FileOutputStream fout = new FileOutputStream("/tmp/jstest/"+ name);
+            fout.write(bytez);
+            fout.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

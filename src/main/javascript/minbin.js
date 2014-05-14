@@ -25,7 +25,7 @@ function getTagCode(tagId) { return ((tagId << 3)|TAG); }
 function isSigned(type) { return (type & 3) < TAG && (type & UNSIGN_MASK) == 0; }
 /** is primitive and array array */
 function isArray(type) {  return (type & 3) < TAG && (type & ARRAY_MASK) != 0; }
-function extractNumBytes(type) { return (byte) (1 << ((type & 3)-1)); }
+function extractNumBytes(type) { return (1 << ((type & 3)-1)); }
 function getBaseType(type) { return ((type&3)|(type&UNSIGN_MASK)); }
 
 // predefined tag id's
@@ -44,18 +44,21 @@ var clz2Ser = {};
 var tag2Ser = [];
 var tagCount = 0;
 
+var serializer = [];
+serializer[STRING] = new StringTagSer();
+
 function MBIn(rawmsg) {
 
     this.bytez = rawmsg; // Int8Array
     this.pos = 0;
 
     this.peekIn = function() {
-        return this.bytez[this.pos];
-    }
+        return this.bytez.charCodeAt(this.pos);
+    };
 
     this.readIn = function() {
-        return this.bytez[this.pos++];
-    }
+        return this.bytez.charCodeAt(this.pos++);
+    };
 
     this.readRawInt = function(type) {
         var res = 0;
@@ -67,7 +70,7 @@ function MBIn(rawmsg) {
             shift+=8;
         }
         return res;
-    }
+    };
 
     this.readInt = function() {
         var type = this.readIn();
@@ -88,10 +91,10 @@ function MBIn(rawmsg) {
             }
         }
         return l;
-    }
+    };
 
     this.readArray = function() {
-        var type = readIn();
+        var type = this.readIn();
         if ( ! isArray(type) || ! isPrimitive(type) )
             throw "not a primitive array "+type;
         var len = this.readInt();
@@ -107,18 +110,90 @@ function MBIn(rawmsg) {
                 throw "unknown array type";
         }
         return this.readArrayRaw(type, len, result);
-    }
+    };
 
     this.readArrayRaw = function(type,len,array) {
         for ( var i = 0; i < len; i++ ) {
             array[i] = this.readRawInt(type);
         }
-    }
+        return array;
+    };
 
     this.readTag = function( tag ) {
         var tagId = getTagId(tag);
-        MinBin.TagSerializer ts = mb.getSerializerForId(tagId);
+        var ts = serializer[tagId];
+        if (ts==null) {
+            throw "no tagser found".concat(tagId);
+        }
         return ts.readTag(this);
+    };
+
+    this.readObject = function() {
+        var type = this.peekIn();
+        if (type==END) {
+            this.readIn();
+            return END_MARKER;
+        }
+        if ( isPrimitive(type) ) {
+            if ( isArray(type) ) {
+                return this.readArray();
+            }
+            switch (type) {
+                case INT_8:  return this.readInt();
+                case INT_16: return this.readInt();
+                case CHAR:   return this.readInt();
+                case INT_32: return this.readInt();
+                case INT_64: return this.readInt();
+                default: throw "unexpected primitive type:";
+            }
+        } else {
+//            if ( getTagId(type) == HANDLE ) {
+//                return new MBRef((Integer) readTag(readIn()));
+//            }
+            return this.readTag(this.readIn());
+        }
     }
 
 }
+
+function StringTagSer() {
+
+    this.writeTag = function(data, out) {
+        var s = data;
+        var isAsc = s.length < 64;
+        if (isAsc) {
+            for (var i = 0; i < s.length; i++) {
+                if (s.charAt(i) >= 127) {
+                    isAsc = false;
+                    break;
+                }
+            }
+        }
+//        if (isAsc) {
+//            byte[] strBytes = s.getBytes();
+//            out.writeOut((byte) (MinBin.INT_8|MinBin.ARRAY_MASK));
+//            out.writeIntPacked(strBytes.length);
+//            out.writeRaw(strBytes, 0, strBytes.length);
+//        } else {
+//            final char[] chars = s.toCharArray();
+//            out.writeArray(chars, 0, chars.length);
+//        }
+    };
+
+    this.readTag = function(inp) {
+        var arr = inp.readArray();
+        var res = '';
+        for (var i = 0; i < arr.length; i++) {
+            res += String.fromCharCode(arr[i]);
+        }
+        return res;
+    };
+
+//    @Override
+//    public Class getClassEncoded() {
+//        return String.class;
+//    }
+}
+
+var fr = new FileReader();
+fr.readAs
