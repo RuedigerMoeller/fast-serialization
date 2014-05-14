@@ -6,6 +6,7 @@
 
 <input type="file" id="files" name="files[]" multiple value="C:\\tmp\\jstest\\tagtest.minbin"/>
 <output id="list"></output>
+<pre id="json"></pre>
 
     <script>
         function handleFileSelect(evt) {
@@ -18,14 +19,19 @@
                         f.size, ' bytes, last modified: ',
                         f.lastModifiedDate.toLocaleDateString(), '</li>');
             }
-            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+//            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
 
             var fr = new FileReader();
+            output = [];
             fr.onloadend = function(event) {
                 var res = event.target.result;
                 var inp = new MBIn(res);
                 var obj = inp.readObject();
-                var obj1 = inp.readObject();
+                output.push(JSON.stringify(obj,undefined,2));
+                document.getElementById('json').innerHTML = output.join('');
+                output = [];
+                output.push(prettyPrint(obj));
+                document.getElementById('list').innerHTML = '<pre>' + output.join('') + '</pre>';
             };
             fr.readAsBinaryString(files[0]);
         }

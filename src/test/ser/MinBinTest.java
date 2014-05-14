@@ -73,6 +73,30 @@ public class MinBinTest {
         writeTmp(name, bytez);
     }
 
+    @Test
+    public void jsTest() {
+        MBOut out = new MBOut();
+        MBSequence sequence = new MBSequence("aSeqType")
+                .add("1",2,3,4,"fünf",6,7);
+        MBObject ob = new MBObject("myType")
+                .put("prename", "Ruediger")
+                .put("name", "Moeller")
+                .put("nüll", null)
+                .put("misc", new int[]{7, 16, 45})
+                .put("test", 13)
+                .put("floatval", 1.234f)
+                .put("doubleval", 1.234567d)
+                .put("seField", sequence);
+        out.writeTag(ob);
+
+        MBIn in = new MBIn(out.getBytez(),0);
+        Object res = in.readTag(in.readIn());
+
+        MBPrinter.printMessage(ob,System.out);
+
+        writeTmp("jstest.minbin", out.getBytez());
+    }
+
     private void writeTmp(String name, byte[] bytez) {
         new File("/tmp/jstest").mkdirs();
         try {

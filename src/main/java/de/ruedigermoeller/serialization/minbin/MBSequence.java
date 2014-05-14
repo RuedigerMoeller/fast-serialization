@@ -48,11 +48,13 @@ public class MBSequence {
         content.set(index,value);
     }
     
-    public MBSequence add( Object o ) {
+    public MBSequence add( Object ... o ) {
         if (content == null) {
             content = new ArrayList();
         }
-        content.add(o);
+        for (int i = 0; i < o.length; i++) {
+            content.add(o[i]);
+        }
         return this;
     }
 

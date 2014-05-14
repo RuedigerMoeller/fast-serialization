@@ -7,6 +7,9 @@ import de.ruedigermoeller.serialization.FSTObjectOutput;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import org.junit.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -48,6 +51,8 @@ public class BasicMinBinTest extends BasicFSTTest {
 
         MBPrinter.printMessage(out.getBuffer(), System.out);
 
+        writeTmp("enums.minbin",out.getBuffer());
+
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();
         Object res = in.readObject();
@@ -64,6 +69,7 @@ public class BasicMinBinTest extends BasicFSTTest {
         out.writeObject(obj);
 
         MBPrinter.printMessage(out.getBuffer(), System.out);
+        writeTmp("simplecollections.minbin",out.getBuffer());
 
         final byte[] copyOfWrittenBuffer = out.getCopyOfWrittenBuffer();
         in.resetForReuseUseArray(copyOfWrittenBuffer);
@@ -71,6 +77,17 @@ public class BasicMinBinTest extends BasicFSTTest {
         HashMap res = (HashMap) in.readObject();
         assertTrue(res.get("x") == res.get("y"));
         assertTrue(DeepEquals.deepEquals(obj, res));
+    }
+
+    private void writeTmp(String name, byte[] bytez) {
+        new File("/tmp/jstest").mkdirs();
+        try {
+            FileOutputStream fout = new FileOutputStream("/tmp/jstest/"+ name);
+            fout.write(bytez);
+            fout.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

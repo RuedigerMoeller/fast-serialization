@@ -142,7 +142,7 @@ public class MBIn {
         } else if ( componentType == boolean.class ) {
             boolean[] boolArr = (boolean[]) resultingArray;
             for (int i = 0; i < len; i++) {
-                boolArr[i] = readRawInt(MinBin.INT_8) != 0 ? true:false;
+                boolArr[i] = readRawInt(MinBin.INT_8) != 0;
             }
         } else
             throw new RuntimeException("unsupported array type "+resultingArray.getClass().getName());
