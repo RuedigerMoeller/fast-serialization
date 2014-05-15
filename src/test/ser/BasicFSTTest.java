@@ -186,7 +186,7 @@ public class BasicFSTTest {
     public void testPrimitives() throws Exception {
         Primitives obj = new Primitives();
         out.writeObject(obj);
-        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+        in.resetForReuseUseArray(lastBinary=out.getCopyOfWrittenBuffer());
         out.flush();
         Object res = in.readObject();
         assertTrue(DeepEquals.deepEquals(obj,res));
@@ -196,7 +196,7 @@ public class BasicFSTTest {
     public void testPrimitiveArray() throws Exception {
         PrimitiveArray obj = new PrimitiveArray();
         out.writeObject(obj);
-        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+        in.resetForReuseUseArray(lastBinary = out.getCopyOfWrittenBuffer());
         out.flush();
         PrimitiveArray res = (PrimitiveArray) in.readObject();
         assertTrue(res.aLong0 == res.aRef);
@@ -264,6 +264,7 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 
+    protected byte[] lastBinary;
     @Test
     public void testStrings() throws Exception {
         Strings obj = new Strings();

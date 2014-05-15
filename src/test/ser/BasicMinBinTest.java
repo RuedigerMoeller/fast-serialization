@@ -36,15 +36,22 @@ public class BasicMinBinTest extends BasicFSTTest {
         super.testStrings();
     }
 
+    @Override
+    public void testPrimitives() throws Exception {
+        super.testPrimitives();
+        writeTmp("testprim.minbin",lastBinary);
+    }
+
     @Override @Test
     public void testPrimitiveArray() throws Exception {
         super.testPrimitiveArray();
+        writeTmp("testprimarray.minbin",lastBinary);
     }
 
     @Test
     public void testException() throws Exception { super.testException(); }
 
-        @Test
+    @Test
     public void testEnums() throws Exception {
         Basics obj = new Basics(123);
         out.writeObject(obj);
