@@ -6,6 +6,11 @@
 
 <input type="file" id="files" name="files[]" multiple value="C:\\tmp\\jstest\\tagtest.minbin"/>
 <output id="list"></output>
+<br>
+MinBin reftest:
+<pre id="minbinref"></pre>
+
+
 MinBin parsed:
 <pre id="minbin"></pre>
 
@@ -18,6 +23,10 @@ JSON:
     <script>
         function handleFileSelect(evt) {
             var files = evt.target.files; // FileList object
+
+            function TestObject() {
+                this.someText = "";
+            }
 
             // files is a FileList of File objects. List some properties.
             var output = [];
@@ -38,11 +47,21 @@ JSON:
                 output = [];
                 output.push(MinBin.prettyPrint(obj));
                 document.getElementById('minbin').innerHTML = output.join('');
+
+
                 output = [];
                 var buff = MinBin.encode(obj);
                 obj = MinBin.decode(buff);
                 output.push(MinBin.prettyPrint(obj));
                 document.getElementById('minbinre').innerHTML = output.join('');
+
+                output = [];
+                var arr = [ "pok", "pok", "pak", new TestObject() ];
+                var buff = MinBin.encode({ 'a' : '100', b: arr, c: [arr,arr] });
+                obj = MinBin.decode(buff);
+                output.push(MinBin.prettyPrint(obj));
+                document.getElementById('minbinref').innerHTML = output.join('');
+
             };
             fr.readAsBinaryString(files[0]);
         }

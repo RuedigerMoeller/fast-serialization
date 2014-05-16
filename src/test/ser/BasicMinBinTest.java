@@ -11,6 +11,7 @@ import org.junit.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -49,6 +50,24 @@ public class BasicMinBinTest extends BasicFSTTest {
         super.testPrimitiveArray();
         MBPrinter.printMessage(lastBinary);
         writeTmp("testprimarray.minbin",lastBinary);
+    }
+
+    public static class Long4JS implements Serializable {
+        long aLong = 12345;
+        Long bigLong = 3456789934857l;
+        long arr[] = { 123456, 1234567890l };
+        Long bigArr[] = { 45678901234l, 1234567890l };
+    }
+
+    @Test
+    public void testLongHateJSNumbers() throws Exception {
+        Long4JS obj = new Long4JS();
+        out.writeObject(obj);
+        in.resetForReuseUseArray(lastBinary = out.getCopyOfWrittenBuffer());
+        out.flush();
+        Long4JS res = (Long4JS) in.readObject();
+        assertTrue(DeepEquals.deepEquals(obj,res));
+        writeTmp("long4js.minbin",lastBinary);
     }
 
     @Test

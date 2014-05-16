@@ -31,6 +31,12 @@ var MinBin = new function MinBin() {
 
     // public API =>
 
+//    this.setKnownNames = function(listOfAttributeNames) {
+//        this.nameHash = {};
+//        for ( var i = 0; i < listOfAttributeNames.length; i++) {
+//            this.nameHash[listOfAttributeNames[i],i];
+//        }
+//    };
     this.prettyPrint = function(object) { return new MBPrinter().prettyPrintStreamObject(object, "", ""); };
     this.decode = function (int8bufferOrString) {
         if ( this.isBinBlob(int8bufferOrString) )
@@ -47,9 +53,8 @@ var MinBin = new function MinBin() {
 
     // END public API
 
-
-
     this.serializer = [];
+    this.nameHash = {};
 
     this.serializer[STRING] = new StringTagSer();
     this.serializer[NULL] = new NullTagSer();
@@ -144,6 +149,50 @@ function MBOut() {
 
     this.bytez = new Int8Array(5000);
     this.pos = 0;
+    this.objId2pos = {};
+    this.string2Id = {};
+
+    this.__idcnt=1;
+    this.objectId = function(obj) {
+        if (obj==null || typeof obj === "undefined") return null;
+
+        if ( typeof obj === "string" ) {
+            if ( this.string2Id[obj] == null ) {
+                this.string2Id[obj] = this.__idcnt++;
+            }
+            return this.string2Id[obj];
+        }
+
+        if (obj.__idcnt==null || typeof obj.__idcnt === "undefined")
+            obj.__idcnt=this.__idcnt++;
+        return obj.__idcnt;
+    };
+
+//    this.registerObject = function(o) {
+//        if ( o != null )
+//            this.objId2pos[this.objectId(o)] = this.pos;
+//    };
+
+    this.writeRefIfApplicable = function(o) {
+        if ( o == null )
+            return true;
+        if ( typeof o == 'number' || typeof o == 'undefined' )
+            return true;
+        var id = this.objectId(o);
+        if ( id != null ) {
+            var lookup = this.objId2pos[id];
+            if (lookup != null && lookup != this.pos) {
+                this.writeTagHeader(HANDLE);
+                this.writeIntPacked(lookup);
+                return false;
+            }
+            this.objId2pos[this.objectId(o)] = this.pos;
+            console.log("register ".concat(o).concat(" id ").concat(id).concat(" to ").concat(this.pos));
+        } else {
+            console.log("cant id ".concat(o) );
+        }
+        return true;
+    };
 
     /**
      * write single byte, grow byte array if needed
@@ -223,10 +272,14 @@ function MBOut() {
 
     this.writeTag = function( obj ) {
         if (obj==END_MARKER) {
-            writeOut(END);
+            this.writeOut(END);
             return;
         }
         var tagSerializer = MinBin.getTagSerializerFor(obj);
+        if ( tagSerializer == MinBin.serializer[SEQUENCE] || tagSerializer == MinBin.serializer[OBJECT] ) {
+            if ( !this.writeRefIfApplicable(obj) )
+                return;
+        }
         if ( tagSerializer == null ) {
             throw "no tag serializer found for "+obj;
         }
@@ -240,12 +293,11 @@ function MBOut() {
     /**
      * completely reset state
      */
-    this.reset = function() { this.pos = 0; };
-    /**
-     * only reset position
-     */
-    this.resetPosition = function() {
+    this.reset = function() {
         this.pos = 0;
+        this.__idcnt = 1;
+        this.objId2pos = {};
+        this.string2Id = {};
     };
 
     this.writeObject = function(o) {
@@ -254,7 +306,8 @@ function MBOut() {
         } else if ( MinBin.isInteger(o) ) {
             this.writeIntPacked(o);
         } else if ( MinBin.isBinBlob(o) ) {
-            this.writeArray( o, 0, o.length);
+            if ( this.writeRefIfApplicable(o) )
+                this.writeArray( o, 0, o.length);
         } else if (o instanceof MBLong){
             this.writeOut(INT_64);
             this.writeRawInt(INT_32, o.loInt);
@@ -334,7 +387,16 @@ function MBIn(rawmsg) {
             case INT_16: result = new Int16Array(len); break;
             case CHAR:   result = new Uint16Array(len);  break;
             case INT_32: result = new Int32Array(len); break;
-            case INT_64: result = new Float64Array(len); break; // how to handle this in js ?
+            case INT_64:
+                result = [];
+                for ( var i = 0; i < len; i++ ) {
+                    var l = new MBLong();
+                    l.loInt = this.readRawInt(INT_32);
+                    l.hiInt = this.readRawInt(INT_32);
+                    result.push(l);
+                }
+                result.__typeInfo = "longarr";
+                return result;
             default:
                 throw "unknown array type";
         }
@@ -384,7 +446,9 @@ function MBIn(rawmsg) {
 }
 
 
-
+function MBRef(pos) {
+    this.pos = pos;
+}
 
 function MBLong() {
     this.loInt = 0;
@@ -438,12 +502,18 @@ function MBObjectTagSer() {
      * @param out
      */
     this.writeTag = function(data, out) {
-        out.writeObject(data.__typeInfo);
+        var name = data.__typeInfo;
+        if ( typeof name === "undefined" ) {
+            name = data.constructor.name;
+        }
+        out.writeObject(name);
         out.writeIntPacked(-1);
         for (var next in data ) {
-            if (data.hasOwnProperty(next) && next != "__typeInfo") {
+            if (data.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt" ) {
                 out.writeObject(next);
-                out.writeObject(data[next]);
+                if ( out.writeRefIfApplicable(data[next]) ) {
+                    out.writeObject(data[next]);
+                }
             }
         }
         out.writeOut(END);
@@ -460,7 +530,9 @@ function MBObjectTagSer() {
         var obj = { "__typeInfo" : typeInfo };
         for ( var i=0; i < len || len < 0 ; i++ ) {
             var key = inp.readObject();
-//            console.log('key '.concat(key));
+            if ( key == "st" )
+                var x = 99; // debug
+            console.log('key '.concat(key));
             if (key==END_MARKER)
                 break;
             obj[key] = inp.readObject();
@@ -474,7 +546,8 @@ function MBSequenceTagSer() {
         out.writeTag(data.__typeInfo);
         out.writeIntPacked(data.length);
         for (var i = 0; i < data.length; i++) {
-            out.writeObject(data[i]);
+            if ( out.writeRefIfApplicable(data[i]) )
+                out.writeObject(data[i]);
         }
     };
     this.readTag = function (inp) {
@@ -512,10 +585,10 @@ function BigBoolTagSer() {
 
 function RefTagSer() {
     this.writeTag = function(data,out) {
-//        out.writeInt(INT_8, data?1:0);
+        throw "unexpected call";
     };
     this.readTag = function(inp) {
-        return { "__typeInfo" : "mbRef", "pos":inp.readInt() };
+        return new MBRef(inp.readInt());
     };
 }
 
@@ -545,6 +618,9 @@ function FloatArrTagSer() {
 function MBPrinter(object) {
 
     this.prettyPrintStreamObject = function( o, out, indent ) {
+        if (o instanceof MBRef) {
+            return "#".concat(o.pos);
+        } else
         if ( o instanceof MBLong) {
             return this.objectToString(o);
         } else if ( o instanceof Array ) {
@@ -559,7 +635,7 @@ function MBPrinter(object) {
         out = this.prettyPrintStreamObject(t.__typeInfo,out,indent);
         out = out.concat(" {\n");
         for (var next in t ) {
-            if (t.hasOwnProperty(next) && next != "__typeInfo") {
+            if (t.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt") {
                 out = out.concat( indent+"  " );
                 out = out.concat( this.prettyPrintStreamObject(next, out, indent) );
                 out = out.concat(" : ");
