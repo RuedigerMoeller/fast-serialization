@@ -255,8 +255,10 @@ function MBOut() {
             this.writeIntPacked(o);
         } else if ( MinBin.isBinBlob(o) ) {
             this.writeArray( o, 0, o.length);
-//        } else if (o instanceof MBLong){
-//            writeInt();
+        } else if (o instanceof MBLong){
+            this.writeOut(INT_64);
+            this.writeRawInt(INT_32, o.loInt);
+            this.writeRawInt(INT_32, o.hiInt);
         } else {
             this.writeTag(o);
         }
@@ -279,14 +281,14 @@ function MBIn(rawmsg) {
         if ( numBytes == 8 ) // special handling for long
         {
             var lng = new MBLong();
-            lng.hiInt = ((this.readIn()+256) & 0xff);
-            lng.hiInt += ((this.readIn()+256) & 0xff)<<8;
-            lng.hiInt += ((this.readIn()+256) & 0xff)<<16;
-            lng.hiInt += ((this.readIn()+256) & 0xff)<<24;
             lng.loInt = ((this.readIn()+256) & 0xff);
             lng.loInt += ((this.readIn()+256) & 0xff)<<8;
             lng.loInt += ((this.readIn()+256) & 0xff)<<16;
             lng.loInt += ((this.readIn()+256) & 0xff)<<24;
+            lng.hiInt = ((this.readIn()+256) & 0xff);
+            lng.hiInt += ((this.readIn()+256) & 0xff)<<8;
+            lng.hiInt += ((this.readIn()+256) & 0xff)<<16;
+            lng.hiInt += ((this.readIn()+256) & 0xff)<<24;
             return lng;
         }
         var shift = 0;
