@@ -5,6 +5,7 @@ import de.ruedigermoeller.serialization.FSTConfiguration;
 import de.ruedigermoeller.serialization.FSTObjectInput;
 import de.ruedigermoeller.serialization.FSTObjectOutput;
 import de.ruedigermoeller.serialization.minbin.MBPrinter;
+import de.ruedigermoeller.serialization.minbin.MinBin;
 import org.junit.*;
 
 import java.io.File;
@@ -39,12 +40,14 @@ public class BasicMinBinTest extends BasicFSTTest {
     @Override
     public void testPrimitives() throws Exception {
         super.testPrimitives();
-        writeTmp("testprim.minbin",lastBinary);
+        MBPrinter.printMessage(lastBinary);
+        writeTmp("testprim.minbin", lastBinary);
     }
 
     @Override @Test
     public void testPrimitiveArray() throws Exception {
         super.testPrimitiveArray();
+        MBPrinter.printMessage(lastBinary);
         writeTmp("testprimarray.minbin",lastBinary);
     }
 

@@ -107,5 +107,8 @@ public class MBPrinter {
             return "'"+o+"'("+(int)((Character) o).charValue()+")";
         return ""+o;
     }
-    
+
+    public static void printMessage(byte[] binarMsg) {
+        printMessage(binarMsg,System.out);
+    }
 }

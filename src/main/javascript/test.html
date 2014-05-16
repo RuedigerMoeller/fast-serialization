@@ -6,6 +6,13 @@
 
 <input type="file" id="files" name="files[]" multiple value="C:\\tmp\\jstest\\tagtest.minbin"/>
 <output id="list"></output>
+MinBin parsed:
+<pre id="minbin"></pre>
+
+MinBin REparsed:
+<pre id="minbinre"></pre>
+
+JSON:
 <pre id="json"></pre>
 
     <script>
@@ -25,13 +32,17 @@
             output = [];
             fr.onloadend = function(event) {
                 var res = event.target.result;
-                var inp = new MBIn(res);
-                var obj = inp.readObject();
+                var obj = MinBin.decode(res);
                 output.push(JSON.stringify(obj,undefined,2));
                 document.getElementById('json').innerHTML = output.join('');
                 output = [];
-                output.push(prettyPrint(obj));
-                document.getElementById('list').innerHTML = '<pre>' + output.join('') + '</pre>';
+                output.push(MinBin.prettyPrint(obj));
+                document.getElementById('minbin').innerHTML = output.join('');
+                output = [];
+                var buff = MinBin.encode(obj);
+                obj = MinBin.decode(buff);
+                output.push(MinBin.prettyPrint(obj));
+                document.getElementById('minbinre').innerHTML = output.join('');
             };
             fr.readAsBinaryString(files[0]);
         }
