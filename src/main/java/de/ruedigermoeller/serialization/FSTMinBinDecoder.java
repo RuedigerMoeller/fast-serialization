@@ -254,7 +254,8 @@ public class FSTMinBinDecoder implements FSTDecoder {
             input.readIn();
             if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
                 try {
-                    lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName((String) input.readObject()));
+                    String cln = (String) input.readObject();
+                    lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
                 } catch (ClassNotFoundException e) {
                     throw FSTUtil.rethrow(e);
                 }
@@ -382,6 +383,11 @@ public class FSTMinBinDecoder implements FSTDecoder {
         if ( input.peekIn() == MinBin.END ) {
             input.readIn();
         }
+    }
+
+    @Override
+    public boolean isEndMarker(String s) {
+        return MinBin.END_MARKER == s;
     }
 
 }

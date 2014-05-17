@@ -5,8 +5,6 @@ import de.ruedigermoeller.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class FSTStreamDecoder implements FSTDecoder {
 
@@ -452,6 +450,11 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void readExternalEnd() {
         // do nothing for direct encoding
+    }
+
+    @Override
+    public boolean isEndMarker(String s) {
+        return false;
     }
 
 

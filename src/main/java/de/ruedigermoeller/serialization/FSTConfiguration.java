@@ -144,6 +144,7 @@ public final class FSTConfiguration {
                 {"date", Date.class.getName()},
                 {"enumSet", "java.util.RegularEnumSet"},
                 {"array", "[Ljava.lang.Object;"},
+                {"String[]", "[Ljava.lang.String;"},
                 {"Double[]", "[Ljava.lang.Double;"},
                 {"Float[]", "[Ljava.lang.Float;"},
                 {"double[]", "[D"},

@@ -1,6 +1,6 @@
 
 
-const END_MARKER = "END";
+const END_MARKER = "_E_";
 
 // low 3 bits contain type
 const INT_8 = 1; // 0x0001 (17 = array)
@@ -37,7 +37,66 @@ var MinBin = new function MinBin() {
 //            this.nameHash[listOfAttributeNames[i],i];
 //        }
 //    };
+
     this.prettyPrint = function(object) { return new MBPrinter().prettyPrintStreamObject(object, "", ""); };
+
+    this.obj = function(clazz,object) {
+        object.__typeInfo = clazz;
+        return object;
+    };
+
+    this.strArr = function(array) {
+        var res = [];
+        res.__typeInfo = "String[]";
+        for ( var i = 0; i < array.length; i++) {
+            res.push(array[i]);
+        }
+        return res;
+    };
+
+    this.i32 = function(array) {
+        var res = new Int32Array(array.length);
+        for ( var i = 0; i < array.length; i++) {
+            res[i] = array[i];
+        }
+        return res;
+    };
+
+    this.i8 = function(array) {
+        var res = new Int8Array(array.length);
+        for ( var i = 0; i < array.length; i++) {
+            res[i] = array[i];
+        }
+        return res;
+    };
+
+    this.i16 = function(array) {
+        var res = new Int16Array(array.length);
+        for ( var i = 0; i < array.length; i++) {
+            res[i] = array[i];
+        }
+        return res;
+    };
+
+    this.jlist = function(array) {
+        var res = [array.length];
+        for ( var i = 0; i < array.length; i++) {
+            res.push(array[i]);
+        }
+        res.__typeInfo = "list";
+        return res;
+    };
+
+    this.jmap = function(map) {
+        var res = [Object.keys(map).length];
+        for ( var key in map) {
+            res.push(key);
+            res.push(map[key]);
+        }
+        res.__typeInfo = "map";
+        return res;
+    };
+
     this.decode = function (int8bufferOrString) {
         if ( int8bufferOrString instanceof ArrayBuffer )
             int8bufferOrString = String.fromCharCode.apply(null, new Uint8Array(int8bufferOrString));
@@ -47,6 +106,7 @@ var MinBin = new function MinBin() {
         this.MBin.bytez = int8bufferOrString;
         return this.MBin.readObject();
     };
+
     this.encode = function (object) {
         this.MBOut.reset();
         this.MBOut.writeObject(object);
@@ -96,9 +156,9 @@ var MinBin = new function MinBin() {
         return null;
     };
 
-    this.isFloat = function(n) { return n === +n && n !== (n|0); };
+    this.isFloat = function(n) { return typeof n === 'number' && n % 1 == 0; };
 
-    this.isInteger = function(n) { return n === +n && n === (n|0); };
+    this.isInteger = function(n) { return n === (n|0); };
 
     /** return wether type is primitive or primitive array */
     this.isPrimitive = function (type) { return (type & RESERV) < TAG; };
@@ -184,12 +244,13 @@ function MBOut() {
         if ( id != null ) {
             var lookup = this.objId2pos[id];
             if (lookup != null && lookup != this.pos) {
+                console.log("match ".concat(o).concat(" id ").concat(id).concat(" at ").concat(lookup));
                 this.writeTagHeader(HANDLE);
                 this.writeIntPacked(lookup);
                 return false;
             }
             this.objId2pos[this.objectId(o)] = this.pos;
-//            console.log("register ".concat(o).concat(" id ").concat(id).concat(" to ").concat(this.pos));
+            console.log("register ".concat(o).concat(" id ").concat(id).concat(" to ").concat(this.pos));
         } else {
 //            console.log("cant id ".concat(o) );
         }
@@ -297,7 +358,7 @@ function MBOut() {
      */
     this.reset = function() {
         this.pos = 0;
-        this.__idcnt = 1;
+//        this.__idcnt = 1;
         this.objId2pos = {};
         this.string2Id = {};
     };
@@ -512,16 +573,26 @@ function MBObjectTagSer() {
             name = data.constructor.name;
         }
         out.writeObject(name);
-        out.writeIntPacked(-1);
+        var count = 0;
         for (var next in data ) {
             if (data.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt" ) {
-                out.writeObject(next);
-                if ( out.writeRefIfApplicable(data[next]) ) {
-                    out.writeObject(data[next]);
+                var val = data[next];
+                if ( typeof val != 'function' )
+                    count++;
+            }
+        }
+        out.writeIntPacked(count);
+        for (var next in data ) {
+            if (data.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt" ) {
+                var val = data[next];
+                if ( typeof val != 'function' ) {
+                    out.writeObject(next);
+                    if (out.writeRefIfApplicable(data[next])) {
+                        out.writeObject(data[next]);
+                    }
                 }
             }
         }
-        out.writeOut(END);
     };
     /**
      * tag is already read, reconstruct the object

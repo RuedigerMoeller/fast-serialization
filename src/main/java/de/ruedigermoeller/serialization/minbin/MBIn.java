@@ -46,6 +46,10 @@ public class MBIn {
     }
 
     public byte readIn() {
+        if ( pos == 205 )
+            System.out.println("POK"+bytez[pos]);
+        if ( pos == 206 )
+            System.out.println("POK"+bytez[pos]);
         return bytez[pos++];
     }
 

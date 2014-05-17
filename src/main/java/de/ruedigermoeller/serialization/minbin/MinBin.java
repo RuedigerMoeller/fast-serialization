@@ -26,7 +26,7 @@ import java.util.HashMap;
  */
 public class MinBin {
 
-    public static final Object END_MARKER = "END";
+    public static final Object END_MARKER = "_E_";
     public static MinBin DefaultInstance = new MinBin();
     
     public final static byte INT_8  = 0b0001; // 1 (17 = array)

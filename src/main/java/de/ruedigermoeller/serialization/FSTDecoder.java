@@ -54,4 +54,6 @@ public interface FSTDecoder {
 
     // read end maker and consume, if no endmarker found do nothing
     void readExternalEnd();
+
+    boolean isEndMarker(String s);
 }

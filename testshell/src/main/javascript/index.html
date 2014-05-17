@@ -6,14 +6,26 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FST Test Javascript TestClient</title>
-    <style>
-    </style>
 
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.js"></script>
+    <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <style>
+        .tooltip-inner {
+            max-width: 700px;
+            padding: 1px 2px;
+            color: #ffffff;
+            text-align: center;
+            text-decoration: none;
+            background-color: #ffffff;
+            border-radius: 4px;
+        }
+
+    </style>
 </head>
 <body ng-controller="TestCtrl">
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.js"></script>
 <script src="app.js"></script>
 <script src="js/minbin.js"></script>
 <br>
@@ -74,7 +86,9 @@
                 <button type="button" class="btn btn-primary btn-sm" id="run" ng-click="doRun(item)" ng-disabled="isRunning(item)"><span class="glyphicon glyphicon-cog"></span></button>
             </td>
             <td>{{item.name}}</td>
-            <td>{{item.result}}</td>
+            <td>
+                <span tooltip-placement="left" tooltip-html-unsafe="<div width=500px><pre align='left'>{{item.tooltip}}</pre></div>" ng-class="item.getResultIcon();"></span>
+            </td>
             <td>{{item.toRequest}}</td>
         </tr>
     </table>

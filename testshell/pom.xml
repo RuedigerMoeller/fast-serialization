@@ -39,9 +39,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>LATEST</version>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.0.19.Final</version>
         </dependency>
 
         <!-- test dependencies -->
