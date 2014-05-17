@@ -566,17 +566,6 @@ public final class FSTConfiguration {
         return streamCoderFactory.createStreamDecoder();
     }
 
-    public byte[] asByteArray( Serializable object ) {
-        FSTObjectOutput objectOutput = getObjectOutput();
-        try {
-            objectOutput.writeObject(object);
-        return objectOutput.getCopyOfWrittenBuffer();
-        } catch (IOException e) {
-            FSTUtil.rethrow(e);
-        }
-        return null;
-    }
-
     AtomicBoolean cplock = new AtomicBoolean(false);
     public void registerCrossPlatformClassBinaryCache( String fulLQName, byte[] binary ) {
         try {
@@ -648,5 +637,30 @@ public final class FSTConfiguration {
         }
         return res;
     }
-    
+
+    /**
+     * convenience
+     */
+    public Object asObject( byte b[] ) {
+        try {
+            return getObjectInput(b).readObject();
+        } catch (Exception e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
+    /**
+     * convenience
+     */
+    public byte[] asByteArray( Serializable object ) {
+        FSTObjectOutput objectOutput = getObjectOutput();
+        try {
+            objectOutput.writeObject(object);
+            return objectOutput.getCopyOfWrittenBuffer();
+        } catch (IOException e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
+
 }

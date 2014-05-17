@@ -542,7 +542,7 @@ public class FSTObjectInput implements ObjectInput {
         try {
             readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
         } catch (Exception e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
     }
 
@@ -849,7 +849,7 @@ public class FSTObjectInput implements ObjectInput {
                 try {
                     FSTObjectInput.this.readObjectFields(referencee, clInfo, clInfo.compInfo.get(cl).getFieldArray(), toRead); // FIXME: only fields of current class
                 } catch (Exception e) {
-                    FSTUtil.rethrow(e);
+                    throw FSTUtil.rethrow(e);
                 }
             }
 
@@ -866,7 +866,7 @@ public class FSTObjectInput implements ObjectInput {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }
                 } catch (Exception e) {
-                    FSTUtil.rethrow(e);
+                    throw FSTUtil.rethrow(e);
                 }
                 return new GetField() {
                     @Override

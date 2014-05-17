@@ -70,7 +70,7 @@ public final class FSTInputStream extends InputStream {
             }
             in.close();
         } catch (IOException e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
     }
 

@@ -52,6 +52,9 @@ public class MBSequence {
         if (content == null) {
             content = new ArrayList();
         }
+        if ( o == null ) {
+            o = new Object[] { null };
+        }
         for (int i = 0; i < o.length; i++) {
             content.add(o[i]);
         }
