@@ -9,8 +9,49 @@ import java.util.*;
 
 /**
  * Created by moelrue on 21.05.2014.
+ * 
+ * Example on how to deal with blocking IO. The trick is to encode/decode from byte arrays and write length of
+ * byte array first, so you don't run into a blocking read when deserializing
+ * 
  */
 public class GitIssue10 {
+
+    static boolean UseStdStreams = false;
+    
+    static FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+
+    protected static Object readObjectFromStream(DataInputStream inputStream) throws IOException, ClassNotFoundException {
+        if ( UseStdStreams ) {
+            ObjectInputStream in = new ObjectInputStream(inputStream);
+            return in.readObject();
+        } else {
+            int len = inputStream.readInt();
+            byte buffer[] = new byte[len]; // this could be reused !
+            while (len > 0)
+                len -= inputStream.read(buffer, buffer.length - len, len);
+            return GitIssue10.conf.getObjectInput(buffer).readObject();
+        }
+    }
+
+    protected static void writeObjectToStream(DataOutputStream outputStream, Object toWrite) throws IOException {
+        if ( UseStdStreams ) {
+            ObjectOutputStream out = new ObjectOutputStream(outputStream);
+            out.writeObject(toWrite);
+            out.flush();
+        } else {
+            // write object 
+            FSTObjectOutput objectOutput = conf.getObjectOutput(); // could also do new with minor perf impact
+            // write object to internal buffer
+            objectOutput.writeObject(toWrite);
+            // write length
+            outputStream.writeInt(objectOutput.getWritten());
+            // write bytes
+            outputStream.write(objectOutput.getBuffer(), 0, objectOutput.getWritten());
+
+            objectOutput.flush(); // return for reuse to conf
+        }
+    }
+
 
     static class TCPServer
     {
@@ -19,39 +60,55 @@ public class GitIssue10 {
             String clientSentence;
             String capitalizedSentence;
             ServerSocket welcomeSocket = new ServerSocket(6789);
+            Socket connectionSocket = welcomeSocket.accept();
+            DataOutputStream outputStream = new DataOutputStream(connectionSocket.getOutputStream());
+            DataInputStream inputStream = new DataInputStream(connectionSocket.getInputStream() );
 
-            while(true)
-            {
-                Socket connectionSocket = welcomeSocket.accept();
-                OutputStream outputStream = connectionSocket.getOutputStream();
-                InputStream inputStream = connectionSocket.getInputStream();
+            try {
+                while (true) {
+                    // read object
+                    Object read = readObjectFromStream(inputStream);
 
-                FSTObjectOutput toClient = new FSTObjectOutput(outputStream);
-                FSTObjectInput fromClient = new FSTObjectInput(inputStream);
-
-                Object read = fromClient.readObject();
-                toClient.writeObject(read);
-                toClient.flush();
+                    // write response
+                    writeObjectToStream(outputStream, read);
+                }
+            } catch (EOFException ex) {
+                // client terminated
+                System.out.println("client terminated");
             }
         }
     }
 
     static class TCPClient {
         public void main(String argv[]) throws Exception  {
-            String sentence;
-            String modifiedSentence;
+
             Socket clientSocket = new Socket("localhost", 6789);
-            OutputStream outputStream = clientSocket.getOutputStream();
-            InputStream inputStream = clientSocket.getInputStream();
 
-            FSTObjectOutput toSrv = new FSTObjectOutput(outputStream);
-            toSrv.writeObject(new HashMap<>(System.getProperties()));
-            toSrv.flush();
+            try {
+                DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
 
-            FSTObjectInput fromSrv = new FSTObjectInput(inputStream);
-            System.out.println("FROM SERVER: " + fromSrv.readObject());
+                while (true) {
+                    long tim = System.currentTimeMillis();
+                    for (int n = 0; n < 10000; n++) {
+                        HashMap toWrite = new HashMap();
+                        toWrite.put(1, "Hello");
+                        toWrite.put(2, "Data");
 
-            clientSocket.close();
+                        // write request
+                        writeObjectToStream(outputStream, toWrite);
+                        // get response
+                        Object response = readObjectFromStream(inputStream);
+                        if ( ! ((HashMap)response).get(1).equals("Hello") ) {
+                            throw new RuntimeException("encoding error");
+                        }
+                    }
+                    System.out.println("time for 10000 req/resp (20000 encodes, 20000 decodes)" + (System.currentTimeMillis() - tim));
+                }
+            } finally {
+                clientSocket.close();
+            }
+
         }
     }
 
