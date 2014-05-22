@@ -14,12 +14,13 @@ this project was hosted in googlecode, documentation is still not fully moved. s
 
 ###mvn
 
-.xml
+```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
     <version>1.55</version>
 </dependency>
+```
 
 ###how to build 
 
