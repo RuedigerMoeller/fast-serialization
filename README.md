@@ -12,6 +12,15 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 
 this project was hosted in googlecode, documentation is still not fully moved. see (http://fast-serialization.googlecode.com)
 
+###mvn
+
+.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>1.55</version>
+</dependency>
+
 ###how to build 
 
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
