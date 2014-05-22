@@ -19,3 +19,7 @@ this project was hosted in googlecode, documentation is still not fully moved. s
 
 <b>Note</b> that instrumentation done for fst-structs works only if debug info is turned on during compile. Reason is that generating methods at runtime with javassist fails (probably a javassist bug ..). 
 <b>This does not affect the serialization implementation. </b>
+
+<b>JDK 1.6 Build</b>
+https://github.com/RuedigerMoeller/fast-serialization/releases/tag/v1.55-1.6
+(only serialization works for 1.6)
