@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="1.55"
+version="1.55-1.6-compatible"
 
 targetCompatibility = 1.7
 sourceCompatibility = 1.7
@@ -66,8 +66,8 @@ task release(type: Jar, dependsOn:allJar) {
 }
 
 compileJava {
-    targetCompatibility = 1.7
-    sourceCompatibility = 1.7
+    targetCompatibility = 1.6
+    sourceCompatibility = 1.6
     options.compilerArgs << '-XDignore.symbol.file'
     options.compilerArgs << '-nowarn'
     options.fork = true
