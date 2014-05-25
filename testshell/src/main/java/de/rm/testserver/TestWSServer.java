@@ -115,7 +115,6 @@ public class TestWSServer {
             if ("/".equals(req.getUri())) {
                 ByteBuf content = WebSocketServerIndexPage.getContent(getWebSocketLocation(req));
                 FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, content);
-
                 res.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
                 setContentLength(res, content.readableBytes());
 
