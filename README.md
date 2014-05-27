@@ -18,7 +18,7 @@ this project was hosted in googlecode, documentation is still not fully moved. s
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.55</version>
+    <version>1.56</version>
 </dependency>
 ```
 
