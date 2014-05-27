@@ -39,9 +39,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.0.19.Final</version>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>netty2go</artifactId>
+            <version>1.01</version>
         </dependency>
 
         <!-- test dependencies -->

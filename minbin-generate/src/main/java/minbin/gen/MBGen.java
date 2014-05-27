@@ -2,6 +2,10 @@ package minbin.gen;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.rm.testserver.protocol.BasicValues;
+import de.rm.testserver.protocol.Meta;
+import de.ruedigermoeller.serialization.FSTConfiguration;
+import de.ruedigermoeller.template.TemplateExecutor;
 
 import java.util.List;
 
@@ -12,8 +16,11 @@ public class MBGen {
 
 
     private void generate() {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        GenContext ctx = new GenContext();
+        ctx.clazz = conf.getClassInfo(BasicValues.class);
         if ( lang == Lang.javascript ) {
-
+            TemplateExecutor.Run("./src/main/resources/js/js.jsp",ctx);
         }
 
     }
