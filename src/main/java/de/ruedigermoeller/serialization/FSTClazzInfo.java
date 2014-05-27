@@ -934,7 +934,7 @@ public final class FSTClazzInfo {
         }
 
         public boolean isAsymmetric() {
-            return (getReadMethod() == null && getWriteMethod() != null) || (getWriteMethod() == null && getReadMethod() != null);
+            return true;//(getReadMethod() == null && getWriteMethod() != null) || (getWriteMethod() == null && getReadMethod() != null);
         }
 
     }

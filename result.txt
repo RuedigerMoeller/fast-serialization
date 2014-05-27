@@ -1,2 +1,209 @@
-intel i7 3770K 3,4 ghz, 4 core, 8 threads
-1.7.0_51-b13,Java HotSpot(TM) 64-Bit Server VM,Windows 8
+OS:Linux
+JVM:Oracle Corporation 1.7.0_55
+CPU:null os-arch:null
+Cores (incl HT):32
+1.7.0_55-b13,Java HotSpot(TM) 64-Bit Server VM,Linux
+
+================================
+Test Class: FrequentPrimitives[]
+================================
+A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          7608           5175          12783            836
+Java built in                               31263          13582          44845           1143
+</pre>
+
+
+==============================================
+Test Class: FrequentPrimitivesExternalizable[]
+==============================================
+A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double. But implementing Externalizable
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          5866           4912          10778            964
+Java built in                               20286           6873          27159           1065
+</pre>
+
+
+===============================
+Test Class: FrequentCollections
+===============================
+Measures serialization of most popular collection classes. (HashMap and an ArrayList filled with Integer and Long).
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         37276          29106          66382           4671
+Java built in                              282938         340855         623793           8435
+</pre>
+
+
+================================
+Test Class: LargeNativeIntArrays
+================================
+measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression, so the increased size of kryo in this test will not be observable in most real world data.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+Java built in                               61123          47769         108892          31406
+FST                                         63807          46993         110800          31219
+</pre>
+
+
+=========================
+Test Class: LargeFPArrays
+=========================
+measures performance serializing a large flaot and a large double array filled with random values. 
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           297            243            540              3
+Java built in                                7842           1885           9727            121
+</pre>
+
+
+=============================
+Test Class: StringPerformance
+=============================
+measures serialization of mid size to very long Strings
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         60931          36494          97425          20020
+Java built in                              134988         162400         297388          17931
+</pre>
+
+
+======================
+Test Class: Primitives
+======================
+A broad test of primitive values and specials such as Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. 
+ plus opaque private field with same name in a private subclass
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         28418          25595          54013           1577
+Java built in                              296836          82401         379237           4063
+</pre>
+
+
+====================
+Test Class: Arrays[]
+====================
+Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimensional arrays.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        143678         106851         250529          22764
+Java built in                              311240         217158         528398          20774
+</pre>
+
+
+=============================
+Test Class: CommonCollections
+=============================
+In depth test of collections incl. collections of collections.
+ (ArrayList, ArrayDeque, ConcurrentLinkedQueue, Vector, TreeSet, LinkedList, TreeMap, ConcurrentHashMap, Hashtable, HashMap). Note: has been modified to workaround Kryo-specific Issue.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        128442          91336         219778           8502
+Java built in                              452990         364293         817283          13172
+</pre>
+
+
+==================
+Test Class: Trader
+==================
+Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        105116         101800         206916           5257
+Java built in                              415299         367971         783270          11075
+</pre>
+
+
+=======================
+Test Class: ManyClasses
+=======================
+Tests speed serializing a complex object graph of many different classes with few primitive fields.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         12517           8199          20716           1000
+Java built in                              200973          52898         253871           3062
+</pre>
+
+
+==============================
+Test Class: ExternalizableTest
+==============================
+Performance of Externalizable objects.
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        126016         158911         284927          10137
+Java built in                              304059         303193         607252          14840
+</pre>
+
+
+=====================
+Test Class: BigObject
+=====================
+A bigger object graph consisting of some of the test objects at once
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                       6864091        5974307       12838398         432562
+Java built in                            12658508       15463921       28122429         588458
+</pre>
+
+
+========================
+Test Class: HeavyNesting
+========================
+Heavily nested Objects
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        102973         128401         231374           3747
+Java built in                              299947         419536         719483          10182
+</pre>
+
+
+==================
+Test Class: String
+==================
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           321            231            552              2
+Java built in                                 810            946           1756              7
+</pre>
+
+
+===========================
+Test Class: ShortRemoteCall
+===========================
+measures overhead of stream initialization+classname decoding. Only one very short object is serialized
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           528            361            889             15
+Java built in                               14891           2650          17541            220
+</pre>
+
+
+======================
+Test Class: SmallThing
+======================
+only one int. benches pure init time
+
+
+<pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           310            255            565              2
+Java built in                                6947           1620           8567            100
+</pre>
+

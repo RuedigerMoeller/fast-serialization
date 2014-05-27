@@ -1,3 +1,158 @@
 <html>
-<i>intel i7 3770K 3,4 ghz, 4 core, 8 threads</i><br>
-<i>1.7.0_51-b13,Java HotSpot(TM) 64-Bit Server VM,Windows 8</i><br>
+OS:Linux<br>
+JVM:Oracle Corporation 1.7.0_55<br>
+CPU:null os-arch:null<br>
+Cores (incl HT):32<br>
+<i>1.7.0_55-b13,Java HotSpot(TM) 64-Bit Server VM,Linux</i><br>
+<br><h4>Test Class: FrequentPrimitives[]</h4>
+A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:7608,31263|5175,13582&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,44845&chxr=1,0,44845&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:836,1143|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1143&chxr=1,0,1143&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          7608           5175          12783            836
+Java built in                               31263          13582          44845           1143
+</pre><br><br>
+<br><h4>Test Class: FrequentPrimitivesExternalizable[]</h4>
+A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double. But implementing Externalizable<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:5866,20286|4912,6873&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,27159&chxr=1,0,27159&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:964,1065|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1065&chxr=1,0,1065&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                          5866           4912          10778            964
+Java built in                               20286           6873          27159           1065
+</pre><br><br>
+<br><h4>Test Class: FrequentCollections</h4>
+Measures serialization of most popular collection classes. (HashMap and an ArrayList filled with Integer and Long).<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:37276,282938|29106,340855&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,623793&chxr=1,0,623793&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:4671,8435|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8435&chxr=1,0,8435&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         37276          29106          66382           4671
+Java built in                              282938         340855         623793           8435
+</pre><br><br>
+<br><h4>Test Class: LargeNativeIntArrays</h4>
+measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression, so the increased size of kryo in this test will not be observable in most real world data.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:61123,63807|47769,46993&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,110800&chxr=1,0,110800&chxt=y,x&chxl=0:|FST%7CJava+built+in'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:31406,31219|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,31406&chxr=1,0,31406&chxt=y,x&chxl=0:|FST%7CJava+built+in'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+Java built in                               61123          47769         108892          31406
+FST                                         63807          46993         110800          31219
+</pre><br><br>
+<br><h4>Test Class: LargeFPArrays</h4>
+measures performance serializing a large flaot and a large double array filled with random values. <br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:297,7842|243,1885&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,9727&chxr=1,0,9727&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3,121|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,121&chxr=1,0,121&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           297            243            540              3
+Java built in                                7842           1885           9727            121
+</pre><br><br>
+<br><h4>Test Class: StringPerformance</h4>
+measures serialization of mid size to very long Strings<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:60931,134988|36494,162400&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,297388&chxr=1,0,297388&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:20020,17931|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,20020&chxr=1,0,20020&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         60931          36494          97425          20020
+Java built in                              134988         162400         297388          17931
+</pre><br><br>
+<br><h4>Test Class: Primitives</h4>
+A broad test of primitive values and specials such as Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. <br> plus opaque private field with same name in a private subclass<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:28418,296836|25595,82401&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,379237&chxr=1,0,379237&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:1577,4063|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,4063&chxr=1,0,4063&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         28418          25595          54013           1577
+Java built in                              296836          82401         379237           4063
+</pre><br><br>
+<br><h4>Test Class: Arrays[]</h4>
+Tests various arrays of int, Dimension, Date, Object. Nested arrays, multidimensional arrays.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:143678,311240|106851,217158&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,528398&chxr=1,0,528398&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:22764,20774|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,22764&chxr=1,0,22764&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        143678         106851         250529          22764
+Java built in                              311240         217158         528398          20774
+</pre><br><br>
+<br><h4>Test Class: CommonCollections</h4>
+In depth test of collections incl. collections of collections.<br> (ArrayList, ArrayDeque, ConcurrentLinkedQueue, Vector, TreeSet, LinkedList, TreeMap, ConcurrentHashMap, Hashtable, HashMap). Note: has been modified to workaround Kryo-specific Issue.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:128442,452990|91336,364293&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,817283&chxr=1,0,817283&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:8502,13172|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,13172&chxr=1,0,13172&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        128442          91336         219778           8502
+Java built in                              452990         364293         817283          13172
+</pre><br><br>
+<br><h4>Test Class: Trader</h4>
+Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:105116,415299|101800,367971&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,783270&chxr=1,0,783270&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:5257,11075|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,11075&chxr=1,0,11075&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        105116         101800         206916           5257
+Java built in                              415299         367971         783270          11075
+</pre><br><br>
+<br><h4>Test Class: ManyClasses</h4>
+Tests speed serializing a complex object graph of many different classes with few primitive fields.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:12517,200973|8199,52898&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,253871&chxr=1,0,253871&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:1000,3062|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,3062&chxr=1,0,3062&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                         12517           8199          20716           1000
+Java built in                              200973          52898         253871           3062
+</pre><br><br>
+<br><h4>Test Class: ExternalizableTest</h4>
+Performance of Externalizable objects.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:126016,304059|158911,303193&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,607252&chxr=1,0,607252&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:10137,14840|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,14840&chxr=1,0,14840&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        126016         158911         284927          10137
+Java built in                              304059         303193         607252          14840
+</pre><br><br>
+<br><h4>Test Class: BigObject</h4>
+A bigger object graph consisting of some of the test objects at once<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:6864091,12658508|5974307,15463921&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,28122429&chxr=1,0,28122429&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:432562,588458|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,588458&chxr=1,0,588458&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                       6864091        5974307       12838398         432562
+Java built in                            12658508       15463921       28122429         588458
+</pre><br><br>
+<br><h4>Test Class: HeavyNesting</h4>
+Heavily nested Objects<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:102973,299947|128401,419536&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,719483&chxr=1,0,719483&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3747,10182|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,10182&chxr=1,0,10182&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                        102973         128401         231374           3747
+Java built in                              299947         419536         719483          10182
+</pre><br><br>
+<br><h4>Test Class: String</h4>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:321,810|231,946&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1756&chxr=1,0,1756&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:2,7|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,7&chxr=1,0,7&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           321            231            552              2
+Java built in                                 810            946           1756              7
+</pre><br><br>
+<br><h4>Test Class: ShortRemoteCall</h4>
+measures overhead of stream initialization+classname decoding. Only one very short object is serialized<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:528,14891|361,2650&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,17541&chxr=1,0,17541&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:15,220|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,220&chxr=1,0,220&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           528            361            889             15
+Java built in                               14891           2650          17541            220
+</pre><br><br>
+<br><h4>Test Class: SmallThing</h4>
+only one int. benches pure init time<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:310,6947|255,1620&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8567&chxr=1,0,8567&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:2,100|0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,100&chxr=1,0,100&chxt=y,x&chxl=0:|Java+built+in%7CFST'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST                                           310            255            565              2
+Java built in                                6947           1620           8567            100
+</pre><br><br>
+</html>

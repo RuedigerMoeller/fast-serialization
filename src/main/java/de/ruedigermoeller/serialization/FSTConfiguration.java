@@ -551,4 +551,28 @@ public final class FSTConfiguration {
     public FSTClazzInfo getClazzInfo(Class rowClass) {
         return getCLInfoRegistry().getCLInfo(rowClass);
     }
+
+    /**
+     * convenience
+     */
+    public Object asObject( byte b[] ) {
+        try {
+            return getObjectInput(b).readObject();
+        } catch (Exception e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
+    /**
+     * convenience
+     */
+    public byte[] asByteArray( Serializable object ) {
+        FSTObjectOutput objectOutput = getObjectOutput();
+        try {
+            objectOutput.writeObject(object);
+            return objectOutput.getCopyOfWrittenBuffer();
+        } catch (IOException e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
 }
