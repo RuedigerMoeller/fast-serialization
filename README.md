@@ -14,11 +14,13 @@ this project was hosted in googlecode, documentation is still not fully moved. s
 
 ###mvn
 
+Do not use 1.56, is has a major issue.
+
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.56</version>
+    <version>1.55</version>
 </dependency>
 ```
 
