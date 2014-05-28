@@ -243,6 +243,7 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
             clzSerInfo = readClass();
+//            System.out.println("reading class "+clzSerInfo.getClazz());
             c = clzSerInfo.getClazz();
         } else if ( code == FSTObjectOutput.TYPED ) {
             c = referencee.getType();
@@ -453,6 +454,12 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
         readObjectCompatibleRecursive(referencee, toRead, serializationInfo, cl.getSuperclass());
         if (fstCompatibilityInfo != null && fstCompatibilityInfo.getReadMethod() != null) {
             try {
+                int tag = readByte(); // expect 55
+                if ( tag == 66 ) {
+                    // no write method defined, but read method defined ...
+                    // expect defaultReadObject
+                    input.pos--; // need to push back tag, cause defaultWriteObject on writer side does not write tag
+                }
                 ObjectInputStream objectInputStream = getObjectInputStream(cl, serializationInfo, referencee, toRead);
                 fstCompatibilityInfo.getReadMethod().invoke(toRead, objectInputStream);
                 fakeWrapper.pop();
@@ -461,6 +468,14 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             }
         } else {
             if (fstCompatibilityInfo != null) {
+                int tag = readByte();
+                if ( tag == 55 )
+                {
+                    // came from writeMethod, but no readMethod defined => assume defaultWriteObject
+                    tag = readByte(); // consume tag of defaultwriteobject (99)
+//                    if ( tag != 99 )
+//                        System.out.println("weird stuff incoming");
+                }
                 readObjectFields(referencee, serializationInfo, fstCompatibilityInfo.getFieldArray(), toRead);
             }
         }
@@ -1150,7 +1165,18 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
             @Override
             public void defaultReadObject() throws IOException, ClassNotFoundException {
                 try {
-                    FSTObjectInput.this.readObjectFields(referencee, clInfo, clInfo.compInfo.get(cl).getFieldArray(), toRead); // FIXME: only fields of current class
+                    int tag = readByte();
+                    if ( tag == 77 ) // came from writeFields
+                    {
+                        fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
+                    } else {
+                        FSTObjectInput.this.readObjectFields(
+                            referencee,
+                            clInfo,
+                            clInfo.compInfo.get(cl).getFieldArray(),
+                            toRead
+                        ); // FIXME: only fields of current class
+                    }
                 } catch (IllegalAccessException e) {
                     throw new IOException(e);
                 } catch (InstantiationException e) {
@@ -1162,9 +1188,10 @@ public class FSTObjectInput extends DataInputStream implements ObjectInput {
 
             @Override
             public GetField readFields() throws IOException, ClassNotFoundException {
+                int tag = readByte();
                 try {
                     FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clInfo.compInfo.get(cl);
-                    if (fstCompatibilityInfo.isAsymmetric()) {
+                    if (tag==99) { // came from defaultwriteobject
                         fieldMap = new HashMap<String, Object>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                     } else {

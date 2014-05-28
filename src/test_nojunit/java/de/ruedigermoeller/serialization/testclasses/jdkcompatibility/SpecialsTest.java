@@ -12,7 +12,10 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
 Copyright [2014] Ruediger Moeller
@@ -83,7 +86,22 @@ public class SpecialsTest {
 
     public static void main(String[]s) throws Exception {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+
+        test(conf, new HTMLDocument());
+
+
+        HashSet test = new HashSet();
+        test.add("pok");
+        test( conf, (Serializable) Collections.synchronizedSet(test));
+
+
+        test(conf,new BigDecimal(100.0));
+
+        test(conf, new Subject());
+
+
         exceptionTest(conf);
+
 
 
         ToWrite w = new ToWrite("bla");
@@ -103,9 +121,7 @@ public class SpecialsTest {
         }
 
         ReadResolve.main(s);
-        test(conf, new Subject());
         test(conf, new HTMLEditorKit());
-        test(conf, new HTMLDocument());
         test(conf, System.getProperties());
 
     }

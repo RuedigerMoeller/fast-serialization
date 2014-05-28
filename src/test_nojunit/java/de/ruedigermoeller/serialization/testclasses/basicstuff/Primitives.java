@@ -9,6 +9,7 @@ import javax.swing.text.html.StyleSheet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.*;
 
@@ -108,6 +109,7 @@ public class Primitives extends PrivatePrimitive implements Serializable, HasDes
 
     SampleEnum en1 = SampleEnum.Predesignated_GiveUp_Allowed;
     EnumSet<SampleEnum> enSet = EnumSet.of(SampleEnum.Predesignated,SampleEnum.Complete);
+    BigDecimal dec = new BigDecimal(13.0);
 
     String st;
 
