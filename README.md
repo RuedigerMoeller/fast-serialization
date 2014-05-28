@@ -20,7 +20,7 @@ Do not use 1.56, is has a major issue.
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.55</version>
+    <version>1.57</version>
 </dependency>
 ```
 
