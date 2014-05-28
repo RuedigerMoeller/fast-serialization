@@ -76,10 +76,13 @@ public final class FSTConfiguration {
     static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
         do { } while ( !lock.compareAndSet(false, true) );
-        if ( singleton == null )
-            singleton = createDefaultConfiguration();
-        lock.set(false);
-        return singleton;
+        try {
+            if (singleton == null)
+                singleton = createDefaultConfiguration();
+            return singleton;
+        } finally {
+            lock.set(false);
+        }
     }
 
     public void setClassLoader(ClassLoader classLoader) {

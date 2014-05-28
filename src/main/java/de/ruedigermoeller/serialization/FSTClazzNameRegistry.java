@@ -177,39 +177,45 @@ public class FSTClazzNameRegistry {
         if ( parent != null ) {
             return parent.classForName(clName);
         }
-        while( ! classCacheLock.compareAndSet(false,true) );
-        Class res = classCache.get(clName);
-        if ( res == null ) {
-            try {
-                res = Class.forName(clName, false, conf.getClassLoader() );
-            } catch ( Throwable th ) {
-                if ( clName.endsWith("_Struct") ) // hack to define struct proxys on the fly if sent from another process
-                {
-                    try {
-                        clName = clName.substring(0,clName.length()-"_Struct".length());
-                        Class onHeapStructClz = classCache.get(clName);
-                        if ( onHeapStructClz == null )
-                            onHeapStructClz = Class.forName(clName);
-                        res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
-                    } catch (Throwable th1) {
-                        throw FSTUtil.rethrow(th1);
+        try {
+            while( ! classCacheLock.compareAndSet(false,true) );
+            Class res = classCache.get(clName);
+            if ( res == null ) {
+                try {
+                    res = Class.forName(clName, false, conf.getClassLoader() );
+                } catch ( Throwable th ) {
+                    if ( clName.endsWith("_Struct") ) // hack to define struct proxys on the fly if sent from another process
+                    {
+                        try {
+                            clName = clName.substring(0,clName.length()-"_Struct".length());
+                            Class onHeapStructClz = classCache.get(clName);
+                            if ( onHeapStructClz == null )
+                                onHeapStructClz = Class.forName(clName);
+                            res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
+                        } catch (Throwable th1) {
+                            throw FSTUtil.rethrow(th1);
+                        }
+                    } else {
+                        throw new RuntimeException("CLASSNAME:"+clName,th);
                     }
-                } else {
-                    throw new RuntimeException("CLASSNAME:"+clName,th);
+                }
+                if ( res != null ) {
+                    classCache.put(clName, res);
                 }
             }
-            if ( res != null ) {
-                classCache.put(clName, res);
-            }
+            return res;
+        } finally {
+            classCacheLock.set(false);
         }
-        classCacheLock.set(false);
-        return res;
     }
 
     public void registerClazzFromOtherLoader( Class cl ) {
         while( ! classCacheLock.compareAndSet(false,true) );
-        classCache.put(cl.getName(),cl);
-        classCacheLock.set(false);
+        try {
+            classCache.put(cl.getName(), cl);
+        } finally {
+            classCacheLock.set(false);
+        }
     }
 
     public FSTClazzInfo getClazzFromId(int c) {

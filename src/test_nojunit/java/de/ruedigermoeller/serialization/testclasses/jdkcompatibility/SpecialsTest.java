@@ -13,6 +13,8 @@ import javax.swing.text.html.StyleSheet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,6 +100,8 @@ public class SpecialsTest {
         test(conf,new BigDecimal(100.0));
 
         test(conf, new Subject());
+        InetAddress localhost = InetAddress.getByName("::1");
+        test( conf, localhost);
 
 
         exceptionTest(conf);
