@@ -578,4 +578,23 @@ public final class FSTConfiguration {
             throw FSTUtil.rethrow(e);
         }
     }
+
+    /**
+     * serialize object into given byte array at position pos.
+     * @return the number of bytes written or negative len in case targetArray is too small
+     */
+    public int asByteArray( Serializable object, int pos, byte targetArray[] ) {
+        FSTObjectOutput objectOutput = getObjectOutput();
+        try {
+            objectOutput.writeObject(object);
+            if ( pos+objectOutput.getWritten() >= targetArray.length ) {
+                return -objectOutput.getWritten();
+            }
+            System.arraycopy( objectOutput.getBuffer(), 0, targetArray, pos, objectOutput.getWritten() );
+            return objectOutput.getWritten();
+        } catch (IOException e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
 }
