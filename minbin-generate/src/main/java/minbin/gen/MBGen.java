@@ -16,7 +16,7 @@ import java.util.List;
 public class MBGen {
 
 
-    private void generate(String clazzName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private void generate(String clazzName, String outFile) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
         Class c = Class.forName(clazzName);
@@ -44,7 +44,7 @@ public class MBGen {
         }
         ctx.clazzInfos = infos;
         if ( lang == Lang.javascript ) {
-            TemplateExecutor.Run("./src/main/resources/js/js.jsp",ctx);
+            TemplateExecutor.Run(outFile,"./src/main/resources/js/js.jsp",ctx);
         }
 
     }
@@ -78,7 +78,7 @@ public class MBGen {
         MBGen gen = new MBGen();
         new JCommander(gen,arg);
         // fixme check args
-        gen.generate("de.rm.testserver.protocol.Meta");
+        gen.generate("de.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }
 

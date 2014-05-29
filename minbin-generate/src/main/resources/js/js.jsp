@@ -23,15 +23,15 @@ function J<%+CLZ.getClazz().getSimpleName()%>() {
 <% for (int i = 0; i < fi.length; i++ ) {
     String na = fi[i].getField().getName();
     na = Character.toUpperCase(na.charAt(0))+na.substring(1);
-%>    this.set<%+na%> = function(val) { this.<%+fi[i].getField().getName()%> = <%+CTX.getJSTransform(fi[i])%>; }
+%>    this.set<%+na%> = function(val) { this.<%+fi[i].getField().getName()%> = <%+CTX.getJSTransform(fi[i])%>; };
 <% } /*for*/
 %>    this.map = function(obj) {
         for ( var key in obj ) {
-            if ( this.hasOwnProperty('set'.concat(key.substring(0,1).toUpperCase()).concat(key.substring(1)) ) {
-                this[concat(key)](map[key]);
+            if ( this.hasOwnProperty('set'.concat(key.substr(0,1).toUpperCase()).concat(key.substr(1)) ) {
+                this[key](map[key]);
             }
         }
-    }
+    };
 }
 
 <%          }
