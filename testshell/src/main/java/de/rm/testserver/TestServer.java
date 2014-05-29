@@ -1,9 +1,6 @@
 package de.rm.testserver;
 
-import de.rm.testserver.protocol.BasicValues;
-import de.rm.testserver.protocol.MirrorRequest;
-import de.rm.testserver.protocol.Person;
-import de.rm.testserver.protocol.TestRequest;
+import de.rm.testserver.protocol.*;
 import de.ruedigermoeller.serialization.FSTConfiguration;
 import io.netty.channel.ChannelHandlerContext;
 import org.nustaq.netty2go.NettyWSHttpServer;
@@ -18,17 +15,11 @@ import java.io.Serializable;
 public class TestServer extends WebSocketHttpServer {
 
     FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
-    static String ClassMap[][] = new String[][] {
-            { "person", Person.class.getName() },
-            { "basicVals", BasicValues.class.getName() },
-            { "mirror", MirrorRequest.class.getName() },
-            { "testReq", TestRequest.class.getName() },
-    };
 
 
     public TestServer(File contentRoot) {
         super(contentRoot);
-        conf.registerCrossPlatformClassMapping(ClassMap);
+        conf.registerCrossPlatformClassMappingUseSimpleName(new Meta().getClasses());
     }
 
     @Override
@@ -45,7 +36,7 @@ public class TestServer extends WebSocketHttpServer {
             ex.printStackTrace();
         }
         if (msg instanceof MirrorRequest) {
-            sendWSBinaryMessage(ctx, conf.asByteArray((Serializable) msg));
+            sendWSBinaryMessage(ctx, conf.asByteArray((Serializable) ((MirrorRequest) msg).toMirror));
         } else {
             byte error[] = conf.asByteArray("Error");
             sendWSBinaryMessage(ctx,error);

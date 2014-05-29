@@ -97,6 +97,10 @@ var MinBin = new function MinBin() {
         return res;
     };
 
+    this.installFactory = function( fun ) {
+        this.serializer[OBJECT].objectFactory = fun;
+    };
+
     this.decode = function (int8bufferOrString) {
         if ( int8bufferOrString instanceof ArrayBuffer )
             int8bufferOrString = String.fromCharCode.apply(null, new Uint8Array(int8bufferOrString));
@@ -594,6 +598,11 @@ function MBObjectTagSer() {
             }
         }
     };
+
+    this.objectFactory = function(clazzName) {
+        return { "__typeInfo" : typeInfo };
+    };
+
     /**
      * tag is already read, reconstruct the object
      *
@@ -603,7 +612,7 @@ function MBObjectTagSer() {
     this.readTag = function(inp) {
         var typeInfo = inp.readObject();
         var len = inp.readInt();
-        var obj = { "__typeInfo" : typeInfo };
+        var obj = this.objectFactory(typeInfo);
         for ( var i=0; i < len || len < 0 ; i++ ) {
             var key = inp.readObject();
 //            console.log('key '.concat(key));
@@ -709,7 +718,7 @@ function MBPrinter(object) {
         out = this.prettyPrintStreamObject(t.__typeInfo,out,indent);
         out = out.concat(" {\n");
         for (var next in t ) {
-            if (t.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt") {
+            if (t.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt" && typeof t[next] != 'function' ) {
                 out = out.concat( indent+"  " );
                 out = out.concat( this.prettyPrintStreamObject(next, out, indent) );
                 out = out.concat(" : ");

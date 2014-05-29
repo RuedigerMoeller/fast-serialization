@@ -600,6 +600,17 @@ public final class FSTConfiguration {
 
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
+     */
+    public void registerCrossPlatformClassMappingUseSimpleName( Class[] classes ) {
+        for (int i = 0; i < classes.length; i++) {
+            Class clz = classes[i];
+            crossPlatformNames.put( clz.getSimpleName(), clz.getName() );
+            crossPlatformNamesReverse.put( clz.getName(), clz.getSimpleName() );
+        }
+    }
+
+    /**
+     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      * @param names { "varName", .. } for each of these an id will be written instead of full name.
      *              SENDER AND RECEIVER NEED TO BE CONFIGURED WITH EXACTLY THE SAME LIST, ORDER !!!
      */

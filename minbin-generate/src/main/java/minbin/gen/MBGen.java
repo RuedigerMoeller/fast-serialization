@@ -7,7 +7,9 @@ import de.ruedigermoeller.serialization.FSTClazzInfoRegistry;
 import de.ruedigermoeller.serialization.FSTConfiguration;
 import de.ruedigermoeller.template.TemplateExecutor;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -15,9 +17,10 @@ import java.util.List;
  */
 public class MBGen {
 
-
     private void generate(String clazzName, String outFile) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+
+        System.out.println("generating to "+new File(outFile).getAbsolutePath());
 
         Class c = Class.forName(clazzName);
         GenMeta meta = (GenMeta) c.newInstance();
@@ -35,6 +38,8 @@ public class MBGen {
                 list.remove(i); i--;
             }
         }
+
+        list = new ArrayList<String>(new HashSet<String>(list));
 
         GenContext ctx = new GenContext();
 

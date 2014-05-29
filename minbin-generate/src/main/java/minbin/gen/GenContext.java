@@ -47,6 +47,8 @@ public class GenContext {
                     break;
                 default: throw new RuntimeException("wat? "+fi.getIntegralType());
             }
+        } else if ( fi.getType() == String[].class ) {
+            res += "MinBin.strArr("+name+")";
         } else
             res += "val";
         res += "";

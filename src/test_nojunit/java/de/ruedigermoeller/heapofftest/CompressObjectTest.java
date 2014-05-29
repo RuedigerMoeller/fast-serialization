@@ -2,8 +2,6 @@ package de.ruedigermoeller.heapofftest;
 
 import de.ruedigermoeller.heapoff.FSTCompressed;
 import de.ruedigermoeller.heapoff.FSTCompressor;
-import de.ruedigermoeller.serialization.testclasses.enterprise.SimpleOrder;
-import de.ruedigermoeller.serialization.testclasses.enterprise.Trader;
 
 import javax.management.Notification;
 import javax.management.NotificationEmitter;

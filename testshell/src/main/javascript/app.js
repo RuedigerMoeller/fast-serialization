@@ -3,22 +3,14 @@ var app = angular.module("fst-test", ['ui.bootstrap'])
 app.controller('TestCtrl', function ($scope) {
 
     var doublePojo =
-    MinBin.obj( "person", {
+    new JPerson({
         name: "Rüdiger",
         firstName: "Möller",
         misc: "at least some ascii"
     });
     $scope.tests = [
         new TestCase("Send Primitive Types",
-//            MinBin.obj("basicVals", {
-//                aString: "greetings from JS",
-//                aStringArr: MinBin.strArr(["One", "another"]),
-//                anInt: 333,
-//                anIntArray: MinBin.i32([ 1, 2, 3, 4, 5 ]),
-//                aList: MinBin.jlist( [ "pok", "puh" ] ),
-//                aMap: MinBin.jmap( { "key" : "value", "14" : 15 } )
-//            })
-            new JbasicVals({
+            new JBasicValues().fromObj({
                 aString: "greetings from JS",
                 aStringArr: ["One", "another"],
                 anInt: 333,
@@ -37,7 +29,7 @@ app.controller('TestCtrl', function ($scope) {
             [
                 3,
                 doublePojo,
-                MinBin.obj("basicVals", {
+                new JBasicValues({
                     aString: "moar greetings from JS",
                     anInt: 333
                 }),
@@ -134,10 +126,11 @@ function TestCase(name, objectToSend, serverSideTestCaseName) {
         if (this.toSend != null) {
             this.result = "..";
             ws.lastTest = this; // avoid callback id handling
-            ws.send(MinBin.encode({
-                __typeInfo: "mirror",
+            var req = new JMirrorRequest({
                 toMirror: this.toSend
-            }));
+            });
+            console.info( MinBin.prettyPrint(req) );
+            ws.send( MinBin.encode( req ));
         }
     };
 
@@ -154,25 +147,6 @@ function TestCase(name, objectToSend, serverSideTestCaseName) {
     this.stop = function () {
         this.runs = false;
     };
-
-}
-
-function JbasicVals(map) {
-
-    this.__typeInfo = "basicVals";
-    this._aString = function(string) { this.aString = string; return this; };
-    this._aStringArr = function(stringarr) { this.aStringArr = MinBin.strArr(stringarr); return this; };
-    this._anInt = function(i) { this.anInt = i; return this; };
-    this._anIntArray = function(iarr) { this.anIntArray = MinBin.i32(iarr); return this; };
-    this._aList = function(li) { this.aList = MinBin.jlist(li); return this; };
-    this._aMap = function(mp) { this.aMap = MinBin.jmap(mp); return this; };
-
-    for ( var key in map ) {
-        if ( this.hasOwnProperty('_'.concat(key)) ) {
-            this['_'.concat(key)](map[key]);
-        }
-    }
-
 
 }
 
