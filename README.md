@@ -34,4 +34,4 @@ Do not use 1.56, is has major issues.
 
 <b>JDK 1.6 Build</b>
 https://github.com/RuedigerMoeller/fast-serialization/releases/tag/v1.55-1.6
-(only serialization works for 1.6)
+(serialization works for 1.6, structs not)
