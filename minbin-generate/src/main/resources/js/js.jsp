@@ -14,15 +14,27 @@
         {
             // asign your context
             GenContext CTX = (GenContext)o;
-            FSTClazzInfo CLZ = CTX.clazz;
-            FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
+            for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
+                FSTClazzInfo CLZ = CTX.clazzInfos[ii];
+                FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
 %>
-function J<%+CLZ.getClazz().getSimpleName()%>(map) {
+function J<%+CLZ.getClazz().getSimpleName()%>() {
+    this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
 <% for (int i = 0; i < fi.length; i++ ) {
-%>    this.__<%+fi[i].getField().getName()%> = ;
+    String na = fi[i].getField().getName();
+    na = Character.toUpperCase(na.charAt(0))+na.substring(1);
+%>    this.set<%+na%> = function(val) { this.<%+fi[i].getField().getName()%> = <%+CTX.getJSTransform(fi[i])%>; }
 <% } /*for*/
-%>}
-<%
+%>    this.map = function(obj) {
+        for ( var key in obj ) {
+            if ( this.hasOwnProperty('set'.concat(key.substring(0,1).toUpperCase()).concat(key.substring(1)) ) {
+                this[concat(key)](map[key]);
+            }
+        }
+    }
+}
+
+<%          }
     // this footer is always required (to match opening braces in header
         }
     }

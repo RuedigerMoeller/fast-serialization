@@ -592,31 +592,36 @@ public final class FSTClazzInfo {
                 integral = isIntegral(field.getType());
 
                 Class type = field.getType();
-                if ( type == boolean.class ) {
-                    integralType = BOOL;
-                } else
-                if ( type == byte.class ) {
-                    integralType = BYTE;
-                } else
-                if ( type == char.class ) {
-                    integralType = CHAR;
-                } else
-                if ( type == short.class ) {
-                    integralType = SHORT;
-                } else
-                if ( type == int.class ) {
-                    integralType = INT;
-                } else
-                if ( type == long.class ) {
-                    integralType = LONG;
-                } else
-                if ( type == float.class ) {
-                    integralType = FLOAT;
-                } else
-                if ( type == double.class ) {
-                    integralType = DOUBLE;
-                }
+                integralType = getIntegralCode(type);
             }
+        }
+
+        public int getIntegralCode(Class type) {
+            if ( type == boolean.class ) {
+                return BOOL;
+            } else
+            if ( type == byte.class ) {
+                return BYTE;
+            } else
+            if ( type == char.class ) {
+                return CHAR;
+            } else
+            if ( type == short.class ) {
+                return SHORT;
+            } else
+            if ( type == int.class ) {
+                return INT;
+            } else
+            if ( type == long.class ) {
+                return LONG;
+            } else
+            if ( type == float.class ) {
+                return FLOAT;
+            } else
+            if ( type == double.class ) {
+                return DOUBLE;
+            }
+            return 0;
         }
 
         /**

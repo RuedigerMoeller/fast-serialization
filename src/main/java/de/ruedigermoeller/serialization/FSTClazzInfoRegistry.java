@@ -43,14 +43,14 @@ public class FSTClazzInfoRegistry {
     private boolean structMode = false;
     FSTConfiguration conf;
 
-    public static void addAllReferencedClasses(Class cl, ArrayList<String> names) {
+    public static void addAllReferencedClasses(Class cl, ArrayList<String> names, String filter) {
         HashSet<String> names1 = new HashSet<String>();
-        addAllReferencedClasses(cl, names1, new HashSet<String>());
+        addAllReferencedClasses(cl, names1, new HashSet<String>(),filter);
         names.addAll(names1);
     }
 
-    static void addAllReferencedClasses(Class cl, HashSet<String> names, HashSet<String> topLevelDone) {
-        if ( cl == null || topLevelDone.contains(cl.getName()) )
+    static void addAllReferencedClasses(Class cl, HashSet<String> names, HashSet<String> topLevelDone, String filter) {
+        if ( cl == null || topLevelDone.contains(cl.getName()) || !cl.getName().startsWith(filter))
             return;
         topLevelDone.add(cl.getName());
         Field[] declaredFields = cl.getDeclaredFields();
@@ -59,7 +59,7 @@ public class FSTClazzInfoRegistry {
             Class<?> type = declaredField.getType();
             if ( ! type.isPrimitive() && ! type.isArray() ) {
                 names.add(type.getName());
-                addAllReferencedClasses(type,names,topLevelDone);
+                addAllReferencedClasses(type,names,topLevelDone,filter);
             }
         }
         Class[] declaredClasses = cl.getDeclaredClasses();
@@ -67,7 +67,7 @@ public class FSTClazzInfoRegistry {
             Class declaredClass = declaredClasses[i];
             if ( ! declaredClass.isPrimitive() && ! declaredClass.isArray() ) {
                 names.add(declaredClass.getName());
-                addAllReferencedClasses(declaredClass, names,topLevelDone);
+                addAllReferencedClasses(declaredClass, names,topLevelDone,filter);
             }
         }
         Method[] declaredMethods = cl.getDeclaredMethods();
@@ -76,14 +76,14 @@ public class FSTClazzInfoRegistry {
             Class<?> returnType = declaredMethod.getReturnType();
             if ( ! returnType.isPrimitive() && ! returnType.isArray() ) {
                 names.add(returnType.getName());
-                addAllReferencedClasses(returnType, names,topLevelDone);
+                addAllReferencedClasses(returnType, names,topLevelDone,filter);
             }
             Class<?>[] parameterTypes = declaredMethod.getParameterTypes();
             for (int j = 0; j < parameterTypes.length; j++) {
                 Class<?> parameterType = parameterTypes[j];
                 if ( ! parameterType.isPrimitive() && ! parameterType.isArray() ) {
                     names.add(parameterType.getName());
-                    addAllReferencedClasses(parameterType, names,topLevelDone);
+                    addAllReferencedClasses(parameterType, names,topLevelDone,filter);
                 }
             }
         }
@@ -93,24 +93,24 @@ public class FSTClazzInfoRegistry {
             Class aClass = classes[i];
             if ( ! aClass.isPrimitive() && ! aClass.isArray() ) {
                 names.add(aClass.getName());
-                addAllReferencedClasses(aClass, names,topLevelDone);
+                addAllReferencedClasses(aClass, names,topLevelDone,filter);
             }
         }
 
         Class enclosingClass = cl.getEnclosingClass();
         if ( enclosingClass != null ) {
             names.add(enclosingClass.getName());
-            addAllReferencedClasses(enclosingClass,names,topLevelDone);
+            addAllReferencedClasses(enclosingClass,names,topLevelDone,filter);
         }
 
         names.add(cl.getName());
-        addAllReferencedClasses(cl.getSuperclass(), names,topLevelDone);
+        addAllReferencedClasses(cl.getSuperclass(), names,topLevelDone,filter);
         Class[] interfaces = cl.getInterfaces();
         for (int i = 0; i < interfaces.length; i++) {
             Class anInterface = interfaces[i];
             if ( ! anInterface.isPrimitive() && ! anInterface.isArray() ) {
                 names.add(anInterface.getName());
-                addAllReferencedClasses(anInterface, names,topLevelDone);
+                addAllReferencedClasses(anInterface, names,topLevelDone,filter);
             }
         }
     }

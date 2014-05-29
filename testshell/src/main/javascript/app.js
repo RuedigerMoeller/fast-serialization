@@ -155,7 +155,7 @@ function TestCase(name, objectToSend, serverSideTestCaseName) {
         this.runs = false;
     };
 
-};
+}
 
 function JbasicVals(map) {
 
