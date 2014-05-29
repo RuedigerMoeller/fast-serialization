@@ -10,8 +10,6 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 
 [All Pages](https://github.com/RuedigerMoeller/fast-serialization/wiki)
 
-this project was hosted in googlecode, documentation is still not fully moved. see (http://fast-serialization.googlecode.com)
-
 ###mvn
 
 Do not use 1.56, is has major issues.
