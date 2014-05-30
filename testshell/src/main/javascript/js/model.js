@@ -38,11 +38,15 @@ var JEvent = function(obj) {
 
 var JBasicValues = function(obj) {
     this.__typeInfo = 'BasicValues';
+    this.setB = function(val) { this.b = val; };
+    this.setB1 = function(val) { this.b1 = val; };
+    this.setB2 = function(val) { this.b2 = val; };
     this.setAnInt = function(val) { this.anInt = val; };
     this.setAList = function(val) { this.aList = MinBin.jlist(val); };
     this.setAMap = function(val) { this.aMap = MinBin.jmap(val); };
     this.setAString = function(val) { this.aString = val; };
     this.setAStringArr = function(val) { this.aStringArr = MinBin.strArr(val); };
+    this.setBytes = function(val) { this.bytes = MinBin.i8(val); };
     this.setAnIntArray = function(val) { this.anIntArray = MinBin.i32(val); };
     this.fromObj = function(obj) {
         for ( var key in obj ) {

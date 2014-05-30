@@ -22,7 +22,7 @@ app.controller('TestCtrl', function ($scope) {
         ),
         new TestCase("Mirror Primitive Types",
             null,
-            "basicVals"
+            "BasicVals"
         ),
         new TestCase("Send Pojo Graph with refs",
             MinBin.obj("list",
@@ -37,9 +37,9 @@ app.controller('TestCtrl', function ($scope) {
             ]),
             null
         ),
-        new TestCase("Send Pojo Graph with refs",
+        new TestCase("Send Pojo Graph no refs",
             null,
-            "pojos"
+            "Pojos"
         )
     ];
     $scope.host = 'localhost';
@@ -97,10 +97,17 @@ app.controller('TestCtrl', function ($scope) {
                                 ws.lastTest.tooltip = "Error";
                                 ws.lastTest = null;
                             } else {
-                                ws.lastTest.result = "success";
-                                ws.lastTest.stop();
-                                ws.lastTest.tooltip = strMsg;
-                                ws.lastTest = null;
+                                if ( msg instanceof JMirrorRequest ) {
+                                    ws.send(MinBin.encode(msg.toMirror));
+                                } else {
+                                    if ( msg == 'failure' )
+                                        ws.lastTest.result = "failure";
+                                    else
+                                        ws.lastTest.result = "success";
+                                    ws.lastTest.stop();
+                                    ws.lastTest.tooltip = strMsg;
+                                    ws.lastTest = null;
+                                }
                             }
                         }
                         $scope.lastMsg = strMsg;
@@ -129,7 +136,13 @@ function TestCase(name, objectToSend, serverSideTestCaseName) {
             var req = new JMirrorRequest({
                 toMirror: this.toSend
             });
-            console.info( MinBin.prettyPrint(req) );
+//            console.info( MinBin.prettyPrint(req) );
+            ws.send( MinBin.encode( req ));
+        } else if ( this.toRequest != null ) {
+            this.result = "..";
+            ws.lastTest = this; // avoid callback id handling
+            var req = new JTestRequest({ "objectToSend": this.toRequest });
+//            console.info( MinBin.prettyPrint(req) );
             ws.send( MinBin.encode( req ));
         }
     };

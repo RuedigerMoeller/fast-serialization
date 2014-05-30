@@ -160,7 +160,7 @@ var MinBin = new function MinBin() {
         return null;
     };
 
-    this.isFloat = function(n) { return typeof n === 'number' && n % 1 == 0; };
+    this.isFloat = function(n) { return typeof n === 'number' && (n % 1) != 0; };
 
     this.isInteger = function(n) { return n === (n|0); };
 

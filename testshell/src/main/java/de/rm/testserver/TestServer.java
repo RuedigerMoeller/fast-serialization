@@ -1,7 +1,9 @@
 package de.rm.testserver;
 
+import com.cedarsoftware.util.DeepEquals;
 import de.rm.testserver.protocol.*;
 import de.ruedigermoeller.serialization.FSTConfiguration;
+import de.ruedigermoeller.serialization.minbin.MBPrinter;
 import io.netty.channel.ChannelHandlerContext;
 import org.nustaq.netty2go.NettyWSHttpServer;
 import org.nustaq.webserver.WebSocketHttpServer;
@@ -27,6 +29,7 @@ public class TestServer extends WebSocketHttpServer {
         sendWSBinaryMessage( ctx, conf.asByteArray(new BasicValues()) );
     }
 
+    Object lastMirror = null;
     @Override
     public void onBinaryMessage(ChannelHandlerContext ctx, byte[] buffer) {
         Object msg = null;
@@ -35,8 +38,41 @@ public class TestServer extends WebSocketHttpServer {
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
+        if ( msg instanceof TestRequest ) {
+            TestRequest req = (TestRequest) msg;
+            if ( "BasicVals".equals(req.objectToSend) ) {
+                BasicValues testReq = new BasicValues();
+                MirrorRequest mreq = new MirrorRequest();
+                lastMirror = testReq;
+                mreq.toMirror = testReq;
+                byte[] b = conf.asByteArray(mreq);
+                MBPrinter.printMessage(b,System.out);
+                sendWSBinaryMessage(ctx, b);
+            } else if ("Pojos".equals(req.objectToSend) ) {
+                Person p = new Person("heinz","huber","bla");
+                p.addFollower(new Person("Pok", "nachname","nothing"))
+                 .addFollower(new Person("Hinz", "xy","nothing 1"));
+                Person p1 = new Person("heinz1","huber1","bla1");
+                p1.addFollower(new Person("Pok2", "nachname2","nothing22"))
+                  .addFollower(new Person("Hinz2", "xy2","nothing 12"));
+                p.addFriend(p1);
+                MirrorRequest mreq = new MirrorRequest();
+                lastMirror = p;
+                mreq.toMirror = p;
+                byte[] b = conf.asByteArray(mreq);
+                MBPrinter.printMessage(b,System.out);
+                sendWSBinaryMessage(ctx, b);
+            }
+        } else
         if (msg instanceof MirrorRequest) {
             sendWSBinaryMessage(ctx, conf.asByteArray((Serializable) ((MirrorRequest) msg).toMirror));
+        } else if ( lastMirror != null ) {
+            boolean res = DeepEquals.deepEquals(lastMirror, msg);
+            System.out.println("mirror response result:"+res);
+            if ( res )
+                sendWSBinaryMessage(ctx, conf.asByteArray("success"));
+            else
+                sendWSBinaryMessage(ctx, conf.asByteArray("failure"));
         } else {
             byte error[] = conf.asByteArray("Error");
             sendWSBinaryMessage(ctx,error);
