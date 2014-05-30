@@ -51,11 +51,13 @@ public class TestServer extends WebSocketHttpServer {
             } else if ("Pojos".equals(req.objectToSend) ) {
                 Person p = new Person("heinz","huber","bla");
                 p.addFollower(new Person("Pok", "nachname","nothing"))
-                 .addFollower(new Person("Hinz", "xy","nothing 1"));
+                 .addFollower(new Person("Hinz", "xy","nothing"));
                 Person p1 = new Person("heinz1","huber1","bla1");
-                p1.addFollower(new Person("Pok2", "nachname2","nothing22"))
-                  .addFollower(new Person("Hinz2", "xy2","nothing 12"));
-                p.addFriend(p1);
+                Person px = new Person("Hinz2", "xy2", "nothing 12");
+                p1.addFollower(new Person("Pok2", "nachname2","nothing"))
+                  .addFollower(px)
+                  .addFollower(px);
+                p1.friends = p1.followers; // test refs
                 MirrorRequest mreq = new MirrorRequest();
                 lastMirror = p;
                 mreq.toMirror = p;

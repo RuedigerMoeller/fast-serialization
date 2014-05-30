@@ -1,4 +1,6 @@
-
+// missing: floatarr tag ser impl
+// refs only on string, sequence, object. native arrays missing
+// detect cycles in prettyprinter
 
 const END_MARKER = "_E_";
 
@@ -106,9 +108,12 @@ var MinBin = new function MinBin() {
             int8bufferOrString = String.fromCharCode.apply(null, new Uint8Array(int8bufferOrString));
         else if ( this.isBuffer(int8bufferOrString) )
             int8bufferOrString = String.fromCharCode.apply(null, new Uint16Array(int8bufferOrString));
+        this.MBin.objectMap = {};
         this.MBin.pos = 0;
         this.MBin.bytez = int8bufferOrString;
-        return this.MBin.readObject();
+        var res = this.MBin.readObject();
+        this.MBin.objectMap = {};
+        return res;
     };
 
     this.encode = function (object) {
@@ -549,11 +554,14 @@ function StringTagSer() {
     };
 
     this.readTag = function(inp) {
+        var objpos = inp.pos;
         var arr = inp.readArray();
         var res = '';
         for (var i = 0; i < arr.length; i++) {
             res += String.fromCharCode(arr[i]);
         }
+        console.log("read string at ".concat(objpos));
+        inp.objectMap[objpos] = res;
         return res;
     };
 
@@ -610,6 +618,7 @@ function MBObjectTagSer() {
      * @return
      */
     this.readTag = function(inp) {
+        var objpos = inp.pos-1;
         var typeInfo = inp.readObject();
         var len = inp.readInt();
         var obj = this.objectFactory(typeInfo);
@@ -620,6 +629,7 @@ function MBObjectTagSer() {
                 break;
             obj[key] = inp.readObject();
         }
+        inp.objectMap[objpos] = obj;
         return obj;
     };
 }
@@ -634,6 +644,7 @@ function MBSequenceTagSer() {
         }
     };
     this.readTag = function (inp) {
+        var objpos = inp.pos-1;
         var typeInfo = inp.readObject();
         var len = inp.readInt();
         var arr = [];
@@ -644,6 +655,7 @@ function MBSequenceTagSer() {
                 break;
             arr.push(o);
         }
+        inp.objectMap[objpos] = arr;
         return arr;
     };
 }
@@ -671,7 +683,17 @@ function RefTagSer() {
         throw "unexpected call";
     };
     this.readTag = function(inp) {
-        return new MBRef(inp.readInt());
+        var readpos = inp.readInt();
+        if ( inp.objectMap[readpos] == null ) {
+            if ( inp.objectMap[readpos+1] == null ) // quirks
+            {
+                var debug = inp.objectMap;
+                throw "unresolvable ref ".concat(readpos);
+            } else
+                readpos++;
+        }
+        return inp.objectMap[readpos];
+//        return new MBRef(readpos);
     };
 }
 

@@ -14,8 +14,8 @@ public class Person implements Serializable {
     String firstName;
     String misc;
 
-    List<Person> friends = new ArrayList();
-    List<Person> followers = new ArrayList();
+    public List<Person> friends = new ArrayList();
+    public List<Person> followers = new ArrayList();
 
     public Person(String name, String firstName, String misc) {
         this.name = name;
