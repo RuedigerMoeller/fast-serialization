@@ -560,7 +560,6 @@ function StringTagSer() {
         for (var i = 0; i < arr.length; i++) {
             res += String.fromCharCode(arr[i]);
         }
-        console.log("read string at ".concat(objpos));
         inp.objectMap[objpos] = res;
         return res;
     };
@@ -624,7 +623,6 @@ function MBObjectTagSer() {
         var obj = this.objectFactory(typeInfo);
         for ( var i=0; i < len || len < 0 ; i++ ) {
             var key = inp.readObject();
-//            console.log('key '.concat(key));
             if (key==END_MARKER)
                 break;
             obj[key] = inp.readObject();
@@ -722,6 +720,8 @@ function FloatArrTagSer() {
 
 function MBPrinter(object) {
 
+    this.visited = [];
+
     this.prettyPrintStreamObject = function( o, out, indent ) {
         if (o instanceof MBRef) {
             return "#".concat(o.pos);
@@ -737,6 +737,11 @@ function MBPrinter(object) {
     };
 
     this.prettyPrintObject = function(t, out, indent) {
+        if (this.visited.indexOf(t) >= 0) {
+            out += "#ref";
+            return;
+        }
+        this.visited.push(t);
         out = this.prettyPrintStreamObject(t.__typeInfo,out,indent);
         out = out.concat(" {\n");
         for (var next in t ) {
@@ -753,6 +758,11 @@ function MBPrinter(object) {
     };
 
     this.prettyPrintSequence = function(t, out, indent) {
+        if (this.visited.indexOf(t) >= 0) {
+            out += "#ref";
+            return;
+        }
+        this.visited.push(t);
         out = out.concat(this.prettyPrintStreamObject(t.__typeInfo,out,indent));
         out = out.concat(" [\n");
         for (var i = 0; i < t.length; i++) {
