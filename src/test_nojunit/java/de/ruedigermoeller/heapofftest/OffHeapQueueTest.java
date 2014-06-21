@@ -1,8 +1,7 @@
 package de.ruedigermoeller.heapofftest;
 
-import de.ruedigermoeller.heapoff.FSTOffheapQueue;
-import de.ruedigermoeller.serialization.FSTConfiguration;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectOutput;
 import de.ruedigermoeller.serialization.testclasses.HtmlCharter;
 
 import java.io.IOException;

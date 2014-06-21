@@ -1,6 +1,6 @@
 package minbin.gen;
 
-import de.ruedigermoeller.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTClazzInfo;
 
 import java.util.List;
 import java.util.Map;

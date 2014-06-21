@@ -1,8 +1,8 @@
 package de.ruedigermoeller.heapofftest.gcbenchmarks;
 
-import de.ruedigermoeller.heapoff.structs.unsafeimpl.FSTStructFactory;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructMap;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructString;
+import org.nustaq.heapoff.structs.unsafeimpl.FSTStructFactory;
+import org.nustaq.heapoff.structs.structtypes.StructMap;
+import org.nustaq.heapoff.structs.structtypes.StructString;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.

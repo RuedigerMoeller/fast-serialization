@@ -2,9 +2,9 @@ package minbin.gen;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.ruedigermoeller.serialization.FSTClazzInfo;
-import de.ruedigermoeller.serialization.FSTClazzInfoRegistry;
-import de.ruedigermoeller.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTClazzInfoRegistry;
+import org.nustaq.serialization.FSTConfiguration;
 import de.ruedigermoeller.template.TemplateExecutor;
 
 import java.io.File;

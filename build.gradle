@@ -85,7 +85,7 @@ artifacts {
 //        mavenDeployer {
 //            repository(url: "http://org.apache.maven.wagon:wagon-http:2.2")
 //            pom.version = version
-//            pom.groupId = 'de.ruedigermoeller'
+//            pom.groupId = 'de.nustaq'
 //            pom.artifactId = 'fast-serialization'
 //            pom.project {
 //                dependencies { }

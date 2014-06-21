@@ -1,12 +1,11 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import de.ruedigermoeller.heapoff.structs.FSTStruct;
-import de.ruedigermoeller.heapoff.structs.FSTTypedStructAllocator;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructInt;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructMap;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructArray;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructString;
-import de.ruedigermoeller.heapoff.structs.unsafeimpl.FSTStructFactory;
+import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.heapoff.structs.FSTTypedStructAllocator;
+import org.nustaq.heapoff.structs.structtypes.StructInt;
+import org.nustaq.heapoff.structs.structtypes.StructMap;
+import org.nustaq.heapoff.structs.structtypes.StructArray;
+import org.nustaq.heapoff.structs.structtypes.StructString;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.

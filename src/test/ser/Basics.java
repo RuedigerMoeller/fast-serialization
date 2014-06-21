@@ -1,10 +1,7 @@
 package ser;
 
-import de.ruedigermoeller.serialization.FSTConfiguration;
-
 import javax.swing.text.html.StyleSheet;
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.net.URL;

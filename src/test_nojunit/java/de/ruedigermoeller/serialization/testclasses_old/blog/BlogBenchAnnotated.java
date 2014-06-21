@@ -1,7 +1,7 @@
 package de.ruedigermoeller.serialization.testclasses_old.blog;
 
-import de.ruedigermoeller.serialization.annotations.Flat;
-import de.ruedigermoeller.serialization.annotations.OneOf;
+import org.nustaq.serialization.annotations.Flat;
+import org.nustaq.serialization.annotations.OneOf;
 
 import java.io.Serializable;
 

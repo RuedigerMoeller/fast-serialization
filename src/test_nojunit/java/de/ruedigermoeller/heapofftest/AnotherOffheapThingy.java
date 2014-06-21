@@ -1,9 +1,8 @@
 package de.ruedigermoeller.heapofftest;
 
-import de.ruedigermoeller.serialization.FSTClazzInfo;
-import de.ruedigermoeller.serialization.FSTClazzInfoRegistry;
-import de.ruedigermoeller.serialization.FSTConfiguration;
-import de.ruedigermoeller.serialization.util.FSTUtil;
+import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.util.FSTUtil;
 import sun.misc.Unsafe;
 
 import java.util.Date;

@@ -1,11 +1,8 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
-import de.ruedigermoeller.serialization.FSTConfiguration;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.minbin.MBPrinter;
-import de.ruedigermoeller.serialization.minbin.MinBin;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

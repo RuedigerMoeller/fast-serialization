@@ -1,8 +1,5 @@
 package de.ruedigermoeller.heapofftest;
 
-import de.ruedigermoeller.heapoff.FSTCompressed;
-import de.ruedigermoeller.heapoff.FSTCompressor;
-
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;

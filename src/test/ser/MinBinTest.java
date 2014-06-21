@@ -1,17 +1,12 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
-import de.ruedigermoeller.heapoff.FSTByteBufferOffheap;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.minbin.*;
 import org.junit.Test;
+import org.nustaq.serialization.minbin.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
 
 import static org.junit.Assert.assertTrue;
 
@@ -65,7 +60,7 @@ public class MinBinTest {
         assertTrue(DeepEquals.deepEquals(in.readTag(in.readIn()), da) );
         Object meRead = in.readObject();
         assertTrue(DeepEquals.deepEquals(meRead, me) );
-        MBPrinter.printMessage(me,System.out);
+        MBPrinter.printMessage(me, System.out);
 
         final String name = "tagtest.minbin";
         final byte[] bytez = out.getBytez();

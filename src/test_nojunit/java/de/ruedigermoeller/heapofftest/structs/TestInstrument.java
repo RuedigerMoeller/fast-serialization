@@ -1,9 +1,9 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import de.ruedigermoeller.heapoff.structs.Align;
-import de.ruedigermoeller.heapoff.structs.FSTStruct;
-import de.ruedigermoeller.heapoff.structs.Templated;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructString;
+import org.nustaq.heapoff.structs.Align;
+import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.heapoff.structs.Templated;
+import org.nustaq.heapoff.structs.structtypes.StructString;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.

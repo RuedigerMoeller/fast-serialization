@@ -1,8 +1,7 @@
 package de.ruedigermoeller.heapofftest;
 
-import de.ruedigermoeller.heapoff.FSTByteBufferOffheap;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.annotations.Flat;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.annotations.Flat;
 import de.ruedigermoeller.serialization.testclasses.HtmlCharter;
 import de.ruedigermoeller.serialization.testclasses.enterprise.Trader;
 

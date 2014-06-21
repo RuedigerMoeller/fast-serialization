@@ -5,10 +5,9 @@ package de.ruedigermoeller.serialization.testclasses_old.big;
  */
 
 
-import de.ruedigermoeller.serialization.FSTConfiguration;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
-import de.ruedigermoeller.serialization.util.FSTInputStream;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

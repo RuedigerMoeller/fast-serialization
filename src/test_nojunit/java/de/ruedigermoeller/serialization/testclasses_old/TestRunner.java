@@ -4,11 +4,8 @@ import de.ruedigermoeller.heapofftest.BenchStructs;
 import de.ruedigermoeller.heapofftest.OffHeapMapTest;
 import de.ruedigermoeller.heapofftest.OffHeapTest;
 import de.ruedigermoeller.heapofftest.structs.StructTest;
-import de.ruedigermoeller.serialization.testclasses.libtests.*;
 import de.ruedigermoeller.serialization.testclasses_old.basicstuff.BugReport2;
 import de.ruedigermoeller.serialization.testclasses_old.docusample.FSTTestApp;
-
-import java.io.*;
 
 /**
  * Created with IntelliJ IDEA.

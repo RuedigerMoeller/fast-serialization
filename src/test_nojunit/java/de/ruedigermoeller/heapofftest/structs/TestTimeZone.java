@@ -1,7 +1,7 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import de.ruedigermoeller.heapoff.structs.FSTStruct;
-import de.ruedigermoeller.heapoff.structs.structtypes.StructString;
+import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.heapoff.structs.structtypes.StructString;
 
 import java.util.TimeZone;
 

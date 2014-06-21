@@ -1,10 +1,9 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import de.ruedigermoeller.heapoff.structs.Align;
-import de.ruedigermoeller.heapoff.structs.FSTStruct;
-import de.ruedigermoeller.heapoff.structs.NoAssist;
+import org.nustaq.heapoff.structs.Align;
+import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.heapoff.structs.NoAssist;
 
-import javax.swing.*;
 import java.awt.*;
 
 /**

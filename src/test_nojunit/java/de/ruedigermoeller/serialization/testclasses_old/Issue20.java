@@ -1,8 +1,8 @@
 package de.ruedigermoeller.serialization.testclasses_old;
 
 import com.sun.xml.internal.ws.encoding.soap.SerializationException;
-import de.ruedigermoeller.serialization.FSTObjectInput;
-import de.ruedigermoeller.serialization.FSTObjectOutput;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 import de.ruedigermoeller.serialization.testclasses.enterprise.SimpleOrder;
 
 import java.io.ByteArrayInputStream;
