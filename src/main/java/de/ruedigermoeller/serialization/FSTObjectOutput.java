@@ -481,12 +481,14 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectCompatibleRecursive(referencee,toWrite,serializationInfo,cl.getSuperclass());
         if ( fstCompatibilityInfo != null && fstCompatibilityInfo.getWriteMethod() != null ) {
             try {
+                writeByte(55); // tag this is written with writeMethod
                 fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
             } catch (Exception e) {
                 throw FSTUtil.rethrow(e);
             }
         } else {
             if ( fstCompatibilityInfo != null ) {
+                writeByte(66); // tag this is written from here no writeMethod
                 writeObjectFields(toWrite, serializationInfo, fstCompatibilityInfo.getFieldArray());
             }
         }
@@ -795,6 +797,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void defaultWriteObject() throws IOException {
+                writeByte(99); // tag defaultwriteObject
                 FSTClazzInfo newInfo = clinfo;
                 Object replObj = toWrite;
                 if ( newInfo.getWriteReplaceMethod() != null ) {
@@ -874,12 +877,13 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void writeFields() throws IOException {
-                FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clinfo.compInfo.get(cl);
-                if ( fstCompatibilityInfo.isAsymmetric() ) {
-                    FSTObjectOutput.this.writeCompatibleObjectFields(toWrite, fields, fstCompatibilityInfo.getFieldArray());
-                } else {
-                    FSTObjectOutput.this.writeObjectInternal(fields, HashMap.class);
-                }
+                writeByte(77); // tag writeFields
+//                FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clinfo.compInfo.get(cl);
+//                if ( fstCompatibilityInfo.isAsymmetric() ) {
+//                    FSTObjectOutput.this.writeCompatibleObjectFields(toWrite, fields, fstCompatibilityInfo.getFieldArray());
+//                } else {
+                FSTObjectOutput.this.writeObjectInternal(fields, HashMap.class);
+//                }
             }
 
             @Override

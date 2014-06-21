@@ -6,6 +6,7 @@ import javax.swing.text.html.StyleSheet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.Date;
 import java.util.EnumSet;
@@ -97,6 +98,7 @@ public class Basics extends PrivatePrimitive implements Serializable {
 
     SampleEnum en1 = SampleEnum.Predesignated_GiveUp_Allowed;
     EnumSet<SampleEnum> enSet = EnumSet.of(SampleEnum.Predesignated,SampleEnum.Complete);
+    BigDecimal dec = new BigDecimal(13.0);
 
     String st;
 
@@ -111,6 +113,10 @@ public class Basics extends PrivatePrimitive implements Serializable {
     StyleSheet on = null;
     URL on1 = null;
     File on2 = null;
+
+    Object exceptions[] = {
+        null, new Exception("test"), new ArrayIndexOutOfBoundsException(), new RuntimeException(new IllegalArgumentException("Blub"))
+    };
 
     public Basics(int num) {
         st = "String"+num+"äöü";

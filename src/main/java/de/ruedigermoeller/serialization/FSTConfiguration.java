@@ -101,10 +101,13 @@ public final class FSTConfiguration {
     static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
         do { } while ( !conflock.compareAndSet(false, true) );
-        if ( singleton == null )
-            singleton = createDefaultConfiguration();
-        conflock.set(false);
-        return singleton;
+        try {
+            if (singleton == null)
+                singleton = createDefaultConfiguration();
+            return singleton;
+        } finally {
+            conflock.set(false);
+        }
     }
 
     public static FSTConfiguration createCrossPlatformConfiguration() {
