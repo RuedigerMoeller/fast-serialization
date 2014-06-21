@@ -387,6 +387,10 @@ public final class FSTClazzInfo {
         if (readResolveMethod != null) {
             readResolveMethod.setAccessible(true);
         }
+        for (int i = 0; i < fieldInfo.length; i++) {
+            FSTFieldInfo fstFieldInfo = fieldInfo[i];
+            fstFieldInfo.indexId = i;
+        }
     }
 
     public int getStructSize() {
@@ -449,6 +453,7 @@ public final class FSTClazzInfo {
         long memOffset = -1;
 
         int structOffset = 0;
+        int indexId; // position in serializable fields array
         int align = 0;
         int alignPad = 0;
         byte[] bufferedName; // cache byte rep of field name (used for cross platform)
@@ -505,6 +510,10 @@ public final class FSTClazzInfo {
             while( (off/align)*align != off )
                 off++;
             return off;
+        }
+
+        public int getIndexId() {
+            return indexId;
         }
 
         public int getStructOffset() {
