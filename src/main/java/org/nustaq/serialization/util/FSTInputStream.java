@@ -31,45 +31,47 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
-    public int chunk_size = 1000;
+    public int chunk_size = 500;
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
     public byte buf[];
     public  int pos;
     public  int count; // avaiable valid read bytes
     InputStream in;
+    boolean fullyRead = false;
 
     public FSTInputStream(InputStream in) {
         initFromStream(in);
     }
 
     public void initFromStream(InputStream in) {
+        fullyRead = false;
+        pos = 0;
+        this.in = in;
+        if (buf==null) {
+            buf = cachedBuffer.get();
+            if ( buf == null ) {
+                buf = new byte[chunk_size];
+                cachedBuffer.set(buf);
+            }
+        }
+        readNextChunk(in);
+    }
+
+    public void readNextChunk(InputStream in) {
+        int read;
         try {
-            pos = 0;
-            this.in = in;
-            if (buf==null) {
-                buf = cachedBuffer.get();
-                if ( buf == null ) {
-                    buf = new byte[chunk_size];
-                    cachedBuffer.set(buf);
-                }
+            if ( buf.length < count+chunk_size ) {
+                ensureCapacity(Math.max(buf.length*2,count+chunk_size));
             }
-            int read = in.read(buf);
-            count+=read;
-            while( read != -1 ) {
-                try {
-                    if ( buf.length < count+chunk_size ) {
-                        ensureCapacity(buf.length*2);
-                    }
-                    read = in.read(buf,count,chunk_size);
-                    if ( read > 0 )
-                        count += read;
-                } catch ( IndexOutOfBoundsException iex ) {
-                    read = -1; // many stream impls break contract
-                }
+            read = in.read(buf,count,chunk_size);
+            if ( read > 0 ) {
+                count += read;
             }
-            in.close();
-        } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            else {
+                fullyRead = true;
+            }
+        } catch ( Exception iex ) {
+            fullyRead = true;
         }
     }
 
@@ -100,12 +102,19 @@ public final class FSTInputStream extends InputStream {
         if  (pos < count) {
             return (buf[pos++] & 0xff);
         }
+        readNextChunk(in);
+        if ( fullyRead )
+            return -1;
         return -1;
     }
 
     public int read(byte b[], int off, int len) {
-        if (pos >= count) {
+        if ( fullyRead )
             return -1;
+        while (pos+len >= count) {
+            readNextChunk(in);
+            if ( fullyRead )
+                break;
         }
         int avail = count - pos;
         if (len > avail) {
@@ -142,10 +151,17 @@ public final class FSTInputStream extends InputStream {
     public void reset() {
         count = 0;
         pos = 0;
+        fullyRead = false;
     }
 
     public void close() throws IOException {
         in.close();
     }
 
+    public void ensureReadAhead(int bytes) {
+        int targetCount = pos+bytes;
+        while ( ! fullyRead && count < targetCount ) {
+            readNextChunk(in);
+        }
+    }
 }
