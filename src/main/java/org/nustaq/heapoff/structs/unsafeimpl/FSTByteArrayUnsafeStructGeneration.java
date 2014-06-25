@@ -233,10 +233,11 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                     }
                     method.setBody(prefix+"___bytes.putFloat"+insert+"(_st_off+$1*4,$2);"+record+"}");
                 } else {
+                    String structCL = FSTStruct.class.getName();
                     method.setBody(
                     prefix+
                         "int _elem_len=___bytes.getInt("+off+"+8+___offset); "+
-                        "FSTStruct struct = (FSTStruct)$2;"+
+                        structCL+" struct = ("+structCL+")$2;"+
                         "if ( struct == null ) { " +
                             "___bytes.putInt((long)_st_off+$1*_elem_len+4,-1); " +
                             "return; " +
