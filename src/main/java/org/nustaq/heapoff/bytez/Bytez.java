@@ -27,7 +27,7 @@ package org.nustaq.heapoff.bytez;
  * abstraction of byte arrays similar to ByteBuffer without the need to create temp objects in order to get long,int,.. views
  * additionally supports volatile read/write (for byte[] based backing buffers only !)
  */
-public interface Bytez {
+public interface Bytez extends ByteSource {
 
     public boolean getBoolVolatile(long byteIndex);
     public byte getVolatile(long byteIndex);
@@ -90,7 +90,7 @@ public interface Bytez {
     public boolean compareAndSwapInt( long offset, int expect, int newVal);
     public boolean compareAndSwapLong( long offset, long expect, long newVal);
 
-    public byte[] toBytes(int startIndex, int len);
+    public byte[] toBytes(long startIndex, int len);
     /**
      * @return return underlying as byte array, not supported by MallocBytez. Use getArr to extract data instead.
      */

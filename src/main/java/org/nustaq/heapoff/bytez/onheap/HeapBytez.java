@@ -49,13 +49,17 @@ public class HeapBytez implements Bytez {
         this(base,0);
     }
 
-    public HeapBytez(byte[] base, long off) {
-        this(base,off, base.length-off);
+    public HeapBytez(byte[] base, long offIndex) {
+        this(base,offIndex, base.length-offIndex);
     }
 
-    public HeapBytez(byte[] base, long off, long len) {
+    public HeapBytez(byte[] base, long offIndex, long len) {
+        setBase(base, offIndex, len);
+    }
+
+    public void setBase(byte[] base, long offIndex, long len) {
         this.base = base;
-        this.off = byteoff+off;
+        this.off = byteoff+offIndex;
         this.len = len;
     }
 
@@ -253,9 +257,9 @@ public class HeapBytez implements Bytez {
     }
 
     @Override
-    public byte[] toBytes(int startIndex, int len) {
+    public byte[] toBytes(long startIndex, int len) {
         byte res[] = new byte[len];
-        System.arraycopy(base, (int) (off-FSTUtil.bufoff)+startIndex,res,0,len);
+        System.arraycopy(base, (int) (off-FSTUtil.bufoff)+(int)startIndex,res,0,len);
         return res;
     }
 

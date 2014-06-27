@@ -41,9 +41,13 @@ public class MallocBytez implements Bytez {
 
     long baseAdress;
     long length;
-    public MallocBytez(long adr, long size) {
+    public MallocBytez(long adr, long len) {
+        setBase(adr, len);
+    }
+
+    public void setBase(long adr, long len) {
         baseAdress = adr;
-        length = size;
+        length = len;
     }
 
     @Override
@@ -237,7 +241,7 @@ public class MallocBytez implements Bytez {
     }
 
     @Override
-    public byte[] toBytes(int startIndex, int len) {
+    public byte[] toBytes(long startIndex, int len) {
         byte res[] = new byte[len];
         unsafe.copyMemory(null,baseAdress+startIndex, res, FSTUtil.bufoff, len );
         return res;

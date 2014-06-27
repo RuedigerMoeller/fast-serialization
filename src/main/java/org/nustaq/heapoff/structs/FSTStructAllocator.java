@@ -5,7 +5,6 @@ import org.nustaq.heapoff.bytez.BytezAllocator;
 import org.nustaq.heapoff.bytez.malloc.MallocBytezAllocator;
 import org.nustaq.heapoff.bytez.onheap.HeapBytezAllocator;
 import org.nustaq.heapoff.structs.structtypes.StructArray;
-import org.nustaq.heapoff.structs.structtypes.StructMap;
 import org.nustaq.heapoff.structs.unsafeimpl.FSTStructFactory;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -155,19 +154,6 @@ public class FSTStructAllocator {
      */
     public void free() {
         alloc.freeAll();
-    }
-    /**
-     * create a fixed size struct hashmap. Note it should be of fixed types for keys and values, as
-     * the space for those is allocated directly. Additionally keys and values are stored 'in-place' without references.
-     * (for allocation if templateless cosntructore has been used)
-     *
-     * @param size
-     * @param keyTemplate
-     * @param <K>
-     * @return
-     */
-    public <K extends FSTStruct, V extends FSTStruct> StructMap<K,V> newMap(int size, K keyTemplate, V valueTemplate) {
-        return newStruct( new StructMap<K, V>(keyTemplate,valueTemplate,size) );
     }
 
     /**

@@ -1,7 +1,6 @@
 package org.rm.testserver;
 
 import com.cedarsoftware.util.DeepEquals;
-import de.rm.testserver.protocol.*;
 import org.rm.testserver.protocol.*;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.minbin.MBPrinter;

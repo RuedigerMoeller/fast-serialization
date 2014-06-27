@@ -4,7 +4,6 @@ import org.nustaq.heapoff.bytez.Bytez;
 import org.nustaq.heapoff.bytez.BytezAllocator;
 import org.nustaq.heapoff.bytez.onheap.HeapBytezAllocator;
 import org.nustaq.heapoff.structs.*;
-import org.nustaq.heapoff.structs.structtypes.StructMap;
 import org.nustaq.heapoff.structs.structtypes.StructArray;
 import org.nustaq.heapoff.structs.structtypes.StructString;
 import org.nustaq.serialization.FSTClazzInfo;
@@ -95,7 +94,6 @@ public class FSTStructFactory {
         registerClz(StructString.class);
         registerClz(StructArray.class);
         registerClz(StructArray.StructArrIterator.class);
-        registerClz(StructMap.class);
     }
 
     public void registerRawClass( String name, byte bytes[] ) {
