@@ -55,4 +55,8 @@ public class ByteArrayByteSource implements ByteSource
     public void setOff(int off) {
         this.off = off;
     }
+
+    public void setLen(int len) {
+        this.len = len;
+    }
 }
