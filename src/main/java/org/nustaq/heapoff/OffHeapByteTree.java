@@ -20,9 +20,8 @@ public class OffHeapByteTree {
     int keyLen = 0;
 
     FullPArray arrFull = new FullPArray();
-    PArray     arr4 = new PArray(4);
-    PArray     arr32 = new PArray(32);
-    ArrWrap arrWrap = new ArrWrap();
+    PArray arrs[] = { null, new PArray(1,1), new PArray(16,2), new PArray(32,3) };
+    ArrWrap arrWrap  = new ArrWrap();
 
     public OffHeapByteTree(int keyLen) {
         this.keyLen = keyLen;
@@ -69,9 +68,6 @@ public class OffHeapByteTree {
         int i = ((int)b + 256) & 0xff;
         long lookup = arrWrap.getAt(arr, i);
         if ( index == keyLen - 1 ) {
-            if ( lookup != 0 ) {
-                arrWrap.dump(arr);
-            }
             boolean success = arrWrap.put(arr, i, toPut);
             if ( ! success ) {
                 if ( parentArray == 0 )
@@ -112,14 +108,17 @@ public class OffHeapByteTree {
 
     class PArray {
 
-        PArray(int numEntries) {
+        PArray(int numEntries, int tag) {
             this.numEntries = numEntries;
             TABLE_SIZE = numEntries*8+numEntries*2+4; // first is tag (short index, long value)
+            this.tag = tag;
         }
 
         int numEntries;
         int TABLE_SIZE;
         int count;
+        int reUsed;
+        int tag;
 
         protected long freeList[] = new long[500];
         protected int freeListIndex = 0;
@@ -127,7 +126,7 @@ public class OffHeapByteTree {
         private void addFree(long offset) {
             for ( int i = 4; i < TABLE_SIZE; i++)
                 base.put(offset+i, (byte)0);
-            if ( base.getInt(offset) != numEntries ) { // check tag
+            if ( base.getInt(offset) != tag ) { // check tag
                 throw new RuntimeException("bad");
             }
             if ( freeListIndex >= freeList.length ) {
@@ -141,9 +140,14 @@ public class OffHeapByteTree {
         }
 
         boolean put(long arr, int index, long value) {
+            if (value==0) {
+                throw new RuntimeException("0 value not allowed");
+            }
             long off = arr + 4;
             for ( int i = 0; i < numEntries; i++ ) {
-                if (base.getShort(off) == index) { // found empty entry
+                final short key = base.getShort(off);
+                final long debugVal = base.getLong(off + 2);
+                if (key == index) { // found empty entry
                     base.putLong(off + 2, value);
                     return true;
                 }
@@ -151,7 +155,8 @@ public class OffHeapByteTree {
             } // not found => add
             off = arr + 4;
             for ( int i = 0; i < numEntries; i++ ) {
-                if (base.getLong(off + 2) == 0) { // found empty entry
+                final long readvalue = base.getLong(off + 2);
+                if (readvalue == 0) { // found empty entry
                     base.putShort(off, (short) index);
                     base.putLong(off + 2, value);
                     return true;
@@ -174,6 +179,7 @@ public class OffHeapByteTree {
 
         long newArr() {
             if ( freeListIndex > 0 ) {
+                reUsed++;
                 return freeList[--freeListIndex];
             }
             if ( baseOff+TABLE_SIZE >= base.length() ) {
@@ -185,7 +191,7 @@ public class OffHeapByteTree {
             }
             tableCount++;
             long res = baseOff;
-            base.putInt(res,numEntries);
+            base.putInt(res,tag);
             baseOff += TABLE_SIZE;
             count++;
             return res;
@@ -296,14 +302,9 @@ public class OffHeapByteTree {
                 case 0:
                     arrFull.addFree(offset);
                     break;
-                case 4:
-                    arr4.addFree(offset);
-                    break;
-                case 32:
-                    arr4.addFree(offset);
-                    break;
                 default:
-                    throw new RuntimeException("fatal");
+                    arrs[tag].addFree(offset);
+                    break;
             }
         }
 
@@ -312,12 +313,8 @@ public class OffHeapByteTree {
             switch (tag) {
                 case 0:
                     return arrFull.put(arr,i,value);
-                case 4:
-                    return arr4.put(arr,i,value);
-                case 32:
-                    return arr32.put(arr,i,value);
                 default:
-                    throw new RuntimeException("fatal");
+                    return arrs[tag].put(arr, i, value);
             }
         }
 
@@ -326,17 +323,13 @@ public class OffHeapByteTree {
             switch (tag) {
                 case 0:
                     return arrFull.getAt(arr, i);
-                case 4:
-                    return arr4.getAt(arr, i);
-                case 32:
-                    return arr32.getAt(arr, i);
                 default:
-                    throw new RuntimeException("fatal");
+                    return arrs[tag].getAt(arr, i);
             }
         }
 
         long newArr() {
-            return arr4.newArr();
+            return arrs[1].newArr();
         }
 
         public long stepUp(long arr) {
@@ -344,27 +337,22 @@ public class OffHeapByteTree {
             switch (tag) {
                 case 0:
                     throw new RuntimeException("famous last words: cannot happen");
-                case 4:
-                    long res0 = arr32.newArr();
-                    arr4.copyTo(arr32,arr,res0);
-                    arr4.addFree(arr);
+                case 3:
+                    long res1 = arrFull.newArr();
+                    arrs[tag].copyTo(arrFull,arr, res1);
+                    arrs[tag].addFree(arr);
+                    break;
+                default:
+                    long res0 = arrs[tag+1].newArr();
+                    arrs[tag].copyTo(arrs[tag+1], arr, res0);
+                    arrs[tag].addFree(arr);
 //                    System.out.println("src => ");
-//                    arr4.dump(arr);
+//                    arr16.dump(arr);
 //                    System.out.println("dst => ");
 //                    arr32.dump(res0);
                     return res0;
-                case 32:
-                    long res1 = arrFull.newArr();
-                    arr32.copyTo(arrFull,arr, res1);
-//                    arr32.addFree(arr);
-//                    System.out.println("src => ");
-//                    arr32.dump(arr);
-//                    System.out.println("dst => ");
-//                    arrFull.dump(res1);
-                    return res1;
-                default:
-                    throw new RuntimeException("fatal");
             }
+            throw new RuntimeException("?");
         }
 
         public void dump(long arr) {
@@ -373,12 +361,8 @@ public class OffHeapByteTree {
             switch (tag) {
                 case 0:
                     arrFull.dump(arr); break;
-                case 4:
-                    arr4.dump(arr); break;
-                case 32:
-                    arr32.dump(arr); break;
                 default:
-                    throw new RuntimeException("fatal");
+                    arrs[tag].dump(arr); break;
             }
         }
     }
@@ -410,13 +394,10 @@ public class OffHeapByteTree {
 
         long tim = System.currentTimeMillis();
         LeftCutStringByteSource kwrap = new LeftCutStringByteSource(null, 0, klen);
-        int MAX = 1000000;
+        int MAX = 11;
 //        int MAX = 5*1000000;
-        for ( int i = 0; i < MAX; i++ ) {
+        for ( int i = 1; i < MAX; i++ ) {
             String key = "test:"+i;
-//            String key = ""+Math.random();
-//            if ( key.length() > klen )
-//                key = key.substring(klen);
             kwrap.setString(key);
             long put = bt.put(kwrap, (long) i);
             if ( put != 0 )
@@ -425,19 +406,21 @@ public class OffHeapByteTree {
         long dur = System.currentTimeMillis() - tim+1;
         System.out.println("PUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
         System.out.println(" used MB "+bt.baseOff/1024/1024);
+        dumpBT(bt);
+
+//        tim = System.currentTimeMillis();
+//        for ( int i = 1; i < MAX; i++ ) {
+//            String key = "test:"+i;
+//            kwrap.setString(key);
+//            bt.put(kwrap, (long) i);
+//        }
+//        dur = System.currentTimeMillis() - tim+1;
+//        System.out.println("REPUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+//        System.out.println(" used MB "+bt.baseOff/1024/1024);
+//        dumpBT(bt);
 
         tim = System.currentTimeMillis();
-        for ( int i = 0; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            bt.put(kwrap, (long) i);
-        }
-        dur = System.currentTimeMillis() - tim+1;
-        System.out.println("PUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-
-        tim = System.currentTimeMillis();
-        for ( int i = 0; i < MAX; i++ ) {
+        for ( int i = 1; i < MAX; i++ ) {
             String key = "test:"+i;
             kwrap.setString(key);
             long put = bt.get(kwrap);
@@ -466,6 +449,15 @@ public class OffHeapByteTree {
 //        dur = System.currentTimeMillis() - tim+1;
 //        System.out.println("REMOVE need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
 
+    }
+
+    public static void dumpBT(OffHeapByteTree bt) {
+        for (int i = 0; i < bt.arrs.length; i++) {
+            PArray arr = bt.arrs[i];
+            if (arr!=null) {
+                System.out.println("pa "+i+" tag "+arr.tag+" count:"+arr.count+" reuse:"+arr.reUsed+" freelist:"+arr.freeListIndex);
+            }
+        }
     }
 
 }

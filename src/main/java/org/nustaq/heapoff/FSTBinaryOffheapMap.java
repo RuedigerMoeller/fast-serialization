@@ -237,6 +237,11 @@ public class FSTBinaryOffheapMap {
                 off+=len;
                 return byteIter;
             }
+
+            @Override
+            public void remove() {
+                throw new RuntimeException("unimplemented");
+            }
         };
     }
 

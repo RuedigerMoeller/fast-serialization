@@ -72,6 +72,11 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
                 BytezByteSource next = (BytezByteSource) iter.next();
                 return decodeValue(next);
             }
+
+            @Override
+            public void remove() {
+                throw new RuntimeException("unimplemented");
+            }
         };
     }
 
