@@ -63,6 +63,12 @@ public class HeapBytez implements Bytez {
         this.len = len;
     }
 
+    public HeapBytez slice(long off, int len) {
+        if (off+len >= base.length)
+            throw new RuntimeException("invalid slice "+off+":"+len+" mylen:"+base.length);
+        return new HeapBytez(base,off,len);
+    }
+
     @Override
     public byte get(long byteIndex) {
         return unsafe.getByte(base,off+byteIndex);

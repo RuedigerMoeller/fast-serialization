@@ -19,12 +19,17 @@ import java.util.Iterator;
  * should have their most modified digit at the last character of their value.
  * e.g. [0,0,0,0,123,44] where '44' changes with each new key. Else on-heap memory consumption will grow.
  * Performance of lookup degrades with growing key size.
+ *
+ * In case entries are updated frequently with values of different size, avoid fragementation
+ * by adding extra space to each entry. Override getEntryLengthForContentLength for this.
  */
 public class FSTBinaryOffheapMap {
 
     public static final long MB = 1024 * 1024;
     public static final long GB = 1024 * MB;
     public static final int FILE_HEADER_LEN = 4;
+
+    final static int HEADER_TAG = 0xcafe; // can be used to recover corrupted data
 
     private BytezByteSource tmpValueBytez;
 
@@ -34,6 +39,9 @@ public class FSTBinaryOffheapMap {
     protected int numElem;
     protected int keyLen;
     protected long bytezOffset = FILE_HEADER_LEN;
+
+    protected long freeList[] = new long[500];
+    protected int freeListIndex = 0;
 
     public FSTBinaryOffheapMap(int keyLen, long size) {
         init(keyLen,size);
@@ -51,20 +59,87 @@ public class FSTBinaryOffheapMap {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
         Long put = index.put(key, bytezOffset);
-        if ( put == null )
+        if ( put != null ) {
+            int lenFromHeader = getLenFromHeader(put);
+            if (value.length() <= lenFromHeader) {
+                // replace
+                setEntry(put, lenFromHeader, value);
+                index.put(key, put);
+                return;
+            }
+            // set removed and fall through to add
+            removeEntry(put);
+        } else {
+            // add
             incElems();
+        }
+        addEntry(value);
+    }
+
+    protected void removeEntry(long offset) {
+        if ( freeListIndex >= freeList.length ) {
+            compactFreeList();
+            if ( freeListIndex*3/2 >= freeList.length ) { // still not significant free space  ?
+                long newFree[] = new long[Math.min(freeList.length * 2, Integer.MAX_VALUE - 1)];
+                System.arraycopy(freeList, 0, newFree, 0, freeListIndex);
+                freeList = newFree;
+            }
+        }
+        freeList[freeListIndex++] = offset;
+        memory.put(offset+4,(byte)1);
+    }
+
+    private void compactFreeList() {
+        int newFreeIndex = 0;
+        for (int i = 0; i < freeListIndex; i++) {
+            long l = freeList[i];
+            if ( l > 0 ) {
+                freeList[newFreeIndex++] = l;
+            }
+        }
+        freeListIndex = newFreeIndex;
+    }
+
+    protected void setEntry(long off, int entryLen, ByteSource value) {
+        writeEntryHeader(off,entryLen,(int)value.length(),false);
+        off += getHeaderLen();
+        for ( int i = 0; i < value.length(); i++ ) {
+            memory.put( off++, value.get(i) );
+        }
+    }
+
+    protected void addEntry(ByteSource value) {
+        for (int i = 0; i < freeListIndex; i++) {
+            long l = freeList[i];
+            long valueLength = value.length();
+            if ( l > 0 && getLenFromHeader(l) > valueLength) {
+                freeList[i] = 0;
+                writeEntryHeader(l,getLenFromHeader(l),(int) valueLength,false);
+                l += getHeaderLen();
+                for ( int ii = 0; ii < valueLength; ii++ ) {
+                    memory.put( l++, value.get(ii) );
+                }
+                return;
+            }
+        }
         if ( memory.length() <= value.length()+ getHeaderLen())
             throw new RuntimeException("store is full "+numElem);
-        createBinaryHeader(key, value);
+        int entryLen = getEntryLengthForContentLength(value.length());
+        writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
         bytezOffset += getHeaderLen();
+        long off = bytezOffset;
         for ( int i = 0; i < value.length(); i++ ) {
-            memory.put( bytezOffset++, value.get(i) );
+            memory.put( off++, value.get(i) );
         }
+        bytezOffset+=entryLen;
     }
 
     /**
      * get an entry. the returned ByteSource must be processed immediately as it will be reused
      * internally on next get
+     * Warning: Concurrent Modification (e.g. add remove elements during iteration) is NOT SUPPORTED
+     * and NOT CHECKED. Collect keys to change inside iteration and perform changes after iteration is
+     * finished.
      * @param key
      * @return
      */
@@ -76,7 +151,7 @@ public class FSTBinaryOffheapMap {
             return null;
         }
         long off = aLong.longValue();
-        int len = getLenFromHeader(off);
+        int len = getContentLenFromHeader(off);
         off+= getHeaderLen();
         tmpValueBytez.setLen(len);
         tmpValueBytez.setOff(off);
@@ -93,7 +168,7 @@ public class FSTBinaryOffheapMap {
         Long rem = index.remove(key);
         if ( rem != null ) {
             decElems();
-            memory.put(rem.longValue()+4,(byte)1);
+            removeEntry(rem);
         }
     }
 
@@ -106,17 +181,32 @@ public class FSTBinaryOffheapMap {
         memory.putInt(0, numElem);
     }
 
-    protected void createBinaryHeader(ByteSource key, ByteSource value) {
-        memory.putInt(bytezOffset, (int) value.length());
-        memory.put(bytezOffset+4, (byte)0);
+    /**
+     * called upon add, allows to reserve extra space for later growth per entry
+     * @param lengthOfEntry
+     * @return
+     */
+    protected int getEntryLengthForContentLength(long lengthOfEntry) {
+        return (int) lengthOfEntry;
+    }
+
+    protected void writeEntryHeader( long offset, int entryLen, int contentLen, boolean removed ) {
+        memory.putInt( offset, entryLen );
+        memory.put(offset + 4, (byte) (removed ? 1 : 0));
+        memory.putInt(offset + 8, contentLen);
+        memory.putInt(offset + 12, HEADER_TAG);
     }
 
     protected int getHeaderLen() {
-        return 4+4; // 0-3 len, 4 removed flag, 5-7 free
+        return 4+4+4+4; // 0-3 len, 4 removed flag, 5-7 free, 8-11 content len, 12-15 magic num
     }
 
     protected int getLenFromHeader(long off) {
         return memory.getInt(off);
+    }
+
+    protected int getContentLenFromHeader(long off) {
+        return memory.getInt(off+8);
     }
 
     public Iterator<ByteSource> binaryValues() {

@@ -50,6 +50,12 @@ public class MallocBytez implements Bytez {
         length = len;
     }
 
+    public MallocBytez slice(long off, int len) {
+        if (off+len >= length)
+            throw new RuntimeException("invalid slice "+off+":"+len+" mylen:"+length);
+        return new MallocBytez(baseAdress+off,len);
+    }
+
     @Override
     public byte get(long byteIndex) {
         return unsafe.getByte(baseAdress +byteIndex);

@@ -10,11 +10,11 @@ import java.util.Iterator;
 /**
  * Created by ruedi on 27.06.14.
  */
-public class FSTStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
+public class FSTAsciiStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
 
     LeftCutStringByteSource tmpKey;
 
-    public FSTStringOffheapMap(int keyLen, long size, FSTConfiguration conf) {
+    public FSTAsciiStringOffheapMap(int keyLen, long size, FSTConfiguration conf) {
         super(keyLen, size, conf);
     }
 
@@ -34,7 +34,7 @@ public class FSTStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
     public static void main( String a[] ) {
         FSTConfiguration conf = FSTConfiguration.getDefaultConfiguration();
         conf.registerClass(TestRec.class);
-        FSTStringOffheapMap store = new FSTStringOffheapMap(16, 8*GB, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(16, 8*GB, conf);
         long tim = System.currentTimeMillis();
 //        int MAX = 5*1000000;
         int MAX = 1000000;
@@ -46,7 +46,7 @@ public class FSTStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
             store.put(key, val );
         }
         long dur = System.currentTimeMillis() - tim;
-        System.out.println("need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+        System.out.println("put need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
         System.out.println("free: "+store.getFreeMem()/1024/1024);
 
         tim = System.currentTimeMillis();
@@ -58,11 +58,31 @@ public class FSTStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
         }
 
         dur = System.currentTimeMillis() - tim;
-        System.out.println("need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+        System.out.println("get need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+
+        tim = System.currentTimeMillis();
+        for ( int i = 0; i < MAX; i++ ) {
+
+            String key = "test:" + i;
+            TestRec rec = (TestRec) store.get(key);
+            if ( rec == null || rec.getX() != i )
+                throw new RuntimeException("error");
+            rec.someRandomString = "#"+i+"#"+i+"#"+i;
+            store.put(key,rec);
+        }
+
+        dur = System.currentTimeMillis() - tim;
+        System.out.println("update need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
 
         store.remove("test:13");
         store.remove("test:999");
         store.remove("unknown");
+        TestRec value = new TestRec();
+        value.someRandomString = "somewhatlonger+somewhatlonger+somewhatlonger";
+        store.put("test:999", value);
+        TestRec readVal = (TestRec) store.get("test:999");
+        if ( !readVal.someRandomString.equals(value.someRandomString))
+            throw new RuntimeException("wrong stuff");
 
         tim = System.currentTimeMillis();
         Iterator values = store.values();
@@ -94,6 +114,7 @@ public class FSTStringOffheapMap<V> extends FSTSerializedOffheapMap<String,V> {
     static class TestRec implements Serializable{
         int x = 13;
         String id;
+        String someRandomString = "pok";
 
         public int getX() {
             return x;

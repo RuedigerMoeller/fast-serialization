@@ -54,6 +54,9 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
     }
 
     /**
+     * Warning: Concurrent Modification (e.g. add remove elements during iteration) is NOT SUPPORTED
+     * and NOT CHECKED. Collect keys to change inside an iteration and perform changes on the map after iteration is
+     * finished.
      * @return an iterator on the values contained in this map.
      */
     public Iterator<V> values() {

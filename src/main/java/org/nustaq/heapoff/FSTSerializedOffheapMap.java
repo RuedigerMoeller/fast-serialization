@@ -34,6 +34,16 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
         return tmpVal;
     }
 
+    /**
+     * default is to let 100% room for later entry growth. Avoid fragmentation as hell.
+     * @param lengthOfEntry
+     * @return
+     */
+    @Override
+    protected int getEntryLengthForContentLength(long lengthOfEntry) {
+        return (int) (lengthOfEntry*2);
+    }
+
     protected V decodeValue(BytezByteSource val) {
         byte[] bytes = memory.toBytes(val.getOff(), val.getLen());
         return (V) conf.asObject(bytes);

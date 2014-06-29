@@ -1,7 +1,10 @@
 package org.nustaq.heapoff;
 
 import org.nustaq.heapoff.bytez.ByteSource;
+import org.nustaq.heapoff.bytez.Bytez;
 import org.nustaq.heapoff.bytez.bytesource.LeftCutStringByteSource;
+import org.nustaq.heapoff.bytez.malloc.MallocBytez;
+import org.nustaq.heapoff.bytez.malloc.MallocBytezAllocator;
 
 /**
  * Created by ruedi on 27.06.14.

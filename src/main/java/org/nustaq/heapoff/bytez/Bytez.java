@@ -29,6 +29,8 @@ package org.nustaq.heapoff.bytez;
  */
 public interface Bytez extends ByteSource {
 
+    public Bytez slice(long off, int len);
+
     public boolean getBoolVolatile(long byteIndex);
     public byte getVolatile(long byteIndex);
     public char getCharVolatile(long byteIndex);
