@@ -29,11 +29,11 @@ public class FSTBinaryOffheapMap {
     public static final long GB = 1024 * MB;
     public static final int FILE_HEADER_LEN = 4;
 
-    final static int HEADER_TAG = 0xcafe; // can be used to recover corrupted data
+    final static int HEADER_TAG = 0xe5e1; // can be used to recover corrupted data
 
     private BytezByteSource tmpValueBytez;
 
-    protected ByteTree index;
+    protected OffHeapByteTree index;
     protected Bytez memory;
     protected MallocBytezAllocator alloc;
     protected int numElem;
@@ -43,23 +43,33 @@ public class FSTBinaryOffheapMap {
     protected long freeList[] = new long[500];
     protected int freeListIndex = 0;
 
-    public FSTBinaryOffheapMap(int keyLen, long size) {
-        init(keyLen,size);
+    public FSTBinaryOffheapMap(int keyLen, long size, int indexSizeMB) {
+        init(keyLen,size,indexSizeMB);
     }
 
-    protected void init(int keyLen, long size) {
-        index = new ByteTree(keyLen);
+    protected void init(int keyLen, long size, int indexSizeMB) {
+        index = new OffHeapByteTree(keyLen,indexSizeMB);
         alloc = new MallocBytezAllocator();
         memory = alloc.alloc(size);
         tmpValueBytez = new BytezByteSource(memory,0,0);
         this.keyLen = keyLen;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        free();
+    }
+
+    public void free() {
+        alloc.freeAll();
+        alloc = null;
+    }
+
     public void putBinary( ByteSource key, ByteSource value ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
-        Long put = index.put(key, bytezOffset);
-        if ( put != null ) {
+        long put = index.put(key, bytezOffset);
+        if ( put != 0 ) {
             int lenFromHeader = getLenFromHeader(put);
             if (value.length() <= lenFromHeader) {
                 // replace
@@ -146,11 +156,11 @@ public class FSTBinaryOffheapMap {
     public BytezByteSource getBinary( ByteSource key ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
-        Long aLong = index.get(key);
-        if ( aLong == null ) {
+        long aLong = index.get(key);
+        if ( aLong == 0 ) {
             return null;
         }
-        long off = aLong.longValue();
+        long off = aLong;
         int len = getContentLenFromHeader(off);
         off+= getHeaderLen();
         tmpValueBytez.setLen(len);
@@ -165,8 +175,8 @@ public class FSTBinaryOffheapMap {
     public void removeBinary( ByteSource key ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
-        Long rem = index.remove(key);
-        if ( rem != null ) {
+        long rem = index.remove(key);
+        if ( rem != 0 ) {
             decElems();
             removeEntry(rem);
         }
@@ -249,4 +259,11 @@ public class FSTBinaryOffheapMap {
         return memory.length()-bytezOffset;
     }
 
+    public int getSize() {
+        return numElem;
+    }
+
+    public void dumpIndexStats() {
+        index.dumpStats();
+    }
 }

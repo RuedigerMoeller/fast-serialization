@@ -18,13 +18,13 @@ import java.util.Iterator;
  */
 public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
 
-    public FSTCodedOffheapMap(int keyLen, long size) {
-        super(keyLen, size);
+    public FSTCodedOffheapMap(int keyLen, long size, int indexSizeMB) {
+        super(keyLen, size,indexSizeMB);
     }
 
     @Override
-    protected void init(int keyLen, long size) {
-        super.init(keyLen, size);
+    protected void init(int keyLen, long size, int indexSizeMB) {
+        super.init(keyLen, size,indexSizeMB);
     }
 
     protected abstract ByteSource encodeKey(K key);
