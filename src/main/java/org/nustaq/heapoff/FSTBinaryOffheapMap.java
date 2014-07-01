@@ -68,7 +68,7 @@ public class FSTBinaryOffheapMap {
     public void putBinary( ByteSource key, ByteSource value ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
-        long put = index.put(key, bytezOffset);
+        long put = index.get(key);
         if ( put != 0 ) {
             int lenFromHeader = getLenFromHeader(put);
             if (value.length() <= lenFromHeader) {
@@ -83,7 +83,7 @@ public class FSTBinaryOffheapMap {
             // add
             incElems();
         }
-        addEntry(value);
+        index.put(key,addEntry(value));
     }
 
     protected void removeEntry(long offset) {
@@ -118,23 +118,26 @@ public class FSTBinaryOffheapMap {
         }
     }
 
-    protected void addEntry(ByteSource value) {
-        for (int i = 0; i < freeListIndex; i++) {
+    protected long addEntry(ByteSource value) {
+        long valueLength = value.length();
+        for (int i = freeListIndex-1; i >= 0; i--) {
             long l = freeList[i];
-            long valueLength = value.length();
-            if ( l > 0 && getLenFromHeader(l) > valueLength) {
+            if ( l > 0 && getLenFromHeader(l) >= valueLength) {
                 freeList[i] = 0;
+                long res = l;
                 writeEntryHeader(l,getLenFromHeader(l),(int) valueLength,false);
                 l += getHeaderLen();
                 for ( int ii = 0; ii < valueLength; ii++ ) {
                     memory.put( l++, value.get(ii) );
                 }
-                return;
+                freeListIndex--;
+                return res;
             }
         }
         if ( memory.length() <= value.length()+ getHeaderLen())
             throw new RuntimeException("store is full "+numElem);
         int entryLen = getEntryLengthForContentLength(value.length());
+        long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
         bytezOffset += getHeaderLen();
         long off = bytezOffset;
@@ -142,6 +145,7 @@ public class FSTBinaryOffheapMap {
             memory.put( off++, value.get(i) );
         }
         bytezOffset+=entryLen;
+        return res;
     }
 
     /**
@@ -175,8 +179,9 @@ public class FSTBinaryOffheapMap {
     public void removeBinary( ByteSource key ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
-        long rem = index.remove(key);
+        long rem = index.get(key);
         if ( rem != 0 ) {
+            index.remove(key);
             decElems();
             removeEntry(rem);
         }
@@ -202,9 +207,9 @@ public class FSTBinaryOffheapMap {
 
     protected void writeEntryHeader( long offset, int entryLen, int contentLen, boolean removed ) {
         memory.putInt( offset, entryLen );
-        memory.put(offset + 4, (byte) (removed ? 1 : 0));
-        memory.putInt(offset + 8, contentLen);
-        memory.putInt(offset + 12, HEADER_TAG);
+        memory.put( offset + 4, (byte) (removed ? 1 : 0));
+        memory.putInt( offset + 8, contentLen);
+        memory.putInt( offset + 12, HEADER_TAG);
     }
 
     protected int getHeaderLen() {

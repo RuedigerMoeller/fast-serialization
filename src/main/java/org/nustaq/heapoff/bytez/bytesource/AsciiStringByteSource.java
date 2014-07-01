@@ -44,6 +44,8 @@ public class AsciiStringByteSource implements ByteSource {
     }
 
     public void setString(String string) {
+        if ( string.length() > len )
+            throw new RuntimeException("key value too long");
         this.string = string;
     }
 

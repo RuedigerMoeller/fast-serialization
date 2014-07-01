@@ -1,6 +1,7 @@
 package org.nustaq.heapoff;
 
 import org.nustaq.heapoff.bytez.ByteSource;
+import org.nustaq.heapoff.bytez.Bytez;
 import org.nustaq.heapoff.bytez.bytesource.AsciiStringByteSource;
 import org.nustaq.heapoff.bytez.bytesource.LeftCutStringByteSource;
 import org.nustaq.heapoff.bytez.malloc.MallocBytez;
@@ -12,7 +13,7 @@ import org.nustaq.heapoff.bytez.malloc.MallocBytezAllocator;
 public class OffHeapByteTree {
 
     public static int estimateMBytesForIndex(int keylen, int numOfKeys) {
-        return (int) Math.max(10, (10 * keylen * numOfKeys) / 1000 / 1000 );
+        return (int) Math.max(10, (2 * keylen * numOfKeys) / 1000 / 1000 );
     }
 
     MallocBytezAllocator alloc = new MallocBytezAllocator();
@@ -46,41 +47,13 @@ public class OffHeapByteTree {
                 System.out.println("pa "+i+" tag "+arr.tag+" entries:"+arr.numEntries+" count:"+arr.count+" reuse:"+arr.reUsed+" freelist:"+arr.freeListIndex);
             }
         }
+        System.out.println("fa root count:"+arrFull.count+" freelist:"+arrFull.freeListIndex);
     }
+
     public long put(ByteSource key, long value ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("invalid key length. Expect "+keyLen);
         return put(key, 0, root, value, 0, 0 );
-    }
-
-    public void clean() {
-        clean(0,root);
-    }
-
-    // return true if empty
-    boolean clean( long index, long arr ) {
-        if ( index == keyLen - 1 ) {
-            for (int i = 0; i < 256; i++) {
-                long o = arrWrap.getAt(arr, i);
-                if ( o != 0 ) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        boolean hadOne = false;
-        for (int i = 0; i < 256; i++) {
-            long subArr = arrWrap.getAt(arr, i);
-            if ( subArr != 0 ) {
-                if (clean(index + 1, subArr)) {
-                    arrWrap.remove(arr, i);
-                    arrWrap.addFree(subArr);
-                } else {
-                    hadOne = true;
-                }
-            }
-        }
-        return ! hadOne;
     }
 
     long put( ByteSource key, long index, long arr, long toPut, long parentArray, int indexInParent ) {
@@ -132,27 +105,38 @@ public class OffHeapByteTree {
         return get(key, index + 1, lookup);
     }
 
-    public long remove( ByteSource key ) {
+    public void remove( ByteSource key ) {
         if ( key.length() != keyLen )
             throw new RuntimeException("invalid key length. Expect "+keyLen);
-        return remove(key, 0, root, 0l, 0 );
+        remove(key, 0, root );
     }
 
-    long remove( ByteSource key, long index, long arr, long parentArray, int indexInParent) {
+    // return true if empty
+    boolean remove( ByteSource key, long index, long arr) {
         byte b = key.get(index);
         int i = ((int)b + 256) & 0xff;
         long lookup = arrWrap.getAt(arr, i);
         if ( index == keyLen - 1 ) {
-            if ( lookup != 0 ) {
+            if ( lookup != 0) {
                 // remove entry from arrwrap
-                arrWrap.remove(arr,i);
+                boolean empty = arrWrap.remove(arr,i);
+                if ( empty )
+                    arrWrap.addFree(arr);
+                return empty;
             }
-            return lookup;
+            return false;
         }
         if ( lookup == 0 ) { // if no match earlier, directly return
-            return 0;
+            return false;
         }
-        return remove(key, index + 1, lookup, arr, i);
+        boolean res = remove(key, index + 1, lookup);
+        if ( res ) {
+            res = arrWrap.remove(arr,i);
+            if ( res && arr != root )
+                arrWrap.addFree(arr);
+            return res;
+        }
+        return res;
     }
 
     class PArray {
@@ -232,9 +216,8 @@ public class OffHeapByteTree {
                 return freeList[--freeListIndex];
             }
             if ( baseOff+TABLE_SIZE >= base.length() ) {
-                clean();
                 if ( freeListIndex == 0 )
-                    throw new RuntimeException("index is full. Increase index size. Index Tables: " + tableCount);
+                    grow();
                 else
                     return newArr();
             }
@@ -285,17 +268,21 @@ public class OffHeapByteTree {
         // ret true if empty
         public boolean remove(long arr, int key) {
             long off = arr + 4;
+            boolean empty = true;
             for ( int i = 0; i < numEntries; i++ ) {
                 int index = base.getShort(off);
                 long value = base.getLong(off+2);
                 if ( index == key ) {
                     base.putShort(off, (short) 0);
                     base.putLong(off + 2, 0l);
-                    return false;
+                } else {
+                    if ( index != 0 ) {
+                        empty = false;
+                    }
                 }
                 off+=10;
             }
-            return false;
+            return empty;
         }
     }
 
@@ -310,6 +297,8 @@ public class OffHeapByteTree {
         private void addFree(long offset) {
             for ( int i = 0; i < TABLE_SIZE/8; i++)
                 base.putLong(offset+i*8,0);
+            if (freeListIndex>0&&freeList[freeListIndex-1]==offset)
+                throw new RuntimeException("double release");
             if ( freeListIndex >= freeList.length ) {
                 if ( freeListIndex*3/2 >= freeList.length ) { // still not significant free space  ?
                     long newFree[] = new long[Math.min(freeList.length * 2, Integer.MAX_VALUE - 1)];
@@ -335,9 +324,8 @@ public class OffHeapByteTree {
                 return freeList[freeListIndex+1];
             }
             if ( baseOff+TABLE_SIZE >= base.length() ) {
-                clean();
                 if ( freeListIndex == 0 )
-                    throw new RuntimeException("index is full. Increase index size. Index Tables: " + tableCount);
+                    grow();
                 else
                     return newArr();
             }
@@ -352,7 +340,15 @@ public class OffHeapByteTree {
         // return true if empty
         public boolean remove(long arr, int key) {
             base.putLong(4+arr+key*8, 0);
-            return false;
+            return isEmpty(arr);
+        }
+
+        private boolean isEmpty(long arr) {
+            for ( int i = 0; i < 256; i++) {
+                if ( getAt(arr,i) != 0 )
+                    return false;
+            }
+            return true;
         }
 
         public void dump(long arr) {
@@ -364,6 +360,14 @@ public class OffHeapByteTree {
             }
         }
 
+    }
+
+    private void grow() {
+        final Bytez newBase = alloc.alloc(base.length()*2);
+        base.copyTo(newBase,0,0,base.length());
+        alloc.free(base);
+        base = (MallocBytez) newBase;
+        System.out.println("index grew to "+base.length()/1024/1024);
     }
 
     class ArrWrap {
@@ -452,12 +456,12 @@ public class OffHeapByteTree {
     }
 
 
-    public static void _main(String a[]) {
+    public static void main(String a[]) {
         int klen = 3;
         OffHeapByteTree bt = new OffHeapByteTree(klen, 100);
 
         LeftCutStringByteSource kwrap = new LeftCutStringByteSource(null, 0, klen);
-        String keys[] = { "111", "112", "121" };
+        String keys[] = { "123","145" };
         for (int i = 0; i < keys.length; i++) {
             String key = keys[i];
             kwrap.setString(key);
@@ -471,9 +475,25 @@ public class OffHeapByteTree {
             System.out.println(" i "+key+" "+bt.get(kwrap));
         }
         dumpBT(bt);
+        System.out.println();
+
+
+        kwrap.setString(keys[0]);
+        System.out.println("get "+bt.get(kwrap));
+        bt.remove(kwrap);
+        System.out.println("get "+bt.get(kwrap));
+        dumpBT(bt);
+        System.out.println();
+
+        kwrap.setString(keys[1]);
+        System.out.println("get "+bt.get(kwrap));
+        bt.remove(kwrap);
+        System.out.println("get "+bt.get(kwrap));
+        dumpBT(bt);
+        System.out.println();
     }
 
-    public static void main(String a[]) {
+    public static void _main(String a[]) {
         int klen = 12;
         OffHeapByteTree bt = new OffHeapByteTree(klen, 100);
 
@@ -522,7 +542,8 @@ public class OffHeapByteTree {
         }
 
         kwrap.setString("test:99");
-        System.out.println("rem  : " + bt.remove(kwrap));
+        System.out.println("rem  : " + bt.get(kwrap));
+        bt.remove(kwrap);
         System.out.println("  get: " + bt.get(kwrap));
 
         tim = System.currentTimeMillis();
@@ -541,8 +562,6 @@ public class OffHeapByteTree {
             if ( bt.get(kwrap) != 0 )
                 System.out.println("err");
         }
-        System.out.println("clean ..");
-        bt.clean();
         dumpBT(bt);
 
         tim = System.currentTimeMillis();

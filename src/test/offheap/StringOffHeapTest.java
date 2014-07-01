@@ -18,8 +18,9 @@ public class StringOffHeapTest {
 
     static class TestRec implements Serializable {
         int x = 13;
+        int y = 133;
         String id;
-        String someRandomString = "pok";
+        String someRandomString = "pok pok pok pok pok";
 
         public int getX() {
             return x;
@@ -44,7 +45,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 1000000;
+        int MAX = 10000000;
 
         int indexSizeMB = OffHeapByteTree.estimateMBytesForIndex(klen, MAX);
         System.out.println("esitmated index size "+ indexSizeMB +" MB");
@@ -135,7 +136,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 100000;
+        int MAX = 1000000;
 
         int indexSizeMB = OffHeapByteTree.estimateMBytesForIndex(klen, MAX);
         System.out.println("esitmated index size "+ indexSizeMB +" MB");
@@ -155,16 +156,29 @@ public class StringOffHeapTest {
                 store.put(key, val);
             }
 
+            store.dumpIndexStats();
+
             System.out.println("remove");
             for (int i = 0; i < keys.size(); i++) {
                 String s = keys.get(i);
                 TestRec rec = (TestRec) store.get(s);
-                store.remove(s);
-                Assert.assertTrue(rec.getId().equals(s));
+                if ( rec != null ) {
+                    store.remove(s);
+                    Assert.assertTrue(rec.getId().equals(s));
+                }
             }
             keys.clear();
-            System.out.println("-----------------------------------");
             store.dumpIndexStats();
+            System.out.println("-----------------------------------");
+            System.out.println("-----------------------------------");
+
+//            store.put("p",new TestRec());
+//            System.out.println("p-----------------------------------");
+//            store.dumpIndexStats();
+//            Object pokpokpok = store.get("p");
+//            System.out.println("g-----------------------------------");
+//            store.dumpIndexStats();
+//            System.out.printf(""+pokpokpok);
         }
 
     }
