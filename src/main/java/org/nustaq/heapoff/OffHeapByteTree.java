@@ -12,7 +12,7 @@ import org.nustaq.heapoff.bytez.malloc.MallocBytezAllocator;
  */
 public class OffHeapByteTree {
 
-    public static int estimateMBytesForIndex(int keylen, int numOfKeys) {
+    static int estimateMBytesForIndex(int keylen, int numOfKeys) {
         return (int) Math.max(10, (2 * keylen * numOfKeys) / 1000 / 1000 );
     }
 

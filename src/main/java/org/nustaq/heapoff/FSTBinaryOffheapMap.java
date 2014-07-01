@@ -43,14 +43,14 @@ public class FSTBinaryOffheapMap {
     protected long freeList[] = new long[500];
     protected int freeListIndex = 0;
 
-    public FSTBinaryOffheapMap(int keyLen, long size, int indexSizeMB) {
-        init(keyLen,size,indexSizeMB);
+    public FSTBinaryOffheapMap(int keyLen, long sizeMemBytes, int numberOfElems) {
+        init(keyLen,sizeMemBytes,numberOfElems);
     }
 
-    protected void init(int keyLen, long size, int indexSizeMB) {
-        index = new OffHeapByteTree(keyLen,indexSizeMB);
+    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
+        index = new OffHeapByteTree(keyLen,OffHeapByteTree.estimateMBytesForIndex(keyLen,numberOfElems));
         alloc = new MallocBytezAllocator();
-        memory = alloc.alloc(size);
+        memory = alloc.alloc(sizeMemBytes);
         tmpValueBytez = new BytezByteSource(memory,0,0);
         this.keyLen = keyLen;
     }
@@ -83,7 +83,7 @@ public class FSTBinaryOffheapMap {
             // add
             incElems();
         }
-        index.put(key,addEntry(value));
+        index.put(key, addEntry(key, value));
     }
 
     protected void removeEntry(long offset) {
@@ -118,7 +118,7 @@ public class FSTBinaryOffheapMap {
         }
     }
 
-    protected long addEntry(ByteSource value) {
+    protected long addEntry(ByteSource key, ByteSource value) {
         long valueLength = value.length();
         for (int i = freeListIndex-1; i >= 0; i--) {
             long l = freeList[i];
@@ -126,7 +126,12 @@ public class FSTBinaryOffheapMap {
                 freeList[i] = 0;
                 long res = l;
                 writeEntryHeader(l,getLenFromHeader(l),(int) valueLength,false);
+                // put key
+                for ( int ii = 0; ii < keyLen; ii++ ) {
+                    memory.put( 16+l+ii, key.get(ii) );
+                }
                 l += getHeaderLen();
+                // put value
                 for ( int ii = 0; ii < valueLength; ii++ ) {
                     memory.put( l++, value.get(ii) );
                 }
@@ -139,6 +144,10 @@ public class FSTBinaryOffheapMap {
         int entryLen = getEntryLengthForContentLength(value.length());
         long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
+        // put key
+        for ( int ii = 0; ii < keyLen; ii++ ) {
+            memory.put( 16+bytezOffset+ii, key.get(ii) );
+        }
         bytezOffset += getHeaderLen();
         long off = bytezOffset;
         for ( int i = 0; i < value.length(); i++ ) {
@@ -213,7 +222,7 @@ public class FSTBinaryOffheapMap {
     }
 
     protected int getHeaderLen() {
-        return 4+4+4+4; // 0-3 len, 4 removed flag, 5-7 free, 8-11 content len, 12-15 magic num
+        return 4+4+4+4+keyLen; // 0-3 len, 4 removed flag, 5-7 free, 8-11 content len, 12-15 magic num, 16... key
     }
 
     protected int getLenFromHeader(long off) {
@@ -249,6 +258,42 @@ public class FSTBinaryOffheapMap {
                 elemCount++;
                 byteIter.setOff(off);
                 byteIter.setLen(len);
+                off+=len;
+                return byteIter;
+            }
+
+            @Override
+            public void remove() {
+                throw new RuntimeException("unimplemented");
+            }
+        };
+    }
+
+    public Iterator<ByteSource> binaryKeys() {
+        return new Iterator<ByteSource>() {
+            long off = FILE_HEADER_LEN;
+            int elemCount = 0;
+            BytezByteSource byteIter = new BytezByteSource(memory,0,0);
+
+            @Override
+            public boolean hasNext() {
+                return elemCount < numElem;
+            }
+
+            @Override
+            public ByteSource next() {
+                int len = getLenFromHeader(off);
+                boolean removed = memory.get(off+4) != 0;
+                off+= getHeaderLen();
+                while ( removed ) {
+                    off += len;
+                    len = getLenFromHeader(off);
+                    removed = memory.get(off+4) != 0;
+                    off+= getHeaderLen();
+                }
+                elemCount++;
+                byteIter.setOff(off-getHeaderLen()+16);
+                byteIter.setLen(keyLen);
                 off+=len;
                 return byteIter;
             }

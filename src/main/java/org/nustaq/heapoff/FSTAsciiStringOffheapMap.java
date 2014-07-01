@@ -14,13 +14,13 @@ public class FSTAsciiStringOffheapMap<V> extends FSTSerializedOffheapMap<String,
 
     LeftCutStringByteSource tmpKey;
 
-    public FSTAsciiStringOffheapMap(int keyLen, long size, int indexSizeMB, FSTConfiguration conf) {
-        super(keyLen, size, indexSizeMB, conf);
+    public FSTAsciiStringOffheapMap(int keyLen, long sizeMemBytes, int numberOfEleems, FSTConfiguration conf) {
+        super(keyLen, sizeMemBytes, numberOfEleems, conf);
     }
 
     @Override
-    protected void init(int keyLen, long size, int indexSizeMB) {
-        super.init(keyLen, size, indexSizeMB);
+    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
+        super.init(keyLen, sizeMemBytes, numberOfElems);
         tmpKey = new LeftCutStringByteSource(null,0,keyLen);
     }
 

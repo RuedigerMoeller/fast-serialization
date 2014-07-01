@@ -15,14 +15,14 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
     ByteArrayByteSource tmpVal;
     FSTConfiguration conf;
 
-    public FSTSerializedOffheapMap(int keyLen, long size, int indexSizeMB, FSTConfiguration conf) {
-        super(keyLen, size, indexSizeMB);
+    public FSTSerializedOffheapMap(int keyLen, long sizeBytes, int numberOfElems, FSTConfiguration conf) {
+        super(keyLen, sizeBytes, numberOfElems);
         this.conf = conf;
     }
 
     @Override
-    protected void init(int keyLen, long size, int indexSizeMB) {
-        super.init(keyLen, size, indexSizeMB);
+    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
+        super.init(keyLen, sizeMemBytes, numberOfElems);
         tmpVal = new ByteArrayByteSource(null,0,0);
     }
 

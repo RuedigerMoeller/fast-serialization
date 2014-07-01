@@ -47,10 +47,7 @@ public class StringOffHeapTest {
         int klen = 16;
         int MAX = 10000000;
 
-        int indexSizeMB = OffHeapByteTree.estimateMBytesForIndex(klen, MAX);
-        System.out.println("esitmated index size "+ indexSizeMB +" MB");
-
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, indexSizeMB, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
         long tim = System.currentTimeMillis();
         TestRec val = new TestRec();
@@ -138,11 +135,8 @@ public class StringOffHeapTest {
         int klen = 16;
         int MAX = 1000000;
 
-        int indexSizeMB = OffHeapByteTree.estimateMBytesForIndex(klen, MAX);
-        System.out.println("esitmated index size "+ indexSizeMB +" MB");
-
         ArrayList<String> keys = new ArrayList<>();
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, indexSizeMB, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
         TestRec val = new TestRec();
 
         while( true ) {
