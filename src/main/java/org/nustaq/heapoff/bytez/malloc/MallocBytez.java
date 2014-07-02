@@ -39,8 +39,8 @@ public class MallocBytez implements Bytez {
     static long faoff = FSTUtil.floatoff;
 
 
-    long baseAdress;
-    long length;
+    protected long baseAdress;
+    protected long length;
     public MallocBytez(long adr, long len) {
         setBase(adr, len);
     }

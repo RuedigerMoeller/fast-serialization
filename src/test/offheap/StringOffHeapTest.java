@@ -45,7 +45,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 10000000;
+        int MAX = 10000;
 
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
@@ -133,13 +133,14 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 1000000;
+        int MAX = 10000;
 
         ArrayList<String> keys = new ArrayList<>();
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
         TestRec val = new TestRec();
 
-        while( true ) {
+        //while( true )
+        {
             System.out.println("put");
             for (int i = 0; i < MAX; i++) {
                 String key = "" + Math.random();
