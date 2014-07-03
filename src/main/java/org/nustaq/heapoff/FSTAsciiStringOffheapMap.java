@@ -16,15 +16,15 @@ public class FSTAsciiStringOffheapMap<V> extends FSTSerializedOffheapMap<String,
 
     public FSTAsciiStringOffheapMap(int keyLen, long sizeMemBytes, int numberOfEleems, FSTConfiguration conf) {
         super(keyLen, sizeMemBytes, numberOfEleems, conf);
-    }
-
-    @Override
-    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
-        super.init(keyLen, sizeMemBytes, numberOfElems);
         tmpKey = new LeftCutStringByteSource(null,0,keyLen);
     }
 
-    protected ByteSource encodeKey(String key) {
+    public FSTAsciiStringOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems,FSTConfiguration conf) throws Exception {
+        super(mappedFile, keyLen, sizeMemBytes, numberOfElems, conf);
+        tmpKey = new LeftCutStringByteSource(null,0,keyLen);
+    }
+
+    public ByteSource encodeKey(String key) {
         if ( key.length() > tmpKey.length() )
             throw new RuntimeException("key too long");
         tmpKey.setString(key);

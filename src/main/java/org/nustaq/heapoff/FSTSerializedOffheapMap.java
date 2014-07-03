@@ -8,7 +8,8 @@ import org.nustaq.serialization.FSTConfiguration;
 import java.io.Serializable;
 
 /**
- * Created by ruedi on 27.06.14.
+ * An offheap map using serialization for Value Objects.
+ * Note there are several wrappers to represent keys as ByteSource (see FSTAsciiStringOffheapMap for example)
  */
 public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,V> {
 
@@ -18,15 +19,16 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
     public FSTSerializedOffheapMap(int keyLen, long sizeBytes, int numberOfElems, FSTConfiguration conf) {
         super(keyLen, sizeBytes, numberOfElems);
         this.conf = conf;
-    }
-
-    @Override
-    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
-        super.init(keyLen, sizeMemBytes, numberOfElems);
         tmpVal = new ByteArrayByteSource(null,0,0);
     }
 
-    protected ByteSource encodeValue(V value) {
+    public FSTSerializedOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems, FSTConfiguration conf) throws Exception {
+        super(mappedFile, keyLen, sizeMemBytes, numberOfElems);
+        this.conf = conf;
+        tmpVal = new ByteArrayByteSource(null,0,0);
+    }
+
+    public ByteSource encodeValue(V value) {
         byte[] bytes = conf.asByteArray((Serializable) value);
         tmpVal.setArr(bytes);
         tmpVal.setOff(0);
@@ -44,7 +46,7 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
         return (int) (lengthOfEntry*2);
     }
 
-    protected V decodeValue(BytezByteSource val) {
+    public V decodeValue(BytezByteSource val) {
         byte[] bytes = memory.toBytes(val.getOff(), val.getLen());
         return (V) conf.asObject(bytes);
     }

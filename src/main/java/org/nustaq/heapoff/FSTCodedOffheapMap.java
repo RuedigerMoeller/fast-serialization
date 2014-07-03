@@ -12,7 +12,7 @@ import java.util.Iterator;
  * Performance and memory consumtpion is best if significant digits are at the
  * end of a key (e.g. "year_montH_day" instead "day_month_year".
  *
- * This class can be used, if want to implement manual encoding/decoding of values.
+ * This class can be used for manual implementation of encoding/decoding.
  *
  * See StringOffHeapMap for an example on how to do efficient wrapping/encoding of keys
  */
@@ -22,18 +22,17 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
         super(keyLen, sizeMemBytes, numberOfElems);
     }
 
-    @Override
-    protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
-        super.init(keyLen, sizeMemBytes, numberOfElems);
+    public FSTCodedOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
+        super(mappedFile, keyLen, sizeMemBytes, numberOfElems);
     }
 
-//    protected abstract K decodeKey(ByteSource key);
+    //    protected abstract K decodeKey(ByteSource key);
 
-    protected abstract ByteSource encodeKey(K key);
+    public abstract ByteSource encodeKey(K key);
 
-    protected abstract ByteSource encodeValue(V value);
+    public abstract ByteSource encodeValue(V value);
 
-    protected abstract V decodeValue(BytezByteSource val);
+    public abstract V decodeValue(BytezByteSource val);
 
     public V get( K key ) {
         ByteSource bkey = encodeKey(key);

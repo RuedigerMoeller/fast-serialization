@@ -39,6 +39,53 @@ public class StringOffHeapTest {
         }
     }
 
+    @Test
+    public void fillMemMapped() throws Exception {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.registerClass(TestRec.class);
+        int klen = 16;
+        int MAX = 100000;
+
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+
+        long tim = System.currentTimeMillis();
+//        for ( int i = 0; i < store.getSize(); i++ ) {
+//            String key = "test:" + i;
+//            Assert.assertTrue(store.get(key) != null);
+//        }
+        TestRec val = new TestRec();
+        for ( int i = store.getSize(); i < MAX; i++ ) {
+            val.setX(i);
+            String key = "test:" + i;
+            val.setId(key);
+            store.put(key, val );
+        }
+        long dur = System.currentTimeMillis() - tim+1;
+        System.out.println("put need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+        System.out.println("free: "+store.getFreeMem()/1024/1024);
+        Assert.assertTrue(store.getSize() == MAX);
+        store.free();
+    }
+
+    @Test
+    public void removeSomeMemMapped() throws Exception {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.registerClass(TestRec.class);
+        int klen = 16;
+        int MAX = 1000;
+
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+
+        long tim = System.currentTimeMillis();
+        for ( int i = 0; i < MAX; i++ ) {
+            String key = "test:" + i;
+            store.remove(key);
+        }
+        long dur = System.currentTimeMillis() - tim+1;
+        System.out.println("remove need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+        System.out.println("free: " + store.getFreeMem() / 1024 / 1024);
+        store.free();
+    }
 
     @Test
     public void testPutGetIter() {
