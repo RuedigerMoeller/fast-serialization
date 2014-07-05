@@ -41,9 +41,7 @@ public class FSTBinaryOffheapMap {
     protected int numElem;
     protected int keyLen;
     protected long bytezOffset = FILE_HEADER_LEN;
-
-    protected long freeList[] = new long[500];
-    protected int freeListIndex = 0;
+    protected FreeList freeList = new FreeList();
 
     public FSTBinaryOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
         initFromFile(mappedFile, keyLen, sizeMemBytes, numberOfElems);
@@ -146,26 +144,7 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void addToFreeList(long offset) {
-        if ( freeListIndex >= freeList.length ) {
-            compactFreeList();
-            if ( freeListIndex*3/2 >= freeList.length ) { // still not significant free space  ?
-                long newFree[] = new long[Math.min(freeList.length * 2, Integer.MAX_VALUE - 1)];
-                System.arraycopy(freeList, 0, newFree, 0, freeListIndex);
-                freeList = newFree;
-            }
-        }
-        freeList[freeListIndex++] = offset;
-    }
-
-    private void compactFreeList() {
-        int newFreeIndex = 0;
-        for (int i = 0; i < freeListIndex; i++) {
-            long l = freeList[i];
-            if ( l > 0 ) {
-                freeList[newFreeIndex++] = l;
-            }
-        }
-        freeListIndex = newFreeIndex;
+        freeList.addToFree(offset,getLenFromHeader(offset));
     }
 
     protected void setEntry(long off, int entryLen, ByteSource value) {
@@ -178,40 +157,37 @@ public class FSTBinaryOffheapMap {
 
     protected long addEntry(ByteSource key, ByteSource value) {
         long valueLength = value.length();
-        for (int i = freeListIndex-1; i >= 0; i--) {
-            long l = freeList[i];
-            if ( l > 0 && getLenFromHeader(l) >= valueLength) {
-                freeList[i] = 0;
-                long res = l;
-                writeEntryHeader(l,getLenFromHeader(l),(int) valueLength,false);
-                // put key
-                for ( int ii = 0; ii < keyLen; ii++ ) {
-                    memory.put( 16+l+ii, key.get(ii) );
-                }
-                l += getHeaderLen();
-                // put value
-                for ( int ii = 0; ii < valueLength; ii++ ) {
-                    memory.put( l++, value.get(ii) );
-                }
-                freeListIndex--;
-                return res;
+        long newOffset = freeList.findFreeBlock((int) valueLength);
+        if ( newOffset > 0) {
+            writeEntryHeader(newOffset,getLenFromHeader(newOffset),(int) valueLength,false);
+            long l = newOffset;
+            // put key
+            for ( int ii = 0; ii < keyLen; ii++ ) {
+                memory.put( 16+l+ii, key.get(ii) );
             }
+            l += getHeaderLen();
+            // put value
+            for ( int ii = 0; ii < valueLength; ii++ ) {
+                memory.put( l++, value.get(ii) );
+            }
+            return newOffset;
         }
-        if ( memory.length() <= value.length()+ getHeaderLen())
+        if ( memory.length() <= value.length()+ getHeaderLen()) // FIXME: needs pow2
             throw new RuntimeException("store is full "+numElem);
         int entryLen = getEntryLengthForContentLength(value.length());
+        // size to power of 2
+        entryLen = freeList.computeLen(entryLen+getHeaderLen())-getHeaderLen();
         long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
         // put key
         for ( int ii = 0; ii < keyLen; ii++ ) {
             memory.put( 16+bytezOffset+ii, key.get(ii) );
         }
-        bytezOffset += getHeaderLen();
-        long off = bytezOffset;
+        long off = bytezOffset+getHeaderLen();
         for ( int i = 0; i < value.length(); i++ ) {
             memory.put( off++, value.get(i) );
         }
-        bytezOffset+=entryLen;
+        bytezOffset+=entryLen+getHeaderLen();
         return res;
     }
 

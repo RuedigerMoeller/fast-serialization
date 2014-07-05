@@ -44,7 +44,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 100000;
+        int MAX = 200000;
 
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
@@ -72,7 +72,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 1000;
+        int MAX = 100000;
 
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
@@ -92,7 +92,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 10000;
+        int MAX = 1000000;
 
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
@@ -127,12 +127,29 @@ public class StringOffHeapTest {
             TestRec rec = (TestRec) store.get(key);
             if ( rec == null || rec.getX() != i )
                 throw new RuntimeException("error");
-            rec.someRandomString = "#"+i+"#"+i+"#"+i;
+            rec.someRandomString = "#"+i+"#"+i+"#"+i+"######";
             store.put(key,rec);
         }
         dur = System.currentTimeMillis() - tim;
-        System.out.println("update need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+        System.out.println("update inplace need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
         Assert.assertTrue(store.getFreeMem() == freeMem); // ensure in place update happened
+
+        String longString = "somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger";
+        tim = System.currentTimeMillis();
+        for ( int i = 0; i < MAX; i++ ) {
+            try {
+                String key = "test:" + i;
+                TestRec rec = (TestRec) store.get(key);
+                if (rec == null || rec.getX() != i)
+                    throw new RuntimeException("error");
+                rec.someRandomString = longString.substring(0, (int) (Math.random() * longString.length()));
+                store.put(key, rec);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        dur = System.currentTimeMillis() - tim;
+        System.out.println("update random need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
 
         store.remove("test:13");
         store.remove("test:999");
@@ -140,7 +157,7 @@ public class StringOffHeapTest {
 
         freeMem = store.getFreeMem();
         TestRec value = new TestRec();
-        value.someRandomString = "somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger";
+        value.someRandomString = longString;
         value.someRandomString += value.someRandomString;
         store.put("test:999", value);
         TestRec readVal = (TestRec) store.get("test:999");
