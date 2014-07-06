@@ -28,6 +28,8 @@ import java.util.Iterator;
  */
 public class FSTBinaryOffheapMap {
 
+    // FIXME: Testcase for mem overflow
+
     public static final long MB = 1024 * 1024;
     public static final long GB = 1024 * MB;
     public static final int CUSTOM_FILEHEADER_LEN = 8000; // 8k for application
