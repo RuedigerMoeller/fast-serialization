@@ -24,6 +24,7 @@ Do not use 1.56, is has major issues.
 
 ###how to build 
 
+* master contains dev branch/trunk (2.0-SNAPSHOT). Currently productive is the 1.x branch. 
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
