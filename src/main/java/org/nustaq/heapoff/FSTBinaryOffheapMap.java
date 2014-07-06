@@ -4,6 +4,7 @@ import org.nustaq.heapoff.bytez.ByteSource;
 import org.nustaq.heapoff.bytez.bytesource.BytezByteSource;
 import org.nustaq.heapoff.bytez.Bytez;
 import org.nustaq.heapoff.bytez.malloc.MMFBytez;
+import org.nustaq.heapoff.bytez.malloc.MallocBytez;
 import org.nustaq.heapoff.bytez.malloc.MallocBytezAllocator;
 
 import java.io.File;
@@ -29,7 +30,9 @@ public class FSTBinaryOffheapMap {
 
     public static final long MB = 1024 * 1024;
     public static final long GB = 1024 * MB;
-    public static final int FILE_HEADER_LEN = 8; // 0 - numelems, 4 - magic num
+    public static final int CUSTOM_FILEHEADER_LEN = 8000; // 8k for application
+    public static final int CORE_HEADER_LEN = 8;
+    public static final int FILE_HEADER_LEN = CORE_HEADER_LEN +CUSTOM_FILEHEADER_LEN; // 0 - numelems, 4 - magic num
 
     final static int HEADER_TAG = 0xe5e1; // can be used to recover corrupted data
 
@@ -37,18 +40,24 @@ public class FSTBinaryOffheapMap {
 
     protected OffHeapByteTree index;
     protected Bytez memory;
+    protected Bytez customHeader;
     protected MallocBytezAllocator alloc;
     protected int numElem;
     protected int keyLen;
     protected long bytezOffset = FILE_HEADER_LEN;
-    protected FreeList freeList = new FreeList();
+    protected FreeList freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
 
     public FSTBinaryOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
         initFromFile(mappedFile, keyLen, sizeMemBytes, numberOfElems);
     }
 
+    public Bytez getCustomFileHeader() {
+        return customHeader;
+    }
+
     protected void initFromFile(String file, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
         memory = new MMFBytez(file,sizeMemBytes,false);
+        customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
         this.keyLen = keyLen;
         if ( memory.getInt(4) != HEADER_TAG || memory.getInt(0) <= 0 ) {
@@ -99,6 +108,7 @@ public class FSTBinaryOffheapMap {
         alloc = new MallocBytezAllocator();
         memory = alloc.alloc(sizeMemBytes);
         tmpValueBytez = new BytezByteSource(memory,0,0);
+        customHeader = memory.slice(FILE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         this.keyLen = keyLen;
     }
 
