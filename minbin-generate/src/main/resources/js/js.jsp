@@ -5,18 +5,19 @@
 
 // add imports you need during generation =>
     import minbin.gen.*;
-    import de.ruedigermoeller.serialization.*;
+    import org.nustaq.serialization.*;
 
 // this header is always required to make it work. Cut & Paste this as template
     public class CLAZZNAME implements IContextReceiver
     {
         public void receiveContext(Object o, PrintStream out) throws Exception
         {
-            // asign your context
+            // asign context
             GenContext CTX = (GenContext)o;
             for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
                 FSTClazzInfo CLZ = CTX.clazzInfos[ii];
                 FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
+// content begins here =>
 %>
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
     this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';

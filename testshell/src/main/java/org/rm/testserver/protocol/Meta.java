@@ -8,7 +8,13 @@ import minbin.gen.GenMeta;
 public class Meta implements GenMeta {
 
     public Class[] getClasses() {
-        return new Class[]{ BasicValues.class, MirrorRequest.class, Event.class, TestRequest.class, Person.class };
+        return new Class[]{
+            BasicValues.class,
+            MirrorRequest.class,
+            Event.class,
+            TestRequest.class,
+            Person.class
+        };
     }
 
 }
