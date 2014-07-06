@@ -144,7 +144,7 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void addToFreeList(long offset) {
-        freeList.addToFree(offset,getLenFromHeader(offset));
+        freeList.addToFree(offset,getLenFromHeader(offset)+getHeaderLen());
     }
 
     protected void setEntry(long off, int entryLen, ByteSource value) {
@@ -157,8 +157,9 @@ public class FSTBinaryOffheapMap {
 
     protected long addEntry(ByteSource key, ByteSource value) {
         long valueLength = value.length();
-        long newOffset = freeList.findFreeBlock((int) valueLength);
+        long newOffset = freeList.findFreeBlock( (int) valueLength + getHeaderLen() );
         if ( newOffset > 0) {
+//            System.out.println("reuse len "+getLenFromHeader(newOffset)+" at "+newOffset+" entrylen "+(getLenFromHeader(newOffset)+getHeaderLen()));
             writeEntryHeader(newOffset,getLenFromHeader(newOffset),(int) valueLength,false);
             long l = newOffset;
             // put key
@@ -172,11 +173,11 @@ public class FSTBinaryOffheapMap {
             }
             return newOffset;
         }
-        if ( memory.length() <= value.length()+ getHeaderLen()) // FIXME: needs pow2
-            throw new RuntimeException("store is full "+numElem);
         int entryLen = getEntryLengthForContentLength(value.length());
         // size to power of 2
         entryLen = freeList.computeLen(entryLen+getHeaderLen())-getHeaderLen();
+        if ( memory.length() <= bytezOffset+entryLen+getHeaderLen()) // FIXME: needs pow2
+            throw new RuntimeException("store is full "+numElem);
         long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
         // put key
@@ -306,6 +307,19 @@ public class FSTBinaryOffheapMap {
         };
     }
 
+    public String printBinaryKey(ByteSource key) {
+        String res = "";
+        for ( int i = 0; i < key.length(); i++ ) {
+            byte b = key.get(i);
+            if ( b > 31 ) {
+                res += (char) b;
+            } else {
+                res += "_";
+            }
+        }
+        return res;
+    }
+
     public KeyValIter binaryKeys() {
         return new KeyValIter() {
             long off = FILE_HEADER_LEN;
@@ -361,6 +375,10 @@ public class FSTBinaryOffheapMap {
 
     public long getFreeMem() {
         return memory.length()-bytezOffset;
+    }
+
+    public long getUsedMem() {
+        return bytezOffset;
     }
 
     public int getSize() {

@@ -92,7 +92,7 @@ public class StringOffHeapTest {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
-        int MAX = 1000000;
+        int MAX = 100000;
 
         FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
@@ -135,22 +135,6 @@ public class StringOffHeapTest {
         Assert.assertTrue(store.getFreeMem() == freeMem); // ensure in place update happened
 
         String longString = "somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger+somewhatlonger";
-        tim = System.currentTimeMillis();
-        for ( int i = 0; i < MAX; i++ ) {
-            try {
-                String key = "test:" + i;
-                TestRec rec = (TestRec) store.get(key);
-                if (rec == null || rec.getX() != i)
-                    throw new RuntimeException("error");
-                rec.someRandomString = longString.substring(0, (int) (Math.random() * longString.length()));
-                store.put(key, rec);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        dur = System.currentTimeMillis() - tim;
-        System.out.println("update random need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-
         store.remove("test:13");
         store.remove("test:999");
         store.remove("unknown");
@@ -163,6 +147,27 @@ public class StringOffHeapTest {
         TestRec readVal = (TestRec) store.get("test:999");
         Assert.assertTrue(readVal.someRandomString.equals(value.someRandomString));
         Assert.assertTrue(store.getFreeMem() != freeMem); // ensure adding update happened
+
+        for ( int ii = 0; ii < 10; ii++) {
+            tim = System.currentTimeMillis();
+            for (int i = 0; i < MAX; i++) {
+                try {
+                    String key = "test:" + i;
+                    TestRec rec = (TestRec) store.get(key);
+                    if (rec != null ) {
+                        rec.someRandomString = longString.substring(0, (int) (Math.random() * longString.length()));
+                        store.put(key, rec);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Assert.assertTrue(false);
+                }
+            }
+            dur = System.currentTimeMillis() - tim;
+            System.out.println("update random need " + dur + " for " + MAX + " recs. " + (MAX / dur) + " per ms ");
+        }
+
+        System.out.println("UsedMem "+store.getUsedMem()/1024/1024+" MB elems "+store.getSize()+" per elem bytes "+store.getUsedMem()/store.getSize());
 
         tim = System.currentTimeMillis();
         Iterator values = store.values();

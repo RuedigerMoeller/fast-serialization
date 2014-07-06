@@ -21,7 +21,7 @@ public class FreeList {
 
     public long findFreeBlock(int len) {
         int index = computeListIndex(len);
-        if ( flIndex[index] > 0 ) {
+        if (flIndex[index] > 0) {
             return flists[index][--flIndex[index]];
         }
         return 0;

@@ -39,7 +39,12 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
         BytezByteSource val = getBinary(bkey);
         if ( val == null )
             return null;
-        return decodeValue(val);
+        try {
+            return decodeValue(val);
+        }catch (Exception ex) {
+            System.out.println("ERROR in "+(val.getOff()-getHeaderLen())+" "+printBinaryKey(bkey)+" "+index.get(bkey));
+            throw new RuntimeException(ex);
+        }
     }
 
 
