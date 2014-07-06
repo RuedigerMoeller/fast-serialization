@@ -54,17 +54,6 @@ public class MBGen {
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
     public static enum Lang {
         javascript,
         dart
@@ -83,7 +72,7 @@ public class MBGen {
         MBGen gen = new MBGen();
         new JCommander(gen,arg);
         // fixme check args
-        gen.generate("de.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
+        gen.generate("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }
 
