@@ -49,7 +49,7 @@ public class MBGen {
         }
         ctx.clazzInfos = infos;
         if ( lang == Lang.javascript ) {
-            TemplateExecutor.Run(outFile,"./src/main/resources/js/js.jsp",ctx);
+            TemplateExecutor.Run(outFile,"/js/js.jsp",ctx);
         }
 
     }
@@ -60,10 +60,10 @@ public class MBGen {
     }
 
     @Parameter( names={"-lang", "-l" }, description = "target language javascript|dart" )
-    Lang lang;
+    Lang lang = Lang.javascript;
 
-    @Parameter( names={"-classes -cl"}, description = "list of classes to generate" )
-    List classes;
+    @Parameter( names={"-class", "-c"}, description = "class containing generation description (must implement GenMeta) " )
+    String clazz = "org.rm.testserver.protocol.Meta";
 
     @Parameter( names={"-f"}, description = "file/directory to generate to" )
     String out;
@@ -72,7 +72,8 @@ public class MBGen {
         MBGen gen = new MBGen();
         new JCommander(gen,arg);
         // fixme check args
-        gen.generate("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
+        gen.generate(gen.clazz,gen.out);
+        //gen.generate("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }
 
