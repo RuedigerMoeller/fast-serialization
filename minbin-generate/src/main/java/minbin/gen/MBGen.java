@@ -28,16 +28,20 @@ public class MBGen {
         Class clazz[] = meta.getClasses();
         for (int i = 0; i < clazz.length; i++) {
             Class aClass = clazz[i];
-            FSTClazzInfoRegistry.addAllReferencedClasses(aClass,list,c.getPackage().getName());
+            list.add(aClass.getName());
         }
+//        for (int i = 0; i < clazz.length; i++) {
+//            Class aClass = clazz[i];
+//            FSTClazzInfoRegistry.addAllReferencedClasses(aClass,list,c.getPackage().getName());
+//        }
 
-        for (int i = 0; i < list.size(); i++) {
-            String s = list.get(i);
-            final String pack = c.getPackage().getName();
-            if (!s.startsWith(pack)) {
-                list.remove(i); i--;
-            }
-        }
+//        for (int i = 0; i < list.size(); i++) {
+//            String s = list.get(i);
+//            final String pack = c.getPackage().getName();
+//            if (!s.startsWith(pack)) {
+//                list.remove(i); i--;
+//            }
+//        }
 
         list = new ArrayList<String>(new HashSet<String>(list));
 
@@ -46,6 +50,8 @@ public class MBGen {
         FSTClazzInfo infos[] = new FSTClazzInfo[list.size()];
         for (int i = 0; i < infos.length; i++) {
             infos[i] = conf.getClassInfo(Class.forName(list.get(i)));
+            if ( infos[i] != null )
+                System.out.println("generating clz "+list.get(i));
         }
         ctx.clazzInfos = infos;
         if ( lang == Lang.javascript ) {
