@@ -22,15 +22,16 @@
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
     this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
 <% for (int i = 0; i < fi.length; i++ ) {
-    String na = fi[i].getField().getName();
-    na = Character.toUpperCase(na.charAt(0))+na.substring(1);
-%>    this.set<%+na%> = function(val) { this.<%+fi[i].getField().getName()%> = <%+CTX.getJSTransform(fi[i])%>; };
+    String fnam = fi[i].getField().getName();
+    String na = "j_"+fnam;
+    //na = Character.toUpperCase(na.charAt(0))+na.substring(1);
+%>    this.<%+na%> = function() { return <%+CTX.getJSTransform(fi[i])%>; };
 <% } /*for*/
 %>    this.fromObj = function(obj) {
         for ( var key in obj ) {
-            var setter = 'set'.concat(key.substr(0,1).toUpperCase()).concat(key.substr(1));
+            var setter = 'j_'.concat(key);
             if ( this.hasOwnProperty(setter) ) {
-                this[setter](obj[key]);
+                this[key] = obj[key];
             }
         }
         return this;

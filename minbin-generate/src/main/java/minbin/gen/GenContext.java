@@ -13,7 +13,7 @@ public class GenContext {
     public FSTClazzInfo clazzInfos[];
 
     public String getJSTransform(FSTClazzInfo.FSTFieldInfo fi) {
-        String res = ""; String name = "val"; //fi.getField().getName();
+        String res = ""; String name = "this."+fi.getField().getName();
         if ( List.class.isAssignableFrom( fi.getType() ) ) {
             res += "MinBin.jlist("+name+")";
         } else
@@ -50,7 +50,7 @@ public class GenContext {
         } else if ( fi.getType() == String[].class ) {
             res += "MinBin.strArr("+name+")";
         } else
-            res += "val";
+            res += name;
         res += "";
         return res;
     }
