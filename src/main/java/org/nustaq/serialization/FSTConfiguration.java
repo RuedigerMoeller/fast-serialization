@@ -605,8 +605,12 @@ public final class FSTConfiguration {
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
     public void registerCrossPlatformClassMappingUseSimpleName( Class[] classes ) {
-        for (int i = 0; i < classes.length; i++) {
-            Class clz = classes[i];
+        registerCrossPlatformClassMappingUseSimpleName(new ArrayList<>(Arrays.asList(classes)));
+    }
+
+    public void registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
+        for (int i = 0; i < classes.size(); i++) {
+            Class clz = classes.get(i);
             crossPlatformNames.put( clz.getSimpleName(), clz.getName() );
             crossPlatformNamesReverse.put( clz.getName(), clz.getSimpleName() );
         }

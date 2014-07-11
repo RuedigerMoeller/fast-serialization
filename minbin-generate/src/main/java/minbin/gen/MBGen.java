@@ -11,6 +11,7 @@ import org.nustaq.serialization.minbin.GenMeta;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created by ruedi on 26.05.14.
@@ -25,9 +26,9 @@ public class MBGen {
         Class c = Class.forName(clazzName);
         GenMeta meta = (GenMeta) c.newInstance();
         ArrayList<String> list = new ArrayList<String>();
-        Class clazz[] = meta.getClasses();
-        for (int i = 0; i < clazz.length; i++) {
-            Class aClass = clazz[i];
+        List<Class> clazz = meta.getClasses();
+        for (int i = 0; i < clazz.size(); i++) {
+            Class aClass = clazz.get(i);
             list.add(aClass.getName());
         }
 //        for (int i = 0; i < clazz.length; i++) {
