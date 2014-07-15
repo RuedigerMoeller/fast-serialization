@@ -4,3 +4,4 @@
 - update doc to 2.0
 - MinBin split + doc
 - MinBin from text
+- test
