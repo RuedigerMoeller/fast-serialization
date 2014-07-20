@@ -393,7 +393,7 @@ public class FSTBinaryOffheapMap {
         return bytezOffset;
     }
 
-    public int getCapacityMB() { return (int) (memory.length()/1024/1204); }
+    public int getCapacityMB() { return (int) (memory.length()/1024l/1204l); }
 
     public int getSize() {
         return numElem;

@@ -49,6 +49,22 @@ public class GenContext {
             }
         } else if ( fi.getType() == String[].class ) {
             res += "MinBin.strArr("+name+")";
+        } else if ( fi.isIntegral() && ! fi.isArray() ) {
+            switch (fi.getIntegralCode(fi.getType())) {
+                case FSTClazzInfo.FSTFieldInfo.BOOL:
+                    res += name+"?1:0";
+                    break;
+                case FSTClazzInfo.FSTFieldInfo.BYTE:
+                case FSTClazzInfo.FSTFieldInfo.CHAR:
+                case FSTClazzInfo.FSTFieldInfo.SHORT:
+                case FSTClazzInfo.FSTFieldInfo.INT:
+                case FSTClazzInfo.FSTFieldInfo.LONG:
+                case FSTClazzInfo.FSTFieldInfo.FLOAT:
+                case FSTClazzInfo.FSTFieldInfo.DOUBLE:
+                    res += "parseInt("+name+",10)";
+                    break;
+                default: throw new RuntimeException("wat? "+fi.getIntegralType());
+            }
         } else
             res += name;
         res += "";

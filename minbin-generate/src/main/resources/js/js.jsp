@@ -20,7 +20,7 @@
 // content begins here =>
 %>
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
-this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
+    this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
 <% for (int i = 0; i < fi.length; i++ ) {
     String fnam = fi[i].getField().getName();
     String na = "j_"+fnam;
@@ -28,18 +28,18 @@ this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
 %>    this.<%+na%> = function() { return <%+CTX.getJSTransform(fi[i])%>; };
 <% } /*for*/
 %>    this.fromObj = function(obj) {
-            for ( var key in obj ) {
-                var setter = 'j_'.concat(key);
-                if ( this.hasOwnProperty(setter) ) {
-                    this[key] = obj[key];
-                }
+        for ( var key in obj ) {
+            var setter = 'j_'.concat(key);
+            if ( this.hasOwnProperty(setter) ) {
+                this[key] = obj[key];
             }
-            return this;
-        };
-        if ( obj != null ) {
-            this.fromObj(obj);
         }
+        return this;
     };
+    if ( obj != null ) {
+        this.fromObj(obj);
+    }
+};
 
 <%          } // loop over classes%>
 
