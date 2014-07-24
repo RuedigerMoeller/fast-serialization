@@ -1,5 +1,6 @@
 package org.nustaq.serialization.minbin;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -24,7 +25,7 @@ import java.util.ArrayList;
  * Time: 15:36
  * To change this template use File | Settings | File Templates.
  */
-public class MBSequence {
+public class MBSequence implements Serializable {
     ArrayList content;
     Object typeInfo;
 

@@ -1,6 +1,7 @@
 package org.nustaq.serialization;
 
 import org.nustaq.serialization.minbin.MBIn;
+import org.nustaq.serialization.minbin.MBSequence;
 import org.nustaq.serialization.minbin.MinBin;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -255,7 +256,15 @@ public class FSTMinBinDecoder implements FSTDecoder {
             if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
                 try {
                     String cln = (String) input.readObject();
-                    lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
+//                  client should use explicit sequence constructor
+//                    if ( cln == null ) {
+//                        lastDirectClass = MBSequence.class;
+//                        // fast terminate as assume js object array so no int for len there ..
+//                        return FSTObjectOutput.OBJECT;
+//                    } else
+                    {
+                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
+                    }
                 } catch (ClassNotFoundException e) {
                     throw FSTUtil.rethrow(e);
                 }
