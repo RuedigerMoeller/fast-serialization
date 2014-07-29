@@ -61,7 +61,7 @@ public class GenContext {
                 case FSTClazzInfo.FSTFieldInfo.LONG:
                 case FSTClazzInfo.FSTFieldInfo.FLOAT:
                 case FSTClazzInfo.FSTFieldInfo.DOUBLE:
-                    res += "parseInt("+name+",10)";
+                    res += "MinBin.parseIntOrNan("+name+")";
                     break;
                 default: throw new RuntimeException("wat? "+fi.getIntegralType());
             }
