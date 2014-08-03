@@ -556,6 +556,9 @@ public final class FSTConfiguration {
         return crossPlatform;
     }
 
+    public <T extends Serializable> T deepCopy(T metadata) {
+        return (T) asObject(asByteArray(metadata));
+    }
 
     public static interface StreamCoderFactory {
         FSTEncoder createStreamEncoder();

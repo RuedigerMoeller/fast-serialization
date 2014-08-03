@@ -97,23 +97,26 @@ public final class FSTClazzInfo {
         reg = infoRegistry;
         ignoreAnn = ignoreAnnotations;
         createFields(clazz);
-        if ( !reg.isStructMode() ) {
-            if (Externalizable.class.isAssignableFrom(clazz)) {
-                externalizable = true;
-                cons = FSTUtil.findConstructorForExternalize(clazz);
-            } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class ) {
-                externalizable = false;
-                cons = FSTUtil.findConstructorForSerializable(clazz);
-            } else {
+
+        if (Externalizable.class.isAssignableFrom(clazz)) {
+            externalizable = true;
+            cons = FSTUtil.findConstructorForExternalize(clazz);
+        } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class ) {
+            externalizable = false;
+            cons = FSTUtil.findConstructorForSerializable(clazz);
+        } else {
+            if ( !reg.isStructMode() )
                 throw new RuntimeException("Class "+clazz.getName()+" does not implement Serializable or externalizable");
+            else {
+                cons = FSTUtil.findConstructorForSerializable(clazz);
             }
-            if ( ! ignoreAnnotations ) {
-                Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
-                if (annotation != null) {
-                    predict = annotation.value();
-                }
-                flat = clazz.isAnnotationPresent(Flat.class);
+        }
+        if ( ! ignoreAnnotations ) {
+            Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
+            if (annotation != null) {
+                predict = annotation.value();
             }
+            flat = clazz.isAnnotationPresent(Flat.class);
         }
 
         if (cons != null) {

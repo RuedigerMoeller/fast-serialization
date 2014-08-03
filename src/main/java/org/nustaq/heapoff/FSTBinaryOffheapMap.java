@@ -106,12 +106,13 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
-        index = new OffHeapByteTree(keyLen,OffHeapByteTree.estimateMBytesForIndex(keyLen,numberOfElems));
         alloc = new MallocBytezAllocator();
         memory = alloc.alloc(sizeMemBytes);
+        customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
-        customHeader = memory.slice(FILE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         this.keyLen = keyLen;
+        index = new OffHeapByteTree(keyLen,OffHeapByteTree.estimateMBytesForIndex(keyLen,numberOfElems));
+        memory.putInt(4,HEADER_TAG);
     }
 
     @Override

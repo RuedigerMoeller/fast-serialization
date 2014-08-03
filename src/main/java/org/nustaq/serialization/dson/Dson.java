@@ -1,5 +1,7 @@
 package org.nustaq.serialization.dson;
 
+import org.nustaq.serialization.FSTConfiguration;
+
 import java.io.*;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,65 +28,55 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Time: 16:45
  */
 
- /**
-  * a simple text <=> object serialization. More readable than JSon, less complication/error prone than Yaml.
-  *
-  * Main use is configuration files.
-  * - Supports Pojo's only.
-  * - No multidimensional or nested arrays.
-  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
-  * - Collections: Map and List
-  */
+/**
+ * a simple text <=> object serialization. More readable than JSon, less complication/error prone than Yaml.
+ * <p>
+ * Main use is configuration files.
+ * - Supports Pojo's only.
+ * - No multidimensional or nested arrays.
+ * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
+ * - Collections: Map and List
+ */
 public class Dson {
 
-    public static Dson singleton;
-    public static AtomicBoolean lock = new AtomicBoolean(false);
-    public static DsonTypeMapper defaultMapper = new DsonTypeMapper();
+    public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
 
-    public static Dson getInstance() {
-        if ( singleton != null )
-            return singleton;
-        while( !lock.compareAndSet(false, true) );
-        if ( singleton == null ) {
-            singleton = new Dson();
-        }
-        lock.set(false);
-        return singleton;
+    DsonTypeMapper mapper;
+
+    public Dson(DsonTypeMapper mapper) {
+        this.mapper = mapper;
     }
 
+    public Dson() {
+        this(new DsonTypeMapper());
+    }
 
-    public Object readObject( String dson ) throws Exception {
+    public Dson map(String name, Class c) {
+        mapper.map(name,c);
+        return this;
+    }
+
+    public Dson map(Class c) {
+        mapper.map(c);
+        return this;
+    }
+
+    public Object readObject(String dson) throws Exception {
         DsonStringCharInput in = new DsonStringCharInput(dson);
-        return new DsonDeserializer(in, defaultMapper).readObject();
+        return new DsonDeserializer(in, mapper).readObject(null, null, null);
     }
 
-    public Object readObject( File file ) throws Exception {
+    public Object readObject(File file) throws Exception {
         FileInputStream fin = new FileInputStream(file);
         try {
-            return readObject(fin,"UTF-8");
+            return readObject(fin, "UTF-8");
         } finally {
             fin.close();
         }
     }
 
-    public Object readObject( InputStream stream, String encoding ) throws Exception {
-        return readObject(new Scanner(stream,encoding).useDelimiter("\\A").next());
-    }
-
-    public String writeObject( Object toWrite ) {
-        DsonStringOutput out = new DsonStringOutput();
-        try {
-            new DsonSerializer(out,defaultMapper).writeObject(toWrite);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return out.toString();
-    }
-
-    public void writeObject( File file, Object toWrite ) {
-    }
-
-    public void writeObject( OutputStream stream, Object toWrite ) {
+    public Object readObject(InputStream stream, String encoding) throws Exception {
+        return readObject(new Scanner(stream, encoding).useDelimiter("\\A").next());
     }
 
 }

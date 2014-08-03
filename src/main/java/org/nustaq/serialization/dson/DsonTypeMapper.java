@@ -40,13 +40,11 @@ import java.util.*;
 public class DsonTypeMapper {
 
     protected HashMap<String,Class> typeMap = new HashMap<String, Class>();
-    protected HashMap<String,String> impliedMap = new HashMap<String, String>();
-    protected HashMap<Class,String> reverseTypeMap = new HashMap<Class, String>();
 
     protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();;
 
     public DsonTypeMapper() {
-        map("map", HashMap.class); map("list", HashMap.class);
+        map("map", HashMap.class).map("list", HashMap.class);
     }
 
     public Class getType(String type) {
@@ -61,23 +59,8 @@ public class DsonTypeMapper {
         return res;
     }
 
-    public String getStringForType(Class c) {
-        String res = reverseTypeMap.get(c);
-        if ( res == null ) {
-            return c.getName();
-        }
-        return res;
-    }
-
-    public DsonTypeMapper implyAttrFromType(String type, String attr) {
-        impliedMap.put(type,attr);
-        return this;
-    }
-
     public DsonTypeMapper map(String name, Class c) {
         typeMap.put(name, c);
-        if (reverseTypeMap.get(c)==null)
-            reverseTypeMap.put(c,name);
         return this;
     }
 
@@ -149,37 +132,6 @@ public class DsonTypeMapper {
         return readObject;
     }
 
-    /**
-     * map given object found in the object graph to another type representation.
-     * Useful to map collecitons to arrays and
-     * to support user-defined String representations (needs support in coerceReading also).
-     *
-     * Note one could add a pluggable Serializer/Coercer pattern here if required. Skipped for now for simplicity.
-     *
-     * @param objectValue
-     * @return
-     */
-    public Object coerceWriting(Object objectValue) {
-        if ( objectValue instanceof Map ) {
-            Object result[] = new Object[((Map) objectValue).size()*2];
-            int i = 0;
-            for ( Iterator it = ((Map) objectValue).entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry next = (Map.Entry) it.next();
-                result[i] = coerceWriting(next.getKey());
-                result[i+1] = coerceWriting(next.getValue());
-                i += 2;
-            }
-            return result;
-        } else if ( objectValue instanceof Collection ) {
-            // make arrays to collections if type impies. 
-            // warning for optimal performance, use direct arrays[] only in your serialized classes
-            return ((Collection) objectValue).toArray();
-        } else if ( objectValue instanceof Date) {
-            return dateTimeInstance.format((Date) objectValue);
-        }
-        return objectValue;
-    }
-
     public DateFormat getDateTimeInstance() {
         return dateTimeInstance;
     }
@@ -198,7 +150,4 @@ public class DsonTypeMapper {
         return null;
     }
 
-    public String getImpliedAttr(Class mappedClass, String type) {
-        return impliedMap.get(type);
-    }
 }

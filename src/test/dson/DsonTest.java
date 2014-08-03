@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class DsonTest {
 
+    private Dson dson;
+
     public static class SomePojoConfig implements Serializable {
         String aString = "aString";
         Date aDate = new Date();
@@ -94,34 +96,11 @@ public class DsonTest {
 
     @org.junit.Before
     public void setUp() {
-        Dson.defaultMapper
-            .map("Config",SomePojoConfig.class)
+        dson = new Dson()
+            .map("Config", SomePojoConfig.class)
             .map("Big", DsonBigNums.class)
             .map("Arr", DSonPrimitiveArray.class)
             .map("Prim", BasicFSTTest.Primitives.class);
     }
-
-    @Test
-    public void writeTest() throws Exception {
-        SomePojoConfig cfg = new SomePojoConfig();
-        cfg.aMap0.put( "A", 1);
-        cfg.aMap0.put( "B", 2);
-        cfg.aMap0.put( "C", 3);
-        cfg.aList1.add("bla");cfg.aList1.add("bla1");cfg.aList1.add("bla2");cfg.aList1.add("bla99");
-
-        cfg.aMap.put( new SomePojoConfig(), "hello");
-        cfg.aMap.put( "Hooray", new BasicFSTTest.Primitives() );
-        cfg.aList.add(new DSonPrimitiveArray());
-        cfg.aList.add(new DsonBigNums());
-
-        Object  testObject = cfg;
-        String dsonString = Dson.getInstance().writeObject(testObject);
-        System.out.println(dsonString);
-        Object o = Dson.getInstance().readObject(dsonString);
-        Assert.assertTrue(DeepEquals.deepEquals(o,testObject));
-        System.out.println(o);
-    }
-
-
 
 }
