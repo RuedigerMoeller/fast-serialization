@@ -48,7 +48,7 @@ public class BasicFSTTest {
         in = new FSTObjectInput();
     }
 
-    static class Primitives implements Serializable {
+    public static class Primitives implements Serializable {
 
         boolean aBoolean = true;
         
@@ -85,7 +85,7 @@ public class BasicFSTTest {
         double aDouble2 = Double.MAX_VALUE;
     }
 
-    static class PrimitiveArray implements Serializable {
+    public static class PrimitiveArray implements Serializable {
 
         boolean aBoolean[] = {true,false};
         byte aByte[] = { -13,34, 127,3,23,5,0,11 };
@@ -123,7 +123,7 @@ public class BasicFSTTest {
         Object aRef1 = mix[1];
     }
 
-    static class BigNums implements Serializable {
+    public static class BigNums implements Serializable {
 
         Boolean _aBoolean = false;
         Boolean ugly[][] = {{true,false},null,{true,false,null}};

@@ -736,6 +736,13 @@ public final class FSTClazzInfo {
             return field.getBoolean(obj);
         }
 
+        /**
+         * Warning: crashes if not an object ref !
+         * use getField().get() for a safe version ..
+         * @param obj
+         * @return
+         * @throws IllegalAccessException
+         */
         public final Object getObjectValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0  ) {
                 return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
