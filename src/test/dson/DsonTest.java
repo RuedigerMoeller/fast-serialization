@@ -3,8 +3,7 @@ package dson;
 import com.cedarsoftware.util.DeepEquals;
 import junit.framework.Assert;
 import org.junit.Test;
-import org.nustaq.serialization.annotations.Serialize;
-import org.nustaq.serialization.dson.Dson;
+import org.nustaq.konfigkaiser.KKonfig;
 import ser.BasicFSTTest;
 
 import java.io.Serializable;
@@ -18,7 +17,7 @@ import java.util.List;
  */
 public class DsonTest {
 
-    private Dson dson;
+    private KKonfig KKonfig;
 
     public static class SomePojoConfig implements Serializable {
         String aString = "aString";
@@ -96,7 +95,7 @@ public class DsonTest {
 
     @org.junit.Before
     public void setUp() {
-        dson = new Dson()
+        KKonfig = new KKonfig()
             .map("Config", SomePojoConfig.class)
             .map("Big", DsonBigNums.class)
             .map("Arr", DSonPrimitiveArray.class)
