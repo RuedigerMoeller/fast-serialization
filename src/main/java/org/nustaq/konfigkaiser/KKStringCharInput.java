@@ -1,4 +1,4 @@
-package org.nustaq.serialization.dson;
+package org.nustaq.konfigkaiser;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -26,18 +26,18 @@ package org.nustaq.serialization.dson;
 /**
  * implementation of char input on top of a String
  */
-public class DsonStringCharInput implements DsonCharInput {
+public class KKStringCharInput implements KKCharInput {
     String s;
     int pos;
     int end;
 
-    public DsonStringCharInput(String s) {
+    public KKStringCharInput(String s) {
         this.s = s;
         pos = 0;
         end = s.length();
     }
 
-    public DsonStringCharInput(String s, int pos, int len) {
+    public KKStringCharInput(String s, int pos, int len) {
         this.s = s;
         this.pos = pos;
         this.end = pos+len;

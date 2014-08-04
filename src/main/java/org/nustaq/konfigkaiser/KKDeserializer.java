@@ -1,4 +1,4 @@
-package org.nustaq.serialization.dson;
+package org.nustaq.konfigkaiser;
 
 
 import org.nustaq.serialization.FSTClazzInfo;
@@ -31,12 +31,12 @@ import java.util.*;
  * Time: 01:16
  * To change this template use File | Settings | File Templates.
  */
-public class DsonDeserializer {
+public class KKDeserializer {
 
-    protected DsonCharInput in;
-    protected DsonTypeMapper mapper;
+    protected KKCharInput in;
+    protected KKTypeMapper mapper;
 
-    public DsonDeserializer(DsonCharInput in, DsonTypeMapper mapper) {
+    public KKDeserializer(KKCharInput in, KKTypeMapper mapper) {
         this.in = in;
         this.mapper = mapper;
     }
@@ -77,10 +77,10 @@ public class DsonDeserializer {
                 mappedClass = ArrayList.class;
             if ( mappedClass == Map.class )
                 mappedClass = HashMap.class;
-            FSTClazzInfo clInfo = Dson.conf.getCLInfoRegistry().getCLInfo(mappedClass);
+            FSTClazzInfo clInfo = KKonfig.conf.getCLInfoRegistry().getCLInfo(mappedClass);
             int ch = in.readChar();
             if ( ch != '{' ) {
-                throw new DsonParseException("expected '{'", in);
+                throw new KonfigParseException("expected '{'", in);
             }
             Object res = null;
             if ( Map.class.isAssignableFrom(clInfo.getClazz()) ) {
@@ -105,7 +105,7 @@ public class DsonDeserializer {
             } else if ( clInfo.getClazz().isArray() ) {
                 Class componentType = clInfo.getClazz().getComponentType();
                 if ( componentType.isArray() )
-                    new DsonParseException("nested arrays not supported",in);
+                    new KonfigParseException("nested arrays not supported",in);
                 List keyVals = readList(componentType, componentType);
                 res = Array.newInstance(componentType,keyVals.size());
                 for (int i = 0; i < keyVals.size(); i++) {
@@ -122,7 +122,7 @@ public class DsonDeserializer {
             }
             return res;
         } catch (Exception ex) {
-            throw new DsonParseException("unexpected error, tried reading object",in, ex);
+            throw new KonfigParseException("unexpected error, tried reading object",in, ex);
         }
     }
 
@@ -248,7 +248,7 @@ public class DsonDeserializer {
                 }
             }
         }
-        throw new DsonParseException("value expected",in);
+        throw new KonfigParseException("value expected",in);
     }
 
     protected boolean isFromStringValue(Class type) {
@@ -345,8 +345,8 @@ public class DsonDeserializer {
     }
 
     public static void main(String a[]) throws Exception {
-        Dson dson = new Dson().map("test", Test.class);
-        Object parsed = dson.readObject(
+        KKonfig KKonfig = new KKonfig().map("test", Test.class);
+        Object parsed = KKonfig.readObject(
             "test { " +
 //                "s: \"hallo\" " +
 //                "arr: { 1, 2, 3, 4, 5 }"+

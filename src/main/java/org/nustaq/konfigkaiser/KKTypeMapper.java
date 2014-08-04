@@ -1,6 +1,4 @@
-package org.nustaq.serialization.dson;
-
-import com.sun.corba.se.impl.encoding.OSFCodeSetRegistry;
+package org.nustaq.konfigkaiser;
 
 import java.lang.reflect.Array;
 import java.text.DateFormat;
@@ -37,13 +35,13 @@ import java.util.*;
  *
  *  This default implementation supports Date<=>String and Collections<=>Array coercion.
  */
-public class DsonTypeMapper {
+public class KKTypeMapper {
 
     protected HashMap<String,Class> typeMap = new HashMap<String, Class>();
 
     protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();;
 
-    public DsonTypeMapper() {
+    public KKTypeMapper() {
         map("map", HashMap.class).map("list", HashMap.class);
     }
 
@@ -59,19 +57,19 @@ public class DsonTypeMapper {
         return res;
     }
 
-    public DsonTypeMapper map(String name, Class c) {
+    public KKTypeMapper map(String name, Class c) {
         typeMap.put(name, c);
         return this;
     }
 
-    public DsonTypeMapper map(Object ... stringAndClasses) {
+    public KKTypeMapper map(Object ... stringAndClasses) {
         for (int i = 0; i < stringAndClasses.length; i+=2) {
             map( stringAndClasses[i], stringAndClasses[i+1]);
         }
         return this;
     }
 
-    public DsonTypeMapper map(Class ... c) {
+    public KKTypeMapper map(Class ... c) {
         for (int i = 0; i < c.length; i++) {
             Class aClass = c[i];
             map(aClass.getSimpleName(),aClass);

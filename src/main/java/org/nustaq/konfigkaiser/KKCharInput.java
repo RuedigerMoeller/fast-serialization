@@ -1,4 +1,4 @@
-package org.nustaq.serialization.dson;
+package org.nustaq.konfigkaiser;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -22,7 +22,7 @@ package org.nustaq.serialization.dson;
  * Time: 00:32
  * To change this template use File | Settings | File Templates.
  */
-public interface DsonCharInput {
+public interface KKCharInput {
     /**
      * @return char or -1 for eof
      */

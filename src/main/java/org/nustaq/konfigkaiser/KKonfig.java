@@ -1,10 +1,9 @@
-package org.nustaq.serialization.dson;
+package org.nustaq.konfigkaiser;
 
 import org.nustaq.serialization.FSTConfiguration;
 
 import java.io.*;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -37,33 +36,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
  * - Collections: Map and List
  */
-public class Dson {
+public class KKonfig {
 
     public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
 
-    DsonTypeMapper mapper;
+    KKTypeMapper mapper;
 
-    public Dson(DsonTypeMapper mapper) {
+    public KKonfig(KKTypeMapper mapper) {
         this.mapper = mapper;
     }
 
-    public Dson() {
-        this(new DsonTypeMapper());
+    public KKonfig() {
+        this(new KKTypeMapper());
     }
 
-    public Dson map(String name, Class c) {
+    public KKonfig map(String name, Class c) {
         mapper.map(name,c);
         return this;
     }
 
-    public Dson map(Class c) {
+    public KKonfig map(Class c) {
         mapper.map(c);
         return this;
     }
 
     public Object readObject(String dson) throws Exception {
-        DsonStringCharInput in = new DsonStringCharInput(dson);
-        return new DsonDeserializer(in, mapper).readObject(null, null, null);
+        KKStringCharInput in = new KKStringCharInput(dson);
+        return new KKDeserializer(in, mapper).readObject(null, null, null);
     }
 
     public Object readObject(File file) throws Exception {
