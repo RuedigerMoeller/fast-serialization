@@ -62,6 +62,7 @@ public final class FSTConfiguration {
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false;
+    ClassLoader classLoader = getClass().getClassLoader();
 
     /////////////////////////////////////
     // cross platform stuff only
@@ -108,6 +109,10 @@ public final class FSTConfiguration {
         } finally {
             conflock.set(false);
         }
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
     public static FSTConfiguration createCrossPlatformConfiguration() {
@@ -450,7 +455,7 @@ public final class FSTConfiguration {
 
 
     public ClassLoader getClassLoader() {
-        return getClass().getClassLoader();
+        return classLoader;
     }
 
     public FSTClazzInfo getClassInfo(Class type) {
