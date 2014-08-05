@@ -56,4 +56,6 @@ public interface FSTDecoder {
     void readExternalEnd();
 
     boolean isEndMarker(String s);
+
+    int readVersionTag() throws IOException;
 }

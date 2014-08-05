@@ -463,7 +463,7 @@ public class FSTObjectOutput implements ObjectOutput {
             ((Externalizable) toWrite).writeExternal(this);
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = serializationInfo.getFieldInfo();
-            writeObjectFields(toWrite, serializationInfo, fieldInfo);
+            writeObjectFields(toWrite, serializationInfo, fieldInfo, 0, 0);
         }
     }
 
@@ -490,20 +490,20 @@ public class FSTObjectOutput implements ObjectOutput {
         } else {
             if ( fstCompatibilityInfo != null ) {
                 writeByte(66); // tag this is written from here no writeMethod
-                writeObjectFields(toWrite, serializationInfo, fstCompatibilityInfo.getFieldArray());
+                writeObjectFields(toWrite, serializationInfo, fstCompatibilityInfo.getFieldArray(), 0, 0);
             }
         }
     }
 
-    private void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo) throws IOException {
+    private void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, int startIndex, int version) throws IOException {
         try {
             int booleanMask = 0;
             int boolcount = 0;
             final int length = fieldInfo.length;
-            int j = 0;
+            int j = startIndex;
             if ( ! codec.isWritingAttributes() ) {
                 for (;; j++) {
-                    if ( j == length ) {
+                    if ( j == length || fieldInfo[j].getVersion() != version ) {
                         if ( boolcount > 0 ) {
                             codec.writeFByte(booleanMask << (8 - boolcount));
                         }
@@ -530,6 +530,11 @@ public class FSTObjectOutput implements ObjectOutput {
             for (int i = j; i < length; i++)
             {
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
+                if (subInfo.getVersion() != version) {
+                    codec.writeVersionTag(subInfo.getVersion());
+                    writeObjectFields(toWrite, serializationInfo, fieldInfo, j, subInfo.getVersion());
+                    return;
+                }
                 codec.writeAttributeName(subInfo);
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
@@ -575,6 +580,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     }
                 }
             }
+            codec.writeVersionTag((byte) 0);
         } catch (IllegalAccessException ex) {
             throw FSTUtil.rethrow(ex);
         }
@@ -813,7 +819,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         throw FSTUtil.rethrow(e);
                     }
                 }
-                FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.compInfo.get(cl).getFieldArray());
+                FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.compInfo.get(cl).getFieldArray(),0,0);
             }
 
             PutField pf;

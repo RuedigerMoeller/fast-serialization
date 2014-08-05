@@ -494,7 +494,7 @@ public class FSTObjectInput implements ObjectInput {
             }
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clzSerInfo.getFieldInfo();
-            readObjectFields(referencee, clzSerInfo, fieldInfo, newObj);
+            readObjectFields(referencee, clzSerInfo, fieldInfo, newObj,0,0);
         }
         return newObj;
     }
@@ -547,7 +547,7 @@ public class FSTObjectInput implements ObjectInput {
 //                    if ( tag != 99 )
 //                        System.out.println("weird stuff incoming");
                 }
-                readObjectFields(referencee, serializationInfo, fstCompatibilityInfo.getFieldArray(), toRead);
+                readObjectFields(referencee, serializationInfo, fstCompatibilityInfo.getFieldArray(), toRead,0,0);
             }
         }
     }
@@ -555,13 +555,13 @@ public class FSTObjectInput implements ObjectInput {
     public void defaultReadObject(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj)
     {
         try {
-            readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj);
+            readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj,0,0);
         } catch (Exception e) {
             throw FSTUtil.rethrow(e);
         }
     }
 
-    void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj) throws Exception {
+    void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj, int startIndex, int version) throws Exception {
         
         if ( codec.isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
@@ -571,9 +571,22 @@ public class FSTObjectInput implements ObjectInput {
         int boolcount = 8;
         final int length = fieldInfo.length;
         int conditional = 0;
-        for (int i = 0; i < length; i++) {
+        for (int i = startIndex; i < length; i++) {
             try {
                 FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
+                if (subInfo.getVersion() > version ) {
+                    int nextVersion = codec.readVersionTag();
+                    if ( nextVersion == 0 ) // old object read
+                    {
+                        oldVersionRead(newObj);
+                        return;
+                    }
+                    if ( nextVersion != subInfo.getVersion() ) {
+                        throw new RuntimeException("read version tag "+nextVersion+" fieldInfo has "+subInfo.getVersion());
+                    }
+                    readObjectFields(referencee,serializationInfo,fieldInfo,newObj,i,nextVersion);
+                    return;
+                }
                 if (subInfo.isPrimitive()) {
                     int integralType = subInfo.getIntegralType();
                     if (integralType == FSTClazzInfo.FSTFieldInfo.BOOL) {
@@ -614,6 +627,11 @@ public class FSTObjectInput implements ObjectInput {
                 throw new IOException(ex);
             }
         }
+        codec.readVersionTag(); // just consume '0'
+    }
+
+    protected void oldVersionRead(Object newObj) {
+
     }
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
@@ -889,7 +907,9 @@ public class FSTObjectInput implements ObjectInput {
                                 referencee,
                                 clInfo,
                                 clInfo.compInfo.get(cl).getFieldArray(),
-                                toRead
+                                toRead,
+                                0,
+                                0
                         ); // FIXME: only fields of current class
                     }
                 } catch (Exception e) {

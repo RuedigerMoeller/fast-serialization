@@ -95,7 +95,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
             ((Externalizable)newObj).readExternal(this);
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clzSerInfo.getFieldInfo();
-            readObjectFields(referencee, clzSerInfo, fieldInfo, newObj);
+            readObjectFields(referencee, clzSerInfo, fieldInfo, newObj,0,0);
         }
         return newObj;
     }

@@ -40,12 +40,19 @@ public final class FSTClazzInfo {
         @Override
         public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
             int res = 0;
+
+            if ( o1.getVersion() != o2.getVersion() ) {
+                return o1.getVersion() < o2.getVersion() ? -1 : 1;
+            }
+
+            // order: version, boolean, primitives, conditionals, object references
             if (o1.getType() == boolean.class && o2.getType() != boolean.class) {
                 return -1;
             }
             if (o1.getType() != boolean.class && o2.getType() == boolean.class) {
                 return 1;
             }
+
             if (o1.isConditional() && !o2.isConditional()) {
                 res = 1;
             } else if (!o1.isConditional() && o2.isConditional()) {
@@ -80,12 +87,13 @@ public final class FSTClazzInfo {
     boolean hasTransient;
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
-    
+
     Class clazz;
     Object[] enumConstants;
     Constructor cons;
     int clzId = -1;
     int structSize = 0;
+
 
     FSTClazzInfoRegistry reg;
     boolean crossPlatform;
@@ -101,17 +109,17 @@ public final class FSTClazzInfo {
         if (Externalizable.class.isAssignableFrom(clazz)) {
             externalizable = true;
             cons = FSTUtil.findConstructorForExternalize(clazz);
-        } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class ) {
+        } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class) {
             externalizable = false;
             cons = FSTUtil.findConstructorForSerializable(clazz);
         } else {
-            if ( !reg.isStructMode() )
-                throw new RuntimeException("Class "+clazz.getName()+" does not implement Serializable or externalizable");
+            if (!reg.isStructMode())
+                throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
             else {
                 cons = FSTUtil.findConstructorForSerializable(clazz);
             }
         }
-        if ( ! ignoreAnnotations ) {
+        if (!ignoreAnnotations) {
             Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
             if (annotation != null) {
                 predict = annotation.value();
@@ -124,9 +132,9 @@ public final class FSTClazzInfo {
         }
 
         final String name = clazz.getName();
-        if (name.length()<127) {
+        if (name.length() < 127) {
             isAsciiNameShortString = true;
-            for (int i=0; i < name.length();i++) {
+            for (int i = 0; i < name.length(); i++) {
                 if (name.charAt(i) > 127) {
                     isAsciiNameShortString = false;
                     break;
@@ -135,8 +143,8 @@ public final class FSTClazzInfo {
         }
 
         requiresInit = isExternalizable() || useCompatibleMode() || hasTransient;
-        if ( useCompatibleMode() && crossPlatform && getSer() == null && !clazz.isEnum() )
-            throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class "+clazz.getName() );
+        if (useCompatibleMode() && crossPlatform && getSer() == null && !clazz.isEnum())
+            throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class " + clazz.getName());
     }
 
     byte[] bufferedName;
@@ -164,7 +172,7 @@ public final class FSTClazzInfo {
         FSTFieldInfo[] fis = getFieldInfo();
         for (int i = 0; i < fis.length; i++) {
             FSTFieldInfo fstFieldInfo = fis[i];
-            if ( fstFieldInfo.getType() != boolean.class ) {
+            if (fstFieldInfo.getType() != boolean.class) {
                 return i;
             }
         }
@@ -185,7 +193,7 @@ public final class FSTClazzInfo {
 
     public final Object newInstance(boolean doesRequireInit) {
         try {
-            if ( !doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
+            if (!doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
             return cons.newInstance();
@@ -197,6 +205,7 @@ public final class FSTClazzInfo {
 
     /**
      * Sideeffect: sets hasTransient
+     *
      * @param c
      * @param res
      * @return
@@ -212,12 +221,12 @@ public final class FSTClazzInfo {
         Collections.reverse(c1);
         for (int i = 0; i < c1.size(); i++) {
             Field field = c1.get(i);
-            res.add(0,field);
+            res.add(0, field);
         }
         for (int i = 0; i < res.size(); i++) {
             Field field = res.get(i);
             if (Modifier.isStatic(field.getModifiers()) || isTransient(c, field)) {
-                if ( isTransient(c, field) ) {
+                if (isTransient(c, field)) {
                     hasTransient = true;
                 }
                 res.remove(i);
@@ -228,9 +237,9 @@ public final class FSTClazzInfo {
     }
 
     private boolean isTransient(Class c, Field field) {
-        if ( Modifier.isTransient(field.getModifiers()) )
+        if (Modifier.isTransient(field.getModifiers()))
             return true;
-        while ( c.getName().indexOf("$") >= 0 ) {
+        while (c.getName().indexOf("$") >= 0) {
             c = c.getSuperclass(); // patch fuer reallive queries
         }
         return (c.getAnnotation(Transient.class) != null && field.getAnnotation(Serialize.class) == null);
@@ -240,7 +249,7 @@ public final class FSTClazzInfo {
         return fieldInfo;
     }
 
-    public final FSTFieldInfo[] getFieldInfoFiltered(Class ... toRemove) {
+    public final FSTFieldInfo[] getFieldInfoFiltered(Class... toRemove) {
         FSTFieldInfo[] fis = getFieldInfo();
         int count = 0;
         for (int i = 0; i < fis.length; i++) {
@@ -248,12 +257,12 @@ public final class FSTClazzInfo {
             boolean skip = false;
             for (int j = 0; j < toRemove.length; j++) {
                 Class aClass = toRemove[j];
-                if ( fi.getField().getDeclaringClass() == aClass ) {
+                if (fi.getField().getDeclaringClass() == aClass) {
                     skip = true;
                     break;
                 }
             }
-            if ( ! skip ) {
+            if (!skip) {
                 count++;
             }
         }
@@ -264,12 +273,12 @@ public final class FSTClazzInfo {
             boolean skip = false;
             for (int j = 0; j < toRemove.length; j++) {
                 Class aClass = toRemove[j];
-                if ( fi.getField().getDeclaringClass() == aClass ) {
+                if (fi.getField().getDeclaringClass() == aClass) {
                     skip = true;
                     break;
                 }
             }
-            if ( ! skip ) {
+            if (!skip) {
                 res[count++] = fis[i];
             }
         }
@@ -277,7 +286,7 @@ public final class FSTClazzInfo {
     }
 
     public final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
-        if ( declaringClass == null ) {
+        if (declaringClass == null) {
             return fieldMap.get(name);
         }
         return fieldMap.get(declaringClass.getName() + "#" + name);
@@ -296,7 +305,7 @@ public final class FSTClazzInfo {
             fieldMap.put(field.getName(), fieldInfo[i]);
         }
 
-        // comp info sort order
+        // compatibility info sort order
         Comparator<FSTFieldInfo> infocomp = new Comparator<FSTFieldInfo>() {
             @Override
             public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
@@ -325,7 +334,7 @@ public final class FSTClazzInfo {
         };
 
 
-        if ( ! reg.isStructMode() ) {
+        if (!reg.isStructMode()) {
             Class curCl = c;
             fields.clear();
             while (curCl != Object.class) {
@@ -364,16 +373,16 @@ public final class FSTClazzInfo {
 
         // default sort order
         Comparator<FSTFieldInfo> comp = defFieldComparator;
-        if ( ! reg.isStructMode() )
+        if (!reg.isStructMode())
             Arrays.sort(fieldInfo, comp);
         int off = 8; // object header: length + clzId
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
             Align al = fstFieldInfo.getField().getAnnotation(Align.class);
-            if ( al != null ) {
+            if (al != null) {
                 fstFieldInfo.align = al.value();
                 int alignOff = fstFieldInfo.align(off);
-                fstFieldInfo.alignPad = alignOff-off;
+                fstFieldInfo.alignPad = alignOff - off;
                 off = alignOff;
             }
             fstFieldInfo.setStructOffset(off);
@@ -381,9 +390,9 @@ public final class FSTClazzInfo {
         }
         structSize = off;
         writeReplaceMethod = FSTUtil.findDerivedMethod(
-                c, "writeReplace", null, Object.class);
+            c, "writeReplace", null, Object.class);
         readResolveMethod = FSTUtil.findDerivedMethod(
-                c, "readResolve", null, Object.class);
+            c, "readResolve", null, Object.class);
         if (writeReplaceMethod != null) {
             writeReplaceMethod.setAccessible(true);
         }
@@ -452,6 +461,7 @@ public final class FSTClazzInfo {
         boolean integral = false;
         boolean primitive = false;
         boolean isArr = false;
+        byte version;
         int integralType;
         long memOffset = -1;
 
@@ -470,12 +480,12 @@ public final class FSTClazzInfo {
                 isArr = field.getType().isArray();
                 type = fi.getType();
                 primitive = type.isPrimitive();
-                if ( FSTUtil.unFlaggedUnsafe != null ) {
+                if (FSTUtil.unFlaggedUnsafe != null) {
                     fi.setAccessible(true);
-                    if ( ! Modifier.isStatic(fi.getModifiers()) ) {
+                    if (!Modifier.isStatic(fi.getModifiers())) {
                         try {
-                            memOffset = (int)FSTUtil.unFlaggedUnsafe.objectFieldOffset(fi);
-                        } catch ( Throwable th ) {
+                            memOffset = (int) FSTUtil.unFlaggedUnsafe.objectFieldOffset(fi);
+                        } catch (Throwable th) {
                             //throw FSTUtil.rethrow(th);
                         }
                     }
@@ -487,18 +497,23 @@ public final class FSTClazzInfo {
                 arrayType = calcComponentType(field.getType());
             }
             calcIntegral();
-            if ( fi != null && ! ignoreAnnotations ) {
+            if (fi != null && !ignoreAnnotations) {
+                version = (byte) (fi.isAnnotationPresent(Version.class) ? fi.getAnnotation(Version.class).value() : 0);
                 flat = fi.isAnnotationPresent(Flat.class);
                 isConditional = fi.isAnnotationPresent(Conditional.class);
                 if (isIntegral()) {
                     isConditional = false;
                 }
                 OneOf annotation = fi.getAnnotation(OneOf.class);
-                if ( annotation != null ) {
+                if (annotation != null) {
                     oneOf = annotation.value();
                 }
             }
 
+        }
+
+        public byte getVersion() {
+            return version;
         }
 
         public byte[] getBufferedName() {
@@ -510,7 +525,7 @@ public final class FSTClazzInfo {
         }
 
         public int align(int off) {
-            while( (off/align)*align != off )
+            while ((off / align) * align != off)
                 off++;
             return off;
         }
@@ -609,28 +624,21 @@ public final class FSTClazzInfo {
         }
 
         public int getIntegralCode(Class type) {
-            if ( type == boolean.class ) {
+            if (type == boolean.class) {
                 return BOOL;
-            } else
-            if ( type == byte.class ) {
+            } else if (type == byte.class) {
                 return BYTE;
-            } else
-            if ( type == char.class ) {
+            } else if (type == char.class) {
                 return CHAR;
-            } else
-            if ( type == short.class ) {
+            } else if (type == short.class) {
                 return SHORT;
-            } else
-            if ( type == int.class ) {
+            } else if (type == int.class) {
                 return INT;
-            } else
-            if ( type == long.class ) {
+            } else if (type == long.class) {
                 return LONG;
-            } else
-            if ( type == float.class ) {
+            } else if (type == float.class) {
                 return FLOAT;
-            } else
-            if ( type == double.class ) {
+            } else if (type == double.class) {
                 return DOUBLE;
             }
             return 0;
@@ -669,28 +677,28 @@ public final class FSTClazzInfo {
         }
 
         public int getComponentStructSize() {
-            if ( arrayType == boolean.class || arrayType == byte.class )
+            if (arrayType == boolean.class || arrayType == byte.class)
                 return 1;
-            if ( arrayType == char.class || arrayType == short.class )
+            if (arrayType == char.class || arrayType == short.class)
                 return 2;
-            if ( arrayType == int.class || arrayType == float.class )
+            if (arrayType == int.class || arrayType == float.class)
                 return 4;
-            if ( arrayType == long.class || arrayType == double.class )
+            if (arrayType == long.class || arrayType == double.class)
                 return 8;
             return 0; // object => cannot decide
         }
 
         public int getStructSize() {
-            if ( type == boolean.class || type == byte.class )
+            if (type == boolean.class || type == byte.class)
                 return 1;
-            if ( type == char.class || type == short.class )
+            if (type == char.class || type == short.class)
                 return 2;
-            if ( type == int.class || type == float.class )
+            if (type == int.class || type == float.class)
                 return 4;
-            if ( type == long.class || type == double.class )
+            if (type == long.class || type == double.class)
                 return 8;
-            if ( isArray() ) {
-                if ( isIntegral() )
+            if (isArray()) {
+                if (isIntegral())
                     return 8; // pointer+length
                 else // object array
                     return 16; // pointer+length+elemsiz+pointertype
@@ -703,38 +711,38 @@ public final class FSTClazzInfo {
         }
 
         public final int getByteValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                return FSTUtil.unFlaggedUnsafe.getByte(obj,memOffset);
+            if (memOffset >= 0) {
+                return FSTUtil.unFlaggedUnsafe.getByte(obj, memOffset);
             }
             return field.getByte(obj);
         }
 
         public final int getCharValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
-                return FSTUtil.unFlaggedUnsafe.getChar(obj,memOffset);
+                return FSTUtil.unFlaggedUnsafe.getChar(obj, memOffset);
             }
             return field.getChar(obj);
         }
 
         public final int getShortValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                return FSTUtil.unFlaggedUnsafe.getShort(obj,memOffset);
+            if (memOffset >= 0) {
+                return FSTUtil.unFlaggedUnsafe.getShort(obj, memOffset);
             }
             return field.getShort(obj);
         }
 
         public final int getIntValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unFlaggedUnsafe.getInt(obj,memOffset);
+            return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
         }
 
 
         public final long getLongValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unFlaggedUnsafe.getLong(obj,memOffset);
+            return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
         }
 
         public final boolean getBooleanValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                return FSTUtil.unFlaggedUnsafe.getBoolean(obj,memOffset);
+            if (memOffset >= 0) {
+                return FSTUtil.unFlaggedUnsafe.getBoolean(obj, memOffset);
             }
             return field.getBoolean(obj);
         }
@@ -742,58 +750,59 @@ public final class FSTClazzInfo {
         /**
          * Warning: crashes if not an object ref !
          * use getField().get() for a safe version ..
+         *
          * @param obj
          * @return
          * @throws IllegalAccessException
          */
         public final Object getObjectValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
             }
             return field.get(obj);
         }
 
         public final float getFloatValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                return FSTUtil.unFlaggedUnsafe.getFloat(obj,memOffset);
+            if (memOffset >= 0) {
+                return FSTUtil.unFlaggedUnsafe.getFloat(obj, memOffset);
             }
             return field.getFloat(obj);
         }
 
         public final void setCharValue(Object newObj, char c) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                FSTUtil.unFlaggedUnsafe.putChar(newObj,memOffset,c);
+            if (memOffset >= 0) {
+                FSTUtil.unFlaggedUnsafe.putChar(newObj, memOffset, c);
                 return;
             }
             field.setChar(newObj, c);
         }
 
         public final void setShortValue(Object newObj, short i1) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                FSTUtil.unFlaggedUnsafe.putShort(newObj,memOffset,i1);
+            if (memOffset >= 0) {
+                FSTUtil.unFlaggedUnsafe.putShort(newObj, memOffset, i1);
                 return;
             }
             field.setShort(newObj, i1);
         }
 
         public final void setObjectValue(Object target, Object value) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
                 return;
             }
             field.set(target, value);
         }
 
-        public final void setFloatValue(Object newObj,  float l) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
-                FSTUtil.unFlaggedUnsafe.putFloat(newObj,memOffset,l);
+        public final void setFloatValue(Object newObj, float l) throws IllegalAccessException {
+            if (memOffset >= 0) {
+                FSTUtil.unFlaggedUnsafe.putFloat(newObj, memOffset, l);
                 return;
             }
             field.setFloat(newObj, l);
         }
 
         public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
             }
@@ -801,7 +810,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putLong(newObj, memOffset, i1);
                 return;
             }
@@ -809,21 +818,21 @@ public final class FSTClazzInfo {
         }
 
         public final long getLongValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
             }
             return field.getLong(obj);
         }
 
         public final double getDoubleValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getDouble(obj, memOffset);
             }
             return field.getDouble(obj);
         }
 
         public final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putInt(newObj, memOffset, i1);
                 return;
             }
@@ -831,23 +840,23 @@ public final class FSTClazzInfo {
         }
 
         public final int getIntValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0  ) {
+            if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
             }
             return field.getInt(obj);
         }
 
         public final void setBooleanValue(Object newObj, boolean i1) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                FSTUtil.unFlaggedUnsafe.putBoolean(newObj,memOffset,i1);
+            if (memOffset >= 0) {
+                FSTUtil.unFlaggedUnsafe.putBoolean(newObj, memOffset, i1);
                 return;
             }
             field.setBoolean(newObj, i1);
         }
 
         public final void setByteValue(Object newObj, byte b) throws IllegalAccessException {
-            if (memOffset >= 0 ) {
-                FSTUtil.unFlaggedUnsafe.putByte(newObj,memOffset,b);
+            if (memOffset >= 0) {
+                FSTUtil.unFlaggedUnsafe.putByte(newObj, memOffset, b);
                 return;
             }
             field.setByte(newObj, b);
@@ -893,7 +902,7 @@ public final class FSTClazzInfo {
                 List<FSTClazzInfo.FSTFieldInfo> fields = getFields();
                 final FSTFieldInfo[] fstFieldInfos = new FSTFieldInfo[fields.size()];
                 fields.toArray(fstFieldInfos);
-                Arrays.sort(fstFieldInfos,defFieldComparator);
+                Arrays.sort(fstFieldInfos, defFieldComparator);
                 infoArr = fstFieldInfos;
             }
             return infoArr;
@@ -909,11 +918,11 @@ public final class FSTClazzInfo {
 
         public void readClazz(Class c) {
             writeMethod = FSTUtil.findPrivateMethod(c, "writeObject",
-                    new Class<?>[]{ObjectOutputStream.class},
-                    Void.TYPE);
+                                                    new Class<?>[]{ObjectOutputStream.class},
+                                                    Void.TYPE);
             readMethod = FSTUtil.findPrivateMethod(c, "readObject",
-                    new Class<?>[]{ObjectInputStream.class},
-                    Void.TYPE);
+                                                   new Class<?>[]{ObjectInputStream.class},
+                                                   Void.TYPE);
             if (writeMethod != null) {
                 writeMethod.setAccessible(true);
             }

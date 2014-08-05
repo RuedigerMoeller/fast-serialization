@@ -6,6 +6,9 @@ import org.nustaq.serialization.util.FSTUtil;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * serializes into a binary stream
+ */
 public class FSTStreamEncoder implements FSTEncoder {
 
     private final FSTConfiguration conf;
@@ -488,6 +491,11 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     public boolean isTagMultiDimSubArrays() {
         return false;
+    }
+
+    @Override
+    public void writeVersionTag(int version) throws IOException {
+        writeFByte(version);
     }
 
 }

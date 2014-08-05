@@ -489,4 +489,9 @@ public class FSTMinBinEncoder implements FSTEncoder {
         return true;
     }
 
+    @Override
+    public void writeVersionTag(int version) throws IOException {
+        // versioning not supported for minbin
+    }
+
 }

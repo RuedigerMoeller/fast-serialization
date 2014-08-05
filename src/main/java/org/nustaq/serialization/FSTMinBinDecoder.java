@@ -399,4 +399,9 @@ public class FSTMinBinDecoder implements FSTDecoder {
         return MinBin.END_MARKER == s;
     }
 
+    @Override
+    public int readVersionTag() throws IOException {
+        return 0; // versioning not supported for minbin
+    }
+
 }

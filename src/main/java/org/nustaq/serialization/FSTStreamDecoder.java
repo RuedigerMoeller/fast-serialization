@@ -6,6 +6,9 @@ import org.nustaq.serialization.util.FSTUtil;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * decodes a stream written with FTSStreamEnconder
+ */
 public class FSTStreamDecoder implements FSTDecoder {
 
     private FSTInputStream input;
@@ -455,6 +458,11 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public boolean isEndMarker(String s) {
         return false;
+    }
+
+    @Override
+    public int readVersionTag() throws IOException {
+        return readFByte();
     }
 
 
