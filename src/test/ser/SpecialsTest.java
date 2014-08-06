@@ -12,6 +12,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashSet;
@@ -105,7 +106,6 @@ public class SpecialsTest {
             test( conf, localhost);
 
             exceptionTest(conf);
-
 
             ToWrite w = new ToWrite("bla");
 
