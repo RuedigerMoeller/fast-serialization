@@ -1,9 +1,11 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
+import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
 import org.junit.Test;
+import org.nustaq.serialization.annotations.Version;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -178,6 +180,114 @@ public class BasicFSTTest {
         String junk1 = junk;
         Bl bl = new Bl();
     }
+
+    static class VersioningOld implements Serializable {
+
+        boolean bool = true;
+        int primitive = 66;
+        String originalOne = "OOPASDKAPSODKPASODKBla";
+        HashMap originalMap = new HashMap();
+
+    }
+
+    static class VersioningV1 implements Serializable {
+
+        boolean bool = false;
+        int primitive = 13;
+        String originalOne = "Bla";
+        HashMap originalMap = new HashMap();
+        @Version(1)
+        String newString1 = "paoskdasd";
+
+    }
+
+    static class VersioningV4 implements Serializable {
+
+        boolean bool = true;
+        int primitive = 13;
+        String originalOne = "Blasdasda";
+        HashMap originalMap = new HashMap();
+
+        @Version(1)
+        String newString1 = "paoskdasd";
+        @Version(2)
+        int x = 123;
+        @Version(2)
+        int y = 1656;
+
+        @Version(3)
+        boolean b0;
+        @Version(3)
+        boolean b1;
+
+        @Version(4)
+        HashMap veryNew = new HashMap();
+
+    }
+
+    static class Versioning implements Serializable {
+
+        boolean bool = false;
+        int primitive = 13;
+        String originalOne = "Bla";
+        HashMap originalMap = new HashMap();
+
+        @Version(1) String newString1 = "paoskdasd";
+
+        @Version(2) int x = 123;
+        @Version(2) int y = 1656;
+
+        @Version(3) boolean b0;
+        @Version(3) boolean b1;
+
+        @Version(4) HashMap veryNew = new HashMap();
+
+        @Version(5) boolean a,b,c,d,e,f,g,h,i,j,k,l,m,n;
+        @Version(5) HashMap veryNew1 = new HashMap();
+
+        public Versioning() {
+            originalMap.put("A","BBBBB");
+            b0 = true;
+            veryNew.put("pok", new Object[] { 1 , 2, 3, 324 });
+            veryNew1.put("pok1", new Object[] { 111 , 2, 3, 324 });
+            a = f = i = true;
+        }
+
+    }
+
+    @Test
+    public void testVersioning() {
+        Versioning v = new Versioning();
+
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.registerClass(Versioning.class);
+
+        byte[] bytes = conf.asByteArray(v);
+        Versioning res = (Versioning) conf.asObject(bytes);
+
+        assertTrue(DeepEquals.deepEquals(v,res));
+
+
+        FSTConfiguration old = FSTConfiguration.createDefaultConfiguration();
+        old.registerClass(VersioningOld.class);
+        VersioningOld vold = new VersioningOld();
+        vold.originalMap.put("uz","aspdokasd");
+        bytes = old.asByteArray(vold);
+
+        Versioning newReadFromOld = (Versioning) conf.asObject(bytes);
+        assertTrue(newReadFromOld.originalOne.equals("OOPASDKAPSODKPASODKBla"));
+
+        FSTConfiguration oldv4 = FSTConfiguration.createDefaultConfiguration();
+        oldv4.registerClass(VersioningV4.class);
+        VersioningV4 oldv4Inst = new VersioningV4();
+        oldv4Inst.veryNew.put("uz","aspdokasd");
+        bytes = oldv4.asByteArray(oldv4Inst);
+
+        Versioning newReadFromV4 = (Versioning) conf.asObject(bytes);
+        assertTrue(newReadFromV4.veryNew.get("uz").equals("aspdokasd"));
+
+    }
+
 
     @Test
     public void testPrimitives() throws Exception {

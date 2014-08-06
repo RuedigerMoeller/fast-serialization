@@ -54,7 +54,8 @@ public class FSTObjectInput implements ObjectInput {
     // done
     ConditionalCallback conditionalCallback;
     int readExternalReadAHead = 8000;
-    
+    VersionConflictListener versionConflictListener;
+
     public FSTConfiguration getConf() {
         return conf;
     }
@@ -630,8 +631,21 @@ public class FSTObjectInput implements ObjectInput {
         codec.readVersionTag(); // just consume '0'
     }
 
-    protected void oldVersionRead(Object newObj) {
+    public VersionConflictListener getVersionConflictListener() {
+        return versionConflictListener;
+    }
 
+    /**
+     * see @Version annotation
+     * @param versionConflictListener
+     */
+    public void setVersionConflictListener(VersionConflictListener versionConflictListener) {
+        this.versionConflictListener = versionConflictListener;
+    }
+
+    protected void oldVersionRead(Object newObj) {
+        if ( versionConflictListener != null )
+            versionConflictListener.onOldVersionRead(newObj);
     }
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {

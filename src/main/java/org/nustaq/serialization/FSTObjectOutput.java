@@ -532,7 +532,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
                 if (subInfo.getVersion() != version) {
                     codec.writeVersionTag(subInfo.getVersion());
-                    writeObjectFields(toWrite, serializationInfo, fieldInfo, j, subInfo.getVersion());
+                    writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
                 }
                 codec.writeAttributeName(subInfo);
