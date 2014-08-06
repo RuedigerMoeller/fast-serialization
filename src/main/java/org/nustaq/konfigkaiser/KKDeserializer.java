@@ -344,35 +344,4 @@ public class KKDeserializer {
         return Character.isLetter(ch) || ch == '$' || ch == '#' || ch == '_';
     }
 
-    public static void main(String a[]) throws Exception {
-        KKonfig KKonfig = new KKonfig().map("test", Test.class);
-        Object parsed = KKonfig.readObject(
-            "test { " +
-//                "s: \"hallo\" " +
-//                "arr: { 1, 2, 3, 4, 5 }"+
-//                "ta: { {s:'1'} {s:'2'} {s:'3'} }"+
-//                "map: { A:test{s:'1'} B:test{s:'2'} C:test{s:'3'} }"+
-                "map1: { A:{s:'1'} B:{s:'2'} C:{s:'3'} }" +
-//                "list: { test{s:'1'} test{s:'2'} test{s:'3'} }"+
-                "list1: { {s:'1'} {s:'2'} {s:'3'} }" +
-//                "arr: { 1 2 3 4 5 6 }"+
-                "}"
-                                       );
-        System.out.println(parsed);
-    }
-
-
-    public static class Test {
-        String s;
-        int i;
-        int arr[];
-        Test ta[];
-        HashMap<String,Test> map;
-        HashMap<String,Test> map1;
-        List<Test> list;
-        List<Test> list1;
-        Object someThing;
-        boolean negate;
-    }
-
 }

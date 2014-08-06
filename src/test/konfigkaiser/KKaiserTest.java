@@ -1,11 +1,11 @@
-package dson;
+package konfigkaiser;
 
-import com.cedarsoftware.util.DeepEquals;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.konfigkaiser.KKonfig;
 import ser.BasicFSTTest;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,17 +15,36 @@ import java.util.List;
 /**
  * Created by ruedi on 03.08.14.
  */
-public class DsonTest {
+public class KKaiserTest {
 
-    private KKonfig KKonfig;
 
     public static class SomePojoConfig implements Serializable {
-        String aString = "aString";
-        Date aDate = new Date();
-        HashMap aMap0 = new HashMap();
-        HashMap aMap = new HashMap();
-        List aList = new ArrayList<>();
-        List aList1 = new ArrayList<>();
+        String aString;
+        HashMap<String,PojoConfigItem> aMap;
+        List<OtherPojoConfigItem> aList;
+        List untypedList;
+    }
+
+    public static class OtherPojoConfigItem {
+        String nameList[];
+        int someValues[];
+    }
+
+    public static class PojoConfigItem {
+        String str;
+        int someValue;
+    }
+
+
+    @Test
+    public void testPojoConf() throws Exception {
+        KKonfig kk = new KKonfig()
+            .map("test", SomePojoConfig.class)
+            .map("pojo", PojoConfigItem.class)
+            .map("other", OtherPojoConfigItem.class);
+        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/konfigkaiser/test.konfig"));;
+        Assert.assertTrue(result.aList.get(1).nameList[0].equals("Short"));
+        Assert.assertTrue(result.untypedList.size() == 2);
     }
 
     public static class DSonPrimitiveArray implements Serializable { // Dson can't handle multidim
@@ -93,13 +112,5 @@ public class DsonTest {
     }
 
 
-    @org.junit.Before
-    public void setUp() {
-        KKonfig = new KKonfig()
-            .map("Config", SomePojoConfig.class)
-            .map("Big", DsonBigNums.class)
-            .map("Arr", DSonPrimitiveArray.class)
-            .map("Prim", BasicFSTTest.Primitives.class);
-    }
 
 }
