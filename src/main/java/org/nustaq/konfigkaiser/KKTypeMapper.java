@@ -38,6 +38,7 @@ import java.util.*;
 public class KKTypeMapper {
 
     protected HashMap<String,Class> typeMap = new HashMap<String, Class>();
+    protected HashMap<Class, String> reverseTypeMap = new HashMap<Class, String>();
 
     protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();;
 
@@ -59,6 +60,7 @@ public class KKTypeMapper {
 
     public KKTypeMapper map(String name, Class c) {
         typeMap.put(name, c);
+        reverseTypeMap.put(c,name);
         return this;
     }
 
@@ -148,4 +150,10 @@ public class KKTypeMapper {
         return null;
     }
 
+    public String getStringForType(Class<? extends Object> aClass) {
+        String res = reverseTypeMap.get(aClass);
+        if (res==null)
+            res = aClass.getName();
+        return res;
+    }
 }
