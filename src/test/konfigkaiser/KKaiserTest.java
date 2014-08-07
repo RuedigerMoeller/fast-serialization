@@ -1,5 +1,6 @@
 package konfigkaiser;
 
+import com.cedarsoftware.util.DeepEquals;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.konfigkaiser.KKonfig;
@@ -7,10 +8,7 @@ import ser.BasicFSTTest;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by ruedi on 03.08.14.
@@ -21,6 +19,7 @@ public class KKaiserTest {
     public static class SomePojoConfig implements Serializable {
         String aString;
         HashMap<String,PojoConfigItem> aMap;
+        Map<PojoConfigItem,String> objectMap;
         List<OtherPojoConfigItem> aList;
         List untypedList;
     }
@@ -45,9 +44,14 @@ public class KKaiserTest {
         SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/konfigkaiser/test.konfig"));;
         Assert.assertTrue(result.aList.get(1).nameList[0].equals("Short"));
         Assert.assertTrue(result.untypedList.size() == 2);
+
+        String res = kk.writeObject(result);
+        System.out.println(res);
+        Object reRead = kk.readObject(res);
+        Assert.assertTrue(DeepEquals.deepEquals(result,reRead));
     }
 
-    public static class DSonPrimitiveArray implements Serializable { // Dson can't handle multidim
+    public static class KKPrimitiveArray implements Serializable { // Dson can't handle multidim
 
         boolean aBoolean[] = {true,false};
         byte aByte[] = { -13,34, 127,3,23,5,0,11 };
@@ -70,7 +74,7 @@ public class KKaiserTest {
 
     }
 
-    public static class DsonBigNums implements Serializable { // can't handle nested/multidim arrays
+    public static class KKBigNums implements Serializable { // can't handle nested/multidim arrays
 
         Boolean _aBoolean = false;
 

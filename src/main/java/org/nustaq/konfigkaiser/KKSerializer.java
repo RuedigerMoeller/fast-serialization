@@ -4,6 +4,9 @@ import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -34,10 +37,12 @@ public class KKSerializer {
     protected KKTypeMapper mapper;
     protected boolean pretty = true;
     protected boolean writeNull = false;
+    protected FSTConfiguration conf;
 
-    public KKSerializer(KKCharOutput out, KKTypeMapper mapper) {
+    public KKSerializer(KKCharOutput out, KKTypeMapper mapper, FSTConfiguration conf) {
         this.out = out;
         this.mapper = mapper;
+        this.conf = conf;
     }
 
     public void writeObject(Object o) throws Exception {
@@ -50,37 +55,133 @@ public class KKSerializer {
             return;
         }
         if ( o instanceof Character) {
+            if ( indent >= 0 ) writeIndent(indent);
             writeString(o.toString());
+            if ( indent >= 0 ) writeln();
         } else if ( o instanceof Number || o instanceof Boolean ) {
+            if ( indent >= 0 ) writeIndent(indent);
             writeString(o.toString());
+            if ( indent >= 0 ) writeln();
         } else if ( o instanceof String ) {
+            if ( indent >= 0 ) writeIndent(indent);
             writeString((String) o);
+            if ( indent >= 0 ) writeln();
         } else if ( o instanceof Map) {
-        } else if ( o.getClass().isArray()) {
-            writeArray(o,indent+1);
-        } else {
-            writeln();
+            Map map = (Map) o;
             writeIndent(indent);
+            out.writeString("{");
+            writeln();
+            for (Iterator iterator = map.keySet().iterator(); iterator.hasNext(); ) {
+                Object next = iterator.next();
+                Object value = map.get(next);
+                boolean valueSingleLine = isSingleLine(null, value);
+                boolean keySingleLine = isSingleLine(null, next);
+                if (keySingleLine) {
+                    writeIndent(indent + 1);
+                    writeObjectInternal(next, -1);
+                    out.writeString(" : ");
+                    if ( !valueSingleLine)
+                        writeln();
+                } else {
+                    writeObjectInternal(next, indent + 1);
+                    writeIndent(indent + 1);
+                    out.writeString(":");
+                    if ( !valueSingleLine)
+                        writeln();
+                }
+                if ( valueSingleLine ) {
+                    out.writeChar(' ');
+                    writeObjectInternal(value, -1);
+                    writeln();
+                } else {
+                    writeObjectInternal(value, indent + 1);
+                }
+            }
+            writeIndent(indent);
+            out.writeChar('}');
+            writeln();
+        } else if ( o instanceof Collection) {
+            Collection coll = (Collection) o;
+            writeIndent(indent);
+            out.writeString("{");
+            writeln();
+            for (Iterator iterator = coll.iterator(); iterator.hasNext(); ) {
+                Object next = iterator.next();
+                writeObjectInternal(next, indent + 1);
+            }
+            writeIndent(indent);
+            out.writeChar('}');
+            writeln();
+        } else if ( o.getClass().isArray()) {
+//            String stringForType = mapper.getStringForType(o.getClass());
+//            out.writeString(stringForType+" {");
+            writeIndent(indent);
+            out.writeString("{ ");
+            int len = Array.getLength(o);
+            boolean lastWasSL = false;
+            for ( int ii=0; ii < len; ii++ ) {
+                Object val = Array.get(o,ii);
+//            val = mapper.coerceWriting(val);
+                if ( isSingleLine(null,val) ) {
+                    writeObjectInternal(val, -1 );
+                    out.writeChar(' ');
+                    lastWasSL = true;
+                } else {
+                    if ( ii == 0)
+                        writeln();
+                    writeObjectInternal(val, indent + 2);
+                    lastWasSL = false;
+                }
+            }
+            if ( ! lastWasSL )
+                writeIndent(indent);
+            out.writeChar('}');
+            writeln();
+        } else {
             String stringForType = mapper.getStringForType(o.getClass());
-            out.writeString(stringForType+" {");
-            FSTClazzInfo clInfo = FSTConfiguration.getDefaultConfiguration().getCLInfoRegistry().getCLInfo(o.getClass());
+
+            writeIndent(indent);
+            out.writeString(stringForType + " {");
+            writeln();
+
+            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(o.getClass());
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clInfo.getFieldInfo();
+
             for (int i = 0; i < fieldInfo.length; i++) {
                 FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldInfo[i];
-                Object fieldValue = fstFieldInfo.getObjectValue(o);
+                Object fieldValue = fstFieldInfo.getField().get(o);
   //              fieldValue = mapper.coerceWriting(fieldValue);
                 if ( isNullValue(fieldValue) || writeNull ) {
-                    writeln();
-                    writeIndent(indent+1);
+                    writeIndent(indent + 1);
                     out.writeString(fstFieldInfo.getField().getName());
                     out.writeChar(':');
-                    writeObjectInternal(fieldValue, indent + 2);
+                    if (isSingleLine(fstFieldInfo, fieldValue)) {
+                        out.writeString(" ");
+                        writeObjectInternal(fieldValue, 0);
+                    } else {
+                        writeln();
+                        writeObjectInternal(fieldValue, indent + 2);
+                    }
                 }
             }
             writeIndent(indent);
             out.writeChar('}');
             writeln();
         }
+    }
+
+    private boolean isSingleLine(FSTClazzInfo.FSTFieldInfo fstFieldInfo, Object fieldValue) {
+        if ( fstFieldInfo == null ) {
+            if ( fieldValue instanceof Class ) { // now that's dirty ..
+                Class clz = (Class) fieldValue;
+                return String.class.isAssignableFrom(clz) || Number.class.isAssignableFrom(clz) || clz.isPrimitive();
+            }
+            return fieldValue instanceof String || fieldValue == null || fieldValue instanceof Number;
+        }
+        if ( fstFieldInfo.isArray() && isSingleLine( null, fstFieldInfo.getType().getComponentType() ) ) {
+            return true;
+        }
+        return fstFieldInfo.isPrimitive() || fieldValue instanceof String || fieldValue == null || fieldValue instanceof Number;
     }
 
     static Character zeroC = new Character((char) 0);
@@ -98,28 +199,6 @@ public class KKSerializer {
             out.writeChar('\n');
     }
 
-    protected void writeArray(Object array, int indent) throws Exception {
-        if ( array == null ) {
-            writeObject(null);
-            return;
-        }
-        int len = Array.getLength(array);
-        out.writeChar('[');out.writeChar(' ');
-        // fixme: this could be optimized for primitive arrays for speed
-        boolean hadObj = false;
-        for ( int ii=0; ii < len; ii++ ) {
-            Object val = Array.get(array,ii);
-//            val = mapper.coerceWriting(val);
-            if ( val instanceof Number || val instanceof String ) {
-            } else {
-                hadObj = true;
-            }
-            writeObjectInternal(val, indent);
-            out.writeChar(' ');
-        }
-        out.writeChar(']');
-    }
-
     public void writeString(String string) {
         if (string==null) {
             out.writeString("null");
@@ -135,8 +214,16 @@ public class KKSerializer {
         int          i;
         int          len = string.length();
         String       t;
+        boolean ws = false;
+        for ( int ii = 0; ii < string.length(); ii++ ) {
+            if ( Character.isWhitespace(string.charAt(ii)) ) {
+                ws = true;
+                break;
+            }
+        }
 
-        out.writeChar('"');
+        if ( ws )
+            out.writeChar('\"');
         for (i = 0; i < len; i += 1) {
             b = c;
             c = string.charAt(i);
@@ -164,7 +251,8 @@ public class KKSerializer {
                     }
             }
         }
-        out.writeChar('"');
+        if ( ws )
+            out.writeChar('"');
     }
 
     protected void writeIndent(int indent) {
@@ -173,14 +261,6 @@ public class KKSerializer {
                 out.writeChar(' ');
             }
         }
-    }
-
-    public boolean isPretty() {
-        return pretty;
-    }
-
-    public void setPretty(boolean pretty) {
-        this.pretty = pretty;
     }
 
     public boolean isWriteNull() {

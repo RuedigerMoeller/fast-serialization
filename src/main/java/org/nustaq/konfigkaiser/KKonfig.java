@@ -78,4 +78,10 @@ public class KKonfig {
         return readObject(new Scanner(stream, encoding).useDelimiter("\\A").next());
     }
 
+    public String writeObject(Object o) throws Exception {
+        KKStringOutput out = new KKStringOutput();
+        new KKSerializer(out,mapper, conf).writeObject(o);
+        return out.getBuilder().toString();
+    }
+
 }

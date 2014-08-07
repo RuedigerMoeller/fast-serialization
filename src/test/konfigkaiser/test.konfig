@@ -8,6 +8,11 @@ test {
         "QuotOther" : { str: Hello13 someValue: 15 }
     }
 
+    objectMap: {
+        { str: Hello someValue: 13 } : aString
+        { str: Hello1 someValue: 131 } : aString1
+    }
+
     aList: {
         {
             nameList: { a b "c c" d 'e e' }
