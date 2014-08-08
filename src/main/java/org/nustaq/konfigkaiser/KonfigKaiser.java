@@ -3,6 +3,9 @@ package org.nustaq.konfigkaiser;
 import org.nustaq.serialization.FSTConfiguration;
 
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Scanner;
 
 /**
@@ -36,26 +39,53 @@ import java.util.Scanner;
  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
  * - Collections: Map and List
  */
-public class KKonfig {
+public class KonfigKaiser {
 
     public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
 
     KKTypeMapper mapper;
 
-    public KKonfig(KKTypeMapper mapper) {
+    public KonfigKaiser(KKTypeMapper mapper) {
         this.mapper = mapper;
     }
 
-    public KKonfig() {
+    public KonfigKaiser() {
         this(new KKTypeMapper());
     }
 
-    public KKonfig map(String name, Class c) {
+    public static Class fumbleOutGenericKeyType(Field field) {
+        Type genericType = field.getGenericType();
+        if ( genericType instanceof ParameterizedType) {
+            ParameterizedType params = (ParameterizedType) genericType;
+            Type[] actualTypeArguments = params.getActualTypeArguments();
+            if (actualTypeArguments != null && actualTypeArguments.length > 0)
+                return (Class<?>) actualTypeArguments[0];
+        }
+        return null;
+    }
+
+    public static Class fumbleOutGenericValueType(Field field) {
+        Type genericType = field.getGenericType();
+        if ( genericType instanceof ParameterizedType ) {
+            ParameterizedType params = (ParameterizedType) genericType;
+            Type[] actualTypeArguments = params.getActualTypeArguments();
+            if (actualTypeArguments != null && actualTypeArguments.length > 1)
+                return (Class<?>) actualTypeArguments[1];
+        }
+        return null;
+    }
+
+    public KonfigKaiser map(String name, Class c) {
         mapper.map(name,c);
         return this;
     }
 
-    public KKonfig map(Class c) {
+    /**
+     * map to simple name
+     * @param c
+     * @return
+     */
+    public KonfigKaiser map(Class ... c) {
         mapper.map(c);
         return this;
     }

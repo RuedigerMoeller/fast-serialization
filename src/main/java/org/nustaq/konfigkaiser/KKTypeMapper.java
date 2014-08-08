@@ -37,6 +37,7 @@ import java.util.*;
  */
 public class KKTypeMapper {
 
+    protected boolean useSimplClzName = true;
     protected HashMap<String,Class> typeMap = new HashMap<String, Class>();
     protected HashMap<Class, String> reverseTypeMap = new HashMap<Class, String>();
 
@@ -77,6 +78,14 @@ public class KKTypeMapper {
             map(aClass.getSimpleName(),aClass);
         }
         return this;
+    }
+
+    public boolean isUseSimplClzName() {
+        return useSimplClzName;
+    }
+
+    public void setUseSimplClzName(boolean useSimplClzName) {
+        this.useSimplClzName = useSimplClzName;
     }
 
     /**
@@ -153,7 +162,7 @@ public class KKTypeMapper {
     public String getStringForType(Class<? extends Object> aClass) {
         String res = reverseTypeMap.get(aClass);
         if (res==null)
-            res = aClass.getName();
+            res = useSimplClzName ? aClass.getSimpleName() : aClass.getName();
         return res;
     }
 }

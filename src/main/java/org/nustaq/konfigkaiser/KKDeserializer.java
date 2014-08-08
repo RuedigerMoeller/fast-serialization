@@ -4,9 +4,6 @@ package org.nustaq.konfigkaiser;
 import org.nustaq.serialization.FSTClazzInfo;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -77,7 +74,7 @@ public class KKDeserializer {
                 mappedClass = ArrayList.class;
             if ( mappedClass == Map.class )
                 mappedClass = HashMap.class;
-            FSTClazzInfo clInfo = KKonfig.conf.getCLInfoRegistry().getCLInfo(mappedClass);
+            FSTClazzInfo clInfo = KonfigKaiser.conf.getCLInfoRegistry().getCLInfo(mappedClass);
             int ch = in.readChar();
             if ( ch != '{' ) {
                 throw new KonfigParseException("expected '{'", in);
@@ -140,7 +137,7 @@ public class KKDeserializer {
             FSTClazzInfo.FSTFieldInfo fieldInfo = targetClz.getFieldInfo(field, null);
             Class type = fieldInfo == null ? null : fieldInfo.getType();
             if ( fieldInfo != null ) {
-                result.add(readValue(type, fumbleOutGenericKeyType(fieldInfo.getField()), fumbleOutGenericValueType(fieldInfo.getField())));
+                result.add(readValue(type, KonfigKaiser.fumbleOutGenericKeyType(fieldInfo.getField()), KonfigKaiser.fumbleOutGenericValueType(fieldInfo.getField())));
             } else {
                 System.out.println("No such field '"+field+"' on class "+targetClz.getClazz().getName());
             }
@@ -148,28 +145,6 @@ public class KKDeserializer {
         }
         in.readChar(); // consume }
         return result;
-    }
-
-    private Class fumbleOutGenericKeyType(Field field) {
-        Type genericType = field.getGenericType();
-        if ( genericType instanceof ParameterizedType ) {
-            ParameterizedType params = (ParameterizedType) genericType;
-            Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 0)
-                return (Class<?>) actualTypeArguments[0];
-        }
-        return null;
-    }
-
-    private Class fumbleOutGenericValueType(Field field) {
-        Type genericType = field.getGenericType();
-        if ( genericType instanceof ParameterizedType ) {
-            ParameterizedType params = (ParameterizedType) genericType;
-            Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 1)
-                return (Class<?>) actualTypeArguments[1];
-        }
-        return null;
     }
 
     protected List readList( Class keyType, Class valueType ) throws Exception {

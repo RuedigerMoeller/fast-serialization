@@ -46,10 +46,10 @@ public class KKSerializer {
     }
 
     public void writeObject(Object o) throws Exception {
-        writeObjectInternal(o,0);
+        writeObjectInternal(null, null, o,0);
     }
 
-    protected void writeObjectInternal(Object o, int indent) throws Exception {
+    protected void writeObjectInternal(Class expectedClass, Class expectedValueClass, Object o, int indent) throws Exception {
         if ( o == null ) {
             out.writeString("null");
             return;
@@ -78,12 +78,12 @@ public class KKSerializer {
                 boolean keySingleLine = isSingleLine(null, next);
                 if (keySingleLine) {
                     writeIndent(indent + 1);
-                    writeObjectInternal(next, -1);
+                    writeObjectInternal(expectedClass, null, next, -1);
                     out.writeString(" : ");
                     if ( !valueSingleLine)
                         writeln();
                 } else {
-                    writeObjectInternal(next, indent + 1);
+                    writeObjectInternal(expectedClass, null, next, indent + 1);
                     writeIndent(indent + 1);
                     out.writeString(":");
                     if ( !valueSingleLine)
@@ -91,10 +91,10 @@ public class KKSerializer {
                 }
                 if ( valueSingleLine ) {
                     out.writeChar(' ');
-                    writeObjectInternal(value, -1);
+                    writeObjectInternal(expectedValueClass, null, value, -1);
                     writeln();
                 } else {
-                    writeObjectInternal(value, indent + 1);
+                    writeObjectInternal(expectedValueClass, null, value, indent + 1);
                 }
             }
             writeIndent(indent);
@@ -107,29 +107,27 @@ public class KKSerializer {
             writeln();
             for (Iterator iterator = coll.iterator(); iterator.hasNext(); ) {
                 Object next = iterator.next();
-                writeObjectInternal(next, indent + 1);
+                writeObjectInternal(expectedClass, null, next, indent + 1);
             }
             writeIndent(indent);
             out.writeChar('}');
             writeln();
         } else if ( o.getClass().isArray()) {
-//            String stringForType = mapper.getStringForType(o.getClass());
-//            out.writeString(stringForType+" {");
             writeIndent(indent);
             out.writeString("{ ");
             int len = Array.getLength(o);
             boolean lastWasSL = false;
+            Class expect = o.getClass().getComponentType();
             for ( int ii=0; ii < len; ii++ ) {
                 Object val = Array.get(o,ii);
-//            val = mapper.coerceWriting(val);
                 if ( isSingleLine(null,val) ) {
-                    writeObjectInternal(val, -1 );
+                    writeObjectInternal(expect, null, val, -1 );
                     out.writeChar(' ');
                     lastWasSL = true;
                 } else {
                     if ( ii == 0)
                         writeln();
-                    writeObjectInternal(val, indent + 2);
+                    writeObjectInternal(expect, null, val, indent + 2);
                     lastWasSL = false;
                 }
             }
@@ -141,7 +139,11 @@ public class KKSerializer {
             String stringForType = mapper.getStringForType(o.getClass());
 
             writeIndent(indent);
-            out.writeString(stringForType + " {");
+            if ( expectedClass == o.getClass() ) {
+                out.writeString("{");
+            } else {
+                out.writeString(stringForType + " {");
+            }
             writeln();
 
             FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(o.getClass());
@@ -149,6 +151,8 @@ public class KKSerializer {
 
             for (int i = 0; i < fieldInfo.length; i++) {
                 FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldInfo[i];
+                Class expectedKey = KonfigKaiser.fumbleOutGenericKeyType(fstFieldInfo.getField());
+                Class expectedValue = KonfigKaiser.fumbleOutGenericValueType(fstFieldInfo.getField());
                 Object fieldValue = fstFieldInfo.getField().get(o);
   //              fieldValue = mapper.coerceWriting(fieldValue);
                 if ( isNullValue(fieldValue) || writeNull ) {
@@ -157,10 +161,10 @@ public class KKSerializer {
                     out.writeChar(':');
                     if (isSingleLine(fstFieldInfo, fieldValue)) {
                         out.writeString(" ");
-                        writeObjectInternal(fieldValue, 0);
+                        writeObjectInternal(expectedKey, expectedValue, fieldValue, 0);
                     } else {
                         writeln();
-                        writeObjectInternal(fieldValue, indent + 2);
+                        writeObjectInternal(expectedKey, expectedValue, fieldValue, indent + 2);
                     }
                 }
             }

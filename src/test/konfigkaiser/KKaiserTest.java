@@ -3,8 +3,7 @@ package konfigkaiser;
 import com.cedarsoftware.util.DeepEquals;
 import junit.framework.Assert;
 import org.junit.Test;
-import org.nustaq.konfigkaiser.KKonfig;
-import ser.BasicFSTTest;
+import org.nustaq.konfigkaiser.KonfigKaiser;
 
 import java.io.File;
 import java.io.Serializable;
@@ -37,7 +36,7 @@ public class KKaiserTest {
 
     @Test
     public void testPojoConf() throws Exception {
-        KKonfig kk = new KKonfig()
+        KonfigKaiser kk = new KonfigKaiser()
             .map("test", SomePojoConfig.class)
             .map("pojo", PojoConfigItem.class)
             .map("other", OtherPojoConfigItem.class);
