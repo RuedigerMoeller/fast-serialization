@@ -459,7 +459,10 @@ public class FSTObjectInput implements ObjectInput {
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
-        if (newObj.getClass() != c) {//FIXME
+        if (newObj.getClass() != c && ser == null ) {
+            // for advanced trickery (e.g. returning non-serializable from FSTSerializer)
+            // this hurts. so in case of FSTSerializers incoming clzInfo will refer to the
+            // original class, not the one actually instantiated
             c = newObj.getClass();
             clzSerInfo = clInfoRegistry.getCLInfo(c);
         }
