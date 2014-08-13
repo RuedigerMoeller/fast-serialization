@@ -1,4 +1,4 @@
-package org.nustaq.konfigkaiser;
+package org.nustaq.kson;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -23,7 +23,7 @@ package org.nustaq.konfigkaiser;
  *
  * Created by ruedi on 07.08.2014.
  */
-public class KKStringOutput  implements KKCharOutput {
+public class KsonStringOutput implements KsonCharOutput {
 
     StringBuilder builder = new StringBuilder();
 
@@ -35,6 +35,19 @@ public class KKStringOutput  implements KKCharOutput {
     @Override
     public void writeString(String s) {
         builder.append(s);
+    }
+
+    @Override
+    public char lastChar() {
+        if ( builder.length() > 0 ) {
+            return builder.charAt(builder.length()-1);
+        }
+        return 0;
+    }
+
+    @Override
+    public void back(int i) {
+        builder.setLength(builder.length()-i);
     }
 
     public StringBuilder getBuilder() {

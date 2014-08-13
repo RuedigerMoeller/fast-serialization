@@ -1,4 +1,4 @@
-package org.nustaq.konfigkaiser;
+package org.nustaq.kson;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -18,11 +18,18 @@ package org.nustaq.konfigkaiser;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  * <p/>
- * Created by ruedi on 07.08.2014.
+ * Date: 20.12.13
+ * Time: 00:32
+ * To change this template use File | Settings | File Templates.
  */
-public interface KKCharOutput {
+public interface KsonCharInput {
+    /**
+     * @return char or -1 for eof
+     */
+    int readChar();
+    int peekChar();
+    int position();
+    int back(int num);
 
-    public void writeChar( char c );
-    public void writeString( String s );
-
+    String getString(int pos, int length);
 }

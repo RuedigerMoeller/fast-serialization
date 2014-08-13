@@ -1,4 +1,4 @@
-package org.nustaq.konfigkaiser;
+package org.nustaq.kson;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -26,18 +26,18 @@ package org.nustaq.konfigkaiser;
 /**
  * implementation of char input on top of a String
  */
-public class KKStringCharInput implements KKCharInput {
+public class KsonStringCharInput implements KsonCharInput {
     String s;
     int pos;
     int end;
 
-    public KKStringCharInput(String s) {
+    public KsonStringCharInput(String s) {
         this.s = s;
         pos = 0;
         end = s.length();
     }
 
-    public KKStringCharInput(String s, int pos, int len) {
+    public KsonStringCharInput(String s, int pos, int len) {
         this.s = s;
         this.pos = pos;
         this.end = pos+len;
@@ -67,7 +67,7 @@ public class KKStringCharInput implements KKCharInput {
 
     @Override
     public int back(int num) {
-        return pos--;
+        pos -= num; return pos;
     }
 
     @Override

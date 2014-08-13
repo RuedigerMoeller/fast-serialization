@@ -1,4 +1,4 @@
-package org.nustaq.konfigkaiser;
+package org.nustaq.kson;
 
 import org.nustaq.serialization.FSTConfiguration;
 
@@ -39,18 +39,18 @@ import java.util.Scanner;
  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
  * - Collections: Map and List
  */
-public class KonfigKaiser {
+public class Kson {
 
     public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
 
-    KKTypeMapper mapper;
+    KsonTypeMapper mapper;
 
-    public KonfigKaiser(KKTypeMapper mapper) {
+    public Kson(KsonTypeMapper mapper) {
         this.mapper = mapper;
     }
 
-    public KonfigKaiser() {
-        this(new KKTypeMapper());
+    public Kson() {
+        this(new KsonTypeMapper());
     }
 
     public static Class fumbleOutGenericKeyType(Field field) {
@@ -75,7 +75,7 @@ public class KonfigKaiser {
         return null;
     }
 
-    public KonfigKaiser map(String name, Class c) {
+    public Kson map(String name, Class c) {
         mapper.map(name,c);
         return this;
     }
@@ -85,32 +85,51 @@ public class KonfigKaiser {
      * @param c
      * @return
      */
-    public KonfigKaiser map(Class ... c) {
+    public Kson map(Class ... c) {
         mapper.map(c);
         return this;
     }
 
     public Object readObject(String dson) throws Exception {
-        KKStringCharInput in = new KKStringCharInput(dson);
-        return new KKDeserializer(in, mapper).readObject(null, null, null);
+        KsonStringCharInput in = new KsonStringCharInput(dson);
+        return new KsonDeserializer(in, mapper).readObject(null, null, null);
+    }
+
+    public Object readObject(String dsonOrJSon, String expectedType) throws Exception {
+        if (expectedType == null) {
+            return readObject(dsonOrJSon);
+        }
+        KsonStringCharInput in = new KsonStringCharInput(dsonOrJSon);
+        final Class type = mapper.getType(expectedType);
+        return new KsonDeserializer(in, mapper).readObject(type, String.class, null);
     }
 
     public Object readObject(File file) throws Exception {
+        return readObject(file,null);
+    }
+
+    public Object readObject(File file, String type) throws Exception {
         FileInputStream fin = new FileInputStream(file);
         try {
-            return readObject(fin, "UTF-8");
+            return readObject(fin, "UTF-8", type);
         } finally {
             fin.close();
         }
     }
 
-    public Object readObject(InputStream stream, String encoding) throws Exception {
-        return readObject(new Scanner(stream, encoding).useDelimiter("\\A").next());
+    public Object readObject(InputStream stream, String encoding, String expectedType) throws Exception {
+        return readObject(new Scanner(stream, encoding).useDelimiter("\\A").next(), expectedType);
     }
 
     public String writeObject(Object o) throws Exception {
-        KKStringOutput out = new KKStringOutput();
-        new KKSerializer(out,mapper, conf).writeObject(o);
+        KsonStringOutput out = new KsonStringOutput();
+        new KsonSerializer(out,mapper, conf).writeObject(o);
+        return out.getBuilder().toString();
+    }
+
+    public String writeJSonObject(Object o, boolean tagTopLevel) throws Exception {
+        KsonStringOutput out = new KsonStringOutput();
+        new JSonSerializer(out,mapper, conf).writeObject(o,tagTopLevel?null:o.getClass());
         return out.getBuilder().toString();
     }
 
