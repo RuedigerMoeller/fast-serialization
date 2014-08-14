@@ -2,6 +2,7 @@ package org.nustaq.kson;
 
 
 import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.annotations.ArgTypes;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -36,6 +37,7 @@ public class KsonDeserializer {
 
     protected KsonCharInput in;
     protected KsonTypeMapper mapper;
+    private KsonArgTypesResolver argTypesRessolver;
 
     public KsonDeserializer(KsonCharInput in, KsonTypeMapper mapper) {
         this.in = in;
@@ -92,7 +94,7 @@ public class KsonDeserializer {
             FSTClazzInfo clInfo = Kson.conf.getCLInfoRegistry().getCLInfo(mappedClass);
             int ch = in.readChar();
             if (ch != '{' && ch != '[') {
-                throw new KsonParseException("expected '{'", in);
+                throw new KsonParseException("expected '{' or '['", in);
             }
             Object res = null;
             if (Map.class.isAssignableFrom(clInfo.getClazz())) {
@@ -184,12 +186,72 @@ public class KsonDeserializer {
             }
             FSTClazzInfo.FSTFieldInfo fieldInfo = targetClz.getFieldInfo(field, null);
             Class type = fieldInfo == null ? null : fieldInfo.getType();
+
+            // special to parse argument lists using reflected class types
+            if ( argTypesRessolver != null && type == Object[].class && fieldInfo.getField().getAnnotation(ArgTypes.class) != null) {
+                Class argTypes[] = argTypesRessolver.getArgTypes(targetClz.getClazz(), result);
+                if (argTypes != null ) {
+                    skipWS();
+                    int ch = in.readChar();
+                    if (ch != '{' && ch != '[' ) {
+                        throw new KsonParseException("expected { or [ ",in);
+                    }
+                    result.add(readList(argTypes, argTypes).toArray());
+                    skipWS();
+                    ch = in.readChar();
+                    if (ch != '}' && ch != ']' ) {
+                        throw new KsonParseException("expected } or ] ",in);
+                    }
+                    skipWS();
+                    continue;
+                }
+            }
+
             if (fieldInfo != null) {
                 result.add(readValue(type, Kson.fumbleOutGenericKeyType(fieldInfo.getField()), Kson.fumbleOutGenericValueType(fieldInfo.getField())));
             } else {
                 System.out.println("No such field '" + field + "' on class " + targetClz.getClazz().getName());
             }
             skipWS();
+        }
+        in.readChar(); // consume }
+        return result;
+    }
+
+    public KsonArgTypesResolver getArgTypesRessolver() {
+        return argTypesRessolver;
+    }
+
+    public KsonDeserializer setArgTypesRessolver(KsonArgTypesResolver argTypesRessolver) {
+        this.argTypesRessolver = argTypesRessolver;
+        return this;
+    }
+
+    protected List readList(Class[] keyType, Class[] valueType) throws Exception {
+        ArrayList result = new ArrayList();
+        skipWS();
+        boolean expectKey = true;
+        int index = 0;
+        while (in.peekChar() > 0 && in.peekChar() != '}' && in.peekChar() != ']') {
+            skipWS();
+            if (expectKey) {
+                result.add(readValue(keyType[index], null, null));
+                expectKey = !expectKey;
+            } else {
+                if (in.peekChar() == ':' || in.peekChar() == ',') {
+                    in.readChar(); // skip
+                    skipWS();
+                }
+                result.add(readValue(valueType[index], null, null));
+                expectKey = !expectKey;
+                // just ignore unnecessary stuff
+                skipWS();
+                if (in.peekChar() == ':' || in.peekChar() == ',') {
+                    in.readChar(); // skip
+                }
+            }
+            skipWS();
+            index++;
         }
         in.readChar(); // consume }
         return result;

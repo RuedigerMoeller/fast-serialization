@@ -46,12 +46,10 @@ import java.lang.annotation.Target;
  */
 
 /**
- * applicable to non native fields. if a conditional callback is set on the FSTObjectInput, the callback
- * will be called before the object referenced by the annotated field is decoded. Allows to skip decoding of
- * objects partially to save CPU.
+ * tagging to advise kson/json serializer to guess types from a method signature
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 
-public @interface Conditional {
+public @interface ArgTypes {
 }

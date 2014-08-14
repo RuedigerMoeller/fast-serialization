@@ -215,11 +215,11 @@ public class KsonSerializer {
     }
 
     protected void writeListEnd() {
-        out.writeChar('}');
+        out.writeChar(']');
     }
 
     protected void writeListStart() {
-        out.writeString("{ ");
+        out.writeString("[ ");
     }
 
     // quirksmode: true

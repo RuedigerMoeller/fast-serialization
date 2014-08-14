@@ -58,7 +58,7 @@ public class Kson {
         if ( genericType instanceof ParameterizedType) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 0)
+            if (actualTypeArguments != null && actualTypeArguments.length > 0 && actualTypeArguments[0] instanceof Class)
                 return (Class<?>) actualTypeArguments[0];
         }
         return null;
@@ -69,7 +69,7 @@ public class Kson {
         if ( genericType instanceof ParameterizedType ) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 1)
+            if (actualTypeArguments != null && actualTypeArguments.length > 1  && actualTypeArguments[1] instanceof Class)
                 return (Class<?>) actualTypeArguments[1];
         }
         return null;
@@ -93,6 +93,12 @@ public class Kson {
     public Object readObject(String dson) throws Exception {
         KsonStringCharInput in = new KsonStringCharInput(dson);
         return new KsonDeserializer(in, mapper).readObject(null, null, null);
+    }
+
+    public Object readObject(String dsonOrJSon, String expectedType, KsonArgTypesResolver resolve) throws Exception {
+        KsonStringCharInput in = new KsonStringCharInput(dsonOrJSon);
+        final Class type = mapper.getType(expectedType);
+        return new KsonDeserializer(in, mapper).setArgTypesRessolver(resolve).readObject(type, String.class, null);
     }
 
     public Object readObject(String dsonOrJSon, String expectedType) throws Exception {
