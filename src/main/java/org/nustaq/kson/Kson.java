@@ -145,4 +145,7 @@ public class Kson {
         return out.getBuilder().toString();
     }
 
+    public KsonTypeMapper getMapper() {
+        return mapper;
+    }
 }

@@ -150,7 +150,7 @@ public class KsonTest {
     }
 
     public static class KKBigNums implements Serializable { // can't handle nested/multidim arrays
-
+        int i = 10;
         Boolean _aBoolean ;
 
         Byte _aByte0;

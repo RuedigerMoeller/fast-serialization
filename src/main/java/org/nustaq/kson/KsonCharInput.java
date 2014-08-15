@@ -30,6 +30,7 @@ public interface KsonCharInput {
     int peekChar();
     int position();
     int back(int num);
+    boolean isEof();
 
     String getString(int pos, int length);
 }

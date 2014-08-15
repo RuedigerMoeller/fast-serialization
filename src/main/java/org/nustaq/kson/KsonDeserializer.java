@@ -44,7 +44,7 @@ public class KsonDeserializer {
         this.mapper = mapper;
     }
 
-    protected void skipWS() {
+    public void skipWS() {
         int ch = in.readChar();
         while (ch >= 0 && Character.isWhitespace(ch)) {
             ch = in.readChar();
@@ -62,6 +62,8 @@ public class KsonDeserializer {
     public Object readObject(Class expect, Class genericKeyType, Class genericValueType) throws Exception {
         try {
             skipWS();
+            if (in.isEof())
+                return null;
             String type = readId();
             Object literal = mapper.mapLiteral(type);
             if (literal != null ) {
@@ -127,6 +129,9 @@ public class KsonDeserializer {
                 }
             } else {
                 res = clInfo.newInstance(true);
+                if (res==null) {
+                    throw new RuntimeException(clInfo.getClazz().getName()+" misses a default constructor. Instantiation failed.");
+                }
                 List keyVals = readObjectFields(clInfo);
                 for (int i = 0; i < keyVals.size(); i += 2) {
                     String fi = (String) keyVals.get(i);
@@ -198,11 +203,12 @@ public class KsonDeserializer {
                     }
                     result.add(readList(argTypes, argTypes).toArray());
                     skipWS();
-                    ch = in.readChar();
-                    if (ch != '}' && ch != ']' ) {
-                        throw new KsonParseException("expected } or ] ",in);
-                    }
-                    skipWS();
+//                    consumed by readList
+//                    ch = in.readChar();
+//                    if (ch != '}' && ch != ']' ) {
+//                        throw new KsonParseException("expected } or ] ",in);
+//                    }
+//                    skipWS();
                     continue;
                 }
             }
@@ -292,8 +298,13 @@ public class KsonDeserializer {
             // string
             return mapper.coerceReading(expected, readString(ch == '"' || ch == '\''));
         } else if (Character.isLetter(ch) || ch == '{' || ch == '[') {
-            // object
-            return readObject(expected, genericKeyType, genericValueType);
+            if ( ch == '[' /*&& ! isContainer(expected) */&& (expected == null || expected == Object.class)) {
+                in.readChar();
+                return readList(genericKeyType, genericValueType);
+            } else {
+                // object
+                return readObject(expected, genericKeyType, genericValueType);
+            }
         } else if (Character.isDigit(ch) || ch == '+' || ch == '-' || ch == '.') {
             Class type = expected;
             if (type == float.class || type == double.class) {
@@ -350,28 +361,34 @@ public class KsonDeserializer {
         throw new KsonParseException("value expected", in);
     }
 
+    private boolean isContainer(Class expected) {
+        return expected != null && (expected.isArray() || Collection.class.isAssignableFrom(expected));
+    }
+
     protected boolean isFromStringValue(Class type) {
         return type == String.class;
     }
 
     protected long readLong() {
-        boolean read=false;
+        int read=0;
         long res = 0;
         long fak = 1;
         int ch = in.readChar();
+        boolean empty = true;
         while (Character.isDigit(ch)) {
-            read=true;
+            read++;
+            empty = false;
             res += (ch - '0') * fak;
             fak *= 10;
             ch = in.readChar();
         }
         in.back(1);
         long reverse = 0;
-        while (res != 0) {
+        while (read-- != 0) {
             reverse = reverse * 10 + (res % 10);
             res = res / 10;
         }
-        if (!read)
+        if (empty)
             throw new KsonParseException("expected int type number",in);
         return reverse;
     }

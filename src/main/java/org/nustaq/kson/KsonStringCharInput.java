@@ -27,11 +27,11 @@ package org.nustaq.kson;
  * implementation of char input on top of a String
  */
 public class KsonStringCharInput implements KsonCharInput {
-    String s;
+    CharSequence s;
     int pos;
     int end;
 
-    public KsonStringCharInput(String s) {
+    public KsonStringCharInput(CharSequence s) {
         this.s = s;
         pos = 0;
         end = s.length();
@@ -71,7 +71,12 @@ public class KsonStringCharInput implements KsonCharInput {
     }
 
     @Override
+    public boolean isEof() {
+        return pos >= s.length();
+    }
+
+    @Override
     public String getString(int pos, int length) {
-        return s.substring(Math.max(0,pos),Math.min(s.length(),pos+length));
+        return s.subSequence(Math.max(0,pos),Math.min(s.length(),pos+length)).toString();
     }
 }
