@@ -2,6 +2,8 @@ package org.nustaq.kson;
 
 import org.nustaq.serialization.FSTConfiguration;
 
+import java.io.ObjectOutput;
+
 /**
  * Created by ruedi on 12.08.2014.
  */
@@ -9,6 +11,7 @@ public class JSonSerializer extends KsonSerializer {
 
     protected String clazzAttributeName = "_type";
     protected boolean quoteKeyNames = true;
+    private boolean tagTypes = true;
 
     public JSonSerializer(KsonCharOutput out, KsonTypeMapper mapper, FSTConfiguration conf) {
         super(out, mapper, conf);
@@ -64,7 +67,7 @@ public class JSonSerializer extends KsonSerializer {
 
     @Override
     protected void writeClazzTag(Class expectedClass, Object o) {
-        if (expectedClass == o.getClass()) {
+        if (!tagTypes || expectedClass == o.getClass()) {
             out.writeString("{");
         } else {
             String stringForType = mapper.getStringForType(o.getClass());
@@ -84,5 +87,10 @@ public class JSonSerializer extends KsonSerializer {
             out.writeChar('\"');
         } else
             super.writeKey(name);
+    }
+
+    public JSonSerializer noTypeTags() {
+        tagTypes = false;
+        return this;
     }
 }

@@ -145,6 +145,12 @@ public class Kson {
         return out.getBuilder().toString();
     }
 
+    public String writePlainJSonObject(Object o) throws Exception {
+        KsonStringOutput out = new KsonStringOutput();
+        new JSonSerializer(out,mapper, conf).noTypeTags().writeObject(o, null);
+        return out.getBuilder().toString();
+    }
+
     public KsonTypeMapper getMapper() {
         return mapper;
     }
