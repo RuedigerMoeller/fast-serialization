@@ -133,6 +133,12 @@ public class Kson {
         return out.getBuilder().toString();
     }
 
+    public String writeObject(Object o, boolean tagTopLevel) throws Exception {
+        KsonStringOutput out = new KsonStringOutput();
+        new KsonSerializer(out,mapper, conf).writeObject(o,tagTopLevel?null:o.getClass());
+        return out.getBuilder().toString();
+    }
+
     public String writeJSonObject(Object o, boolean tagTopLevel) throws Exception {
         KsonStringOutput out = new KsonStringOutput();
         new JSonSerializer(out,mapper, conf).writeObject(o,tagTopLevel?null:o.getClass());

@@ -50,7 +50,9 @@ public class KsonSerializer {
 
     protected void writeObjectInternal(Class expectedClass, Class expectedValueClass, Object o, int indent) throws Exception {
         if (o == null) {
+            if (indent >= 0) writeIndent(indent);
             out.writeString("null");
+            if (indent >= 0) writeln();
             return;
         }
         if (o instanceof Character) {
@@ -130,20 +132,19 @@ public class KsonSerializer {
             writeIndent(indent);
             writeListStart();
             int len = Array.getLength(o);
-            boolean lastWasSL = false;
+            boolean lastWasSL = true;
             Class expect = o.getClass().getComponentType();
             for (int ii = 0; ii < len; ii++) {
                 Object val = Array.get(o, ii);
-                if (isSingleLine(null, val)||isSingleLineCLazz(expect)) {
+                if (lastWasSL && (isSingleLine(null, val)||isSingleLineCLazz(expect))) {
                     writeObjectInternal(expect, null, val, -1);
                     out.writeChar(' ');
                     if (ii < len-1)
                         writeListSep();
-                    lastWasSL = true;
                 } else {
                     if (ii == 0)
                         writeln();
-                    writeObjectInternal(expect, null, val, indent + 2);
+                    writeObjectInternal(expect, null, val, indent + 1);
                     if (ii < len-1)
                         writeListSep();
                     lastWasSL = false;
