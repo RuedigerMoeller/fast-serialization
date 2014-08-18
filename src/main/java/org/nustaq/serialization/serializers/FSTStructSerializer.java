@@ -1,8 +1,8 @@
 package org.nustaq.serialization.serializers;
 
-import org.nustaq.heapoff.bytez.onheap.HeapBytez;
-import org.nustaq.heapoff.structs.FSTStruct;
-import org.nustaq.heapoff.structs.unsafeimpl.FSTStructFactory;
+import org.nustaq.offheap.bytez.onheap.HeapBytez;
+import org.nustaq.offheap.structs.FSTStruct;
+import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
 import org.nustaq.serialization.FSTBasicObjectSerializer;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTObjectInput;

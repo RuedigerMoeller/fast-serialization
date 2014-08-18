@@ -1,9 +1,7 @@
-package de.ruedigermoeller.heapofftest.structs;
+package org.nustaq.offheap.structs;
 
-import org.nustaq.offheap.structs.FSTStruct;
-import org.nustaq.offheap.structs.structtypes.StructString;
-
-import java.util.TimeZone;
+import org.nustaq.offheap.bytez.Bytez;
+import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -23,24 +21,11 @@ import java.util.TimeZone;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  * <p/>
- * Date: 10.07.13
- * Time: 01:29
+ * Date: 07.07.13
+ * Time: 17:01
  * To change this template use File | Settings | File Templates.
  */
-public class TestTimeZone extends FSTStruct {
-
-    protected StructString zoneId = new StructString("GMT", 10);
-
-    public StructString getZoneId() {
-        return zoneId;
-    }
-
-    public void setZoneId(StructString zoneId) {
-        this.zoneId = zoneId;
-    }
-
-    public TimeZone getTimeZone() {
-        return TimeZone.getTimeZone(zoneId.toString());
-    }
-
+public interface FSTEmbeddedBinary {
+    public int getEmbeddedSizeAdditon(FSTStructFactory fstStructFactory);
+    public int insertEmbedded(FSTStructFactory fac, Bytez base, int targetIndex);
 }

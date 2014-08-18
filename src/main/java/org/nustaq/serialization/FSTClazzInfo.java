@@ -19,7 +19,7 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.heapoff.structs.Align;
+import org.nustaq.offheap.structs.Align;
 import org.nustaq.serialization.annotations.*;
 import org.nustaq.serialization.util.FSTUtil;
 

@@ -19,7 +19,7 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.heapoff.structs.unsafeimpl.FSTStructFactory;
+import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
 import org.nustaq.serialization.util.FSTIdentity2IdMap;
 import org.nustaq.serialization.util.FSTInt2ObjectMap;
 import org.nustaq.serialization.util.FSTObject2IntMap;

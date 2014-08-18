@@ -1,6 +1,6 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.offheap.structs.FSTStruct;
 
 import java.util.Date;
 

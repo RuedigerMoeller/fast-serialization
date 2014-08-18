@@ -1,7 +1,7 @@
 package de.ruedigermoeller.heapofftest.structs.single;
 
-import org.nustaq.heapoff.structs.FSTStruct;
-import org.nustaq.heapoff.structs.FSTStructAllocator;
+import org.nustaq.offheap.structs.FSTStruct;
+import org.nustaq.offheap.structs.FSTStructAllocator;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.

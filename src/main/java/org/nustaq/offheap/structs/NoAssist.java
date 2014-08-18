@@ -1,9 +1,7 @@
-package de.ruedigermoeller.heapofftest.structs;
+package org.nustaq.offheap.structs;
 
-import org.nustaq.offheap.structs.FSTStruct;
-import org.nustaq.offheap.structs.structtypes.StructString;
-
-import java.util.TimeZone;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -23,24 +21,10 @@ import java.util.TimeZone;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  * <p/>
- * Date: 10.07.13
- * Time: 01:29
+ * Date: 08.07.13
+ * Time: 19:26
  * To change this template use File | Settings | File Templates.
  */
-public class TestTimeZone extends FSTStruct {
-
-    protected StructString zoneId = new StructString("GMT", 10);
-
-    public StructString getZoneId() {
-        return zoneId;
-    }
-
-    public void setZoneId(StructString zoneId) {
-        this.zoneId = zoneId;
-    }
-
-    public TimeZone getTimeZone() {
-        return TimeZone.getTimeZone(zoneId.toString());
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+public @interface NoAssist {
 }

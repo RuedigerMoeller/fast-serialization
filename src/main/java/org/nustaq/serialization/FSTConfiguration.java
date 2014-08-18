@@ -19,7 +19,7 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.heapoff.structs.FSTStruct;
+import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;

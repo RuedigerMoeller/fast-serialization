@@ -2,11 +2,11 @@ package offheap;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.nustaq.heapoff.FSTAsciiStringOffheapMap;
-import org.nustaq.heapoff.OffHeapByteTree;
-import org.nustaq.heapoff.bytez.ByteSource;
+import org.nustaq.offheap.FSTAsciiStringOffheapMap;
+import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.serialization.FSTConfiguration;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,19 +40,36 @@ public class StringOffHeapTest {
     }
 
     @Test
+    public void fillAndReloadMemMapped() throws Exception {
+        new File("/tmp/test.mmf").delete();
+        fillMemMapped();
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.registerClass(TestRec.class);
+        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+
+        Assert.assertTrue( store.getSize() == MAX);
+
+        long tim = System.currentTimeMillis();
+        for ( int i = 0; 1 != 0 && i < store.getSize(); i++ ) {
+            String key = "test:" + i;
+            boolean condition = store.get(key).getX() == i;
+            Assert.assertTrue(condition);
+        }
+        long dur = System.currentTimeMillis() - tim+1;
+        System.out.println("check needed "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
+    }
+
+    int klen = 16;
+    int MAX = 200000;
+
+    @Test
     public void fillMemMapped() throws Exception {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.registerClass(TestRec.class);
-        int klen = 16;
-        int MAX = 200000;
 
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
 
         long tim = System.currentTimeMillis();
-//        for ( int i = 0; i < store.getSize(); i++ ) {
-//            String key = "test:" + i;
-//            Assert.assertTrue(store.get(key) != null);
-//        }
         TestRec val = new TestRec();
         for ( int i = store.getSize(); i < MAX; i++ ) {
             val.setX(i);
@@ -63,6 +80,10 @@ public class StringOffHeapTest {
         long dur = System.currentTimeMillis() - tim+1;
         System.out.println("put need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
         System.out.println("free: "+store.getFreeMem()/1024/1024);
+        for ( int i = 0; i < store.getSize(); i++ ) {
+            String key = "test:" + i;
+            Assert.assertTrue(store.get(key).getX() == i);
+        }
         Assert.assertTrue(store.getSize() == MAX);
         store.free();
     }

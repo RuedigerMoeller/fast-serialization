@@ -1,8 +1,8 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import org.nustaq.heapoff.structs.Align;
-import org.nustaq.heapoff.structs.FSTStruct;
-import org.nustaq.heapoff.structs.NoAssist;
+import org.nustaq.offheap.structs.Align;
+import org.nustaq.offheap.structs.FSTStruct;
+import org.nustaq.offheap.structs.NoAssist;
 
 import java.awt.*;
 

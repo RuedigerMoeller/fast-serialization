@@ -1,8 +1,8 @@
 package de.ruedigermoeller.heapofftest.structs;
 
-import org.nustaq.heapoff.structs.FSTTypedStructAllocator;
-import org.nustaq.heapoff.structs.structtypes.StructArray;
-import org.nustaq.heapoff.structs.structtypes.StructString;
+import org.nustaq.offheap.structs.FSTTypedStructAllocator;
+import org.nustaq.offheap.structs.structtypes.StructArray;
+import org.nustaq.offheap.structs.structtypes.StructString;
 import de.ruedigermoeller.heapofftest.gcbenchmarks.BasicGCBench;
 import de.ruedigermoeller.serialization.testclasses.HtmlCharter;
 

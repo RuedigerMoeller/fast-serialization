@@ -1,9 +1,4 @@
-package de.ruedigermoeller.heapofftest.structs;
-
-import org.nustaq.offheap.structs.FSTStruct;
-import org.nustaq.offheap.structs.structtypes.StructString;
-
-import java.util.TimeZone;
+package org.nustaq.offheap.bytez;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -23,24 +18,14 @@ import java.util.TimeZone;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  * <p/>
- * Date: 10.07.13
- * Time: 01:29
+ * Date: 16.11.13
+ * Time: 12:37
  * To change this template use File | Settings | File Templates.
  */
-public class TestTimeZone extends FSTStruct {
+public interface BytezAllocator {
 
-    protected StructString zoneId = new StructString("GMT", 10);
-
-    public StructString getZoneId() {
-        return zoneId;
-    }
-
-    public void setZoneId(StructString zoneId) {
-        this.zoneId = zoneId;
-    }
-
-    public TimeZone getTimeZone() {
-        return TimeZone.getTimeZone(zoneId.toString());
-    }
+    public Bytez alloc(long len);
+    public void free( Bytez bytes );
+    public void freeAll();
 
 }
