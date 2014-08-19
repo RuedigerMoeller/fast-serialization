@@ -92,7 +92,6 @@ older version (slightly faster, less features, serialization probably more stabl
 
 <ul>
 <li>specialized on java-to-java, no inter language operability.</li>
-<li>no support for versioning. Reader and writer need to have identical versions of the classes serialized.</li>
 <li>reads/writes to a temporary buffer in memory to speed up things. This might impose a problem when reading/writing huge objects &gt; 100MB</li>
 <li>emulating JDK built in <code>Externalizable</code> is somewhat tricky. FST needs to speculate on the maximum size of a single externalizable instance. Default setting is 8kb. In case you use <code>Externalizable</code> and write large binary data from one single <code>Externalizable</code> instance without return control to the serializer, you have to increase both <code>externalReadAhead</code> and <code>externalWriteAhead</code> at the <code>FSTObjectOutput</code> and <code>FSTObjectInput</code> class. You might also consider to just replace <code>Externalizable</code> by <code>Serializable</code>. In fact FST frequently does <code>Serializable</code> faster than built in JDK <code>Externalizable</code> implementations.</li>
 <li>direct reading from a blocking stream (e.g. socketinputstream):
