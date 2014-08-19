@@ -2,11 +2,17 @@ package ser;
 
 import com.cedarsoftware.util.DeepEquals;
 import org.junit.Test;
+import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.minbin.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -101,6 +107,44 @@ public class MinBinTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static class ARecord implements Serializable {
+        String name;
+        String profession;
+        int postalCode;
+
+        public ARecord(String name, String profession, int postalCode) {
+            this.name = name;
+            this.profession = profession;
+            this.postalCode = postalCode;
+        }
+
+    }
+
+    public static class MinBinDemo implements Serializable {
+        HashMap aMap;
+        List aList;
+        int i[] = {1,2,3};
+
+        public MinBinDemo() {
+            aMap = new HashMap();
+            aMap.put("x", new ARecord("Heinz","butcher",56555));
+            aMap.put("xy", new ARecord("Daphne","unknwon",43355));
+            aList = new ArrayList<>();
+            aList.add(aMap);
+            aList.add("Second Item");
+        }
+    }
+
+    @Test
+    public void demo() {
+        FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
+        conf.registerCrossPlatformClassMappingUseSimpleName( Arrays.asList(
+                MinBinDemo.class,
+                ARecord.class
+        ));
+        new MBPrinter().printMessage(conf.asByteArray(new MinBinDemo()));
     }
 
     @Test

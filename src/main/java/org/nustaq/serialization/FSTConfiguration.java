@@ -625,9 +625,9 @@ public final class FSTConfiguration {
     }
 
     /**
+     * Note: UNUSED, not yet implemented
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      * @param names { "varName", .. } for each of these an id will be written instead of full name.
-     *              SENDER AND RECEIVER NEED TO BE CONFIGURED WITH EXACTLY THE SAME LIST, ORDER !!!
      */
     public void registerCrossPlatformAttributeNames( String ... names ) {
         for (int i = 0; i < names.length; i++) {
