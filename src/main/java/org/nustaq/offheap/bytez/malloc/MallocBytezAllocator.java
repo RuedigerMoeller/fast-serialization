@@ -37,6 +37,7 @@ public class MallocBytezAllocator implements BytezAllocator {
     @Override
     public Bytez alloc(long len) {
         MallocBytez mallocBytez = new MallocBytez(MallocBytez.unsafe.allocateMemory(len), len);
+        mallocBytez.clear();
         allocated.add(mallocBytez);
         alloced.getAndAdd(len);
         return mallocBytez;

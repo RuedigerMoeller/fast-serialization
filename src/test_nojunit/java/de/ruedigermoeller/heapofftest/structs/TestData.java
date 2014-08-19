@@ -5,7 +5,6 @@ import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.offheap.structs.Templated;
 import org.nustaq.offheap.structs.structtypes.StructArray;
 import org.nustaq.offheap.structs.structtypes.StructInt;
-import org.nustaq.offheap.structs.structtypes.StructMap;
 import org.nustaq.offheap.structs.structtypes.StructString;
 
 /**
@@ -57,7 +56,6 @@ public class TestData extends FSTStruct {
 
     protected StructString string = new StructString("Hallo",50);
     protected StructArray<TestData> dataStructArray;
-    protected StructMap<StructInt,StructString> structMap = new StructMap<StructInt, StructString>(new StructInt(0),new StructString(10),10);
     protected TestData nested;
 
     public byte getA() {
@@ -162,10 +160,6 @@ public class TestData extends FSTStruct {
         return null;
     }
 
-
-    public StructMap<StructInt, StructString> getStructMap() {
-        return structMap;
-    }
 
     public StructArray<TestData> getDataStructArray() {
         return dataStructArray;

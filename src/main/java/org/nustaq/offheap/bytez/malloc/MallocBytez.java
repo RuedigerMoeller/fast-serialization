@@ -378,4 +378,8 @@ public class MallocBytez implements Bytez {
     public long getLength() {
         return length;
     }
+
+    public void clear() {
+        unsafe.setMemory(baseAdress,length, (byte) 0);
+    }
 }

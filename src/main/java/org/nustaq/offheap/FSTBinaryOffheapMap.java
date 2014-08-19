@@ -1,6 +1,7 @@
 package org.nustaq.offheap;
 
 import org.nustaq.offheap.bytez.ByteSource;
+import org.nustaq.offheap.bytez.bytesource.AsciiStringByteSource;
 import org.nustaq.offheap.bytez.bytesource.BytezByteSource;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MMFBytez;
@@ -35,6 +36,7 @@ public class FSTBinaryOffheapMap {
     public static final int FILE_HEADER_LEN = CORE_HEADER_LEN +CUSTOM_FILEHEADER_LEN; // 0 - numelems, 4 - magic num
 
     final static int HEADER_TAG = 0xe5e1; // can be used to recover corrupted data
+    public static final int KEY_OFFSET_IN_HEADER = 16;
 
     private BytezByteSource tmpValueBytez;
 
@@ -75,13 +77,13 @@ public class FSTBinaryOffheapMap {
 
             while (elemCount < numElem) {
                 int len = getLenFromHeader(off);
-                int contentLen = getContentLenFromHeader(off);
+//                int contentLen = getContentLenFromHeader(off);
 
                 boolean removed = memory.get(off+4) != 0;
 
                 if ( ! removed ) {
                     elemCount++;
-                    byteIter.setOff(off + 16); // 16 = offset of key in header
+                    byteIter.setOff(off + KEY_OFFSET_IN_HEADER); // 16 = offset of key in header
                     byteIter.setLen(keyLen);
                     index.put(byteIter, off);
                     bytezOffset = off+getHeaderLen()+len;
@@ -244,6 +246,7 @@ public class FSTBinaryOffheapMap {
 
     protected void decElems() {
         numElem--;
+        memory.putInt(0, numElem);
     }
 
     protected void incElems() {

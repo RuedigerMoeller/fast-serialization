@@ -138,6 +138,7 @@ public class OffHeapByteTree {
         return res;
     }
 
+    // sparse array
     class PArray {
 
         PArray(int numEntries, int tag) {
@@ -285,6 +286,7 @@ public class OffHeapByteTree {
         }
     }
 
+    // full array
     class FullPArray {
 
         public static final int TABLE_SIZE = 256*8+4; // first is tag
