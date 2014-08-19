@@ -33,7 +33,7 @@
 <li>
 <strong>Fast Serialization</strong> reimplements Java Serialization with focus on speed, size and compatibility. This allows the use of FST with minimal code change. </li>
 <li>
-<strong>FSTStructs</strong> implements a struct emulation to avoid de-/encoding completely. Use case is high performance message oriented software, huge (&gt;32GB) of static offheap data, data exchange with other languages, reduction of FullGC by 'flattening' or offheaping complex object graphs, Control of data locality (CPU cache friendly) for high performance computational tasks, allocation free java programs. </li>
+<strong>ByProducts</string> are OffHeap Maps, Persistent Maps, Struct emulation</li>
 </ul><h4>
 <a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>features:</h4>
 
@@ -59,6 +59,15 @@
 <p>Note: fixes+updates are delivered with some delay to maven central, check downloads first
 for newest version</p>
 
+current:
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>2.00<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
+
+older version (slightly faster, less features, serialization probably more stable)
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
@@ -74,7 +83,7 @@ for newest version</p>
 <h4>
 <a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h4>
 
-<p>see <a href="https://github.com/RuedigerMoeller/fast-serialization/wiki">Wiki</a>, some documents are still not moved/ported from <a href="https://code.google.com/p/fast-serialization/">https://code.google.com/p/fast-serialization/</a>. Read them there.</p>
+<p>see <a href="https://github.com/RuedigerMoeller/fast-serialization/wiki">Wiki</a></p>
 
 <p>Also see this <a href="http://java-is-the-new-c.blogspot.de/2013/10/still-using-externalizable-to-get.html">blog post</a>.</p>
 
