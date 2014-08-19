@@ -1,19 +1,25 @@
 fast-serialization
 ==================
 
+* 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..).
+* OffHeap Maps, Persistent OffHeap maps
 
 Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure childishness)
 
-###Documentation
-
-[Quick Start](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
-
-[All Pages](https://github.com/RuedigerMoeller/fast-serialization/wiki)
+###[Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
 
 ###mvn
 
-Do not use 1.56, is has major issues.
+2.0 version
+```.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>2.00</version>
+</dependency>
+```
 
+Older version (serialization is stable and slightly faster, different package name ..)
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
@@ -24,7 +30,7 @@ Do not use 1.56, is has major issues.
 
 ###how to build 
 
-* master contains dev branch/trunk (2.0-SNAPSHOT). Currently productive is the 1.x branch. 
+* master contains dev branch/trunk. Currently productive is the 1.x branch. 
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
