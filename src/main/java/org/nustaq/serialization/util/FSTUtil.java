@@ -23,7 +23,9 @@ import sun.misc.Unsafe;
 import sun.reflect.ReflectionFactory;
 
 import java.io.ObjectStreamField;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.lang.reflect.*;
 
 /**
@@ -109,6 +111,13 @@ public class FSTUtil {
             count += length;
         }
         System.arraycopy(EmptyObjArray,0,arr,count, arrlen -count);
+    }
+
+    public static String toString(Throwable th) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        th.printStackTrace(pw);
+        return th.getClass().getSimpleName()+":"+th.getMessage()+"\n"+sw.toString();
     }
 
     public static RuntimeException rethrow( Throwable ex ) {

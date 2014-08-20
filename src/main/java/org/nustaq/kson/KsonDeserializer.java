@@ -466,7 +466,7 @@ public class KsonDeserializer {
     }
 
     protected boolean isIdPart(int ch) {
-        return Character.isLetterOrDigit(ch) || ch == '$' || ch == '#' || ch == '_';
+        return Character.isLetterOrDigit(ch) || ch == '$' || ch == '#' || ch == '_' || ch == '.';
     }
 
     protected boolean isIdStart(int ch) {
