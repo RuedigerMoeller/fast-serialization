@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class KsonTest {
 
-    public static class SomePojoConfig implements Serializable {
+    public static class SomePojoConfig {
         String aString;
         HashMap<String,PojoConfigItem> aMap;
         Map<PojoConfigItem,String> objectMap;
@@ -38,7 +38,7 @@ public class KsonTest {
             .map("test", SomePojoConfig.class)
             .map("pojo", PojoConfigItem.class)
             .map("other", OtherPojoConfigItem.class);
-        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/kson/test.kson"));;
+        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/kson/test.kson"));
         Assert.assertTrue(result.aList.get(1).nameList[0].equals("Short"));
         Assert.assertTrue(result.untypedList.size() == 2);
 

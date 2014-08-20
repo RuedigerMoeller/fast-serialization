@@ -212,7 +212,28 @@ public final class FSTConfiguration {
         return streamCoderFactory;
     }
 
-    void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
+    /**
+     * allows to use subclassed stream codecs. Can also be used to change class loading behaviour, as
+     * clasForName is part of a codec's interface.
+     *
+     * e.g. new StreamCoderFactory() {
+     *   @Override
+     *   public FSTEncoder createStreamEncoder() {
+     *      return new FSTStreamEncoder(FSTConfiguration.this);
+     *   }
+     *
+     *   @Override
+     *   public FSTDecoder createStreamDecoder() {
+     *      return new FSTStreamDecoder(FSTConfiguration.this) { public Class classForName(String name) { ... }  } ;
+     *   }
+     * };
+     *
+     * You need to work with thread locals most probably as the factory is ~global (assigned to fstconfiguration shared amongst
+     * streams)
+     *
+     * @param streamCoderFactory
+     */
+    public void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
         this.streamCoderFactory = streamCoderFactory;
     }
 
