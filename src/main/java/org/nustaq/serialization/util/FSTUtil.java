@@ -165,14 +165,15 @@ public class FSTUtil {
             Constructor c = curCl.getDeclaredConstructor((Class[]) null);
             int mods = c.getModifiers();
             if ((mods & Modifier.PRIVATE) != 0 ||
-                    ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
-                            !isPackEq(clazz, curCl)))
-            {
+                ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
+                    !isPackEq(clazz, curCl))) {
                 return null;
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
             c.setAccessible(true);
             return c;
+        } catch (NoClassDefFoundError cle) {
+            return null;
         } catch (NoSuchMethodException ex) {
             return null;
         }
