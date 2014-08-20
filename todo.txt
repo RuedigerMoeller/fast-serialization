@@ -1,7 +1,1 @@
-- MBObject/Sequence write
 - be able to process both length delimited/terminated sequences, objects
-- MinBinUtil
-- update doc to 2.0
-- MinBin split + doc
-- MinBin from text
-- test
