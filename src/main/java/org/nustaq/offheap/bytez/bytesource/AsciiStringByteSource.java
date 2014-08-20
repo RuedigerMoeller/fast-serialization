@@ -31,7 +31,7 @@ public class AsciiStringByteSource implements ByteSource {
 
     @Override
     public byte get(long index) {
-        return (byte) (string.charAt(((int) (index + off))) & 0x7f);
+        return (byte) string.charAt(((int) (index + off)));
     }
 
     @Override
