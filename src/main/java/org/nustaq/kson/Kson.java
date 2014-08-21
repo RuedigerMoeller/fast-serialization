@@ -96,6 +96,7 @@ public class Kson {
     }
 
     public Object readObject(String dsonOrJSon, String expectedType, KsonArgTypesResolver resolve) throws Exception {
+//        System.out.println(dsonOrJSon);
         KsonStringCharInput in = new KsonStringCharInput(dsonOrJSon);
         final Class type = mapper.getType(expectedType);
         return new KsonDeserializer(in, mapper).setArgTypesRessolver(resolve).readObject(type, String.class, null);

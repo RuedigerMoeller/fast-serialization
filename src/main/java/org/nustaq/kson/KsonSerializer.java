@@ -238,12 +238,12 @@ public class KsonSerializer {
                 Class clz = (Class) fieldValue;
                 return isSingleLineCLazz(clz);
             }
-            return fieldValue!=null && isSingleLineCLazz(fieldValue.getClass());
+            return fieldValue==null || isSingleLineCLazz(fieldValue.getClass());
         }
         if (fstFieldInfo.isArray() && isSingleLine(null, fstFieldInfo.getType().getComponentType())) {
             return true;
         }
-        return (fieldValue!=null && isSingleLineCLazz(fieldValue.getClass())) || isSingleLineCLazz(fstFieldInfo.getType());
+        return (fieldValue==null || isSingleLineCLazz(fieldValue.getClass())) || isSingleLineCLazz(fstFieldInfo.getType());
     }
 
     private boolean isSingleLineCLazz(Class clz) {
@@ -340,7 +340,9 @@ public class KsonSerializer {
         boolean ws = false;
         for (int ii = 0; ii < string.length(); ii++) {
             final char ch = string.charAt(ii);
-            if (Character.isWhitespace(ch) || ch == ',' || ch == ':' || ch == '[' || ch == ']' || ch == '{' || ch == '}') {
+            if (ii==0 && !Character.isLetter(ch) )
+                return true;
+            if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '-' && ch != '(' && ch != ')' && ch != '[' && ch != ']' && ch != '.') {
                 ws = true;
                 break;
             }

@@ -99,6 +99,8 @@ public class KsonTypeMapper {
      * @return
      */
     public Object coerceReading(Class type, Object readObject) {
+        if (type==null)
+            return readObject;
         // make hashmaps from arrays. warning: for optimal performance, use direct arrays[] only in your serialized classes
         if ( Map.class.isAssignableFrom(type) && readObject.getClass().isArray() ) {
             try {

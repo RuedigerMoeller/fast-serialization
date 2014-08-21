@@ -133,6 +133,7 @@ public class KsonDeserializer {
                     throw new RuntimeException(clInfo.getClazz().getName()+" misses a default constructor. Instantiation failed.");
                 }
                 List keyVals = readObjectFields(clInfo);
+
                 for (int i = 0; i < keyVals.size(); i += 2) {
                     String fi = (String) keyVals.get(i);
                     Object val = keyVals.get(i + 1);
@@ -298,7 +299,7 @@ public class KsonDeserializer {
             // string
             return mapper.coerceReading(expected, readString(ch == '"' || ch == '\''));
         } else if (Character.isLetter(ch) || ch == '{' || ch == '[') {
-            if ( ch == '[' /*&& ! isContainer(expected) */&& (expected == null || expected == Object.class)) {
+            if ( ch == '[' /*&& ! isContainer(expected) */&& (expected == null || expected == Object.class || expected.isInterface())) {
                 in.readChar();
                 return readList(genericKeyType, genericValueType);
             } else {
