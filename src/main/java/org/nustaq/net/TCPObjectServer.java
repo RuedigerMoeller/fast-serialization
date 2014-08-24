@@ -31,14 +31,14 @@ public class TCPObjectServer {
         this.port = port;
     }
 
-    public void start(NewClientListener listener) throws IOException {
+    public void start(final NewClientListener listener) throws IOException {
         new Thread("server "+port) {
             public void run() {
                 try {
                     welcomeSocket = new ServerSocket(port);
                     int count = 0;
                     while (!terminated) {
-                        Socket connectionSocket = welcomeSocket.accept();
+                        final Socket connectionSocket = welcomeSocket.accept();
                         new Thread("tcp client "+count++) {
                             public void run() {
                                 try {
