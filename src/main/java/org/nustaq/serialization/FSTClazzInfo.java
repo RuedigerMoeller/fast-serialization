@@ -240,8 +240,10 @@ public final class FSTClazzInfo {
         if (Modifier.isTransient(field.getModifiers()))
             return true;
         while (c.getName().indexOf("$") >= 0) {
-            c = c.getSuperclass(); // patch fuer reallive queries
+            c = c.getSuperclass(); // patch fuer reallive queries, kontraktor spore
         }
+        if ( field.getName().startsWith("this$") && c.getAnnotation(AnonymousTransient.class) != null )
+            return true;
         return (c.getAnnotation(Transient.class) != null && field.getAnnotation(Serialize.class) == null);
     }
 
