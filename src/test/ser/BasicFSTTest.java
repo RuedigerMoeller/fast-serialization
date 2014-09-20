@@ -419,25 +419,29 @@ public class BasicFSTTest {
                 add(in.readObject());
             }
         }
+
+        public SubClassedAList $(Object o) {
+            add(o);
+            return this;
+        }
     }
 
     @Test
     public void testExternalizableOverride() {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
-        SubClassedAList original = new SubClassedAList();
-        original.add("A");
-        original.add("B");
-        original.add("C");
+        SubClassedAList original = new SubClassedAList().$("A").$("B").$("C");
         assertTrue(DeepEquals.deepEquals(original, conf.asObject(conf.asByteArray(original))) );
     }
 
     static class NotSer {
         int x;
         int y;
+        SubClassedAList al;
 
         private NotSer(int x, int y) {
             this.x = x;
             this.y = y;
+            al = new SubClassedAList().$("A").$("B").$("C");
         }
 
         public int getX() {
@@ -449,10 +453,29 @@ public class BasicFSTTest {
         }
     }
 
+    static class NotSerSub extends NotSer {
+
+        transient boolean pubConsCalled = false;
+
+        public NotSerSub() {
+            super(0,0);
+            pubConsCalled = true;
+        }
+
+        private NotSerSub(int x, int y) {
+            super(x, y);
+        }
+    }
+
     @Test
     public void testNotSerializable() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
-        conf.setForceSerializable(true);
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration().setForceSerializable(true);
+        NotSer ser = new NotSer(11,12);
+        assertTrue(DeepEquals.deepEquals(ser, conf.asObject(conf.asByteArray(ser))) );
+        NotSerSub sersub = new NotSerSub(11,12);
+        final Object deser = conf.asObject(conf.asByteArray(sersub));
+        assertTrue(DeepEquals.deepEquals(sersub, deser) );
+        assertTrue(((NotSerSub) deser).pubConsCalled);
     }
 
     @org.junit.After

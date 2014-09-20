@@ -301,6 +301,13 @@ public class KsonDeserializer {
         } else if (Character.isLetter(ch) || ch == '{' || ch == '[') {
             if ( ch == '[' /*&& ! isContainer(expected) */&& (expected == null || expected == Object.class || expected.isInterface())) {
                 in.readChar();
+                if ( expected != null &&
+                    ! Map.class.isAssignableFrom(expected) &&
+                    Collection.class.isAssignableFrom(expected) &&
+                    genericValueType == null ) {
+                    // default vlaueType to keyType for nnon-maps
+                    genericValueType = genericKeyType;
+                }
                 return readList(genericKeyType, genericValueType);
             } else {
                 // object

@@ -317,8 +317,9 @@ public final class FSTConfiguration {
      * treat unserializable classes same as if they would be serializable.
      * @param forceSerializable
      */
-    public void setForceSerializable(boolean forceSerializable) {
+    public FSTConfiguration setForceSerializable(boolean forceSerializable) {
         this.forceSerializable = forceSerializable;
+        return this;
     }
 
     /**
