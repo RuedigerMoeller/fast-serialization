@@ -359,7 +359,7 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                         }
                     }
                     // clazz uses some JDK special stuff (frequently slow)
-                    if ( serializationInfo.useCompatibleMode() ) {
+                    if ( serializationInfo.useCompatibleMode() && ! serializationInfo.isExternalizable() ) {
                         writeObjectCompatible(referencee, toWrite, serializationInfo);
                         return;
                     }
