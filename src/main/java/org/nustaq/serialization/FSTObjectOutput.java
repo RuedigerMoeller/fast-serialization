@@ -418,7 +418,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         }
                     }
                     // clazz uses some JDK special stuff (frequently slow)
-                    if ( serializationInfo.useCompatibleMode() ) {
+                    if ( serializationInfo.useCompatibleMode() && ! serializationInfo.isExternalizable() ) {
                         writeObjectCompatible(referencee, toWrite, serializationInfo);
                         return;
                     }
@@ -477,7 +477,7 @@ public class FSTObjectOutput implements ObjectOutput {
     private void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
         FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.compInfo.get(cl);
         if ( ! Serializable.class.isAssignableFrom(cl) ) {
-            return;
+            return; // ok here, as compatible mode will never be triggered for "forceSerializable"
         }
         writeObjectCompatibleRecursive(referencee,toWrite,serializationInfo,cl.getSuperclass());
         if ( fstCompatibilityInfo != null && fstCompatibilityInfo.getWriteMethod() != null ) {

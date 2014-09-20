@@ -61,8 +61,10 @@ public final class FSTConfiguration {
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry(this);
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
-    boolean preferSpeed = false;
+    boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
+    boolean shareReferences = true;
     ClassLoader classLoader = getClass().getClassLoader();
+    boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
 
     /////////////////////////////////////
     // cross platform stuff only
@@ -200,7 +202,7 @@ public final class FSTConfiguration {
 
     public static FSTConfiguration createStructConfiguration() {
         FSTConfiguration conf = new FSTConfiguration();
-        conf.setIgnoreSerialInterfaces(true);
+        conf.setStructMode(true);
         return conf;
     }
 
@@ -307,6 +309,18 @@ public final class FSTConfiguration {
         return null;
     }
 
+    public boolean isForceSerializable() {
+        return forceSerializable;
+    }
+
+    /**
+     * treat unserializable classes same as if they would be serializable.
+     * @param forceSerializable
+     */
+    public void setForceSerializable(boolean forceSerializable) {
+        this.forceSerializable = forceSerializable;
+    }
+
     /**
      * clear cached softref's and ThreadLocal. Use if you won't read/write objects anytime soon.
      */
@@ -316,8 +330,6 @@ public final class FSTConfiguration {
             cachedObjects.clear();
         }
     }
-
-    boolean shareReferences = true;
 
     public boolean isShareReferences() {
         return shareReferences;
@@ -562,11 +574,22 @@ public final class FSTConfiguration {
         return fstObjectOutput;
     }
 
-    public void setIgnoreSerialInterfaces(boolean ignoreSerialInterfaces) {
+    /**
+     * ignores all serialization related interfaces (Serializable, Externalizable) and serializes all classes using the
+     * default scheme. Warning: this is a special mode of operation which fail serializing/deserializing many standard
+     * JDK classes.
+     *
+     * @param ignoreSerialInterfaces
+     */
+    public void setStructMode(boolean ignoreSerialInterfaces) {
         serializationInfoRegistry.setStructMode(ignoreSerialInterfaces);
     }
 
-    public boolean isIgnoreSerialInterfaces() {
+    /**
+     * @see setStructMode()
+     * @return
+     */
+    public boolean isStructMode() {
         return serializationInfoRegistry.isStructMode();
     }
 
@@ -582,7 +605,7 @@ public final class FSTConfiguration {
         return crossPlatform;
     }
 
-    public <T extends Serializable> T deepCopy(T metadata) {
+    public <T> T deepCopy(T metadata) {
         return (T) asObject(asByteArray(metadata));
     }
 
@@ -698,9 +721,9 @@ public final class FSTConfiguration {
     }
 
     /**
-     * convenience
+     * convenience. (object must be serialiable unless fstconfiguration with appropriate settings is used)
      */
-    public byte[] asByteArray( Serializable object ) {
+    public byte[] asByteArray( Object object ) {
         FSTObjectOutput objectOutput = getObjectOutput();
         try {
             objectOutput.writeObject(object);

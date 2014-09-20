@@ -155,6 +155,10 @@ public class FSTUtil {
     }
 
     public static Constructor findConstructorForSerializable(Class clazz) {
+        if ( ! Serializable.class.isAssignableFrom(clazz) ) {
+            // in case forceSerializable flag is present, just look for no-arg constructor
+            return findConstructorForExternalize(clazz);
+        }
         Class curCl = clazz;
         while (Serializable.class.isAssignableFrom(curCl)) {
             if ((curCl = curCl.getSuperclass()) == null) {

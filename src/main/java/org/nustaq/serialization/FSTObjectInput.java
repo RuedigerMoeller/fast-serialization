@@ -523,7 +523,7 @@ public class FSTObjectInput implements ObjectInput {
     protected void readObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toRead, FSTClazzInfo serializationInfo, Class cl) throws Exception {
         FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.compInfo.get(cl);
         if (!Serializable.class.isAssignableFrom(cl)) {
-            return;
+            return; // ok here, as compatible mode will never be triggered for "forceSerializable"
         }
         readObjectCompatibleRecursive(referencee, toRead, serializationInfo, cl.getSuperclass());
         if (fstCompatibilityInfo != null && fstCompatibilityInfo.getReadMethod() != null) {

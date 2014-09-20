@@ -96,9 +96,11 @@ public final class FSTClazzInfo {
 
 
     FSTClazzInfoRegistry reg;
+    FSTConfiguration conf;
     boolean crossPlatform;
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
+        this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
         crossPlatform = conf.isCrossPlatform();
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
@@ -113,9 +115,14 @@ public final class FSTClazzInfo {
             externalizable = false;
             cons = FSTUtil.findConstructorForSerializable(clazz);
         } else {
-            if (!reg.isStructMode())
-                throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
-            else {
+            if (!reg.isStructMode()) {
+                if ( conf.isForceSerializable() ) {
+                    externalizable = false;
+                    cons = FSTUtil.findConstructorForSerializable(clazz);
+                } else {
+                    throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
+                }
+            } else {
                 cons = FSTUtil.findConstructorForSerializable(clazz);
             }
         }
@@ -195,6 +202,20 @@ public final class FSTClazzInfo {
         try {
             if (!doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
+            }
+            if ( cons == null ) // no suitable constructor found
+            {
+                if ( conf.isForceSerializable() || cons == null ) {
+                    // best effort. use Unsafe to instantiate.
+                    // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
+                    // those will not be assigned after deserialization as unsafe instantiation does not execute any default
+                    // construction code.
+                    // Define a public no-arg constructor to avoid this behaviour (rarely an issue, but there are cases).
+                    if ( FSTUtil.unFlaggedUnsafe != null ) {
+                        return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
+                    }
+                    throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate "+clazz.getName());
+                }
             }
             return cons.newInstance();
         } catch (Throwable ignored) {

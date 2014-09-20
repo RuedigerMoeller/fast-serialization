@@ -7,10 +7,7 @@ import org.nustaq.serialization.FSTObjectOutput;
 import org.junit.Test;
 import org.nustaq.serialization.annotations.Version;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -400,7 +397,64 @@ public class BasicFSTTest {
         assertTrue(res == res1);
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
-    
+
+    public static class SubClassedAList extends ArrayList implements Externalizable {
+
+        public SubClassedAList() {
+            super();
+        }
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeInt(size());
+            for (int i = 0; i < size(); i++) {
+                out.writeObject(get(i));
+            }
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            int len = in.readInt();
+            for (int i = 0; i < len; i++) {
+                add(in.readObject());
+            }
+        }
+    }
+
+    @Test
+    public void testExternalizableOverride() {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        SubClassedAList original = new SubClassedAList();
+        original.add("A");
+        original.add("B");
+        original.add("C");
+        assertTrue(DeepEquals.deepEquals(original, conf.asObject(conf.asByteArray(original))) );
+    }
+
+    static class NotSer {
+        int x;
+        int y;
+
+        private NotSer(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+    }
+
+    @Test
+    public void testNotSerializable() {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.setForceSerializable(true);
+    }
+
     @org.junit.After
     public void tearDown() throws Exception {
 
