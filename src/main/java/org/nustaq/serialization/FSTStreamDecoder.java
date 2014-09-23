@@ -422,7 +422,8 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void readPlainBytes(byte[] b, int off, int len) {
         input.ensureReadAhead(len);
-        System.arraycopy(input.buf,input.pos,b,off,len);       
+        System.arraycopy(input.buf,input.pos,b,off,len);
+        input.pos += len;
     }
 
     @Override

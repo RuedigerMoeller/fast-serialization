@@ -429,8 +429,9 @@ public class BasicFSTTest {
     @Test
     public void testExternalizableOverride() {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
-        SubClassedAList original = new SubClassedAList().$("A").$("B").$("C");
-        assertTrue(DeepEquals.deepEquals(original, conf.asObject(conf.asByteArray(original))) );
+        Object original[] = {"A", new SubClassedAList().$("A").$("B").$("C"), "Ensure stream not corrupted" };
+        Object deser = conf.asObject(conf.asByteArray(original));
+        assertTrue( DeepEquals.deepEquals(original, deser) );
     }
 
     static class NotSer {
@@ -476,6 +477,65 @@ public class BasicFSTTest {
         final Object deser = conf.asObject(conf.asByteArray(sersub));
         assertTrue(DeepEquals.deepEquals(sersub, deser) );
         assertTrue(((NotSerSub) deser).pubConsCalled);
+    }
+
+
+    public static class TestArray extends ArrayList<Integer> implements Externalizable {
+
+        transient public byte[] bytes1, bytes2;
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeInt(2);
+            out.writeInt(548);
+            out.writeInt(348);
+            byte[] bytes = new byte[1024];
+            for (int i = 0; i < 548; i++) {
+                bytes[i] = 1;
+            }
+            out.write(bytes, 0, 548);
+            bytes = new byte[1024];
+            for (int i = 0; i < 348; i++) {
+                bytes[i] = 2;
+            }
+            out.write(bytes, 0, 348);
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            int v1 = in.readInt();
+            int v2 = in.readInt();
+            int v3 = in.readInt();
+            bytes1 = new byte[v2];
+            in.readFully(bytes1);
+            bytes2 = new byte[v3];
+            in.readFully(bytes2);
+            int v4 = 0;
+        }
+    }
+
+    @Test
+    public void fastRoundTrip()
+        throws IOException, ClassNotFoundException {
+        TestArray list = new TestArray();
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        FSTObjectOutput objOut = new FSTObjectOutput(os);
+        objOut.writeObject(list);
+        objOut.close();
+
+        ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
+        FSTObjectInput objIn = new FSTObjectInput(is);
+//        objIn.setReadExternalReadAHead(16000);
+        TestArray res = (TestArray) objIn.readObject();
+        for (int i = 0; i < res.bytes1.length; i++) {
+            assertTrue(res.bytes1[i] == 1);
+        }
+        for (int i = 0; i < res.bytes2.length; i++) {
+            assertTrue(res.bytes2[i] == 2);
+        }
+        assertTrue(res.bytes1[547] == 1 && res.bytes2[347] == 2);
+
+
     }
 
     @org.junit.After
