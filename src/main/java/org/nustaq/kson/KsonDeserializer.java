@@ -30,18 +30,52 @@ import java.util.*;
  */
 
 /**
- * parses kkaiser format as well as json. somewhat quick&dirty, anyway targeted for easy mapping of config files/data and
+ * parses kson format as well as json. somewhat quick&dirty, anyway targeted for easy mapping of config files/data and
  * to connect kontraktor's actors to slow-end tech like webservices & jscript front ends.
+ *
+ * Note: this is pretty fuzzy code (typeguessing, best effort parsing ..)
  */
 public class KsonDeserializer {
 
+    public static boolean DEBUG_STACK = false; // turn on for parsestack on error, slows down !!
+
     protected KsonCharInput in;
     protected KsonTypeMapper mapper;
+    protected Stack<ParseStep> stack;
+
     private KsonArgTypesResolver argTypesRessolver;
+
+    static class ParseStep {
+        KsonCharInput in;
+        int position;
+        String action;
+
+        ParseStep(KsonCharInput in, int position, String action) {
+            this.in = in;
+            this.position = position;
+            this.action = action;
+        }
+
+        ParseStep(String action, KsonCharInput in) {
+            this(in, in.position(),action);
+        }
+
+        @Override
+        public String toString() {
+            return ""+action+" at pos:"+position;
+        }
+    }
+
 
     public KsonDeserializer(KsonCharInput in, KsonTypeMapper mapper) {
         this.in = in;
         this.mapper = mapper;
+        if (DEBUG_STACK) {
+            stack = new Stack<>();
+            if ( in instanceof KsonStringCharInput ) {
+                ((KsonStringCharInput) in).stack = stack;
+            }
+        }
     }
 
     public void skipWS() {
@@ -94,6 +128,12 @@ public class KsonDeserializer {
             if (mappedClass == Map.class)
                 mappedClass = HashMap.class;
             FSTClazzInfo clInfo = Kson.conf.getCLInfoRegistry().getCLInfo(mappedClass);
+            if (DEBUG_STACK) {
+                if ( clInfo != null ) {
+                    stack.push(new ParseStep("try reading type " + clInfo.getClazz().getName(), in));
+                } else
+                    stack.push(new ParseStep("try reading unknown object type", in));
+            }
             int ch = in.readChar();
             if (ch != '{' && ch != '[') {
                 throw new KsonParseException("expected '{' or '['", in);
@@ -101,11 +141,17 @@ public class KsonDeserializer {
             Object res = null;
             if (Map.class.isAssignableFrom(clInfo.getClazz())) {
                 res = clInfo.newInstance(true);
+                if (DEBUG_STACK) {
+                    stack.push(new ParseStep("read map " + clInfo.getClazz().getName()+"<"+genericKeyType+","+genericValueType+">", in));
+                }
                 List keyVals = readList(genericKeyType, genericValueType);
                 for (int i = 0; i < keyVals.size(); i += 2) {
                     Object fi = keyVals.get(i);
                     Object val = keyVals.get(i + 1);
                     ((Map) res).put(fi, val);
+                }
+                if (DEBUG_STACK) {
+                    stack.pop();
                 }
             } else if (Collection.class.isAssignableFrom(clInfo.getClazz())) {
                 List keyVals = readList(genericKeyType, genericKeyType);
@@ -114,18 +160,30 @@ public class KsonDeserializer {
                 } else {
                     res = clInfo.newInstance(true);
                 }
+                if (DEBUG_STACK) {
+                    stack.push(new ParseStep("read list " + clInfo.getClazz().getName()+"<"+genericKeyType+"|"+genericValueType+">", in));
+                }
                 for (int i = 0; i < keyVals.size(); i++) {
                     Object o = keyVals.get(i);
                     ((Collection) res).add(o);
+                }
+                if (DEBUG_STACK) {
+                    stack.pop();
                 }
             } else if (clInfo.getClazz().isArray()) {
                 Class componentType = clInfo.getClazz().getComponentType();
                 if (componentType.isArray())
                     new KsonParseException("nested arrays not supported", in);
+                if (DEBUG_STACK) {
+                    stack.push(new ParseStep("read array of type " + clInfo.getClazz().getComponentType().getName(), in));
+                }
                 List keyVals = readList(componentType, componentType);
                 res = Array.newInstance(componentType, keyVals.size());
                 for (int i = 0; i < keyVals.size(); i++) {
                     Array.set(res, i, keyVals.get(i));
+                }
+                if (DEBUG_STACK) {
+                    stack.pop();
                 }
             } else {
                 res = clInfo.newInstance(true);
@@ -139,6 +197,9 @@ public class KsonDeserializer {
                     Object val = keyVals.get(i + 1);
                     clInfo.getFieldInfo(fi, null).getField().set(res, val);
                 }
+            }
+            if (DEBUG_STACK) {
+                stack.pop();
             }
             return res;
         } catch (Exception ex) {
@@ -166,9 +227,13 @@ public class KsonDeserializer {
     }
 
     protected List readObjectFields(FSTClazzInfo targetClz) throws Exception {
+
         ArrayList result = new ArrayList();
         skipWS();
 
+        if (DEBUG_STACK) {
+            stack.push(new ParseStep("read object of type "+targetClz.getClazz().getName(),in));
+        }
         while (in.peekChar() > 0 && in.peekChar() != '}' && in.peekChar() != ']') {
 
             if (in.peekChar() == ':' || in.peekChar() == ',') {
@@ -215,13 +280,22 @@ public class KsonDeserializer {
             }
 
             if (fieldInfo != null) {
+                if (DEBUG_STACK) {
+                    stack.push(new ParseStep("read field '"+fieldInfo.getField().getName()+"' of type "+type.getName(),in));
+                }
                 result.add(readValue(type, Kson.fumbleOutGenericKeyType(fieldInfo.getField()), Kson.fumbleOutGenericValueType(fieldInfo.getField())));
+                if (DEBUG_STACK) {
+                    stack.pop();
+                }
             } else {
                 System.out.println("No such field '" + field + "' on class " + targetClz.getClazz().getName());
             }
             skipWS();
         }
         in.readChar(); // consume }
+        if (DEBUG_STACK) {
+            stack.pop();
+        }
         return result;
     }
 
@@ -278,7 +352,13 @@ public class KsonDeserializer {
                     in.readChar(); // skip
                     skipWS();
                 }
+                if (DEBUG_STACK) {
+                    stack.push(new ParseStep("read value for key '" + result.get(result.size() - 1) + "'", in));
+                }
                 result.add(readValue(valueType, null, null));
+                if (DEBUG_STACK) {
+                    stack.pop();
+                }
                 expectKey = !expectKey;
                 // just ignore unnecessary stuff
                 skipWS();

@@ -23,6 +23,8 @@ package org.nustaq.kson;
  * To change this template use File | Settings | File Templates.
  */
 
+import java.util.Stack;
+
 /**
  * implementation of char input on top of a String
  */
@@ -30,6 +32,7 @@ public class KsonStringCharInput implements KsonCharInput {
     CharSequence s;
     int pos;
     int end;
+    Stack<KsonDeserializer.ParseStep> stack;
 
     public KsonStringCharInput(CharSequence s) {
         this.s = s;
