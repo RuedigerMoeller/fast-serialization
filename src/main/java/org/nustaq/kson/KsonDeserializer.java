@@ -2,7 +2,6 @@ package org.nustaq.kson;
 
 
 import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.annotations.ArgTypes;
 
 import java.lang.reflect.Array;
 import java.util.*;
