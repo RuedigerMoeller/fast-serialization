@@ -91,6 +91,8 @@ public class SpecialsTest {
         try {
             FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
+            System.out.println(conf.asByteArray(new HTMLDocument()).length);
+
             test(conf, new HTMLDocument());
 
 
