@@ -9,6 +9,7 @@ import org.junit.Test;
 import javax.security.auth.Subject;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -100,10 +101,10 @@ public class SpecialsTest {
 
             test(conf, new BigDecimal(100.0));
 
-            test(conf, new Subject());
+            test(conf, new Object[] {new Subject(), "no corruption"});
 
             InetAddress localhost = InetAddress.getByName("::1");
-            test( conf, localhost);
+            test( conf, new Object[] { localhost, "dummy" });
 
             exceptionTest(conf);
 
@@ -123,7 +124,8 @@ public class SpecialsTest {
                 throw new RuntimeException("fail " + res);
             }
 
-            test(conf, new HTMLEditorKit());
+            test(conf, new Object[] { new HTMLEditorKit(), "no corruption" });
+            test(conf, new Object[] { new File("/tmp"), "no corruption" });
             test(conf, System.getProperties());
         } catch ( Exception e ) {
             e.printStackTrace();

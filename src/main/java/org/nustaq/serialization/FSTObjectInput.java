@@ -944,6 +944,7 @@ public class FSTObjectInput implements ObjectInput {
                     if (tag==99) { // came from defaultwriteobject
                         fieldMap = new HashMap<String, Object>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
+                        codec.readVersionTag(); // consume dummy version tag as created by defaultWriteObject
                     } else {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }
