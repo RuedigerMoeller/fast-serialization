@@ -250,7 +250,7 @@ public class KsonSerializer {
         return String.class.isAssignableFrom(clz) || Number.class.isAssignableFrom(clz) || clz.isPrimitive() || clz == Boolean.class || clz == Character.class;
     }
 
-    static Character zeroC = new Character((char) 0);
+    static Character zeroC = Character.valueOf((char) 0);
 
     private boolean isNullValue(FSTClazzInfo.FSTFieldInfo fstFieldInfo, Object fieldValue) {
         if (fieldValue==null)

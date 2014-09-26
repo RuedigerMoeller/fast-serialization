@@ -414,7 +414,7 @@ public class FSTIdentity2IdMap
 
     private static void testWrongGet(FSTIdentity2IdMap map) {
         for (int i = 0; i < 1000; i++) {
-            int fieldId = map.get(new String("pok"+i));
+            int fieldId = map.get("pok" + i);
             if ( fieldId != Integer.MIN_VALUE ) {
                 throw new RuntimeException("möp 3 "+i+" "+fieldId);
             }

@@ -158,7 +158,7 @@ public class MBOut {
     }
     
     public void writeTag( Object obj ) {
-        if (obj==MinBin.END_MARKER) {
+        if (MinBin.END_MARKER.equals(obj)) {
             writeOut(MinBin.END);
             return;
         }

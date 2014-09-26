@@ -172,7 +172,7 @@ public class KsonDeserializer {
             } else if (clInfo.getClazz().isArray()) {
                 Class componentType = clInfo.getClazz().getComponentType();
                 if (componentType.isArray())
-                    new KsonParseException("nested arrays not supported", in);
+                    throw new KsonParseException("nested arrays not supported", in);
                 if (DEBUG_STACK) {
                     stack.push(new ParseStep("read array of type " + clInfo.getClazz().getComponentType().getName(), in));
                 }
@@ -514,7 +514,7 @@ public class KsonDeserializer {
                         b.append('\t');
                         break;
                     case 'u':
-                        b.append("\\u" + (char) in.readChar() + (char) in.readChar() + (char) in.readChar() + (char) in.readChar());
+                        b.append("\\u").append((char) in.readChar()).append((char) in.readChar()).append((char) in.readChar()).append((char) in.readChar());
                         break;
                     default:
                         throw new RuntimeException("unknown escape " + (char) ch + " in " + in.position());
