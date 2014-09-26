@@ -35,7 +35,7 @@ import java.io.IOException;
 public class FSTStringBuilderSerializer extends FSTStringBufferSerializer {
     @Override
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        String s = in.readUTF();
+        String s = in.readStringUTF();
         StringBuilder stringBuilder = new StringBuilder(s);
         in.registerObject(stringBuilder, streamPositioin,serializationInfo, referencee);
         return stringBuilder;
