@@ -322,16 +322,16 @@ public class FSTBinaryOffheapMap {
     }
 
     public String printBinaryKey(ByteSource key) {
-        String res = "";
+        StringBuilder res = new StringBuilder();
         for ( int i = 0; i < key.length(); i++ ) {
             byte b = key.get(i);
             if ( b > 31 ) {
-                res += (char) b;
+                res.append((char) b);
             } else {
-                res += "_";
+                res.append('_');
             }
         }
-        return res;
+        return res.toString();
     }
 
     public KeyValIter binaryKeys() {

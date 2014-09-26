@@ -14,12 +14,12 @@ public class KsonParseException extends RuntimeException {
     private static String getStackString(KsonCharInput in) {
         if ( in instanceof KsonStringCharInput && ((KsonStringCharInput) in).stack != null) {
             final Stack<KsonDeserializer.ParseStep> stack = ((KsonStringCharInput) in).stack;
-            String res = "\n\n";
+            StringBuilder res = new StringBuilder("\n\n");
             for (int i = stack.size()-1; i >= 0; i--) {
                 KsonDeserializer.ParseStep parseStep = stack.get(i);
-                res += "  "+parseStep+"\n";
+                res.append("  ").append(parseStep).append("\n");
             }
-            return res;
+            return res.toString();
         }
         return null;
     }

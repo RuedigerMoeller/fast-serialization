@@ -87,7 +87,7 @@ public final class FSTConfiguration {
         if ( i >= 0 && i < intObjects.length ) {
             return intObjects[i];
         }
-        return new Integer(i);
+        return Integer.valueOf(i);
     }
 
     public static Integer intObjects[];
@@ -95,7 +95,7 @@ public final class FSTConfiguration {
         if ( intObjects == null ) {
             intObjects = new Integer[30000];
             for (int i = 0; i < intObjects.length; i++) {
-                intObjects[i] = new Integer(i);
+                intObjects[i] = Integer.valueOf(i);
             }
         }
     }

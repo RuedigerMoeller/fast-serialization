@@ -221,7 +221,7 @@ public class FSTStructFactory {
                                 body.append( "\""+fstFieldInfo.getField().getName()+"\", " );
                                 Class type = fstFieldInfo.getType();
                                 if ( FSTStruct.class.isAssignableFrom(type) ) {
-                                    body.append(fstFieldInfo.getField().getName()+".getFieldValues()");
+                                    body.append(fstFieldInfo.getField().getName()).append(".getFieldValues()");
                                 } else {
                                     if ( type.isPrimitive() ) {
                                         if ( long.class == type ) {

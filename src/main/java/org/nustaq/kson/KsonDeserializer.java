@@ -514,7 +514,7 @@ public class KsonDeserializer {
                         b.append('\t');
                         break;
                     case 'u':
-                        b.append("\\u" + (char) in.readChar() + (char) in.readChar() + (char) in.readChar() + (char) in.readChar());
+                        b.append("\\u").append((char) in.readChar()).append((char) in.readChar()).append((char) in.readChar()).append((char) in.readChar());
                         break;
                     default:
                         throw new RuntimeException("unknown escape " + (char) ch + " in " + in.position());

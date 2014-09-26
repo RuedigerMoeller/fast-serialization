@@ -365,7 +365,7 @@ public class FSTObjectInput implements ObjectInput {
         {
             switch (code) {
                 case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
-                case FSTObjectOutput.BIG_LONG: { return new Long(codec.readFLong()); }
+                case FSTObjectOutput.BIG_LONG: { return Long.valueOf(codec.readFLong()); }
                 case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[codec.readFByte()]; }
@@ -446,7 +446,7 @@ public class FSTObjectInput implements ObjectInput {
         if (val >= 0 && val < FSTConfiguration.intObjects.length) {
             return FSTConfiguration.intObjects[val];
         }
-        return new Integer(val);
+        return Integer.valueOf(val);
     }
 
     private Object instantiateAndReadWithSer(Class c, FSTObjectSerializer ser, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -1189,7 +1189,6 @@ public class FSTObjectInput implements ObjectInput {
         }
 
         MyObjectStream() throws IOException, SecurityException {
-            this.wrapped = wrapped;
         }
 
         @Override
