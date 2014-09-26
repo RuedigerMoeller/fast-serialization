@@ -1,7 +1,6 @@
 package org.nustaq.serialization;
 
 import org.nustaq.serialization.minbin.MBIn;
-import org.nustaq.serialization.minbin.MBSequence;
 import org.nustaq.serialization.minbin.MinBin;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -53,7 +52,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
             return new String((byte[]) read, 0, 0, ((byte[]) read).length);
         } else if (read instanceof char[]) {
             return new String((char[]) read, 0, ((char[]) read).length);
-        } else if (read == MinBin.END_MARKER) {
+        } else if (MinBin.END_MARKER.equals(read)) {
             return null;
         } else if ( read == null )
             return null;
@@ -396,7 +395,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     @Override
     public boolean isEndMarker(String s) {
-        return MinBin.END_MARKER == s;
+        return MinBin.END_MARKER.equals(s);
     }
 
     @Override

@@ -299,7 +299,7 @@ public class MBTags {
             MBObject obj = new MBObject(typeInfo);
             for ( int i=0; i < len; i++ ) {
                 Object key = in.readObject();
-                if (key==MinBin.END_MARKER)
+                if (MinBin.END_MARKER.equals(key))
                     break;
                 obj.put((String) key,in.readObject());
             }
@@ -350,7 +350,7 @@ public class MBTags {
             MBSequence obj = new MBSequence(typeInfo);
             for ( int i=0; i < len; i++ ) {
                 Object o = in.readObject();
-                if ( o == MinBin.END_MARKER )
+                if ( MinBin.END_MARKER.equals(o) )
                     break;
                 obj.add(o);
             }
