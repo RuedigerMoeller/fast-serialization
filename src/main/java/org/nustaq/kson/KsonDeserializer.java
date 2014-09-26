@@ -172,7 +172,7 @@ public class KsonDeserializer {
             } else if (clInfo.getClazz().isArray()) {
                 Class componentType = clInfo.getClazz().getComponentType();
                 if (componentType.isArray())
-                    new KsonParseException("nested arrays not supported", in);
+                    throw new KsonParseException("nested arrays not supported", in);
                 if (DEBUG_STACK) {
                     stack.push(new ParseStep("read array of type " + clInfo.getClazz().getComponentType().getName(), in));
                 }
