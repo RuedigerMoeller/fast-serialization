@@ -24,7 +24,7 @@ Older version (serialization is stable and slightly faster, different package na
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.59</version>
+    <version>1.60</version>
 </dependency>
 ```
 
