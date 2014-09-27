@@ -95,6 +95,9 @@ public class SpecialsTest {
 
             test(conf, new HTMLDocument());
 
+            test(conf, new Object[] { new StringBuffer("bla bla"), "no corruption" } );
+            test(conf, new Object[] { new StringBuilder("bla1 bla1"), "no corruption" } );
+
 
             HashSet test = new HashSet();
             test.add("pok");
