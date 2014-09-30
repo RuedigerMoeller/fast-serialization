@@ -61,6 +61,8 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected FSTObjectRegistry objects;
     protected FSTOutputStream buffout;
 
+    protected FSTSerialisationListener listener;
+
     protected int curDepth = 0;
 
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
@@ -242,6 +244,18 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
         curDepth--;
     }
 
+    public FSTSerialisationListener getListener() {
+        return listener;
+    }
+
+    /**
+     * note this might slow down serialization significantly
+     * @param listener
+     */
+    public void setListener(FSTSerialisationListener listener) {
+        this.listener = listener;
+    }
+
     /**
      * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
      * @param obj
@@ -269,7 +283,10 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
     protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         int startPosition = getWritten();
         boolean dontShare = objects.disabled;
-        objectWillBeWritten(toWrite,startPosition);
+        objectWillBeWritten(toWrite, startPosition);
+        if (listener != null) {
+            listener.objectWillBeWritten(toWrite, startPosition);
+        }
 
         try {
             if ( toWrite == null ) {
@@ -374,7 +391,10 @@ public class FSTObjectOutput extends DataOutputStream implements ObjectOutput {
                 ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
             }
         } finally {
-            objectHasBeenWritten(toWrite,startPosition,getWritten());
+            if (listener != null) {
+                listener.objectHasBeenWritten(toWrite, startPosition, getWritten());
+            }
+            objectHasBeenWritten(toWrite, startPosition, getWritten());
         }
     }
 
