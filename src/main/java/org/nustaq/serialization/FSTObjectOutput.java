@@ -58,6 +58,8 @@ public class FSTObjectOutput implements ObjectOutput {
     protected FSTObjectRegistry objects;
     protected int curDepth = 0;
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
+
+    protected FSTSerialisationListener listener;
     
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -302,6 +304,18 @@ public class FSTObjectOutput implements ObjectOutput {
         curDepth--;
     }
 
+    public FSTSerialisationListener getListener() {
+        return listener;
+    }
+
+    /**
+     * note this might slow down serialization significantly
+     * * @param listener
+     */
+    public void setListener(FSTSerialisationListener listener) {
+        this.listener = listener;
+    }
+
     /**
      * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
      * @param obj
@@ -326,7 +340,10 @@ public class FSTObjectOutput implements ObjectOutput {
     protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         int startPosition = codec.getWritten();
         boolean dontShare = objects.disabled;
-        objectWillBeWritten(toWrite,startPosition);
+        objectWillBeWritten(toWrite, startPosition);
+        if (listener != null) {
+            listener.objectWillBeWritten(toWrite, startPosition);
+        }
 
         try {
             if ( toWrite == null ) {
@@ -438,7 +455,10 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
         } finally {
-            objectHasBeenWritten(toWrite,startPosition,codec.getWritten());
+            if (listener != null) {
+                listener.objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
+            }
+            objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
         }
     }
 
