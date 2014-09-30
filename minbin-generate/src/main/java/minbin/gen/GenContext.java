@@ -11,6 +11,7 @@ import java.util.Map;
 public class GenContext {
 
     public FSTClazzInfo clazzInfos[];
+    public MessageInfo  msgInfos[];
 
     public String getJSTransform(FSTClazzInfo.FSTFieldInfo fi) {
         String res = ""; String name = "this."+fi.getField().getName();

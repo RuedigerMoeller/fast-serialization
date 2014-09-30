@@ -2,6 +2,10 @@ package minbin.gen;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.nustaq.kontraktor.Actor;
+import org.nustaq.kontraktor.Callback;
+import org.nustaq.kontraktor.Future;
+import org.nustaq.kontraktor.annotations.CallerSideMethod;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTClazzInfoRegistry;
 import org.nustaq.serialization.FSTConfiguration;
@@ -9,27 +13,44 @@ import de.ruedigermoeller.template.TemplateExecutor;
 import org.nustaq.serialization.minbin.GenMeta;
 
 import java.io.File;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by ruedi on 26.05.14.
  */
 public class MBGen {
 
-    private void generate(String clazzName, String outFile) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+    FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
+    private void generate(String clazzName, String outFile) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+
+	    conf.setForceSerializable(true);
         System.out.println("generating to "+new File(outFile).getAbsolutePath());
 
         Class c = Class.forName(clazzName);
-        GenMeta meta = (GenMeta) c.newInstance();
-        ArrayList<String> list = new ArrayList<String>();
-        List<Class> clazz = meta.getClasses();
-        for (int i = 0; i < clazz.size(); i++) {
-            Class aClass = clazz.get(i);
-            list.add(aClass.getName());
+        HashSet<String> clazzSet = new HashSet<String>();
+        HashSet<String> actorRefSet = new HashSet<String>();
+        try {
+            Object o = c.newInstance();
+            if ( o instanceof Actor ) {
+                genActor(c,clazzSet,actorRefSet);
+            } else {
+                GenMeta meta = (GenMeta) o;
+                List<Class> clazz = meta.getClasses();
+                for (int i = 0; i < clazz.size(); i++) {
+                    Class aClass = clazz.get(i);
+                    clazzSet.add(aClass.getName());
+                }
+            }
+        } catch (ClassCastException ex) {
+            System.out.println("Expected a class implementing GenMeta interface or be an actor class");
+            System.exit(-1);
         }
 //        for (int i = 0; i < clazz.length; i++) {
 //            Class aClass = clazz[i];
@@ -44,20 +65,56 @@ public class MBGen {
 //            }
 //        }
 
-        list = new ArrayList<String>(new HashSet<String>(list));
-
         GenContext ctx = new GenContext();
+	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx,"/js/js.jsp");
 
-        FSTClazzInfo infos[] = new FSTClazzInfo[list.size()];
-        for (int i = 0; i < infos.length; i++) {
-            infos[i] = conf.getClassInfo(Class.forName(list.get(i)));
-            if ( infos[i] != null )
-                System.out.println("generating clz "+list.get(i));
-        }
-        ctx.clazzInfos = infos;
-        if ( lang == Lang.javascript ) {
-            TemplateExecutor.Run(outFile,"/js/js.jsp",ctx);
-        }
+        ctx = new GenContext();
+	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx,"/js/jsActor.jsp");
+    }
+
+	private void genClzList(String outFile, ArrayList<String> finallist, GenContext ctx, String templateFile ) throws ClassNotFoundException {
+		FSTClazzInfo infos[] = new FSTClazzInfo[finallist.size()];
+		for (int i = 0; i < infos.length; i++) {
+		    infos[i] = conf.getClassInfo(Class.forName(finallist.get(i)));
+		    if ( infos[i] != null )
+		        System.out.println("generating clz "+finallist.get(i));
+		}
+		ctx.clazzInfos = infos;
+		if ( lang == Lang.javascript ) {
+			TemplateExecutor.Run(outFile, templateFile, ctx);
+		}
+	}
+
+	private void genActor(Class c, Set<String> addClazzezHere, Set<String> actorRefs) {
+	    actorRefs.add(c.getName());
+	    Method m[] = c.getMethods();
+	    for (int i = 0; i < m.length; i++) {
+		    Method method = m[i];
+		    if (Modifier.isPublic(method.getModifiers()) &&
+			    method.getAnnotation(CallerSideMethod.class) == null &&
+			    ( method.getReturnType() == void.class || Future.class.isAssignableFrom(method.getReturnType()) ) &&
+				method.getDeclaringClass() != Object.class
+			) {
+			    Class<?>[] parameterTypes = method.getParameterTypes();
+			    for (int j = 0; j < parameterTypes.length; j++) {
+				    Class<?> parameterType = parameterTypes[j];
+				    if ( ! Callback.class.isAssignableFrom(parameterType) &&
+					     ! parameterType.isPrimitive() &&
+					     ! (parameterType.isArray() && parameterType.getComponentType().isPrimitive()) &&
+					     ! String.class.isAssignableFrom(parameterType) &&
+					     Serializable.class.isAssignableFrom(parameterType) &&
+					     ! Actor.class.isAssignableFrom(parameterType) &&
+					     ! Number.class.isAssignableFrom(parameterType) )
+				    {
+						addClazzezHere.add(parameterType.getName());
+				    }
+				    if ( Actor.class.isAssignableFrom(parameterType) ) {
+					    genActor(parameterType, addClazzezHere, actorRefs);
+				    }
+			    }
+			    System.out.println("method:"+method);
+		    }
+	    }
 
     }
 
