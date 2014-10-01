@@ -15,7 +15,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.07</version>
+    <version>2.08</version>
 </dependency>
 ```
 
@@ -24,7 +24,7 @@ Older version (slightly faster, different package name ..)
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.60</version>
+    <version>1.61</version>
 </dependency>
 ```
 
