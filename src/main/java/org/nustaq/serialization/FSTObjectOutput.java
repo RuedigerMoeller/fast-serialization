@@ -322,7 +322,9 @@ public class FSTObjectOutput implements ObjectOutput {
      * @param streamPosition
      */
     protected void objectWillBeWritten( Object obj, int streamPosition ) {
-//        System.out.println("write:"+obj.getClass()+" "+streamPosition);
+        if (listener != null) {
+            listener.objectWillBeWritten(obj, streamPosition);
+        }
     }
 
     /**
@@ -332,7 +334,9 @@ public class FSTObjectOutput implements ObjectOutput {
      * @param streamPosition
      */
     protected void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {
-//        System.out.println("ewrite:"+obj.getClass()+" "+streamPosition);
+        if (listener != null) {
+            listener.objectHasBeenWritten(obj, oldStreamPosition, streamPosition);
+        }
     }
     
     int tmp[] = {0};
@@ -341,9 +345,6 @@ public class FSTObjectOutput implements ObjectOutput {
         int startPosition = codec.getWritten();
         boolean dontShare = objects.disabled;
         objectWillBeWritten(toWrite, startPosition);
-        if (listener != null) {
-            listener.objectWillBeWritten(toWrite, startPosition);
-        }
 
         try {
             if ( toWrite == null ) {
@@ -455,9 +456,6 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
         } finally {
-            if (listener != null) {
-                listener.objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
-            }
             objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
         }
     }
