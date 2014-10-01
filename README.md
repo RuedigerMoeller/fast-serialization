@@ -30,7 +30,8 @@ Older version (serialization is stable and slightly faster, different package na
 
 ###how to build 
 
-* master contains dev branch/trunk. Currently productive is the 1.x branch. 
+* master contains dev branch/trunk.
+* 1.x contains old version (still maintained)
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
