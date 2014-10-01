@@ -7,7 +7,6 @@ import org.nustaq.kontraktor.Callback;
 import org.nustaq.kontraktor.Future;
 import org.nustaq.kontraktor.annotations.CallerSideMethod;
 import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTClazzInfoRegistry;
 import org.nustaq.serialization.FSTConfiguration;
 import de.ruedigermoeller.template.TemplateExecutor;
 import org.nustaq.serialization.minbin.GenMeta;
@@ -39,7 +38,7 @@ public class MBGen {
         try {
             Object o = c.newInstance();
             if ( o instanceof Actor ) {
-                genActor(c,clazzSet,actorRefSet);
+                prepareActorMEta(c, clazzSet, actorRefSet);
             } else {
                 GenMeta meta = (GenMeta) o;
                 List<Class> clazz = meta.getClasses();
@@ -67,9 +66,6 @@ public class MBGen {
 
         GenContext ctx = new GenContext();
 	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx,"/js/js.jsp");
-
-        ctx = new GenContext();
-	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx,"/js/jsActor.jsp");
     }
 
 	private void genClzList(String outFile, ArrayList<String> finallist, GenContext ctx, String templateFile ) throws ClassNotFoundException {
@@ -85,9 +81,10 @@ public class MBGen {
 		}
 	}
 
-	private void genActor(Class c, Set<String> addClazzezHere, Set<String> actorRefs) {
+	private void prepareActorMEta(Class c, Set<String> addClazzezHere, Set<String> actorRefs) {
 	    actorRefs.add(c.getName());
 	    Method m[] = c.getMethods();
+		ArrayList<MessageInfo> methodInfos = new ArrayList<MessageInfo>();
 	    for (int i = 0; i < m.length; i++) {
 		    Method method = m[i];
 		    if (Modifier.isPublic(method.getModifiers()) &&
@@ -107,14 +104,16 @@ public class MBGen {
 					     ! Number.class.isAssignableFrom(parameterType) )
 				    {
 						addClazzezHere.add(parameterType.getName());
+					    methodInfos.add(new MessageInfo(parameterTypes,method.getName(),method.getReturnType().getSimpleName()));
 				    }
 				    if ( Actor.class.isAssignableFrom(parameterType) ) {
-					    genActor(parameterType, addClazzezHere, actorRefs);
+					    prepareActorMEta(parameterType, addClazzezHere, actorRefs);
 				    }
 			    }
 			    System.out.println("method:"+method);
 		    }
 	    }
+
 
     }
 
