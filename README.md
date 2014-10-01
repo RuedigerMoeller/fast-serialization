@@ -15,22 +15,23 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.07</version>
+    <version>2.08</version>
 </dependency>
 ```
 
-Older version (serialization is stable and slightly faster, different package name ..)
+Older version (slightly faster, different package name ..)
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.60</version>
+    <version>1.61</version>
 </dependency>
 ```
 
 ###how to build 
 
-* master contains dev branch/trunk. Currently productive is the 1.x branch. 
+* master contains dev branch/trunk.
+* 1.x contains old version (still maintained)
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
