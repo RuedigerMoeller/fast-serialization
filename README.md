@@ -19,7 +19,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 </dependency>
 ```
 
-Older version (serialization is stable and slightly faster, different package name ..)
+Older version (slightly faster, different package name ..)
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
