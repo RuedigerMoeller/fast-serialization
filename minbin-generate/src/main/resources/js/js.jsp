@@ -15,19 +15,30 @@
     // asign context
     GenContext CTX = (GenContext)o;
     for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
-    FSTClazzInfo CLZ = CTX.clazzInfos[ii];
+    GenClazzInfo INF = CTX.clazzInfos[ii];
+    FSTClazzInfo CLZ = INF.getClzInfo();
+    List<MsgInfo> MSGS = INF.getMsgs();
     FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
 // content begins here =>
 %>
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
     this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
-<% for (int i = 0; i < fi.length; i++ ) {
+<% for (int i = 0; ! INF.isActor() && i < fi.length; i++ ) {
     String fnam = fi[i].getField().getName();
     String na = "j_"+fnam;
     //na = Character.toUpperCase(na.charAt(0))+na.substring(1);
 %>    this.<%+na%> = function() { return <%+CTX.getJSTransform(fi[i])%>; };
 <% } /*for*/
-%>    this.fromObj = function(obj) {
+%>
+<% for (int i = 0; INF.isActor() && i < INF.getMsgs().size(); i++ ) {
+    MsgInfo mi = INF.getMsgs().get(i);
+%>    this.<%+mi.getName()%> = function(<% for(int pi=0;pi<mi.getParameters().length;pi++) {%><%+mi.getParameters()[pi].getName()%><%+((pi==mi.getParameters().length-1)?"":", ")%><%} %>) {
+        return null;
+    };
+<% } /*for*/
+   if (!INF.isActor()) {
+%>
+    this.fromObj = function(obj) {
         for ( var key in obj ) {
             var setter = 'j_'.concat(key);
             if ( this.hasOwnProperty(setter) ) {
@@ -39,6 +50,7 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
     if ( obj != null ) {
         this.fromObj(obj);
     }
+<%} /*if is actor*/%>
 };
 
 <%          } // loop over classes%>
@@ -47,7 +59,7 @@ var mbfactory = function(clzname) {
 switch (clzname) {
 <%
     for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
-    FSTClazzInfo CLZ = CTX.clazzInfos[ii];
+    FSTClazzInfo CLZ = CTX.clazzInfos[ii].getClzInfo();
 %>        case '<%+CLZ.getClazz().getSimpleName()%>': return new J<%+CLZ.getClazz().getSimpleName()%>();
 <% } %>        default: return { __typeInfo: clzname };
 }

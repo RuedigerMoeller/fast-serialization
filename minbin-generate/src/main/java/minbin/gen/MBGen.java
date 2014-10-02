@@ -6,7 +6,6 @@ import org.nustaq.kontraktor.Actor;
 import org.nustaq.kontraktor.Callback;
 import org.nustaq.kontraktor.Future;
 import org.nustaq.kontraktor.annotations.CallerSideMethod;
-import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;
 import de.ruedigermoeller.template.TemplateExecutor;
 import org.nustaq.serialization.minbin.GenMeta;
@@ -15,10 +14,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by ruedi on 26.05.14.
@@ -34,11 +30,12 @@ public class MBGen {
 
         Class c = Class.forName(clazzName);
         HashSet<String> clazzSet = new HashSet<String>();
-        HashSet<String> actorRefSet = new HashSet<String>();
+        HashMap<Class, List<MsgInfo>> infoMap = new HashMap<Class, List<MsgInfo>>();
         try {
             Object o = c.newInstance();
             if ( o instanceof Actor ) {
-                prepareActorMEta(c, clazzSet, actorRefSet);
+//                clazzSet.add(c.getName());
+                prepareActorMeta(c, clazzSet, infoMap);
             } else {
                 GenMeta meta = (GenMeta) o;
                 List<Class> clazz = meta.getClasses();
@@ -65,13 +62,14 @@ public class MBGen {
 //        }
 
         GenContext ctx = new GenContext();
-	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx,"/js/js.jsp");
+	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx, infoMap, "./js/js.jsp");
     }
 
-	private void genClzList(String outFile, ArrayList<String> finallist, GenContext ctx, String templateFile ) throws ClassNotFoundException {
-		FSTClazzInfo infos[] = new FSTClazzInfo[finallist.size()];
+	private void genClzList(String outFile, ArrayList<String> finallist, GenContext ctx, HashMap<Class, List<MsgInfo>> infoMap, String templateFile) throws ClassNotFoundException {
+		GenClazzInfo infos[] = new GenClazzInfo[finallist.size()];
 		for (int i = 0; i < infos.length; i++) {
-		    infos[i] = conf.getClassInfo(Class.forName(finallist.get(i)));
+		    infos[i] = new GenClazzInfo( conf.getClassInfo(Class.forName(finallist.get(i))) );
+            infos[i].setMsgs(infoMap.get(infos[i].getClzInfo().getClazz()));
 		    if ( infos[i] != null )
 		        System.out.println("generating clz "+finallist.get(i));
 		}
@@ -81,20 +79,26 @@ public class MBGen {
 		}
 	}
 
-	private void prepareActorMEta(Class c, Set<String> addClazzezHere, Set<String> actorRefs) {
-	    actorRefs.add(c.getName());
+	private void prepareActorMeta(Class c, Set<String> addClazzezHere, HashMap<Class,List<MsgInfo>> map) {
+	    addClazzezHere.add(c.getName());
 	    Method m[] = c.getMethods();
-		ArrayList<MessageInfo> methodInfos = new ArrayList<MessageInfo>();
+		ArrayList<MsgInfo> methodInfos = new ArrayList<MsgInfo>();
 	    for (int i = 0; i < m.length; i++) {
 		    Method method = m[i];
 		    if (Modifier.isPublic(method.getModifiers()) &&
 			    method.getAnnotation(CallerSideMethod.class) == null &&
 			    ( method.getReturnType() == void.class || Future.class.isAssignableFrom(method.getReturnType()) ) &&
-				method.getDeclaringClass() != Object.class
+				method.getDeclaringClass() != Object.class &&
+                !Modifier.isStatic(method.getModifiers())
 			) {
 			    Class<?>[] parameterTypes = method.getParameterTypes();
+                final java.lang.reflect.Parameter[] parameters = method.getParameters();
+                methodInfos.add(new MsgInfo(parameterTypes,method.getName(),method.getReturnType().getSimpleName(),parameters));
 			    for (int j = 0; j < parameterTypes.length; j++) {
 				    Class<?> parameterType = parameterTypes[j];
+                    if ( Actor.class.isAssignableFrom(parameterType) && !addClazzezHere.contains(parameterType.getName()) ) {
+                        prepareActorMeta(parameterType, addClazzezHere,map);
+                    }
 				    if ( ! Callback.class.isAssignableFrom(parameterType) &&
 					     ! parameterType.isPrimitive() &&
 					     ! (parameterType.isArray() && parameterType.getComponentType().isPrimitive()) &&
@@ -104,17 +108,13 @@ public class MBGen {
 					     ! Number.class.isAssignableFrom(parameterType) )
 				    {
 						addClazzezHere.add(parameterType.getName());
-					    methodInfos.add(new MessageInfo(parameterTypes,method.getName(),method.getReturnType().getSimpleName()));
-				    }
-				    if ( Actor.class.isAssignableFrom(parameterType) ) {
-					    prepareActorMEta(parameterType, addClazzezHere, actorRefs);
 				    }
 			    }
 			    System.out.println("method:"+method);
 		    }
 	    }
 
-
+        map.put(c, methodInfos);
     }
 
     public static enum Lang {
