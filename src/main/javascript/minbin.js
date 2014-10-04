@@ -87,6 +87,7 @@ var MinBin = new function MinBin() {
         return res;
     };
 
+    // collections
     this.jlist = function(array) {
         var res = [array.length];
         for ( var i = 0; i < array.length; i++) {
@@ -94,6 +95,12 @@ var MinBin = new function MinBin() {
         }
         res.__typeInfo = "list";
         return res;
+    };
+
+    // object array
+    this.jarray = function(array) {
+        array.__typeInfo = "array";
+        return array;
     };
 
     this.jmap = function(map) {

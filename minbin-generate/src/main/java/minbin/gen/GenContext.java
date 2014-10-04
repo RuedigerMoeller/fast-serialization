@@ -14,6 +14,9 @@ public class GenContext {
 
     public String getJSTransform(FSTClazzInfo.FSTFieldInfo fi) {
         String res = ""; String name = "this."+fi.getField().getName();
+        if ( Object[].class == fi.getType() ) {
+            res += "MinBin.jarray("+name+")";
+        } else
         if ( List.class.isAssignableFrom( fi.getType() ) ) {
             res += "MinBin.jlist("+name+")";
         } else
