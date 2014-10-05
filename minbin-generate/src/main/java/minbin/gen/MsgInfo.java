@@ -46,4 +46,7 @@ public class MsgInfo {
     public Parameter[] getParameters() {
         return parameters;
     }
+	public boolean hasFutureResult() {
+		return returnType.equals("Future");
+	}
 }

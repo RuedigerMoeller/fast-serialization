@@ -15,14 +15,17 @@
     // asign context
     GenContext CTX = (GenContext)o;
     for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
-    GenClazzInfo INF = CTX.clazzInfos[ii];
-    FSTClazzInfo CLZ = INF.getClzInfo();
-    List<MsgInfo> MSGS = INF.getMsgs();
-    FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
+        // setup context
+        GenClazzInfo INF = CTX.clazzInfos[ii];
+        FSTClazzInfo CLZ = INF.getClzInfo();
+        List<MsgInfo> MSGS = INF.getMsgs();
+        FSTClazzInfo.FSTFieldInfo fi[] = CLZ.getFieldInfo();
 // content begins here =>
 %>
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
     this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
+<% if (INF.isActor()) {%>    this.receiverKey=obj;
+<%}%>
 <% for (int i = 0; ! INF.isActor() && i < fi.length; i++ ) {
     String fnam = fi[i].getField().getName();
     String na = "j_"+fnam;
@@ -33,8 +36,16 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
 <% for (int i = 0; INF.isActor() && i < INF.getMsgs().size(); i++ ) {
     MsgInfo mi = INF.getMsgs().get(i);
 %>    this.<%+mi.getName()%> = function(<% for(int pi=0;pi<mi.getParameters().length;pi++) {%><%+mi.getParameters()[pi].getName()%><%+((pi==mi.getParameters().length-1)?"":", ")%><%} %>) {
-        return null;
-    };
+        var call = MinBin.obj('call', {
+            method: '<%+mi.getName()%>',
+            receiverKey: this.receiverKey,
+            args: MinBin.jarray([<% for(int pi=0;pi<mi.getParameters().length;pi++) {%>
+                <%+CTX.getJSTransform(mi.getParameters()[pi].getName(),mi.getParams()[pi])%><%+((pi<mi.getParameters().length-1) ? "," : "")%><%}%>
+            ])
+        });
+<% if (mi.hasFutureResult()) { %>        return Kontraktor.send(call,true);
+<% } else {%>        return Kontraktor.send(call);
+<% } %>    };
 <% } /*for*/
    if (!INF.isActor()) {
 %>
@@ -55,19 +66,19 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
 
 <%          } // loop over classes%>
 
-var mbfactory = function(clzname) {
-switch (clzname) {
+var mbfactory = function(clzname,jsObjOrRefId) {
+    switch (clzname) {
 <%
     for ( int ii = 0; ii < CTX.clazzInfos.length; ii++ ) {
     FSTClazzInfo CLZ = CTX.clazzInfos[ii].getClzInfo();
-%>        case '<%+CLZ.getClazz().getSimpleName()%>': return new J<%+CLZ.getClazz().getSimpleName()%>();
-<% } %>        default: return { __typeInfo: clzname };
-}
+%>        case '<%+CLZ.getClazz().getSimpleName()%>': return new J<%+CLZ.getClazz().getSimpleName()%>(jsObjOrRefId);
+<% } %>        default: if (!jsObjOrRefId) return { __typeInfo: clzname }; else { jsObjOrRefId.__typeInfo = clzname; return jsObjOrRefId; }
+    }
 };
 
 MinBin.installFactory(mbfactory);
 <%
     // this footer is always required (to match opening braces in header
-    }
-    }
+    } // method
+} // class
 %>

@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -32,16 +34,15 @@ public class MBGen {
         HashSet<String> clazzSet = new HashSet<String>();
         HashMap<Class, List<MsgInfo>> infoMap = new HashMap<Class, List<MsgInfo>>();
         try {
-            Object o = c.newInstance();
-            if ( o instanceof Actor ) {
+            if ( Actor.class.isAssignableFrom(c) ) {
 //                clazzSet.add(c.getName());
                 prepareActorMeta(c, clazzSet, infoMap);
             } else {
-                GenMeta meta = (GenMeta) o;
+                GenMeta meta = (GenMeta) c.newInstance();
                 List<Class> clazz = meta.getClasses();
                 for (int i = 0; i < clazz.size(); i++) {
                     Class aClass = clazz.get(i);
-                    clazzSet.add(aClass.getName());
+	                addClz(clazzSet, aClass, infoMap);
                 }
             }
         } catch (ClassCastException ex) {
@@ -64,6 +65,15 @@ public class MBGen {
         GenContext ctx = new GenContext();
 	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx, infoMap, "./js/js.jsp");
     }
+
+	private void addClz(Set<String> clazzSet, Class aClass, HashMap<Class, List<MsgInfo>> infoMap) {
+		if ( ! clazzSet.contains(aClass.getName()) ) {
+			if (Actor.class.isAssignableFrom(aClass)) {
+				prepareActorMeta(aClass, clazzSet, infoMap);
+			} else
+				clazzSet.add(aClass.getName());
+		}
+	}
 
 	private void genClzList(String outFile, ArrayList<String> finallist, GenContext ctx, HashMap<Class, List<MsgInfo>> infoMap, String templateFile) throws ClassNotFoundException {
 		GenClazzInfo infos[] = new GenClazzInfo[finallist.size()];
@@ -96,18 +106,21 @@ public class MBGen {
                 methodInfos.add(new MsgInfo(parameterTypes,method.getName(),method.getReturnType().getSimpleName(),parameters));
 			    for (int j = 0; j < parameterTypes.length; j++) {
 				    Class<?> parameterType = parameterTypes[j];
-                    if ( Actor.class.isAssignableFrom(parameterType) && !addClazzezHere.contains(parameterType.getName()) ) {
-                        prepareActorMeta(parameterType, addClazzezHere,map);
-                    }
-				    if ( ! Callback.class.isAssignableFrom(parameterType) &&
-					     ! parameterType.isPrimitive() &&
-					     ! (parameterType.isArray() && parameterType.getComponentType().isPrimitive()) &&
-					     ! String.class.isAssignableFrom(parameterType) &&
-					     Serializable.class.isAssignableFrom(parameterType) &&
-					     ! Actor.class.isAssignableFrom(parameterType) &&
-					     ! Number.class.isAssignableFrom(parameterType) )
+				    if (shouldAdd(parameterType))
 				    {
-						addClazzezHere.add(parameterType.getName());
+					    addClz(addClazzezHere, parameterType, map);
+				    }
+			    }
+			    if ( Future.class.isAssignableFrom( method.getReturnType() ) ) {
+				    Type genericReturnType = method.getGenericReturnType();
+				    if (genericReturnType instanceof ParameterizedType) {
+						ParameterizedType pm = (ParameterizedType) genericReturnType;
+					    Type[] actualTypeArguments = pm.getActualTypeArguments();
+					    Type clz = actualTypeArguments[0];
+					    if ( actualTypeArguments.length > 0 && clz instanceof Class
+						     && shouldAdd((Class<?>) clz)) {
+						    addClz(addClazzezHere, (Class) clz, map);
+					    }
 				    }
 			    }
 			    System.out.println("method:"+method);
@@ -117,7 +130,17 @@ public class MBGen {
         map.put(c, methodInfos);
     }
 
-    public static enum Lang {
+	private boolean shouldAdd(Class<?> parameterType) {
+		return ! Callback.class.isAssignableFrom(parameterType) &&
+			 ! parameterType.isPrimitive() &&
+			 ! (parameterType.isArray() && parameterType.getComponentType().isPrimitive()) &&
+			 ! String.class.isAssignableFrom(parameterType) &&
+//			 Serializable.class.isAssignableFrom(parameterType) &&
+//			 ! Actor.class.isAssignableFrom(parameterType) &&
+			 ! Number.class.isAssignableFrom(parameterType);
+	}
+
+	public static enum Lang {
         javascript,
         dart
     }

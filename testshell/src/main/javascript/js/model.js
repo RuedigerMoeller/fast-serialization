@@ -104,7 +104,7 @@ var JMirrorRequest = function(obj) {
 
 
 
-var mbfactory = function(clzname) {
+var mbfactory = function(clzname,jsObjOrRefId) {
     switch (clzname) {
         case 'TestRequest': return new JTestRequest();
         case 'Event': return new JEvent();

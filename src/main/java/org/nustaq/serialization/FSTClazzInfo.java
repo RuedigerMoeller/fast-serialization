@@ -646,7 +646,7 @@ public final class FSTClazzInfo {
             }
         }
 
-        public int getIntegralCode(Class type) {
+        public static int getIntegralCode(Class type) {
             if (type == boolean.class) {
                 return BOOL;
             } else if (type == byte.class) {

@@ -43,8 +43,9 @@ var MinBin = new function MinBin() {
     this.prettyPrint = function(object) { return new MBPrinter().prettyPrintStreamObject(object, "", ""); };
 
     this.obj = function(clazz,object) {
-        object.__typeInfo = clazz;
-        return object;
+        if ( object.__typeInfo == clazz )
+            return object;
+        return mbfactory(clazz,object);
     };
 
     this.strArr = function(array) {
@@ -627,7 +628,7 @@ function MBObjectTagSer() {
     };
 
     this.objectFactory = function(clazzName) {
-        return { "__typeInfo" : typeInfo };
+        return { "__typeInfo" : clazzName };
     };
 
     /**
