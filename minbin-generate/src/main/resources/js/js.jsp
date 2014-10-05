@@ -23,8 +23,9 @@
 // content begins here =>
 %>
 var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
-    this.__typeInfo = '<%+CLZ.getClazz().getSimpleName()%>';
+    this.__typeInfo = '<%+(INF.isClientSide()?CLZ.getClazz().getName():CLZ.getClazz().getSimpleName())%>';
 <% if (INF.isActor()) {%>    this.receiverKey=obj;
+    this._actorProxy = true;
 <%}%>
 <% for (int i = 0; ! INF.isActor() && i < fi.length; i++ ) {
     String fnam = fi[i].getField().getName();
@@ -35,7 +36,8 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
 %>
 <% for (int i = 0; INF.isActor() && i < INF.getMsgs().size(); i++ ) {
     MsgInfo mi = INF.getMsgs().get(i);
-%>    this.<%+mi.getName()%> = function(<% for(int pi=0;pi<mi.getParameters().length;pi++) {%><%+mi.getParameters()[pi].getName()%><%+((pi==mi.getParameters().length-1)?"":", ")%><%} %>) {
+%>    this.<%+mi.getName()%> = function(<% for(int pi=0;pi<mi.getParameters().length;pi++) {%><%+mi.getParameters()[pi].getName()%><%+((pi==mi.getParameters().length-1)?"":", ")%><%} %>)<%
+        if (!INF.isClientSide()) {%> {
         var call = MinBin.obj('call', {
             method: '<%+mi.getName()%>',
             receiverKey: this.receiverKey,
@@ -46,7 +48,9 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
 <% if (mi.hasFutureResult()) { %>        return Kontraktor.send(call,true);
 <% } else {%>        return Kontraktor.send(call);
 <% } %>    };
-<% } /*for*/
+<% } else { %> { /**/ };
+<% }/*if isClienSide else*/
+   } /*for*/
    if (!INF.isActor()) {
 %>
     this.fromObj = function(obj) {

@@ -42,8 +42,9 @@ var MinBin = new function MinBin() {
 
     this.prettyPrint = function(object) { return new MBPrinter().prettyPrintStreamObject(object, "", ""); };
 
+    // does not overwrite if typeinfo is already set
     this.obj = function(clazz,object) {
-        if ( object.__typeInfo == clazz )
+        if ( object.__typeInfo == clazz || object._actorProxy ) // do not overwrite fqname of actor proxies
             return object;
         return mbfactory(clazz,object);
     };
@@ -168,6 +169,9 @@ var MinBin = new function MinBin() {
     this.serializer[HANDLE].tagId = HANDLE;
 
     this.getTagSerializerFor = function (obj) {
+        if ( obj && obj._actorProxy ) {
+            return this.serializer[SEQUENCE];
+        }
         if ( obj instanceof String || typeof obj == "string" )
             return this.serializer[STRING];
         if ( obj == null )
@@ -602,6 +606,7 @@ function MBObjectTagSer() {
             name = data.constructor.name;
         }
         out.writeObject(name);
+
         var count = 0;
         for (var next in data ) {
             if (data.hasOwnProperty(next) && next != "__typeInfo" && next != "__idcnt" ) {
@@ -642,6 +647,7 @@ function MBObjectTagSer() {
         var typeInfo = inp.readObject();
         var len = inp.readInt();
         var obj = this.objectFactory(typeInfo);
+
         for ( var i=0; i < len || len < 0 ; i++ ) {
             var key = inp.readObject();
             if (key==END_MARKER)
@@ -653,9 +659,21 @@ function MBObjectTagSer() {
     };
 }
 
+var mbendsWith = function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+};
+
+
 function MBSequenceTagSer() {
+
     this.writeTag = function(data, out) {
         out.writeTag(data.__typeInfo);
+        if ( data._actorProxy ) { // locally implemented actor sent
+            out.writeIntPacked(2);
+            out.writeObject(data.receiverKey);
+            out.writeObject(data.__typeInfo);
+            return;
+        }
         out.writeIntPacked(data.length);
         for (var i = 0; i < data.length; i++) {
             if ( out.writeRefIfApplicable(data[i]) )
@@ -695,6 +713,25 @@ function MBSequenceTagSer() {
                 res.push(arr[i]);
             }
             return res;
+        } else {
+            // handle actor ref here as objectFactory is replaced by generated stuff
+            if (typeInfo) {
+                var clz = typeInfo;
+                if (mbendsWith(clz, "_ActorProxy")) {
+                    var id = arr[0];
+                    clz = clz.substr(0, clz.length - "_ActorProxy".length);
+                    var idx = clz.lastIndexOf(".");
+                    if (idx >= 0) {
+                        clz = clz.substr(idx + 1);
+                    }
+                    idx = clz.lastIndexOf("$");
+                    if (idx >= 0) {
+                        clz = clz.substr(idx + 1);
+                    }
+                    arr = mbfactory(clz, id);
+                }
+            }
+            // end handling actor ref
         }
         inp.objectMap[objpos] = arr;
         return arr;

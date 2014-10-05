@@ -82,7 +82,7 @@ public class GenContext {
 					    ! String.class.isAssignableFrom(fieldType) &&
                         ! Character.class.isAssignableFrom(fieldType) )
 		    {
-			    res += "MinBin.obj(" + fieldName + ")";
+			    res += "MinBin.obj('"+fieldType.getSimpleName()+"',"+ fieldName + ")";
 		    } else
 			    res += fieldName;
 	    }

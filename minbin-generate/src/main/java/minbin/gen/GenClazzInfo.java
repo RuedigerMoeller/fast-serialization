@@ -1,5 +1,6 @@
 package minbin.gen;
 
+import org.nustaq.kontraktor.annotations.RemoteActorInterface;
 import org.nustaq.serialization.FSTClazzInfo;
 
 import java.util.List;
@@ -35,4 +36,9 @@ public class GenClazzInfo {
     public boolean isActor() {
         return msgs != null;
     }
+
+	// actor definition to be implemented on client
+	public boolean isClientSide() {
+		return clzInfo.getClazz().getAnnotation(RemoteActorInterface.class) != null;
+	}
 }
