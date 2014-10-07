@@ -668,10 +668,10 @@ function MBSequenceTagSer() {
 
     this.writeTag = function(data, out) {
         out.writeTag(data.__typeInfo);
-        if ( data._actorProxy ) { // locally implemented actor sent
+        if ( data._actorProxy ) { // locally implemented actor sent or foreign ref sent
             out.writeIntPacked(2);
-            out.writeObject(data.receiverKey);
-            out.writeObject(data.__typeInfo);
+            out.writeObject( data._foreignRefKey ? data._foreignRefKey : data.receiverKey);
+            out.writeObject( data.__typeInfo );
             return;
         }
         out.writeIntPacked(data.length);
@@ -729,6 +729,8 @@ function MBSequenceTagSer() {
                         clz = clz.substr(idx + 1);
                     }
                     arr = mbfactory(clz, id);
+                    // restore full class name
+                    arr.__typeInfo = typeInfo;
                 }
             }
             // end handling actor ref
