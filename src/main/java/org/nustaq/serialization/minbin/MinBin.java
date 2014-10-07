@@ -1,5 +1,9 @@
 package org.nustaq.serialization.minbin;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 /**
@@ -85,6 +89,18 @@ public class MinBin {
         registerTag(new MBTags.BigBoolTagSer());      // 8
         registerTag(new MBTags.RefTagSer());          // 9
     }
+
+	public static void print(byte minbinMsg[]) {
+		MBPrinter.printMessage(minbinMsg,System.out);
+	}
+
+	public static String print2String(byte minbinMsg[]) {
+		return MBPrinter.print2String(minbinMsg);
+	}
+
+	public static void print(Object obj) {
+		MBPrinter.printMessage(obj, System.out);
+	}
 
     public void registerTag(TagSerializer ts) {
         registerTag(ts.getClassEncoded(),ts);

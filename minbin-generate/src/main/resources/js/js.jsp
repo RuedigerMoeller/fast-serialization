@@ -27,7 +27,11 @@ var J<%+CLZ.getClazz().getSimpleName()%> = function(obj) {
 <% if (INF.isActor()) {%>    this.receiverKey=obj;
     this._actorProxy = true;
 <%}%>
-<% for (int i = 0; ! INF.isActor() && i < fi.length; i++ ) {
+<% for (int i = 0; ! INF.isActor() && fi != null && i < fi.length; i++ ) {
+    if ( fi[i] == null ) {
+        System.out.println( ""+i+" is null in class "+CLZ.getClazz().getName() );
+        continue;
+    }
     String fnam = fi[i].getField().getName();
     String na = "j_"+fnam;
     //na = Character.toUpperCase(na.charAt(0))+na.substring(1);

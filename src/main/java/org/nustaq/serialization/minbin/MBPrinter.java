@@ -1,6 +1,8 @@
 package org.nustaq.serialization.minbin;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 
 /**
@@ -29,6 +31,10 @@ import java.lang.reflect.Array;
  */
 public class MBPrinter {
 
+    public static void printMessage(byte[] binarMsg) {
+        printMessage(binarMsg,System.out);
+    }
+
     public static void printMessage(Object readMessageObject, PrintStream out) {
         new MBPrinter().prettyPrintStreamObject(readMessageObject,out,"");
         out.println();
@@ -38,6 +44,16 @@ public class MBPrinter {
         MBIn in = new MBIn(message,0);
         printMessage(in.readObject(), out);
     }
+
+	public static String print2String(byte minbinMsg[]) {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		MBPrinter.printMessage(minbinMsg, new PrintStream(os));
+		try {
+			return os.toString("UTF8");
+		} catch (UnsupportedEncodingException e) {
+			return e.getMessage();
+		}
+	}
 
     protected void prettyPrintStreamObject( Object o, PrintStream out, String indent) {
         if (o instanceof MBObject) {
@@ -107,7 +123,4 @@ public class MBPrinter {
         return ""+o;
     }
 
-    public static void printMessage(byte[] binarMsg) {
-        printMessage(binarMsg,System.out);
-    }
 }

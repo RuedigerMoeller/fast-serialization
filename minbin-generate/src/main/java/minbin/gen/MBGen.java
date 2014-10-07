@@ -2,6 +2,7 @@ package minbin.gen;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.nustaq.kontraktor.Actor;
 import org.nustaq.kontraktor.Callback;
 import org.nustaq.kontraktor.Future;
@@ -135,6 +136,7 @@ public class MBGen {
 			 ! parameterType.isPrimitive() &&
 			 ! (parameterType.isArray() && parameterType.getComponentType().isPrimitive()) &&
 			 ! String.class.isAssignableFrom(parameterType) &&
+	         ! parameterType.isArray() &&
 //			 Serializable.class.isAssignableFrom(parameterType) &&
 //			 ! Actor.class.isAssignableFrom(parameterType) &&
 			 ! Number.class.isAssignableFrom(parameterType);
@@ -149,16 +151,37 @@ public class MBGen {
     Lang lang = Lang.javascript;
 
     @Parameter( names={"-class", "-c"}, description = "class containing generation description (must implement GenMeta) " )
-    String clazz = "org.rm.testserver.protocol.Meta";
+    String clazz = null; //"org.rm.testserver.protocol.Meta";
 
     @Parameter( names={"-f"}, description = "file/directory to generate to" )
     String out;
 
+    @Parameter( names={"-p"}, description = "',' separated list of whitelist packages" )
+    String pack;
+
     public static void main(String arg[]) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         MBGen gen = new MBGen();
-        new JCommander(gen,arg);
+	    JCommander jCommander = new JCommander(gen, arg);
+	    if ( (gen.pack == null && gen.clazz == null) || gen.out == null) {
+		    jCommander.usage();
+		    System.exit(-1);
+	    }
         // fixme check args
-        gen.generate(gen.clazz,gen.out);
+	    if ( gen.clazz == null ) {
+		    System.out.println("no class arg given ... scanning classpath for @GenRemote. whitelist:"+gen.pack);
+		    new FastClasspathScanner( gen.pack.split(",") )
+				.matchClassesWithAnnotation( GenRemote.class, (clazz) -> {
+					MBGen mbGen = new MBGen();
+					mbGen.clazz = clazz.getName();
+					mbGen.lang = gen.lang;
+					mbGen.out = gen.out;
+					try {
+						mbGen.generate(clazz.getName(), gen.out);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}).scan();
+	    }
         //gen.generate("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }
