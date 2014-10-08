@@ -106,7 +106,7 @@ var MinBin = new function MinBin() {
     };
 
     this.jmap = function(map) {
-        if( Object.prototype.toString.call( someVar ) === '[object Array]' ) {
+        if( Object.prototype.toString.call( map ) === '[object Array]' ) {
             return map;
         }
         var res = [Object.keys(map).length];

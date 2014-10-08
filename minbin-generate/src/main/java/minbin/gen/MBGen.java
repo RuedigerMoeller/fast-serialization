@@ -12,7 +12,6 @@ import de.ruedigermoeller.template.TemplateExecutor;
 import org.nustaq.serialization.minbin.GenMeta;
 
 import java.io.File;
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -25,19 +24,18 @@ import java.util.*;
 public class MBGen {
 
     FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+    HashSet<String> clazzSet = new HashSet<String>();
+    HashMap<Class, List<MsgInfo>> infoMap = new HashMap<Class, List<MsgInfo>>();
 
-    private void generate(String clazzName, String outFile) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private void addTopLevelClass(String clazzName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 	    conf.setForceSerializable(true);
-        System.out.println("generating to "+new File(outFile).getAbsolutePath());
 
         Class c = Class.forName(clazzName);
-        HashSet<String> clazzSet = new HashSet<String>();
-        HashMap<Class, List<MsgInfo>> infoMap = new HashMap<Class, List<MsgInfo>>();
         try {
             if ( Actor.class.isAssignableFrom(c) ) {
 //                clazzSet.add(c.getName());
-                prepareActorMeta(c, clazzSet, infoMap);
+                prepareActorMeta(c);
             } else {
                 GenMeta meta = (GenMeta) c.newInstance();
                 List<Class> clazz = meta.getClasses();
@@ -63,14 +61,20 @@ public class MBGen {
 //            }
 //        }
 
-        GenContext ctx = new GenContext();
-	    genClzList(outFile, new ArrayList<String>(clazzSet), ctx, infoMap, "./js/js.jsp");
     }
+
+	private void generate(String outFile) throws ClassNotFoundException {
+        System.out.println("generating to "+new File(outFile).getAbsolutePath());
+		GenContext ctx = new GenContext();
+		genClzList(outFile, new ArrayList<String>(clazzSet), ctx, infoMap, "./js/js.jsp");
+	}
 
 	private void addClz(Set<String> clazzSet, Class aClass, HashMap<Class, List<MsgInfo>> infoMap) {
 		if ( ! clazzSet.contains(aClass.getName()) ) {
+			if ( aClass.getName().startsWith("java.") || aClass.getName().startsWith("javax.") )
+				return;
 			if (Actor.class.isAssignableFrom(aClass)) {
-				prepareActorMeta(aClass, clazzSet, infoMap);
+				prepareActorMeta(aClass);
 			} else
 				clazzSet.add(aClass.getName());
 		}
@@ -90,8 +94,8 @@ public class MBGen {
 		}
 	}
 
-	private void prepareActorMeta(Class c, Set<String> addClazzezHere, HashMap<Class,List<MsgInfo>> map) {
-	    addClazzezHere.add(c.getName());
+	private void prepareActorMeta(Class c) {
+	    clazzSet.add(c.getName());
 	    Method m[] = c.getMethods();
 		ArrayList<MsgInfo> methodInfos = new ArrayList<MsgInfo>();
 	    for (int i = 0; i < m.length; i++) {
@@ -109,7 +113,7 @@ public class MBGen {
 				    Class<?> parameterType = parameterTypes[j];
 				    if (shouldAdd(parameterType))
 				    {
-					    addClz(addClazzezHere, parameterType, map);
+					    addClz(clazzSet, parameterType, infoMap);
 				    }
 			    }
 			    if ( Future.class.isAssignableFrom( method.getReturnType() ) ) {
@@ -120,7 +124,7 @@ public class MBGen {
 					    Type clz = actualTypeArguments[0];
 					    if ( actualTypeArguments.length > 0 && clz instanceof Class
 						     && shouldAdd((Class<?>) clz)) {
-						    addClz(addClazzezHere, (Class) clz, map);
+						    addClz(clazzSet, (Class) clz, infoMap);
 					    }
 				    }
 			    }
@@ -128,7 +132,7 @@ public class MBGen {
 		    }
 	    }
 
-        map.put(c, methodInfos);
+        infoMap.put(c, methodInfos);
     }
 
 	private boolean shouldAdd(Class<?> parameterType) {
@@ -153,7 +157,7 @@ public class MBGen {
     @Parameter( names={"-class", "-c"}, description = "class containing generation description (must implement GenMeta) " )
     String clazz = null; //"org.rm.testserver.protocol.Meta";
 
-    @Parameter( names={"-f"}, description = "file/directory to generate to" )
+    @Parameter( names={"-f"}, description = "file/directory to addTopLevelClass to" )
     String out;
 
     @Parameter( names={"-p"}, description = "',' separated list of whitelist packages" )
@@ -168,21 +172,21 @@ public class MBGen {
 	    }
         // fixme check args
 	    if ( gen.clazz == null ) {
+			MBGen mbGen = new MBGen();
+			mbGen.lang = gen.lang;
+			mbGen.out = gen.out;
 		    System.out.println("no class arg given ... scanning classpath for @GenRemote. whitelist:"+gen.pack);
 		    new FastClasspathScanner( gen.pack.split(",") )
 				.matchClassesWithAnnotation( GenRemote.class, (clazz) -> {
-					MBGen mbGen = new MBGen();
-					mbGen.clazz = clazz.getName();
-					mbGen.lang = gen.lang;
-					mbGen.out = gen.out;
 					try {
-						mbGen.generate(clazz.getName(), gen.out);
+						mbGen.addTopLevelClass(clazz.getName());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}).scan();
+				mbGen.generate(gen.out);
 	    }
-        //gen.generate("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
+        //gen.addTopLevelClass("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }
 
