@@ -184,8 +184,12 @@ public class MBGen {
 						e.printStackTrace();
 					}
 				}).scan();
-				mbGen.generate(gen.out);
-	    }
+
+            if (mbGen.clazzSet.size()>0) {
+                mbGen.generate(gen.out);
+            } else
+                System.out.println("no @GenRemote classes found in given packages");
+        }
         //gen.addTopLevelClass("org.rm.testserver.protocol.Meta","../testshell/src/main/javascript/js/model.js");
 
     }

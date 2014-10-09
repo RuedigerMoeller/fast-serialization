@@ -26,7 +26,7 @@ public class GenContext {
 		if ( ! isIntegral && isArray) {
 	        res += "MinBin.jarray("+ fieldName +")";
 	    } else if ( Map.class.isAssignableFrom(fieldType) ) {
-	        res += "MinBin.jmap(val)";
+	        res += "MinBin.jmap("+ fieldName +")";
 	    } else if ( Collection.class.isAssignableFrom(fieldType) ) {
 	        res += "MinBin.jlist("+ fieldName +")";
 	    } else {
@@ -68,15 +68,22 @@ public class GenContext {
 		                res += fieldName +"?1:0";
 		                break;
 		            case FSTClazzInfo.FSTFieldInfo.BYTE:
+                        res += "MinBin.parseIntOrNan("+ fieldName +", 'byte' )";
+                        break;
 		            case FSTClazzInfo.FSTFieldInfo.CHAR:
+                        res += "MinBin.parseIntOrNan("+ fieldName +", 'char' )";
+                        break;
 		            case FSTClazzInfo.FSTFieldInfo.SHORT:
+                        res += "MinBin.parseIntOrNan("+ fieldName +", 'short' )";
+                        break;
 		            case FSTClazzInfo.FSTFieldInfo.INT:
+                        res += "MinBin.parseIntOrNan("+ fieldName +", 'int' )";
+                        break;
 		            case FSTClazzInfo.FSTFieldInfo.LONG:
-		            case FSTClazzInfo.FSTFieldInfo.FLOAT:
-		            case FSTClazzInfo.FSTFieldInfo.DOUBLE:
-		                res += "MinBin.parseIntOrNan("+ fieldName +")";
+		                res += "MinBin.parseIntOrNan("+ fieldName +", 'int' )";
 		                break;
-		            default: throw new RuntimeException("wat? "+integralCode);
+		            default:
+                        res += fieldName;
 		        }
 		    } else if ( ! Number.class.isAssignableFrom(fieldType) &&
 					    ! String.class.isAssignableFrom(fieldType) &&

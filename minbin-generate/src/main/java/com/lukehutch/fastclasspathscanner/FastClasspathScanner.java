@@ -871,6 +871,7 @@ public class FastClasspathScanner {
                     scanDir(subFile, ignorePrefixLen, scanTimestampsOnly);
                 } else if (scanFiles && subFile.isFile()) {
                     // Scan file
+//                    System.out.println("scanning:"+subFile.getPath());
                     String leafSuffix = "/" + subFile.getName();
                     scanFile(subFile, absolutePath + leafSuffix, relativePath + leafSuffix, scanTimestampsOnly);
                 }

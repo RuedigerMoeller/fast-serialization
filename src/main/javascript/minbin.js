@@ -58,10 +58,13 @@ var MinBin = new function MinBin() {
         return res;
     };
 
-    this.parseIntOrNan = function(number) {
+    this.parseIntOrNan = function(number,type) {
         var tmp = parseInt(number,10);
-        if ( isNaN(tmp) )
-            return 0;
+        if ( isNaN(tmp) ) {
+            tmp = 0;
+        }
+        if (type)
+            tmp.__typeInfo = type;
         return tmp;
     };
 
@@ -107,7 +110,7 @@ var MinBin = new function MinBin() {
 
     this.jmap = function(map) {
         if( Object.prototype.toString.call( map ) === '[object Array]' ) {
-            return map;
+            return map;// already converted
         }
         var res = [Object.keys(map).length];
         for ( var key in map) {
@@ -176,8 +179,12 @@ var MinBin = new function MinBin() {
             return this.serializer[STRING];
         if ( obj == null )
             return this.serializer[NULL];
-        if ( obj instanceof Array )
+        if ( obj instanceof Array ) {
+            if ( !obj.__typeInfo )
+                obj.__typeInfo = 'array';
             return this.serializer[SEQUENCE];
+            // check for int array
+        }
         if ( obj instanceof Object && ! this.isBuffer(obj) )
             return this.serializer[OBJECT];
         if ( this.isFloat(obj) )
@@ -398,7 +405,17 @@ function MBOut() {
         if ( o == null ) {
             this.writeTag(o);
         } else if ( MinBin.isInteger(o) ) {
-            this.writeIntPacked(o);
+            if (o.__typeInfo) {
+                switch(o.__typeInfo) {
+                    case 'byte': this.writeInt(INT_8,o);break;
+                    case 'char': this.writeInt(CHAR,o);break;
+                    case 'short': this.writeInt(INT_16,o);break;
+                    case 'int': this.writeInt(INT_32,o);break;
+                    default :
+                        this.writeIntPacked(o);
+                }
+            } else
+                this.writeIntPacked(o);
         } else if ( MinBin.isBuffer(o) ) {
             if ( this.writeRefIfApplicable(o) )
                 this.writeArray( o, 0, o.length );
