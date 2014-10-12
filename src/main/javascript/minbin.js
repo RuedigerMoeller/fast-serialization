@@ -58,13 +58,15 @@ var MinBin = new function MinBin() {
         return res;
     };
 
-    this.parseIntOrNan = function(number,type) {
+    // if type is give ('int' 'byte' 'short' ..) an object is returned
+    this.parseIntOrNan = function(number, type) {
         var tmp = parseInt(number,10);
         if ( isNaN(tmp) ) {
             tmp = 0;
         }
-        if (type)
-            tmp.__typeInfo = type;
+        if (type) {
+            tmp = { __typeInfo: type, value: tmp, _isJNum: true };
+        }
         return tmp;
     };
 
@@ -86,6 +88,14 @@ var MinBin = new function MinBin() {
 
     this.i16 = function(array) {
         var res = new Int16Array(array.length);
+        for ( var i = 0; i < array.length; i++) {
+            res[i] = array[i];
+        }
+        return res;
+    };
+
+    this.ui16 = function(array) {
+        var res = new Uint16Array(array.length);
         for ( var i = 0; i < array.length; i++) {
             res[i] = array[i];
         }
@@ -404,18 +414,21 @@ function MBOut() {
     this.writeObject = function(o) {
         if ( o == null ) {
             this.writeTag(o);
-        } else if ( MinBin.isInteger(o) ) {
+        } else if (o._isJNum) {
             if (o.__typeInfo) {
                 switch(o.__typeInfo) {
-                    case 'byte': this.writeInt(INT_8,o);break;
-                    case 'char': this.writeInt(CHAR,o);break;
-                    case 'short': this.writeInt(INT_16,o);break;
-                    case 'int': this.writeInt(INT_32,o);break;
+                    case 'byte': this.writeInt(INT_8, o.value);break;
+                    case 'char': this.writeInt(CHAR, o.value);break;
+                    case 'short': this.writeInt(INT_16,o.value);break;
+                    case 'int': this.writeInt(INT_32,o.value);break;
                     default :
-                        this.writeIntPacked(o);
+                        console.log('unhandled int type:'+ o.__typeInfo);
+                        this.writeIntPacked(o.value);
                 }
             } else
-                this.writeIntPacked(o);
+                throw "Wat is denn nur los ?";
+        } else if ( MinBin.isInteger(o) ) {
+            this.writeIntPacked(o);
         } else if ( MinBin.isBuffer(o) ) {
             if ( this.writeRefIfApplicable(o) )
                 this.writeArray( o, 0, o.length );
@@ -478,7 +491,7 @@ function MBIn(rawmsg) {
         if ( MinBin.isSigned(type) ) {
             switch (numBytes) {
                 case 1: l = (l&0xff); if ( l >= 128 ) l-=256; return l;
-                case 2: l = (l&0xffff); if ( l >= 32768 ) l-=65636; return l;
+                case 2: l = (l&0xffff); if ( l >= 32768 ) l-=65536; return l;
                 case 4: l = (l&0xffffffff); if ( l >= 0x80000000 ) l-=0xffffffff+1; return l;
                 default: throw "Wat? ".concat(numBytes);
             }
