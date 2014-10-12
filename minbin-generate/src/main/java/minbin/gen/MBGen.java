@@ -7,6 +7,7 @@ import org.nustaq.kontraktor.Actor;
 import org.nustaq.kontraktor.Callback;
 import org.nustaq.kontraktor.Future;
 import org.nustaq.kontraktor.annotations.CallerSideMethod;
+import org.nustaq.kontraktor.annotations.GenRemote;
 import org.nustaq.serialization.FSTConfiguration;
 import de.ruedigermoeller.template.TemplateExecutor;
 import org.nustaq.serialization.minbin.GenMeta;
