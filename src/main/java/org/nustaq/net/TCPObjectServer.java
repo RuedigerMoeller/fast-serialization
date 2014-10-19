@@ -9,6 +9,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ruedi on 22.08.14.
+ *
+ * As socket allowing to send/receive serializable objects
+ * see ./test/net for an example
+ *
  */
 public class TCPObjectServer {
 
