@@ -116,7 +116,7 @@ public final class FSTClazzInfo {
             cons = FSTUtil.findConstructorForSerializable(clazz);
         } else {
             if (!reg.isStructMode()) {
-                if ( conf.isForceSerializable() ) {
+                if ( conf.isForceSerializable() || getSer() != null ) {
                     externalizable = false;
                     cons = FSTUtil.findConstructorForSerializable(clazz);
                 } else {
