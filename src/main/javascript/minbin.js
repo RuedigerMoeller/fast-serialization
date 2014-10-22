@@ -46,6 +46,8 @@ var MinBin = new function MinBin() {
     this.obj = function(clazz,object) {
         if ( object.__typeInfo == clazz || object._actorProxy ) // do not overwrite fqname of actor proxies
             return object;
+        if ( object.__typeInfo && object.__typeInfo.indexOf('.') < 0 )
+            return object; // already converted
         return mbfactory(clazz,object);
     };
 

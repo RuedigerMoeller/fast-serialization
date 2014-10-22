@@ -1,6 +1,7 @@
 package org.nustaq.serialization;
 
 import org.nustaq.serialization.minbin.MBIn;
+import org.nustaq.serialization.minbin.MBObject;
 import org.nustaq.serialization.minbin.MinBin;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -313,6 +314,8 @@ public class FSTMinBinDecoder implements FSTDecoder {
     HashMap<String,Class> clzCache = new HashMap<>();
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
+        if ("Object".equals(name))
+            return MBObject.class;
         Class aClass = clzCache.get(name);
         if (aClass!=null)
             return aClass;

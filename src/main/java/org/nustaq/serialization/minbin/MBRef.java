@@ -1,9 +1,11 @@
 package org.nustaq.serialization.minbin;
 
+import java.io.Serializable;
+
 /**
  * Created by ruedi on 02.05.14.
  */
-public class MBRef {
+public class MBRef implements Serializable {
     int streamPosition;
 
     public MBRef(int streamPosition) {

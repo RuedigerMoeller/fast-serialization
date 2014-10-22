@@ -1,5 +1,6 @@
 package org.nustaq.serialization.minbin;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -25,7 +26,7 @@ import java.util.Iterator;
  * Time: 15:36
  * To change this template use File | Settings | File Templates.
  */
-public class MBObject {
+public class MBObject implements Serializable {
     static Iterator<String> emptyIter = new Iterator<String>() {
         @Override
         public boolean hasNext() {
