@@ -29,6 +29,12 @@ var NULL = 7;
 var BOOL = 8;
 var HANDLE = 9; // not supported in 1.0
 
+// dummy impl
+var mbfactory = function(clazz,obj) {
+    obj.__typeInfo = clazz;
+    return obj;
+};
+
 var MinBin = new function MinBin() {
 
     // public API =>
