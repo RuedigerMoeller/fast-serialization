@@ -112,7 +112,11 @@ public class Kson {
     }
 
     public Object readObject(File file) throws Exception {
-        return readObject(file,null);
+        return readObject(file,(String)null);
+    }
+
+    public Object readObject(File file, Class type) throws Exception {
+        return readObject(file,type.getName());
     }
 
     public Object readObject(File file, String type) throws Exception {

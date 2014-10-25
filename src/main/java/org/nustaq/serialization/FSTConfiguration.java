@@ -649,9 +649,13 @@ public final class FSTConfiguration {
     public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
         for (int i = 0; i < keysAndVals.length; i++) {
             String[] keysAndVal = keysAndVals[i];
-            crossPlatformNames.put( keysAndVal[0], keysAndVal[1]);
-            crossPlatformNamesReverse.put( keysAndVal[1], keysAndVal[0]);
+            registerCrossPlatformClassMapping( keysAndVal[0], keysAndVal[1] );
         }
+    }
+
+    public void registerCrossPlatformClassMapping( String shortName,  String fqName ) {
+        crossPlatformNames.put( shortName, fqName);
+        crossPlatformNamesReverse.put( fqName, shortName);
     }
 
     /**
