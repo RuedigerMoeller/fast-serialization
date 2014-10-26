@@ -20,12 +20,12 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 </dependency>
 ```
 
-Older version (slightly faster, different package name ..)
+Older version (slightly faster, different package name, 1.6 compatible ..)
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.61</version>
+    <version>1.62</version>
 </dependency>
 ```
 
@@ -40,5 +40,4 @@ Older version (slightly faster, different package name ..)
 <b>This does not affect the serialization implementation. </b>
 
 <b>JDK 1.6 Build</b>
-https://github.com/RuedigerMoeller/fast-serialization/releases/tag/v1.55-1.6
-(serialization works for 1.6, structs not)
+v1.62 is jdk 6 compatible
