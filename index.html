@@ -44,8 +44,9 @@
 <li>Full support of JDK-serialization features such as Externalizable writeObject/readObject/readReplace/validation/putField/getField, hooks etc.. If an object is serializable with JDK, it should be serializable with FST without any further work.</li>
 <li>preserves links inside the serialized object graph same as JDK default serialization</li>
 <li>custom optimization using <em>annotations</em>, custom serializers</li>
+<li>supports versioning (2.x only)</li>
 <li>conditional decoding (skip decoding parts of an object/stream in case)</li>
-</ul><p>Supports java 1.7+</p>
+</ul><p>Supports java 1.7+ (fst 1.62: JDK 1.6)</p>
 
 <ul>
 <li>Fast serialization should be adaptable to 1.6 (no use of 1.7 features). A build is <a href='https://github.com/RuedigerMoeller/fast-serialization/releases/tag/v1.55-1.6'>here</a></li>
@@ -63,7 +64,7 @@ current:
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>2.07<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;version&gt;</span>2.08<span class="nt">&lt;/version&gt;</span>
 <span class="nt">&lt;/dependency&gt;</span>
 </pre></div>
 
@@ -71,7 +72,7 @@ older version (slightly faster, less features, serialization probably more stabl
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>de.ruedigermoeller<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>fst<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>1.60<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.62<span class="nt">&lt;/version&gt;</span>
 <span class="nt">&lt;/dependency&gt;</span>
 </pre></div>
 
