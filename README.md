@@ -11,7 +11,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 
 ###mvn
 
-note: maven.org might lag 1 day behind after releasing.
+**note:** maven.org might lag 1 day behind after releasing.
 
 2.0 version
 ```.xml
