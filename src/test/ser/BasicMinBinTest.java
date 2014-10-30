@@ -72,7 +72,7 @@ public class BasicMinBinTest extends BasicFSTTest {
     @Test
     public void testException() throws Exception { super.testException(); }
 
-    @Test @Ignore
+    @Test @Ignore //FIXME: MinBin has issues with advanced enum stuff
     public void testEnums() throws Exception {
         Basics obj = new Basics(123);
         out.writeObject(obj);
