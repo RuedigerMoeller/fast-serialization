@@ -16,7 +16,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.08</version>
+    <version>2.10</version>
 </dependency>
 ```
 
@@ -25,7 +25,7 @@ Older version (slightly faster, different package name, 1.6 compatible ..)
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>1.62</version>
+    <version>1.63</version>
 </dependency>
 ```
 
@@ -40,4 +40,4 @@ Older version (slightly faster, different package name, 1.6 compatible ..)
 <b>This does not affect the serialization implementation. </b>
 
 <b>JDK 1.6 Build</b>
-v1.62 is jdk 6 compatible
+>= v1.62 is jdk 6 compatible
