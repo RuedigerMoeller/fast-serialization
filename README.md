@@ -42,4 +42,4 @@ Older version (slightly faster, different package name, 1.6 compatible ..)
 <b>This does not affect the serialization implementation. </b>
 
 <b>JDK 1.6 Build</b>
->= v1.62 is jdk 6 compatible
+1.x build since v1.62 are still jdk 6 compatible
