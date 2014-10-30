@@ -2,10 +2,10 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="1.62"
+version="1.63"
 
-targetCompatibility = 1.7
-sourceCompatibility = 1.7
+targetCompatibility = 1.6
+sourceCompatibility = 1.6
 
 compileJava.options.debugOptions.debugLevel = "source,lines,vars"
 compileTestJava.options.debugOptions.debugLevel = "source,lines,vars"
