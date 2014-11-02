@@ -4,6 +4,7 @@ package org.nustaq.kson;
 import org.nustaq.serialization.FSTClazzInfo;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -194,7 +195,11 @@ public class KsonDeserializer {
                 for (int i = 0; i < keyVals.size(); i += 2) {
                     String fi = (String) keyVals.get(i);
                     Object val = keyVals.get(i + 1);
-                    clInfo.getFieldInfo(fi, null).getField().set(res, val);
+                    Field field = clInfo.getFieldInfo(fi, null).getField();
+                    if ( field.getType().isEnum() && val instanceof String) {
+                        val = Enum.valueOf( (Class<Enum>)field.getType(), (String) val);
+                    }
+                    field.set(res, val);
                 }
             }
             if (DEBUG_STACK) {
