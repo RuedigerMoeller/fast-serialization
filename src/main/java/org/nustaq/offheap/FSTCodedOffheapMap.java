@@ -35,6 +35,8 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
     public abstract V decodeValue(BytezByteSource val);
 
     public V get( K key ) {
+        if ( key == null )
+            return null;
         ByteSource bkey = encodeKey(key);
         BytezByteSource val = getBinary(bkey);
         if ( val == null )
