@@ -45,7 +45,7 @@ public class KsonTypeMapper {
     protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();;
 
     public KsonTypeMapper() {
-        map("map", HashMap.class).map("list", HashMap.class);
+        map("map", HashMap.class).map("list", HashMap.class).map("set",HashSet.class);
     }
 
     public Class getType(String type) {

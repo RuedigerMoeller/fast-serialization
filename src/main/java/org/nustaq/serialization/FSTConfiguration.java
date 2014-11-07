@@ -245,13 +245,19 @@ public final class FSTConfiguration {
      * @param cached
      */
     public void returnObject( Object cached ) {
-        synchronized (cachedObjects) {
+        try {
+            while (!cacheLock.compareAndSet(false, true)) {
+                // empty
+            }
             List<SoftReference> li = cachedObjects.get(cached.getClass());
             if ( li == null ) {
                 li = new ArrayList<SoftReference>();
                 cachedObjects.put(cached.getClass(),li);
             }
-            li.add(new SoftReference(cached));
+            if ( li.size() < 5 )
+                li.add(new SoftReference(cached));
+        } finally {
+            cacheLock.set(false);
         }
     }
 
@@ -291,8 +297,12 @@ public final class FSTConfiguration {
         serializationInfoRegistry.setSerializerRegistryDelegate(del);
     }
 
+    AtomicBoolean cacheLock = new AtomicBoolean(false);
     public Object getCachedObject( Class cl ) {
-        synchronized (cachedObjects) {
+        try  {
+            while (!cacheLock.compareAndSet(false, true)) {
+                // empty
+            }
             List<SoftReference> li = cachedObjects.get(cl);
             if ( li == null ) {
                 return null;
@@ -305,6 +315,8 @@ public final class FSTConfiguration {
                     return res;
                 }
             }
+        } finally {
+            cacheLock.set(false);
         }
         return null;
     }
@@ -326,9 +338,14 @@ public final class FSTConfiguration {
      * clear cached softref's and ThreadLocal. Use if you won't read/write objects anytime soon.
      */
     public void clearCaches() {
-        FSTInputStream.cachedBuffer.set(null);
-        synchronized (cachedObjects) {
+        try {
+            FSTInputStream.cachedBuffer.set(null);
+            while (!cacheLock.compareAndSet(false, true)) {
+                // empty
+            }
             cachedObjects.clear();
+        } finally {
+            cacheLock.set( false );
         }
     }
 

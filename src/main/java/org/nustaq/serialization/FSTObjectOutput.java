@@ -53,7 +53,7 @@ public class FSTObjectOutput implements ObjectOutput {
     static final byte OBJECT = 0;
     protected FSTEncoder codec;
 
-    protected FSTConfiguration conf; // immutable
+    final protected FSTConfiguration conf; // immutable
 
     protected FSTObjectRegistry objects;
     protected int curDepth = 0;
