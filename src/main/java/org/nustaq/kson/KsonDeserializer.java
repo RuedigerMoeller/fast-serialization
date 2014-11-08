@@ -157,6 +157,8 @@ public class KsonDeserializer {
                 List keyVals = readList(genericKeyType, genericKeyType);
                 if (clInfo.getClazz() == ArrayList.class) { // default constructor fails ...
                     res = new ArrayList<>(keyVals.size());
+                } else if (clInfo.getClazz() == HashSet.class) { // default constructor fails ...
+                    res = new HashSet<>(keyVals.size());
                 } else {
                     res = clInfo.newInstance(true);
                 }
@@ -449,6 +451,8 @@ public class KsonDeserializer {
                     return l;
                 }
             }
+        } else if (Character.isJavaIdentifierStart(ch)) { // last resort string
+            return readString(false);
         }
         throw new KsonParseException("value expected", in);
     }

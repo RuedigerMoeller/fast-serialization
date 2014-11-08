@@ -58,8 +58,16 @@ public class Kson {
         if ( genericType instanceof ParameterizedType) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 0 && actualTypeArguments[0] instanceof Class)
-                return (Class<?>) actualTypeArguments[0];
+            Type actualTypeArgument = actualTypeArguments[0];
+            if (actualTypeArguments != null && actualTypeArguments.length > 0 )
+                if ( actualTypeArgument instanceof Class == false ) {
+                    while ( actualTypeArgument instanceof ParameterizedType ) {
+                        actualTypeArgument = ((ParameterizedType) actualTypeArgument).getRawType();
+                    }
+                    if ( actualTypeArgument instanceof Class == false )
+                        return null;
+                }
+                return (Class<?>) actualTypeArgument;
         }
         return null;
     }
@@ -69,8 +77,16 @@ public class Kson {
         if ( genericType instanceof ParameterizedType ) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 1  && actualTypeArguments[1] instanceof Class)
-                return (Class<?>) actualTypeArguments[1];
+            Type actualTypeArgument = actualTypeArguments[1];
+            if (actualTypeArguments != null && actualTypeArguments.length > 0 )
+                if ( actualTypeArgument instanceof Class == false ) {
+                    while ( actualTypeArgument instanceof ParameterizedType ) {
+                        actualTypeArgument = ((ParameterizedType) actualTypeArgument).getRawType();
+                    }
+                    if ( actualTypeArgument instanceof Class == false )
+                        return null;
+                }
+            return (Class<?>) actualTypeArgument;
         }
         return null;
     }
