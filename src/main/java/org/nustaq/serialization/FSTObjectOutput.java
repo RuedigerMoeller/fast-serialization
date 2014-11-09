@@ -38,19 +38,19 @@ import java.util.*;
  */
 public class FSTObjectOutput implements ObjectOutput {
 
-    static final byte ONE_OF = -18;
-    static final byte BIG_BOOLEAN_FALSE = -17;
-    static final byte BIG_BOOLEAN_TRUE = -16;
-    static final byte BIG_LONG = -10;
-    static final byte BIG_INT = -9;
-    static final byte HANDLE = -7;
-    static final byte ENUM = -6;
-    static final byte ARRAY = -5;
-    static final byte STRING = -4;
-    static final byte TYPED = -3; // var class == object written class
-    static final byte DIRECT_OBJECT = -2;
-    static final byte NULL = -1;
-    static final byte OBJECT = 0;
+    public static final byte ONE_OF = -18;
+    public static final byte BIG_BOOLEAN_FALSE = -17;
+    public static final byte BIG_BOOLEAN_TRUE = -16;
+    public static final byte BIG_LONG = -10;
+    public static final byte BIG_INT = -9;
+    public static final byte HANDLE = -7;
+    public static final byte ENUM = -6;
+    public static final byte ARRAY = -5;
+    public static final byte STRING = -4;
+    public static final byte TYPED = -3; // var class == object written class
+    public static final byte DIRECT_OBJECT = -2;
+    public static final byte NULL = -1;
+    public static final byte OBJECT = 0;
     protected FSTEncoder codec;
 
     final protected FSTConfiguration conf; // immutable

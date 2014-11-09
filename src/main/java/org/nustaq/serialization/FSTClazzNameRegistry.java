@@ -71,7 +71,7 @@ public class FSTClazzNameRegistry {
     }
 
     // for read => always increase handle (wg. replaceObject)
-    void registerClass( Class c ) {
+    public void registerClass(Class c) {
         if ( getIdFromClazz(c) != Integer.MIN_VALUE ) {
             return;
         }

@@ -20,6 +20,10 @@
 package org.nustaq.serialization;
 
 import org.nustaq.offheap.structs.FSTStruct;
+import org.nustaq.serialization.coders.FSTMinBinDecoder;
+import org.nustaq.serialization.coders.FSTMinBinEncoder;
+import org.nustaq.serialization.coders.FSTStreamDecoder;
+import org.nustaq.serialization.coders.FSTStreamEncoder;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;

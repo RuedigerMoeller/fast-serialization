@@ -1,5 +1,6 @@
-package org.nustaq.serialization;
+package org.nustaq.serialization.coders;
 
+import org.nustaq.serialization.*;
 import org.nustaq.serialization.minbin.MBOut;
 import org.nustaq.serialization.minbin.MBPrinter;
 import org.nustaq.serialization.minbin.MinBin;
@@ -30,7 +31,8 @@ import java.util.HashMap;
  * <p/>
  * Date: 30.03.2014
  * Time: 18:47
- * To change this template use File | Settings | File Templates.
+ *
+ * serializes into self describing binary format MinBin
  */
 public class FSTMinBinEncoder implements FSTEncoder {
 

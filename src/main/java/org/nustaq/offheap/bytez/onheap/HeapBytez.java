@@ -191,6 +191,13 @@ public class HeapBytez implements Bytez {
     }
 
     @Override
+    public void getBooleanArr(long byteIndex, boolean[] target, int elemoff, int numElems) {
+        for ( int i = 0; i < numElems; i++) {
+            target[elemoff+i] = getBool(byteIndex+i);
+        }
+    }
+
+    @Override
     public void set(long byteIndex, byte[] source, int elemoff, int numElems) {
         unsafe.copyMemory(source,off+elemoff,base,off+byteIndex,numElems);
     }
@@ -226,7 +233,7 @@ public class HeapBytez implements Bytez {
     }
 
     @Override
-    public void setBoolean(int byteIndex, boolean[] o, int elemoff, int numElems) {
+    public void setBoolean(long byteIndex, boolean[] o, int elemoff, int numElems) {
         for ( int i = 0; i < numElems; i++) {
             put(byteIndex+i, (byte) (o[i+elemoff] ? 1 : 0));
         }

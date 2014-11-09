@@ -1,5 +1,9 @@
-package org.nustaq.serialization;
+package org.nustaq.serialization.coders;
 
+import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTClazzNameRegistry;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTEncoder;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
