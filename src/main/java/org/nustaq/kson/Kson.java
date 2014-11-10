@@ -58,8 +58,9 @@ public class Kson {
         if ( genericType instanceof ParameterizedType) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            Type actualTypeArgument = actualTypeArguments[0];
+            Type actualTypeArgument = null;
             if (actualTypeArguments != null && actualTypeArguments.length > 0 )
+                actualTypeArgument = actualTypeArguments[0];
                 if ( actualTypeArgument instanceof Class == false ) {
                     while ( actualTypeArgument instanceof ParameterizedType ) {
                         actualTypeArgument = ((ParameterizedType) actualTypeArgument).getRawType();
@@ -77,8 +78,9 @@ public class Kson {
         if ( genericType instanceof ParameterizedType ) {
             ParameterizedType params = (ParameterizedType) genericType;
             Type[] actualTypeArguments = params.getActualTypeArguments();
-            Type actualTypeArgument = actualTypeArguments[1];
-            if (actualTypeArguments != null && actualTypeArguments.length > 0 )
+            Type actualTypeArgument = null;
+            if (actualTypeArguments != null && actualTypeArguments.length > 1 ) {
+                actualTypeArgument = actualTypeArguments[1];
                 if ( actualTypeArgument instanceof Class == false ) {
                     while ( actualTypeArgument instanceof ParameterizedType ) {
                         actualTypeArgument = ((ParameterizedType) actualTypeArgument).getRawType();
@@ -86,6 +88,7 @@ public class Kson {
                     if ( actualTypeArgument instanceof Class == false )
                         return null;
                 }
+            }
             return (Class<?>) actualTypeArgument;
         }
         return null;
