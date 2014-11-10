@@ -46,7 +46,7 @@ public interface BasicBytez extends ByteSource {
     public void setDouble(long byteIndex, double[] source, int elemoff, int numElems);
     public void setBoolean(long byteIndex, boolean[] o, int i, int siz);
 
-    public void copyTo(Bytez other, long otherByteIndex, long myByteIndex, long lenBytes);
+    public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes);
     public Bytez newInstance(long size);
 
 }

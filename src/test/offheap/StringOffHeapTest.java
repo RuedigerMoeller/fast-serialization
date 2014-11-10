@@ -62,7 +62,7 @@ public class StringOffHeapTest {
     @Test
     public void testKeys() throws Exception {
         new File("/tmp/test1.mmf").delete();
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
 
         int count = 10;
@@ -121,7 +121,7 @@ public class StringOffHeapTest {
     public void hardcore() throws Exception {
         new File("/tmp/test.mmf").delete();
         fillMemMapped();
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
 
         int count = 10;
@@ -183,7 +183,7 @@ public class StringOffHeapTest {
     public void fillAndReloadMemMapped() throws Exception {
         new File("/tmp/test.mmf").delete();
         fillMemMapped();
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
 
         FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
@@ -257,7 +257,7 @@ public class StringOffHeapTest {
 
     @Test
     public void fillMemMapped() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
         new File("/tmp/test.mmf").delete();
 
@@ -270,6 +270,10 @@ public class StringOffHeapTest {
         }
         Assert.assertTrue(store.getSize() == MAX);
         store.free();
+    }
+
+    protected FSTConfiguration createConfiguration() {
+        return FSTConfiguration.createDefaultConfiguration();
     }
 
     private void fillAll(FSTAsciiStringOffheapMap<TestRec> store) {
@@ -288,7 +292,7 @@ public class StringOffHeapTest {
 
     @Test
     public void removeSomeMemMapped() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
         new File("/tmp/test.mmf").delete();
@@ -316,7 +320,7 @@ public class StringOffHeapTest {
 
     @Test
     public void testPutGetIter() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
         int MAX = 100000;
@@ -432,7 +436,7 @@ public class StringOffHeapTest {
 
     @Test
     public void randomTest() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = createConfiguration();
         conf.registerClass(TestRec.class);
         int klen = 16;
         int MAX = 10000;

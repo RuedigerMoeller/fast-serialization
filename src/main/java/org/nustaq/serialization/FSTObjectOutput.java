@@ -1008,6 +1008,9 @@ public class FSTObjectOutput implements ObjectOutput {
      * if more than one objects have been written, an implicit flush is triggered, so the buffer only contains
      * the last written object. getWritten() then has a larger size than the buffer length.
      * only usable if one single object is written to the stream (e.g. messaging)
+     *
+     * note: in case of non-standard underlyings (e.g. serializing to direct offheap or DirectBuffer, this method
+     * might cause creation of a byte array and a copy.
      */
     public byte[] getBuffer() {
         return codec.getBuffer();
@@ -1017,8 +1020,13 @@ public class FSTObjectOutput implements ObjectOutput {
      * @return a copy of written bytes. 
      * Warning: if the stream has been flushed, this will fail with an exception.
      * a flush is triggered after each 1st level writeObject.
+     *
+     * note: in case of non-stream based serialization (directbuffer, offheap mem) getBuffer will return a copy anyways.
      */
     public byte[] getCopyOfWrittenBuffer() {
+        if ( ! codec.isByteArrayBased() ) {
+            return getBuffer();
+        }
         byte res [] = new byte[codec.getWritten()];
         byte[] buffer = getBuffer();
         System.arraycopy(buffer,0,res,0,codec.getWritten());

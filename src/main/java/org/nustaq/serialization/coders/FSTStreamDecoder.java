@@ -77,7 +77,7 @@ public class FSTStreamDecoder implements FSTDecoder {
      */
     @Override
     public String readStringAsc() throws IOException {
-        int len = readFByte();
+        int len = readFInt();
         if (ascStringCache == null || ascStringCache.length < len)
             ascStringCache = new byte[len];
         input.ensureReadAhead(len);
@@ -102,28 +102,18 @@ public class FSTStreamDecoder implements FSTDecoder {
                 System.arraycopy(input.buf,input.pos,arr,0,len);
                 input.pos += len;
                 return arr;
-            } else if (componentType == char.class) {
-                char[] arr = (char[]) array;
-                for (int j = 0; j < len; j++) {
-                    arr[j] = readFChar();
-                }
-                return arr;
-            } else if (componentType == short.class) {
-                short[] arr = (short[]) array;
-                ensureReadAhead(arr.length * 2);
-                for (int j = 0; j < len; j++) {
-                    arr[j] = readFShort();
-                }
-                return arr;
             } else if (componentType == int.class) {
                 final int[] arr = (int[]) array;
                 readFIntArr(len, arr);
                 return arr;
-            } else if (componentType == float.class) {
-                float[] arr = (float[]) array;
-                ensureReadAhead(arr.length * 4);
+            } else if (componentType == long.class) {
+                long[] arr = (long[]) array;
+                readFLongArr(len, arr);
+                return arr;
+            } else if (componentType == char.class) {
+                char[] arr = (char[]) array;
                 for (int j = 0; j < len; j++) {
-                    arr[j] = readFFloat();
+                    arr[j] = readFChar();
                 }
                 return arr;
             } else if (componentType == double.class) {
@@ -133,9 +123,19 @@ public class FSTStreamDecoder implements FSTDecoder {
                     arr[j] = readFDouble();
                 }
                 return arr;
-            } else if (componentType == long.class) {
-                long[] arr = (long[]) array;
-                readFLongArr(len, arr);
+            } else if (componentType == short.class) {
+                short[] arr = (short[]) array;
+                ensureReadAhead(arr.length * 2);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFShort();
+                }
+                return arr;
+            } else if (componentType == float.class) {
+                float[] arr = (float[]) array;
+                ensureReadAhead(arr.length * 4);
+                for (int j = 0; j < len; j++) {
+                    arr[j] = readFFloat();
+                }
                 return arr;
             } else if (componentType == boolean.class) {
                 boolean[] arr = (boolean[]) array;

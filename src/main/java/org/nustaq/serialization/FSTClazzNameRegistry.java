@@ -121,9 +121,11 @@ public class FSTClazzNameRegistry {
                 if ( clid != Integer.MIN_VALUE ) {
                     out.writeFShort((short) clid); // > 2 !!
                 } else {
+                    // ugly hack, also making assumptions about
+                    // on how the encoder works internally
                     final byte[] bufferedName = ci.getBufferedName();
                     out.writeFShort((short) 1); // no direct cl id ascii enc
-                    out.writeFByte((char) bufferedName.length);
+                    out.writeFInt((char) bufferedName.length);
                     out.writeRawBytes(bufferedName,0,bufferedName.length);
                     registerClassNoLookup(aClass,ci);
                 }

@@ -502,5 +502,10 @@ public class FSTStreamEncoder implements FSTEncoder {
         writeFByte(version);
     }
 
+    @Override
+    public boolean isByteArrayBased() {
+        return true;
+    }
+
 }
 

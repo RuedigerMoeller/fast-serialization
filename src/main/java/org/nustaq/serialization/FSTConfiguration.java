@@ -19,11 +19,9 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.FSTStruct;
-import org.nustaq.serialization.coders.FSTMinBinDecoder;
-import org.nustaq.serialization.coders.FSTMinBinEncoder;
-import org.nustaq.serialization.coders.FSTStreamDecoder;
-import org.nustaq.serialization.coders.FSTStreamEncoder;
+import org.nustaq.serialization.coders.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
@@ -46,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Date: 18.11.12
  * Time: 20:41
  *
- * Holds a serialization configuration. Reuse this class !!! construction is very expensive. (just keep a static instances around)
+ * Holds a serialization configuration. Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
  */
 public final class FSTConfiguration {
 
@@ -74,8 +72,6 @@ public final class FSTConfiguration {
     // cross platform stuff only
 
     int cpAttrIdCount = 0;
-    HashMap<String, Integer> crossPlatformAttrIds = new HashMap<>();
-    HashMap<Integer, String> crossPlatformAttrIdsReverse = new HashMap<>();
     // contains symbol => full qualified name
     private HashMap<String, String> crossPlatformNames = new HashMap<>();
     // may contain symbol => cached binary output
@@ -199,6 +195,26 @@ public final class FSTConfiguration {
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true); // subclasses also use this
         return conf;
     }
+
+    /**
+     * @return a configuration which encodes platform dependent and optimized for speed (no value compression is applied)
+     */
+    public static FSTConfiguration createFastBinaryConfiguration() {
+        final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
+            @Override
+            public FSTEncoder createStreamEncoder() {
+                return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
+            }
+
+            @Override
+            public FSTDecoder createStreamDecoder() {
+                return new FSTBytezDecoder(conf);
+            }
+        });
+        return conf;
+    }
+
 
     public void registerSerializer(Class clazz, FSTObjectSerializer ser, boolean alsoForAllSubclasses ) {
         serializationInfoRegistry.serializerRegistry.putSerializer(clazz, ser, alsoForAllSubclasses);
@@ -608,7 +624,7 @@ public final class FSTConfiguration {
     }
 
     /**
-     * @see setStructMode()
+     * special for structs
      * @return
      */
     public boolean isStructMode() {
@@ -670,7 +686,7 @@ public final class FSTConfiguration {
     public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
         for (int i = 0; i < keysAndVals.length; i++) {
             String[] keysAndVal = keysAndVals[i];
-            registerCrossPlatformClassMapping( keysAndVal[0], keysAndVal[1] );
+            registerCrossPlatformClassMapping(keysAndVal[0], keysAndVal[1]);
         }
     }
 
@@ -692,26 +708,6 @@ public final class FSTConfiguration {
             crossPlatformNames.put( clz.getSimpleName(), clz.getName() );
             crossPlatformNamesReverse.put( clz.getName(), clz.getSimpleName() );
         }
-    }
-
-    /**
-     * Note: UNUSED, not yet implemented
-     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     * @param names { "varName", .. } for each of these an id will be written instead of full name.
-     */
-    public void registerCrossPlatformAttributeNames( String ... names ) {
-        for (int i = 0; i < names.length; i++) {
-            crossPlatformAttrIds.put( names[i], cpAttrIdCount);
-            crossPlatformAttrIdsReverse.put( cpAttrIdCount, names[i]);
-        }
-    }
-
-    public String getCrossPlatformAttributeName( Integer id ) {
-        return crossPlatformAttrIdsReverse.get(id);
-    }
-
-    public Integer getCrossPlatformAttributeId( String id ) {
-        return crossPlatformAttrIds.get(id);
     }
 
     /**
@@ -759,5 +755,24 @@ public final class FSTConfiguration {
         }
     }
 
+    /**
+     * Warning: avoids allocation + copying.
+     * The returned byteArray is a direct pointer to underlying buffer.
+     * the int length[] is expected to have at least on element.
+     * The buffer can be larger than written data, therefore length[0] will contain written length.
+     *
+     * The buffer content must be used (e.g. sent to network, copied to offheap) before doing another
+     * asByteArray on the current Thread.
+     */
+    public byte[] asSharedByteArray( Object object, int length[] ) {
+        FSTObjectOutput objectOutput = getObjectOutput();
+        try {
+            objectOutput.writeObject(object);
+            length[0] = objectOutput.getWritten();
+            return objectOutput.getBuffer();
+        } catch (IOException e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
 
 }

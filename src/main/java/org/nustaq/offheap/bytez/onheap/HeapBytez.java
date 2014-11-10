@@ -1,5 +1,6 @@
 package org.nustaq.offheap.bytez.onheap;
 
+import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.serialization.util.FSTUtil;
@@ -240,7 +241,7 @@ public class HeapBytez implements Bytez {
     }
 
     @Override
-    public void copyTo(Bytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
+    public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
         if ( other instanceof HeapBytez) {
             HeapBytez hp = (HeapBytez) other;
             unsafe.copyMemory(base,off+myByteIndex,hp.base,hp.off+otherByteIndex,lenBytes);
@@ -394,7 +395,18 @@ public class HeapBytez implements Bytez {
         return base;
     }
 
+    /**
+     * @return offset to byte array INCLUDING native bytearray header
+     */
     public long getOff() {
         return off;
     }
+
+    /**
+     * @return offset to byte array EXCLUDING native bytearray header
+     */
+    public long getOffsetIndex() {
+        return off-byteoff;
+    }
+
 }

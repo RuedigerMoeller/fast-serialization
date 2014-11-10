@@ -178,6 +178,15 @@ public class BasicFSTTest {
         Bl bl = new Bl();
     }
 
+    static class AscStrings implements Serializable {
+        String empty = "";
+        String nil = null;
+        String asc = "qpowerijdsfjgkdfg3409589275458965412354doigfoi-.,#+";
+        String junk = "psdokf spdfoksp spdofk spdfk spdo spdfk psdokf psdkf psdokf psdkf pdkof psodkf psdokf psdokf psodkf psodkf ";
+        String junk1 = junk;
+        Bl bl = new Bl();
+    }
+
     static class VersioningOld implements Serializable {
 
         boolean bool = true;

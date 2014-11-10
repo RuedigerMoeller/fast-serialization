@@ -1,11 +1,9 @@
 package org.nustaq.serialization.coders;
 
 import org.nustaq.offheap.bytez.BasicBytez;
+import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTClazzNameRegistry;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTDecoder;
+import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -20,11 +18,12 @@ import java.io.InputStream;
  */
 public class FSTBytezDecoder  implements FSTDecoder {
 
-    private BasicBytez input;
+    BasicBytez input;
     HeapBytez ascStringCache;
     FSTConfiguration conf;
     public FSTClazzNameRegistry clnames;
     long pos;
+    InputStream inputStream;
 
     public FSTBytezDecoder(FSTConfiguration conf) {
         this.conf = conf;
@@ -36,12 +35,32 @@ public class FSTBytezDecoder  implements FSTDecoder {
         }
     }
 
+    byte tmp[];
     public void ensureReadAhead(int bytes) {
-
+        if ( pos+bytes > input.length() ) {
+            if ( inputStream != null ) {
+                if ( tmp == null || tmp.length < bytes ) {
+                    tmp = new byte[bytes];
+                }
+                try {
+                    int read = inputStream.read(tmp, 0, bytes);
+                    if ( read > 0 ) {
+                        if ( input.length() < pos+read ) {
+                            BasicBytez bytez = input.newInstance(2*(pos + read));
+                            input.copyTo(bytez,0,0,pos);
+                            input = bytez;
+                        }
+                        input.set(pos,tmp,0,read);
+                    }
+                } catch (IOException e) {
+                    FSTUtil.rethrow(e);
+                }
+            } else
+                throw new RuntimeException("unexpected end of input reached");
+        }
     }
 
     char chBufS[];
-
     char[] getCharBuf(int siz) {
         char chars[] = chBufS;
         if (chars == null || chars.length < siz) {
@@ -53,22 +72,11 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     public String readStringUTF() throws IOException {
         int len = readFInt();
-        char[] charBuf = getCharBuf(len * 3);
-        ensureReadAhead(len * 3);
-        long count = pos;
-        int chcount = 0;
-        for (int i = 0; i < len; i++) {
-            char head = (char) ((input.get(count++) + 256) & 0xff);
-            if (head < 255) {
-                charBuf[chcount++] = head;
-            } else {
-                int ch1 = ((input.get(count++) + 256) & 0xff);
-                int ch2 = ((input.get(count++) + 256) & 0xff);
-                charBuf[chcount++] = (char) ((ch1 << 0) + (ch2 << 8));
-            }
-        }
-        pos = count;
-        return new String(charBuf, 0, chcount);
+        char[] charBuf = getCharBuf(len * 2);
+        ensureReadAhead(len*2);
+        input.getCharArr(pos,charBuf,0,len);
+        pos += len*2;
+        return new String(charBuf, 0, len);
     }
 
     public byte readObjectHeaderTag() throws IOException {
@@ -83,7 +91,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
      */
     @Override
     public String readStringAsc() throws IOException {
-        int len = readFByte();
+        int len = readFInt();
         if (ascStringCache == null || ascStringCache.length() < len)
             ascStringCache = new HeapBytez(new byte[len]);
         ensureReadAhead(len);
@@ -103,44 +111,52 @@ public class FSTBytezDecoder  implements FSTDecoder {
     @Override
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
         if (componentType == byte.class) {
+            ensureReadAhead(len);
             byte arr[] = (byte[]) array;
             input.getArr(pos, arr, 0, len);
             pos += len;
             return arr;
         } else if (componentType == char.class) {
+            ensureReadAhead(len*2);
             char[] arr = (char[]) array;
             input.getCharArr(pos, arr, 0, len);
             pos += len * 2;
             return arr;
         } else if (componentType == short.class) {
+            ensureReadAhead(len*2);
             short[] arr = (short[]) array;
             input.getShortArr(pos, arr, 0, len);
             pos += len * 2;
             return arr;
         } else if (componentType == int.class) {
+            ensureReadAhead(len*4);
             int[] arr = (int[]) array;
             input.getIntArr(pos, arr, 0, len);
             pos += len * 4;
             return arr;
         } else if (componentType == float.class) {
+            ensureReadAhead(len*4);
             float[] arr = (float[]) array;
             input.getFloatArr(pos, arr, 0, len);
             pos += len * 4;
             return arr;
         } else if (componentType == double.class) {
+            ensureReadAhead(len*8);
             double[] arr = (double[]) array;
             input.getDoubleArr(pos, arr, 0, len);
             pos += len * 8;
             return arr;
         } else if (componentType == long.class) {
+            ensureReadAhead(len*8);
             long[] arr = (long[]) array;
             input.getLongArr(pos, arr, 0, len);
             pos += len * 8;
             return arr;
         } else if (componentType == boolean.class) {
+            ensureReadAhead(len);
             boolean[] arr = (boolean[]) array;
             input.getBooleanArr(pos, arr, 0, len);
-            pos += len * 8;
+            pos += len;
             return arr;
         } else {
             throw new RuntimeException("unexpected primitive type " + componentType.getName());
@@ -223,7 +239,12 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     @Override
     public byte[] getBuffer() {
-        throw new RuntimeException("not implemented");
+        if ( input instanceof HeapBytez && ((HeapBytez) input).getOffsetIndex() == 0 ) {
+            return ((HeapBytez) input).asByteArray();
+        }
+        byte res[] = new byte[(int) pos];
+        input.getArr(0,res,0, (int) pos);
+        return res;
     }
 
     @Override
@@ -244,17 +265,43 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     @Override
     public void setInputStream(InputStream in) {
-        throw new RuntimeException("not implementable");
+        if ( in == FSTObjectInput.emptyStream ) {
+            return;
+        }
+        this.inputStream = in;
+        pos = 0;
+        if ( input == null )
+            input = new HeapBytez(new byte[4096]);
     }
 
     @Override
     public void resetToCopyOf(byte[] bytes, int off, int len) {
-        throw new RuntimeException("not implementable");
+        if ( input == null ) {
+            byte[] base = new byte[len];
+            input = new HeapBytez(base,0,len);
+        }
+        if ( input.length() < len )
+        {
+            input = input.newInstance(len);
+        }
+        input.set(0,bytes,off,len);
+        pos = 0;
     }
 
     @Override
     public void resetWith(byte[] bytes, int len) {
-        throw new RuntimeException("not implementable");
+        if ( input == null ) {
+            input = new HeapBytez(bytes,0,len);
+            return;
+        }
+        // suboptimal method for non heap backing
+        if ( input.getClass() == HeapBytez.class ) {
+            ((HeapBytez)input).setBase(bytes,0,len);
+        } else {
+            BasicBytez newBytez = input.newInstance(len);
+            newBytez.set(0,bytes,0,len);
+        }
+        pos = 0;
     }
 
     @Override

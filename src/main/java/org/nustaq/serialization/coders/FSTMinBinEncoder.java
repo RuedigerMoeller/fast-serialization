@@ -496,4 +496,9 @@ public class FSTMinBinEncoder implements FSTEncoder {
         // versioning not supported for minbin
     }
 
+    @Override
+    public boolean isByteArrayBased() {
+        return true;
+    }
+
 }

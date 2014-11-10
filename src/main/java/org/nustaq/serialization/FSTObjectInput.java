@@ -37,7 +37,7 @@ import java.util.*;
  */
 public class FSTObjectInput implements ObjectInput {
 
-    static ByteArrayInputStream empty = new ByteArrayInputStream(new byte[0]);
+    public static ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[0]);
     
     protected FSTDecoder codec;
 
@@ -152,11 +152,11 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     public FSTObjectInput() throws IOException {
-        this(empty, FSTConfiguration.getDefaultConfiguration());
+        this(emptyStream, FSTConfiguration.getDefaultConfiguration());
     }
 
     public FSTObjectInput(FSTConfiguration conf) {
-        this(empty, conf);
+        this(emptyStream, conf);
     }
 
     /**
@@ -766,11 +766,6 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    final void ensureReadAhead( int bytes ) throws IOException {
-        // currently complete object is read ahead
-        codec.ensureReadAhead(bytes);
-    }
-
     public String readStringUTF() throws IOException {
         return codec.readStringUTF();
     }
@@ -1055,7 +1050,6 @@ public class FSTObjectInput implements ObjectInput {
 
             @Override
             public int read() throws IOException {
-                codec.ensureReadAhead(1);
                 return codec.readFByte();
             }
 

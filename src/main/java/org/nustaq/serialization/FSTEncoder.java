@@ -80,4 +80,6 @@ public interface FSTEncoder {
     boolean isTagMultiDimSubArrays();
 
     void writeVersionTag(int version) throws IOException;
+
+    boolean isByteArrayBased();
 }

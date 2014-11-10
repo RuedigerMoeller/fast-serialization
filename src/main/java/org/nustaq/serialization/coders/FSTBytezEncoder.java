@@ -1,6 +1,8 @@
 package org.nustaq.serialization.coders;
 
 import org.nustaq.offheap.bytez.BasicBytez;
+import org.nustaq.offheap.bytez.Bytez;
+import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTClazzNameRegistry;
 import org.nustaq.serialization.FSTConfiguration;
@@ -26,9 +28,11 @@ public class FSTBytezEncoder implements FSTEncoder {
     private BasicBytez buffout;
     private long pos;
     private byte[] ascStringCache;
+    OutputStream outStream;
 
-    public FSTBytezEncoder(FSTConfiguration conf) {
+    public FSTBytezEncoder(FSTConfiguration conf, BasicBytez base) {
         this.conf = conf;
+        buffout = base;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
         if ( clnames == null ) {
             clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
@@ -125,44 +129,30 @@ public class FSTBytezEncoder implements FSTEncoder {
      * @throws java.io.IOException
      */
     public void writeRawBytes(byte[] array, int start, int length) throws IOException {
+        ensureFree((int) (pos+length));
         buffout.set(pos,array,start,length);
         pos += length;
+    }
+
+    char chBufS[];
+    char[] getCharBuf(int siz) {
+        char chars[] = chBufS;
+        if (chars == null || chars.length < siz) {
+            chars = new char[Math.max(siz, 15)];
+            chBufS = chars;
+        }
+        return chars;
     }
 
     @Override
     public void writeStringUTF(String str) throws IOException {
         final int strlen = str.length();
-
         writeFInt(strlen);
-        long count = pos;
-        for (int i=0; i<strlen; i++) {
-            final char c = str.charAt(i);
-            buffout.put(count++,(byte)c);
-            if ( c >= 255) {
-                buffout.put(count-1, (byte)255);
-                buffout.put(count++, (byte) ((c >>> 0) & 0xFF));
-                buffout.put(count++, (byte) ((c >>> 8) & 0xFF));
-            }
-        }
-        pos = count;
-    }
-
-    /**
-     * length < 127 !!!!!
-     *
-     * @param name
-     * @throws java.io.IOException
-     */
-    void writeStringAsc(String name) throws IOException {
-        int len = name.length();
-        if ( len >= 127 ) {
-            throw new RuntimeException("Ascii String too long");
-        }
-        writeFByte((byte) len);
-        if (ascStringCache == null || ascStringCache.length < len)
-            ascStringCache = new byte[len];
-        name.getBytes(0, len, ascStringCache, 0);
-        writeRawBytes(ascStringCache, 0, len);
+        ensureFree(strlen*2);
+        char c[] = getCharBuf(strlen);
+        str.getChars(0,strlen,c,0);
+        buffout.setChar(pos,c,0,c.length);
+        pos += strlen*2;
     }
 
     @Override
@@ -265,7 +255,7 @@ public class FSTBytezEncoder implements FSTEncoder {
      */
     @Override
     public void setOutstream(OutputStream outstream) {
-        throw new RuntimeException("not implemented");
+        this.outStream = outstream;
     }
 
     /**
@@ -274,17 +264,38 @@ public class FSTBytezEncoder implements FSTEncoder {
      */
     @Override
     public void flush() throws IOException {
-//        buffout.flush();
+        if ( outStream != null )
+            outStream.write(getBuffer(), 0, (int) pos);
+        pos = 0;
     }
 
     @Override
     public void ensureFree(int bytes) throws IOException {
-//        buffout.ensureFree(bytes);
+        if ( buffout.length() <= pos+bytes) {
+            BasicBytez newbytez = buffout.newInstance( Math.max(pos+bytes,buffout.length() * 2) );
+            buffout.copyTo(newbytez,0,0,pos);
+            // debug
+//            for ( int i = 0; i < pos; i++) {
+//                if ( buffout.get(i) != newbytez.get(i) ) {
+//                    throw new RuntimeException("error");
+//                }
+//            }
+            buffout = newbytez;
+        }
     }
 
     @Override
     public byte[] getBuffer() {
-        throw new RuntimeException("not implementable");
+        if (isPlainBAAccessible()) {
+            return ((HeapBytez) buffout).asByteArray();
+        }
+        byte res[] = new byte[(int) pos];
+        buffout.getArr(0,res,0, (int) pos);
+        return res;
+    }
+
+    protected boolean isPlainBAAccessible() {
+        return buffout.getClass() == HeapBytez.class && ((HeapBytez) buffout).getOffsetIndex() == 0;
     }
 
     public void registerClass(Class possible) {
@@ -330,7 +341,7 @@ public class FSTBytezEncoder implements FSTEncoder {
 
     private void writePlainInt(int v) throws IOException {
         ensureFree(4);
-        buffout.putInt(pos, (short) v);
+        buffout.putInt(pos, v);
         pos += 4;
     }
 
@@ -353,6 +364,11 @@ public class FSTBytezEncoder implements FSTEncoder {
     @Override
     public void writeVersionTag(int version) throws IOException {
         writeFByte(version);
+    }
+
+    @Override
+    public boolean isByteArrayBased() {
+        return false || isPlainBAAccessible();
     }
 
 }
