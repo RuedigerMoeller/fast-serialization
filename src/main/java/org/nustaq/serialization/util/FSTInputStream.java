@@ -31,7 +31,7 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
-    public int chunk_size = 500;
+    public int chunk_size = 5000;
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
     public byte buf[];
     public  int pos;

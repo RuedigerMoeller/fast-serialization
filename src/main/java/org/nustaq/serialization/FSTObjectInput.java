@@ -47,7 +47,7 @@ public class FSTObjectInput implements ObjectInput {
     int curDepth;
 
     ArrayList<CallbackEntry> callbacks;
-    FSTConfiguration conf;
+//    FSTConfiguration conf;
     // mirrored from conf
     boolean ignoreAnnotations;
     FSTClazzInfoRegistry clInfoRegistry;
@@ -55,6 +55,11 @@ public class FSTObjectInput implements ObjectInput {
     ConditionalCallback conditionalCallback;
     int readExternalReadAHead = 8000;
     VersionConflictListener versionConflictListener;
+
+    FSTConfiguration conf;
+
+    // copied values from conf
+    boolean isCrossPlatform;
 
     public FSTConfiguration getConf() {
         return conf;
@@ -181,15 +186,16 @@ public class FSTObjectInput implements ObjectInput {
     public FSTObjectInput(InputStream in, FSTConfiguration conf) {
         codec = conf.createStreamDecoder();
         codec.setInputStream(in);
+        isCrossPlatform = conf.isCrossPlatform();
+        initRegistries(conf);
         this.conf = conf;
-        initRegistries();
     }
 
     public Class getClassForName(String name) throws ClassNotFoundException {
         return codec.classForName(name);
     }
 
-    void initRegistries() {
+    void initRegistries(FSTConfiguration conf) {
         ignoreAnnotations = conf.getCLInfoRegistry().isIgnoreAnnotations();
         clInfoRegistry = conf.getCLInfoRegistry();
 
@@ -283,7 +289,7 @@ public class FSTObjectInput implements ObjectInput {
 
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
-        if ( conf.isCrossPlatform() ) {
+        if ( isCrossPlatform ) {
             return readObjectInternal(null); // not supported cross platform
         }
         try {

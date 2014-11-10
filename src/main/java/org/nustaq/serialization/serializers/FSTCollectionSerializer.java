@@ -43,19 +43,26 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
         Collection col = (Collection)toWrite;
         int size = col.size();
         out.writeInt(size);
-        Class[] possibleClasses = referencedBy.getPossibleClasses();
+        Class lastClz = null;
+        FSTClazzInfo lastInfo = null;
+        if ( col.getClass() == ArrayList.class ) {
+            List l = (List) col;
+            for (int i = 0; i < size; i++) {
+                Object o = l.get(i);
+                if ( o != null ) {
+                    lastInfo = out.writeObjectInternal(o, o.getClass() == lastClz ? lastInfo : null, null);
+                    lastClz = o.getClass();
+                } else
+                    out.writeObjectInternal(o, null, null);
+            }
+        } else
         {
-            if ( col.getClass() == ArrayList.class ) {
-                List l = (List) col;
-                for (int i = 0; i < size; i++) {
-                    Object o = l.get(i);
-                    out.writeObjectInternal(o, possibleClasses);
-                }
-            } else
-            {
-                for (Object o : col) {
-                    out.writeObjectInternal(o, possibleClasses);
-                }
+            for (Object o : col) {
+                if ( o != null ) {
+                    lastInfo = out.writeObjectInternal(o, o.getClass() == lastClz ? lastInfo : null, null);
+                    lastClz = o.getClass();
+                } else
+                    out.writeObjectInternal(o, null, null);
             }
         }
     }
@@ -84,12 +91,9 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
             if ( col instanceof ArrayList ) {
                 ((ArrayList)col).ensureCapacity(len);
             }
-            Class[] possibleClasses = referencee.getPossibleClasses();
-            {
-                for ( int i = 0; i < len; i++ ) {
-                    final Object o = in.readObjectInternal(possibleClasses);
-                    col.add(o);
-                }
+            for ( int i = 0; i < len; i++ ) {
+                final Object o = in.readObjectInternal(null);
+                col.add(o);
             }
             return res;
         } catch (Throwable th) {

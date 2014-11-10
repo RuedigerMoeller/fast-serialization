@@ -7,6 +7,7 @@ import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -18,12 +19,13 @@ import java.io.InputStream;
  */
 public class FSTBytezDecoder  implements FSTDecoder {
 
-    BasicBytez input;
+    HeapBytez input;
     HeapBytez ascStringCache;
     FSTConfiguration conf;
     public FSTClazzNameRegistry clnames;
     long pos;
     InputStream inputStream;
+    long readUntil = 0;
 
     public FSTBytezDecoder(FSTConfiguration conf) {
         this.conf = conf;
@@ -37,26 +39,36 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     byte tmp[];
     public void ensureReadAhead(int bytes) {
-        if ( pos+bytes > input.length() ) {
-            if ( inputStream != null ) {
-                if ( tmp == null || tmp.length < bytes ) {
-                    tmp = new byte[bytes];
+        if ( inputStream != null ) {
+            if ( pos+bytes > readUntil ) {
+                readNextInputChunk(bytes);
+            }
+        } else if ( pos+bytes > input.length() ) {
+            throw new RuntimeException("unexpected end of input reached");
+        }
+    }
+
+    protected void readNextInputChunk(int bytes) {
+        try {
+            int toRead = Math.max(800000, bytes);
+            if ( inputStream instanceof ByteArrayInputStream ) {
+                toRead = Math.min(((ByteArrayInputStream) inputStream).available(),toRead);
+            }
+            if ( tmp == null || tmp.length < toRead ) {
+                tmp = new byte[toRead];
+            }
+            int read = inputStream.read(tmp, 0, toRead);
+            if ( read > 0 ) {
+                if ( input.length() < pos+read ) {
+                    BasicBytez bytez = input.newInstance(2*(pos + read));
+                    input.copyTo(bytez,0,0,pos);
+                    input = (HeapBytez) bytez;
                 }
-                try {
-                    int read = inputStream.read(tmp, 0, bytes);
-                    if ( read > 0 ) {
-                        if ( input.length() < pos+read ) {
-                            BasicBytez bytez = input.newInstance(2*(pos + read));
-                            input.copyTo(bytez,0,0,pos);
-                            input = bytez;
-                        }
-                        input.set(pos,tmp,0,read);
-                    }
-                } catch (IOException e) {
-                    FSTUtil.rethrow(e);
-                }
-            } else
-                throw new RuntimeException("unexpected end of input reached");
+                input.set(pos,tmp,0,read);
+                readUntil = pos+read;
+            }
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
         }
     }
 
@@ -261,35 +273,43 @@ public class FSTBytezDecoder  implements FSTDecoder {
     public void reset() {
         pos = 0;
         clnames.clear();
+        inputStream = null;
     }
 
     @Override
     public void setInputStream(InputStream in) {
         if ( in == FSTObjectInput.emptyStream ) {
+            inputStream = null;
+            readUntil = 0;
             return;
         }
         this.inputStream = in;
+        clnames.clear();
         pos = 0;
         if ( input == null )
             input = new HeapBytez(new byte[4096]);
+        readUntil = 0;
     }
 
     @Override
     public void resetToCopyOf(byte[] bytes, int off, int len) {
+        inputStream = null;
         if ( input == null ) {
             byte[] base = new byte[len];
             input = new HeapBytez(base,0,len);
         }
         if ( input.length() < len )
         {
-            input = input.newInstance(len);
+            input = (HeapBytez) input.newInstance(len);
         }
         input.set(0,bytes,off,len);
         pos = 0;
+        clnames.clear();
     }
 
     @Override
     public void resetWith(byte[] bytes, int len) {
+        inputStream = null;
         if ( input == null ) {
             input = new HeapBytez(bytes,0,len);
             return;
@@ -302,6 +322,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
             newBytez.set(0,bytes,0,len);
         }
         pos = 0;
+        clnames.clear();
     }
 
     @Override

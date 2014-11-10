@@ -60,7 +60,11 @@ public class FSTObjectOutput implements ObjectOutput {
     protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
 
     protected FSTSerialisationListener listener;
-    
+
+    // double state to reduce pointer chasing
+    boolean dontShare;
+    private final FSTClazzInfo stringInfo;
+
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
      * underlying output stream.
@@ -92,6 +96,8 @@ public class FSTObjectOutput implements ObjectOutput {
         } else {
             objects.clearForWrite();
         }
+        dontShare = objects.disabled;
+        stringInfo = getClassInfoRegistry().getCLInfo(String.class);
     }
 
     /**
@@ -273,7 +279,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 codec.registerClass(possible);
             }
         }
-        writeObjectInternal(obj, possibles);
+        writeObjectInternal(obj, null, possibles);
     }
 
     FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
@@ -294,14 +300,15 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    public void writeObjectInternal(Object obj, Class... possibles) throws IOException {
+    public FSTClazzInfo writeObjectInternal(Object obj, FSTClazzInfo ci, Class... possibles) throws IOException {
         if ( curDepth == 0 ) {
             throw new RuntimeException("not intended to be called from external application. Use public writeObject instead");
         }
         FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
         curDepth++;
-        writeObjectWithContext(info, obj);
+        FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
         curDepth--;
+        return fstClazzInfo;
     }
 
     public FSTSerialisationListener getListener() {
@@ -338,18 +345,20 @@ public class FSTObjectOutput implements ObjectOutput {
             listener.objectHasBeenWritten(obj, oldStreamPosition, streamPosition);
         }
     }
-    
+    protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+        return writeObjectWithContext(referencee,toWrite,null);
+    }
+
     int tmp[] = {0};
     // splitting this slows down ...
-    protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
         int startPosition = codec.getWritten();
-        boolean dontShare = objects.disabled;
         objectWillBeWritten(toWrite, startPosition);
 
         try {
             if ( toWrite == null ) {
                 codec.writeTag(NULL, null, 0, toWrite);
-                return;
+                return null;
             }
             final Class clazz = toWrite.getClass();
             if ( clazz == String.class ) {
@@ -360,23 +369,24 @@ public class FSTObjectOutput implements ObjectOutput {
                         if ( s.equals(toWrite) ) {
                             codec.writeTag(ONE_OF, oneOf, i, toWrite);
                             codec.writeFByte(i);
-                            return;
+                            return null;
                         }
                     }
                 }
-                if (dontShare) {
-                    codec.writeTag(STRING, toWrite, 0, toWrite);
-                    codec.writeStringUTF((String) toWrite);
-                    return;
-                }
+                // shortpath
+                if (! dontShare && writeHandleIfApplicable(toWrite, stringInfo))
+                    return stringInfo;
+                codec.writeTag(STRING, toWrite, 0, toWrite);
+                codec.writeStringUTF((String) toWrite);
+                return stringInfo;
             } else if ( clazz == Integer.class ) {
                 codec.writeTag(BIG_INT, null, 0, toWrite);
-                codec.writeFInt(((Integer) toWrite).intValue()); return;
+                codec.writeFInt(((Integer) toWrite).intValue()); return null;
             } else if ( clazz == Long.class ) {
                 codec.writeTag(BIG_LONG, null, 0, toWrite);
-                codec.writeFLong(((Long) toWrite).longValue()); return;
+                codec.writeFLong(((Long) toWrite).longValue()); return null;
             } else if ( clazz == Boolean.class ) {
-                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return;
+                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
             } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
                 if ( ! codec.writeTag(ENUM, toWrite, 0, toWrite) ) {
                     boolean isEnumClass = toWrite.getClass().isEnum();
@@ -391,32 +401,27 @@ public class FSTObjectOutput implements ObjectOutput {
                         }
                         codec.writeClass(c);
                     } else {
-                        codec.writeClass(getFstClazzInfo(referencee, toWrite.getClass()));
+                        FSTClazzInfo fstClazzInfo = getFstClazzInfo(referencee, toWrite.getClass());
+                        codec.writeClass(fstClazzInfo);
+                        codec.writeFInt(((Enum) toWrite).ordinal());
+                        return fstClazzInfo;
                     }
                     codec.writeFInt(((Enum) toWrite).ordinal());
                 }
-                return;
+                return null;
             }
 
-            FSTClazzInfo serializationInfo = getFstClazzInfo(referencee, clazz);
+            FSTClazzInfo serializationInfo = ci == null ? getFstClazzInfo(referencee, clazz) : ci;
+
             // check for identical / equal objects
             FSTObjectSerializer ser = serializationInfo.getSer();
             if ( ! dontShare && ! referencee.isFlat() && ! serializationInfo.isFlat() && ( ser == null || !ser.alwaysCopy() ) ) {
-                int handle = objects.registerObjectForWrite(toWrite, codec.getWritten(), serializationInfo, tmp);
-                // determine class header
-                if ( handle >= 0 ) {
-                    final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
-                    if ( isIdentical ) {
-//                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
-                        if ( ! codec.writeTag(HANDLE,null,handle, toWrite) )
-                            codec.writeFInt(handle);
-                        return;
-                    }
-                }
+                if (writeHandleIfApplicable(toWrite, serializationInfo))
+                    return serializationInfo;
             }
             if (clazz.isArray()) {
                 if (codec.writeTag(ARRAY, toWrite, 0, toWrite))
-                    return; // some codecs handle primitive arrays like an primitive type
+                    return serializationInfo; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
                 // default write object wihtout custom serializer
@@ -438,7 +443,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     // clazz uses some JDK special stuff (frequently slow)
                     if ( serializationInfo.useCompatibleMode() && ! serializationInfo.isExternalizable() ) {
                         writeObjectCompatible(referencee, toWrite, serializationInfo);
-                        return;
+                        return serializationInfo;
                     }
                 }
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
@@ -455,9 +460,25 @@ public class FSTObjectOutput implements ObjectOutput {
                     codec.externalEnd(serializationInfo);
                 }
             }
+            return serializationInfo;
         } finally {
             objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
         }
+    }
+
+    private boolean writeHandleIfApplicable(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
+        int handle = objects.registerObjectForWrite(toWrite, codec.getWritten(), serializationInfo, tmp);
+        // determine class header
+        if ( handle >= 0 ) {
+            final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
+            if ( isIdentical ) {
+//                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
+                if ( ! codec.writeTag(HANDLE,null,handle, toWrite) )
+                    codec.writeFInt(handle);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -722,10 +743,16 @@ public class FSTObjectOutput implements ObjectOutput {
                 codec.writePrimitiveArray(array,0,len);
             } else { // objects
                 Object arr[] = (Object[])array;
+                Class lastClz = null;
+                FSTClazzInfo lastInfo = null;
                 for ( int i = 0; i < len; i++ )
                 {
                     Object toWrite = arr[i];
-                    writeObjectWithContext(referencee, toWrite);
+                    if ( toWrite != null ) {
+                        lastInfo = writeObjectWithContext(referencee, toWrite, lastClz == toWrite.getClass() ? lastInfo : null);
+                        lastClz = toWrite.getClass();
+                    } else
+                        writeObjectWithContext(referencee, toWrite, null);
                 }
             }
         } else { // multidim array. FIXME shared refs to subarrays are not tested !!!
@@ -812,7 +839,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             protected void writeObjectOverride(Object obj) throws IOException {
-                FSTObjectOutput.this.writeObjectInternal(obj, referencee.getPossibleClasses());
+                FSTObjectOutput.this.writeObjectInternal(obj, null, referencee.getPossibleClasses());
             }
 
             @Override
@@ -907,7 +934,7 @@ public class FSTObjectOutput implements ObjectOutput {
 //                if ( fstCompatibilityInfo.isAsymmetric() ) {
 //                    FSTObjectOutput.this.writeCompatibleObjectFields(toWrite, fields, fstCompatibilityInfo.getFieldArray());
 //                } else {
-                FSTObjectOutput.this.writeObjectInternal(fields, HashMap.class);
+                FSTObjectOutput.this.writeObjectInternal(fields, null, HashMap.class);
 //                }
             }
 

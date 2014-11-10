@@ -320,9 +320,11 @@ public class BasicFSTTest {
     @Test
     public void testSimpleCollections() throws Exception {
         HashMap obj = new HashMap();
-        ArrayList li = new ArrayList(); li.add("zero"); li.add("second");
+        ArrayList li = new ArrayList(); li.add("zero"); li.add(null); li.add("second");
         obj.put("x", li);
         obj.put("y", li);
+        obj.put("yy", null);
+        obj.put(null, "asd");
         obj.put(3,"99999");
         out.writeObject(obj);
 
@@ -333,6 +335,7 @@ public class BasicFSTTest {
         assertTrue(res.get("x") == res.get("y"));
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
+
 
     @Test
     public void testBigNums() throws Exception {

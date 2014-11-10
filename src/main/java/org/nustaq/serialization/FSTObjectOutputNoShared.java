@@ -90,7 +90,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     }
 
     @Override
-    protected void writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         int startPosition = codec.getWritten();
         boolean dontShare = true;
         objectWillBeWritten(toWrite,startPosition);
@@ -98,7 +98,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
         try {
             if ( toWrite == null ) {
                 codec.writeTag(NULL, null, 0, toWrite);
-                return;
+                return null;
             }
             final Class clazz = toWrite.getClass();
             if ( clazz == String.class ) {
@@ -109,23 +109,23 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                         if ( s.equals(toWrite) ) {
                             codec.writeTag(ONE_OF, oneOf, i, toWrite);
                             codec.writeFByte(i);
-                            return;
+                            return null;
                         }
                     }
                 }
                 if (dontShare) {
                     codec.writeTag(STRING, toWrite, 0, toWrite);
                     codec.writeStringUTF((String) toWrite);
-                    return;
+                    return null;
                 }
             } else if ( clazz == Integer.class ) {
                 codec.writeTag(BIG_INT, null, 0, toWrite);
-                codec.writeFInt(((Integer) toWrite).intValue()); return;
+                codec.writeFInt(((Integer) toWrite).intValue()); return null;
             } else if ( clazz == Long.class ) {
                 codec.writeTag(BIG_LONG, null, 0, toWrite);
-                codec.writeFLong(((Long) toWrite).longValue()); return;
+                codec.writeFLong(((Long) toWrite).longValue()); return null;
             } else if ( clazz == Boolean.class ) {
-                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return;
+                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
             } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
                 if ( ! codec.writeTag(ENUM, toWrite, 0, toWrite) ) {
                     boolean isEnumClass = toWrite.getClass().isEnum();
@@ -144,7 +144,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     }
                     codec.writeFInt(((Enum) toWrite).ordinal());
                 }
-                return;
+                return null;
             }
 
             FSTClazzInfo serializationInfo = getFstClazzInfo(referencee, clazz);
@@ -152,7 +152,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             FSTObjectSerializer ser = serializationInfo.getSer();
             if (clazz.isArray()) {
                 if (codec.writeTag(ARRAY, toWrite, 0, toWrite))
-                    return; // some codecs handle primitive arrays like an primitive type
+                    return null; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
                 // default write object wihtout custom serializer
@@ -171,6 +171,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     codec.externalEnd(serializationInfo);
                 }
             }
+            return serializationInfo;
         } finally {
             objectHasBeenWritten(toWrite,startPosition,codec.getWritten());
         }

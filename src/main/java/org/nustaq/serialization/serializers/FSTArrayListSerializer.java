@@ -46,10 +46,15 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
         ArrayList col = (ArrayList)toWrite;
         int size = col.size();
         out.writeInt(size);
-        Class[] possibleClasses = referencedBy.getPossibleClasses();
+        Class lastClz = null;
+        FSTClazzInfo lastInfo = null;
         for (int i = 0; i < size; i++) {
             Object o = col.get(i);
-            out.writeObjectInternal(o, possibleClasses);
+            if ( o != null ) {
+                lastInfo = out.writeObjectInternal(o, o.getClass() == lastClz ? lastInfo : null, null);
+                lastClz = o.getClass();
+            } else
+                out.writeObjectInternal(o, null, null);
         }
     }
 
@@ -59,9 +64,8 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
             int len = in.readInt();
             ArrayList res = new ArrayList(len);
             in.registerObject(res, streamPositioin,serializationInfo, referencee);
-            Class[] possibleClasses = referencee.getPossibleClasses();
             for ( int i = 0; i < len; i++ ) {
-                final Object o = in.readObjectInternal(possibleClasses);
+                final Object o = in.readObjectInternal(null);
                 res.add(o);
             }
             return res;

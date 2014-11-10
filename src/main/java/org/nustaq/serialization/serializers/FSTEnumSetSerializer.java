@@ -52,7 +52,7 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
                 if ( count == 0 ) {
                     out.writeClassTag(element.getClass());
                 }
-                out.writeObjectInternal(element, Enum.class);
+                out.writeObjectInternal(element, null, Enum.class);
                 count++;
             }
         }

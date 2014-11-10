@@ -41,11 +41,24 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         Map col = (Map)toWrite;
         out.writeInt(col.size());
-        Class[] possibleClasses = referencedBy.getPossibleClasses();
+        FSTClazzInfo lastKClzI = null;
+        FSTClazzInfo lastVClzI = null;
+        Class lastKClz = null;
+        Class lastVClz = null;
         for (Iterator iterator = col.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry next = (Map.Entry) iterator.next();
-            out.writeObjectInternal(next.getKey(), possibleClasses);
-            out.writeObjectInternal(next.getValue(), possibleClasses);
+            Object key = next.getKey();
+            Object value = next.getValue();
+            if ( key != null && value != null ) {
+                lastKClzI = out.writeObjectInternal(key, key.getClass() == lastKClz ? lastKClzI : null, null);
+                lastVClzI = out.writeObjectInternal(value, value.getClass() == lastVClz ? lastVClzI : null, null);
+                lastKClz = key.getClass();
+                lastVClz = value.getClass();
+            } else {
+                out.writeObjectInternal(key, null, null);
+                out.writeObjectInternal(value, null, null);
+            }
+
         }
     }
 
@@ -64,10 +77,9 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
         }
         in.registerObject(res, streamPositioin,serializationInfo, referencee);
         Map col = (Map)res;
-        Class[] possibleClasses = referencee.getPossibleClasses();
         for ( int i = 0; i < len; i++ ) {
-            Object key = in.readObjectInternal(possibleClasses);
-            Object val = in.readObjectInternal(possibleClasses);
+            Object key = in.readObjectInternal(null);
+            Object val = in.readObjectInternal(null);
             col.put(key,val);
         }
         return res;
