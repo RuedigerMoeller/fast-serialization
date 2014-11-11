@@ -48,6 +48,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class FSTConfiguration {
 
+    static enum ConfType {
+        DEFAULT, UNSAFE, MINBIN
+    }
     StreamCoderFactory streamCoderFactory = new StreamCoderFactory() {
         @Override
         public FSTEncoder createStreamEncoder() {
@@ -59,7 +62,8 @@ public final class FSTConfiguration {
             return new FSTStreamDecoder(FSTConfiguration.this);
         }
     };
-    
+
+    ConfType type = ConfType.DEFAULT;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry(this);
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
@@ -103,6 +107,7 @@ public final class FSTConfiguration {
     public static FSTConfiguration createCrossPlatformConfiguration() {
         final FSTConfiguration res = createDefaultConfiguration();
         res.setCrossPlatform(true);
+        res.type = ConfType.UNSAFE;
         res.setStreamCoderFactory(new StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
@@ -184,7 +189,8 @@ public final class FSTConfiguration {
      */
     public static FSTConfiguration createFastBinaryConfiguration() {
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
-        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
+        conf.type = ConfType.UNSAFE;
+        conf.setStreamCoderFactory( new FSTConfiguration.StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
@@ -519,7 +525,7 @@ public final class FSTConfiguration {
     ThreadLocal<FSTObjectOutput> output = new ThreadLocal<FSTObjectOutput>() {
         @Override
         protected FSTObjectOutput initialValue() {
-            if (getStreamCoderFactory() == streamCoderFactory) {
+            if (type == ConfType.DEFAULT) {
                 return new FSTObjectOutput(FSTConfiguration.this) {
                     FSTStreamEncoder st;
 
@@ -541,7 +547,7 @@ public final class FSTConfiguration {
         @Override
         protected FSTObjectInput initialValue() {
             try {
-                if (getStreamCoderFactory() == streamCoderFactory) {
+                if (type == ConfType.DEFAULT) {
                     return new FSTObjectInput(FSTConfiguration.this){
                         FSTStreamDecoder st;
                         @Override
