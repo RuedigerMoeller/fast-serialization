@@ -83,23 +83,6 @@ public final class FSTConfiguration {
     // end cross platform stuff only
     /////////////////////////////////////
 
-    public static Integer getInt(int i) {
-        if ( i >= 0 && i < intObjects.length ) {
-            return intObjects[i];
-        }
-        return Integer.valueOf(i);
-    }
-
-    public static Integer intObjects[];
-    {
-        if ( intObjects == null ) {
-            intObjects = new Integer[30000];
-            for (int i = 0; i < intObjects.length; i++) {
-                intObjects[i] = Integer.valueOf(i);
-            }
-        }
-    }
-
     static AtomicBoolean conflock = new AtomicBoolean(false);
     static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
@@ -536,7 +519,21 @@ public final class FSTConfiguration {
     ThreadLocal<FSTObjectOutput> output = new ThreadLocal<FSTObjectOutput>() {
         @Override
         protected FSTObjectOutput initialValue() {
-            return new FSTObjectOutput(FSTConfiguration.this);
+            if (getStreamCoderFactory() == streamCoderFactory) {
+                return new FSTObjectOutput(FSTConfiguration.this) {
+                    FSTStreamEncoder st;
+
+                    @Override
+                    protected void setCodec(FSTEncoder codec) {
+                        st = (FSTStreamEncoder) codec;
+                    }
+                    @Override
+                    public FSTStreamEncoder getCodec() {
+                        return st; // try to avoid megamorph calls
+                    }
+                };
+            } else
+                return new FSTObjectOutput(FSTConfiguration.this);
         }
     };
 
@@ -544,7 +541,21 @@ public final class FSTConfiguration {
         @Override
         protected FSTObjectInput initialValue() {
             try {
-                return new FSTObjectInput(FSTConfiguration.this);
+                if (getStreamCoderFactory() == streamCoderFactory) {
+                    return new FSTObjectInput(FSTConfiguration.this){
+                        FSTStreamDecoder st;
+                        @Override
+                        void setCodec(FSTDecoder codec) {
+                            st = (FSTStreamDecoder) codec;
+                        }
+
+                        @Override
+                        public FSTStreamDecoder getCodec() {
+                            return st;
+                        }
+                    };
+                } else
+                    return new FSTObjectInput(FSTConfiguration.this);
             } catch (Exception e) {
                 throw FSTUtil.rethrow(e);
             }
@@ -565,6 +576,10 @@ public final class FSTConfiguration {
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);
         }
+    }
+
+    public FSTObjectInput getObjectInput() {
+        return getObjectInput((InputStream)null);
     }
 
     public FSTObjectInput getObjectInput( byte arr[]) {

@@ -64,6 +64,7 @@ public class FSTObjectOutput implements ObjectOutput {
     // double state to reduce pointer chasing
     boolean dontShare;
     private final FSTClazzInfo stringInfo;
+    private boolean isCrossPlatform;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -86,8 +87,9 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     public FSTObjectOutput(OutputStream out, FSTConfiguration conf) {
         this.conf = conf;
-        codec = conf.createStreamEncoder();
-        codec.setOutstream(out);
+        setCodec(conf.createStreamEncoder());
+        getCodec().setOutstream(out);
+        isCrossPlatform = conf.isCrossPlatform();
 
         objects = (FSTObjectRegistry) conf.getCachedObject(FSTObjectRegistry.class);
         if ( objects == null ) {
@@ -111,7 +113,7 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     public FSTObjectOutput(FSTConfiguration conf) {
         this(null,conf);
-        codec.setOutstream(null);
+        getCodec().setOutstream(null);
     }
 
     /**
@@ -125,7 +127,7 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     public FSTObjectOutput() {
         this(null, FSTConfiguration.getDefaultConfiguration());
-        codec.setOutstream(null);
+        getCodec().setOutstream(null);
     }
 
     /**
@@ -141,7 +143,7 @@ public class FSTObjectOutput implements ObjectOutput {
      */
     @Override
     public void flush() throws IOException {
-        codec.flush();
+        getCodec().flush();
         resetAndClearRefs();
     }
 
@@ -152,7 +154,7 @@ public class FSTObjectOutput implements ObjectOutput {
     public void close() throws IOException {
         flush();
         closed = true;
-        codec.close();
+        getCodec().close();
         resetAndClearRefs();
         conf.returnObject(objects);
     }
@@ -180,7 +182,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     public void ensureFree(int bytes) throws IOException {
-        codec.ensureFree(bytes);
+        getCodec().ensureFree(bytes);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -194,74 +196,74 @@ public class FSTObjectOutput implements ObjectOutput {
 
     @Override
     public void write(int b) throws IOException {
-        codec.writeFByte(b);
+        getCodec().writeFByte(b);
     }
 
     @Override
     public void write(byte[] b) throws IOException {
-        codec.writePrimitiveArray(b, 0, b.length);
+        getCodec().writePrimitiveArray(b, 0, b.length);
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        codec.writePrimitiveArray(b, off, len);
+        getCodec().writePrimitiveArray(b, off, len);
     }
 
     @Override
     public void writeBoolean(boolean v) throws IOException {
-        codec.writeFByte(v?1:0);
+        getCodec().writeFByte(v ? 1 : 0);
     }
 
     @Override
     public void writeByte(int v) throws IOException {
-        codec.writeFByte(v);
+        getCodec().writeFByte(v);
     }
 
     @Override
     public void writeShort(int v) throws IOException {
-        codec.writeFShort((short) v);
+        getCodec().writeFShort((short) v);
     }
 
     @Override
     public void writeChar(int v) throws IOException {
-        codec.writeFChar((char) v);
+        getCodec().writeFChar((char) v);
     }
 
     @Override
     public void writeInt(int v) throws IOException {
-        codec.writeFInt(v);
+        getCodec().writeFInt(v);
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        codec.writeFLong(v);
+        getCodec().writeFLong(v);
     }
 
     @Override
     public void writeFloat(float v) throws IOException {
-        codec.writeFFloat(v);
+        getCodec().writeFFloat(v);
     }
 
     @Override
     public void writeDouble(double v) throws IOException {
-        codec.writeFDouble(v);
+        getCodec().writeFDouble(v);
     }
 
     @Override
     public void writeBytes(String s) throws IOException {
         byte[] bytes = s.getBytes();
-        codec.writePrimitiveArray(bytes, 0, bytes.length);
+        getCodec().writePrimitiveArray(bytes, 0, bytes.length);
     }
 
     @Override
     public void writeChars(String s) throws IOException {
         char[] chars = s.toCharArray();
-        codec.writePrimitiveArray(chars, 0, chars.length);
+        getCodec().writePrimitiveArray(chars, 0, chars.length);
     }
 
     @Override
     public void writeUTF(String s) throws IOException {
-        codec.writeStringUTF(s);
+        getCodec().writeStringUTF(s);
     }
 
     //
@@ -270,13 +272,14 @@ public class FSTObjectOutput implements ObjectOutput {
     
     public void writeObject(Object obj, Class... possibles) throws IOException {
         curDepth++;
-        if ( conf.isCrossPlatform() ) {
+        if ( isCrossPlatform ) {
             writeObjectInternal(obj, null); // not supported cross platform
+            return;
         }
         if ( possibles != null && possibles.length > 1 ) {
             for (int i = 0; i < possibles.length; i++) {
                 Class possible = possibles[i];
-                codec.registerClass(possible);
+                getCodec().registerClass(possible);
             }
         }
         writeObjectInternal(obj, null, possibles);
@@ -352,14 +355,14 @@ public class FSTObjectOutput implements ObjectOutput {
     int tmp[] = {0};
     // splitting this slows down ...
     protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
-        int startPosition = codec.getWritten();
-        objectWillBeWritten(toWrite, startPosition);
-
+        int startPosition = 0;
         try {
             if ( toWrite == null ) {
-                codec.writeTag(NULL, null, 0, toWrite);
+                getCodec().writeTag(NULL, null, 0, toWrite);
                 return null;
             }
+            startPosition = getCodec().getWritten();
+            objectWillBeWritten(toWrite, startPosition);
             final Class clazz = toWrite.getClass();
             if ( clazz == String.class ) {
                 String[] oneOf = referencee.getOneOf();
@@ -367,8 +370,8 @@ public class FSTObjectOutput implements ObjectOutput {
                     for (int i = 0; i < oneOf.length; i++) {
                         String s = oneOf[i];
                         if ( s.equals(toWrite) ) {
-                            codec.writeTag(ONE_OF, oneOf, i, toWrite);
-                            codec.writeFByte(i);
+                            getCodec().writeTag(ONE_OF, oneOf, i, toWrite);
+                            getCodec().writeFByte(i);
                             return null;
                         }
                     }
@@ -376,39 +379,21 @@ public class FSTObjectOutput implements ObjectOutput {
                 // shortpath
                 if (! dontShare && writeHandleIfApplicable(toWrite, stringInfo))
                     return stringInfo;
-                codec.writeTag(STRING, toWrite, 0, toWrite);
-                codec.writeStringUTF((String) toWrite);
-                return stringInfo;
-            } else if ( clazz == Integer.class ) {
-                codec.writeTag(BIG_INT, null, 0, toWrite);
-                codec.writeFInt(((Integer) toWrite).intValue()); return null;
-            } else if ( clazz == Long.class ) {
-                codec.writeTag(BIG_LONG, null, 0, toWrite);
-                codec.writeFLong(((Long) toWrite).longValue()); return null;
-            } else if ( clazz == Boolean.class ) {
-                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
-            } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-                if ( ! codec.writeTag(ENUM, toWrite, 0, toWrite) ) {
-                    boolean isEnumClass = toWrite.getClass().isEnum();
-                    if (!isEnumClass) {
-                        // weird stuff ..
-                        Class c = toWrite.getClass();
-                        while (c != null && !c.isEnum()) {
-                            c = toWrite.getClass().getEnclosingClass();
-                        }
-                        if (c == null) {
-                            throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
-                        }
-                        codec.writeClass(c);
-                    } else {
-                        FSTClazzInfo fstClazzInfo = getFstClazzInfo(referencee, toWrite.getClass());
-                        codec.writeClass(fstClazzInfo);
-                        codec.writeFInt(((Enum) toWrite).ordinal());
-                        return fstClazzInfo;
-                    }
-                    codec.writeFInt(((Enum) toWrite).ordinal());
-                }
+                getCodec().writeTag(STRING, toWrite, 0, toWrite);
+                getCodec().writeStringUTF((String) toWrite);
                 return null;
+            } else if ( clazz == Integer.class ) {
+                getCodec().writeTag(BIG_INT, null, 0, toWrite);
+                getCodec().writeFInt(((Integer) toWrite).intValue());
+                return null;
+            } else if ( clazz == Long.class ) {
+                getCodec().writeTag(BIG_LONG, null, 0, toWrite);
+                getCodec().writeFLong(((Long) toWrite).longValue());
+                return null;
+            } else if ( clazz == Boolean.class ) {
+                getCodec().writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
+            } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
+                return writeEnum(referencee, toWrite);
             }
 
             FSTClazzInfo serializationInfo = ci == null ? getFstClazzInfo(referencee, clazz) : ci;
@@ -420,7 +405,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     return serializationInfo;
             }
             if (clazz.isArray()) {
-                if (codec.writeTag(ARRAY, toWrite, 0, toWrite))
+                if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite))
                     return serializationInfo; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
@@ -449,32 +434,58 @@ public class FSTObjectOutput implements ObjectOutput {
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
                     defaultWriteObject(toWrite, serializationInfo);
                     if ( serializationInfo.isExternalizable() )
-                        codec.externalEnd(serializationInfo);
+                        getCodec().externalEnd(serializationInfo);
                 }
+                return serializationInfo;
             } else { // object has custom serializer
                 // Object header (nothing written till here)
-                int pos = codec.getWritten();
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case code can write object as primitive
+                    int pos = getCodec().getWritten();
                     // write object depending on type (custom, externalizable, serializable/java, default)
                     ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
-                    codec.externalEnd(serializationInfo);
+                    getCodec().externalEnd(serializationInfo);
                 }
             }
             return serializationInfo;
         } finally {
-            objectHasBeenWritten(toWrite, startPosition, codec.getWritten());
+            objectHasBeenWritten(toWrite, startPosition, getCodec().getWritten());
         }
     }
 
+
+    private FSTClazzInfo writeEnum(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+        if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite) ) {
+            boolean isEnumClass = toWrite.getClass().isEnum();
+            if (!isEnumClass) {
+                // weird stuff ..
+                Class c = toWrite.getClass();
+                while (c != null && !c.isEnum()) {
+                    c = toWrite.getClass().getEnclosingClass();
+                }
+                if (c == null) {
+                    throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
+                }
+                getCodec().writeClass(c);
+            } else {
+                FSTClazzInfo fstClazzInfo = getFstClazzInfo(referencee, toWrite.getClass());
+                getCodec().writeClass(fstClazzInfo);
+                getCodec().writeFInt(((Enum) toWrite).ordinal());
+                return fstClazzInfo;
+            }
+            getCodec().writeFInt(((Enum) toWrite).ordinal());
+        }
+        return null;
+    }
+
     private boolean writeHandleIfApplicable(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
-        int handle = objects.registerObjectForWrite(toWrite, codec.getWritten(), serializationInfo, tmp);
+        int handle = objects.registerObjectForWrite(toWrite, getCodec().getWritten(), serializationInfo, tmp);
         // determine class header
         if ( handle >= 0 ) {
             final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
             if ( isIdentical ) {
 //                        System.out.println("POK writeHandle"+handle+" "+toWrite.getClass().getName());
-                if ( ! codec.writeTag(HANDLE,null,handle, toWrite) )
-                    codec.writeFInt(handle);
+                if ( ! getCodec().writeTag(HANDLE, null, handle, toWrite) )
+                    getCodec().writeFInt(handle);
                 return true;
             }
         }
@@ -498,7 +509,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
     public void defaultWriteObject(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
         if ( serializationInfo.isExternalizable() ) {
-            codec.ensureFree(writeExternalWriteAhead);
+            getCodec().ensureFree(writeExternalWriteAhead);
             ((Externalizable) toWrite).writeExternal(this);
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = serializationInfo.getFieldInfo();
@@ -540,23 +551,23 @@ public class FSTObjectOutput implements ObjectOutput {
             int boolcount = 0;
             final int length = fieldInfo.length;
             int j = startIndex;
-            if ( ! codec.isWritingAttributes() ) {
+            if ( ! getCodec().isWritingAttributes() ) {
                 for (;; j++) {
                     if ( j == length || fieldInfo[j].getVersion() != version ) {
                         if ( boolcount > 0 ) {
-                            codec.writeFByte(booleanMask << (8 - boolcount));
+                            getCodec().writeFByte(booleanMask << (8 - boolcount));
                         }
                         break;
                     }
                     final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
                     if ( subInfo.getIntegralType() != subInfo.BOOL ) {
                         if ( boolcount > 0 ) {
-                            codec.writeFByte(booleanMask << (8 - boolcount));
+                            getCodec().writeFByte(booleanMask << (8 - boolcount));
                         }
                         break;
                     } else {
                         if ( boolcount == 8 ) {
-                            codec.writeFByte(booleanMask << (8 - boolcount));
+                            getCodec().writeFByte(booleanMask << (8 - boolcount));
                             boolcount = 0; booleanMask = 0;
                         }
                         boolean booleanValue = subInfo.getBooleanValue( toWrite);
@@ -570,56 +581,56 @@ public class FSTObjectOutput implements ObjectOutput {
             {
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
                 if (subInfo.getVersion() != version) {
-                    codec.writeVersionTag(subInfo.getVersion());
+                    getCodec().writeVersionTag(subInfo.getVersion());
                     writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
                 }
-                codec.writeAttributeName(subInfo);
+                getCodec().writeAttributeName(subInfo);
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();
                     switch (integralType) {
                         case FSTClazzInfo.FSTFieldInfo.BOOL:
-                            codec.writeFByte(subInfo.getBooleanValue(toWrite)?1:0); break;
+                            getCodec().writeFByte(subInfo.getBooleanValue(toWrite) ? 1 : 0); break;
                         case FSTClazzInfo.FSTFieldInfo.BYTE:
-                            codec.writeFByte(subInfo.getByteValue(toWrite)); break;
+                            getCodec().writeFByte(subInfo.getByteValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.CHAR:
-                            codec.writeFChar((char) subInfo.getCharValue(toWrite)); break;
+                            getCodec().writeFChar((char) subInfo.getCharValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.SHORT:
-                            codec.writeFShort((short) subInfo.getShortValue(toWrite)); break;
+                            getCodec().writeFShort((short) subInfo.getShortValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.INT:
-                            codec.writeFInt(subInfo.getIntValue(toWrite)); break;
+                            getCodec().writeFInt(subInfo.getIntValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.LONG:
-                            codec.writeFLong(subInfo.getLongValue(toWrite)); break;
+                            getCodec().writeFLong(subInfo.getLongValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.FLOAT:
-                            codec.writeFFloat(subInfo.getFloatValue(toWrite)); break;
+                            getCodec().writeFFloat(subInfo.getFloatValue(toWrite)); break;
                         case FSTClazzInfo.FSTFieldInfo.DOUBLE:
-                            codec.writeFDouble(subInfo.getDoubleValue(toWrite)); break;
+                            getCodec().writeFDouble(subInfo.getDoubleValue(toWrite)); break;
                     }
                 } else if (subInfo.isConditional())
                 {
-                    final int conditional = codec.getWritten();
-                    codec.skip(4);
+                    final int conditional = getCodec().getWritten();
+                    getCodec().skip(4);
                     // object
                     Object subObject = subInfo.getObjectValue(toWrite);
                     if ( subObject == null ) {
-                        codec.writeTag(NULL, null, 0, toWrite);
+                        getCodec().writeTag(NULL, null, 0, toWrite);
                     } else {
                         writeObjectWithContext(subInfo, subObject);
                     }
-                    int v = codec.getWritten();
-                    codec.writeInt32At(conditional,v);
+                    int v = getCodec().getWritten();
+                    getCodec().writeInt32At(conditional, v);
                 } else {
                     // object
                     Object subObject = subInfo.getObjectValue(toWrite);
                     if ( subObject == null ) {
-                        codec.writeTag(NULL, null, 0, toWrite);
+                        getCodec().writeTag(NULL, null, 0, toWrite);
                     } else {
                         writeObjectWithContext(subInfo, subObject);
                     }
                 }
             }
-            codec.writeVersionTag((byte) 0);
+            getCodec().writeVersionTag((byte) 0);
         } catch (IllegalAccessException ex) {
             throw FSTUtil.rethrow(ex);
         }
@@ -636,14 +647,14 @@ public class FSTObjectOutput implements ObjectOutput {
                 Class subInfType = subInfo.getType();
                 if ( subInfType != boolean.class || isarr) {
                     if ( boolcount > 0 ) {
-                        codec.writeFByte(booleanMask << (8 - boolcount));
+                        getCodec().writeFByte(booleanMask << (8 - boolcount));
                         boolcount = 0; booleanMask = 0;
                     }
                 }
                 if ( subInfo.isIntegral() && !isarr) {
                     if ( subInfType == boolean.class ) {
                         if ( boolcount == 8 ) {
-                            codec.writeFByte(booleanMask << (8 - boolcount));
+                            getCodec().writeFByte(booleanMask << (8 - boolcount));
                             boolcount = 0; booleanMask = 0;
                         }
                         boolean booleanValue = ((Boolean)fields.get(subInfo.getField().getName())).booleanValue();
@@ -652,25 +663,25 @@ public class FSTObjectOutput implements ObjectOutput {
                         boolcount++;
                     } else
                     if ( subInfType == int.class ) {
-                        codec.writeFInt(((Number) fields.get(subInfo.getField().getName())).intValue());
+                        getCodec().writeFInt(((Number) fields.get(subInfo.getField().getName())).intValue());
                     } else
                     if ( subInfType == long.class ) {
-                        codec.writeFLong(((Number) fields.get(subInfo.getField().getName())).longValue());
+                        getCodec().writeFLong(((Number) fields.get(subInfo.getField().getName())).longValue());
                     } else
                     if ( subInfType == byte.class ) {
-                        codec.writeFByte(((Number) fields.get(subInfo.getField().getName())).byteValue());
+                        getCodec().writeFByte(((Number) fields.get(subInfo.getField().getName())).byteValue());
                     } else
                     if ( subInfType == char.class ) {
-                        codec.writeFChar((char) ((Number) fields.get(subInfo.getField().getName())).intValue());
+                        getCodec().writeFChar((char) ((Number) fields.get(subInfo.getField().getName())).intValue());
                     } else
                     if ( subInfType == short.class ) {
-                        codec.writeFShort(((Number) fields.get(subInfo.getField().getName())).shortValue());
+                        getCodec().writeFShort(((Number) fields.get(subInfo.getField().getName())).shortValue());
                     } else
                     if ( subInfType == float.class ) {
-                        codec.writeFFloat(((Number) fields.get(subInfo.getField().getName())).floatValue());
+                        getCodec().writeFFloat(((Number) fields.get(subInfo.getField().getName())).floatValue());
                     } else
                     if ( subInfType == double.class ) {
-                        codec.writeFDouble(((Number) fields.get(subInfo.getField().getName())).doubleValue());
+                        getCodec().writeFDouble(((Number) fields.get(subInfo.getField().getName())).doubleValue());
                     }
                 } else {
                     // object
@@ -682,7 +693,7 @@ public class FSTObjectOutput implements ObjectOutput {
             }
         }
         if ( boolcount > 0 ) {
-            codec.writeFByte(booleanMask << (8 - boolcount));
+            getCodec().writeFByte(booleanMask << (8 - boolcount));
         }
     }
 
@@ -698,12 +709,12 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( toWrite.getClass() == referencee.getType()
                 && ! clsInfo.useCompatibleMode() )
         {
-            return codec.writeTag(TYPED, clsInfo, 0, toWrite);
+            return getCodec().writeTag(TYPED, clsInfo, 0, toWrite);
         } else {
             final Class[] possibleClasses = referencee.getPossibleClasses();
             if ( possibleClasses == null ) {
-                if ( !codec.writeTag(OBJECT, clsInfo, 0, toWrite) ) {
-                    codec.writeClass(clsInfo);
+                if ( !getCodec().writeTag(OBJECT, clsInfo, 0, toWrite) ) {
+                    getCodec().writeClass(clsInfo);
                     return false;
                 } else {
                     return true;
@@ -713,12 +724,12 @@ public class FSTObjectOutput implements ObjectOutput {
                 for (int j = 0; j < length; j++) {
                     final Class possibleClass = possibleClasses[j];
                     if ( possibleClass == toWrite.getClass() ) {
-                        codec.writeFByte(j + 1);
+                        getCodec().writeFByte(j + 1);
                         return false;
                     }
                 }
-                if (!codec.writeTag(OBJECT, clsInfo, 0, toWrite) ) {
-                    codec.writeClass(clsInfo);
+                if (!getCodec().writeTag(OBJECT, clsInfo, 0, toWrite) ) {
+                    getCodec().writeClass(clsInfo);
                     return false;
                 } else {
                     return true;
@@ -730,17 +741,17 @@ public class FSTObjectOutput implements ObjectOutput {
     // incoming array is already registered
     protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
         if ( array == null ) {
-            codec.writeClass(Object.class);
-            codec.writeFInt(-1);
+            getCodec().writeClass(Object.class);
+            getCodec().writeFInt(-1);
             return;
         }
         final int len = Array.getLength(array);
         Class<?> componentType = array.getClass().getComponentType();
-        codec.writeClass(array.getClass());
-        codec.writeFInt(len);
+        getCodec().writeClass(array.getClass());
+        getCodec().writeFInt(len);
         if ( ! componentType.isArray() ) {
-            if (codec.isPrimitiveArray(array, componentType)) {
-                codec.writePrimitiveArray(array,0,len);
+            if (getCodec().isPrimitiveArray(array, componentType)) {
+                getCodec().writePrimitiveArray(array, 0, len);
             } else { // objects
                 Object arr[] = (Object[])array;
                 Class lastClz = null;
@@ -761,11 +772,11 @@ public class FSTObjectOutput implements ObjectOutput {
             for ( int i = 0; i < len; i++ ) {
                 Object subArr = arr[i];
                 boolean needsWrite = true;
-                if ( codec.isTagMultiDimSubArrays() ) {
+                if ( getCodec().isTagMultiDimSubArrays() ) {
                     if ( subArr == null ) {
-                        needsWrite = !codec.writeTag(NULL, null, 0, null);
+                        needsWrite = !getCodec().writeTag(NULL, null, 0, null);
                     } else {
-                        needsWrite = !codec.writeTag(ARRAY, subArr, 0, subArr);
+                        needsWrite = !getCodec().writeTag(ARRAY, subArr, 0, subArr);
                     }
                 }
                 if ( needsWrite )
@@ -776,11 +787,11 @@ public class FSTObjectOutput implements ObjectOutput {
 
 
     public void writeStringUTF(String str) throws IOException {
-        codec.writeStringUTF(str);
+        getCodec().writeStringUTF(str);
     }
 
     void resetAndClearRefs() {
-        codec.reset();
+        getCodec().reset();
         objects.clearForWrite();
     }
 
@@ -792,9 +803,9 @@ public class FSTObjectOutput implements ObjectOutput {
     public void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        codec.reset();
+        getCodec().reset();
         if ( out != null ) {
-            codec.setOutstream(out);
+            getCodec().setOutstream(out);
         }
         objects.clearForWrite();
     }
@@ -809,8 +820,8 @@ public class FSTObjectOutput implements ObjectOutput {
     public void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        codec.reset();
-        codec.reset(out);
+        getCodec().reset();
+        getCodec().reset(out);
         objects.clearForWrite();
     }
 
@@ -945,7 +956,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void write(int val) throws IOException {
-                codec.writeFByte(val);
+                getCodec().writeFByte(val);
             }
 
             @Override
@@ -974,37 +985,37 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void writeByte(int val) throws IOException {
-                codec.writeFByte(val);
+                getCodec().writeFByte(val);
             }
 
             @Override
             public void writeShort(int val) throws IOException {
-                codec.writeFShort((short) val);
+                getCodec().writeFShort((short) val);
             }
 
             @Override
             public void writeChar(int val) throws IOException {
-                codec.writeFChar((char) val);
+                getCodec().writeFChar((char) val);
             }
 
             @Override
             public void writeInt(int val) throws IOException {
-                codec.writeFInt(val);
+                getCodec().writeFInt(val);
             }
 
             @Override
             public void writeLong(long val) throws IOException {
-                codec.writeFLong(val);
+                getCodec().writeFLong(val);
             }
 
             @Override
             public void writeFloat(float val) throws IOException {
-                codec.writeFFloat(val);
+                getCodec().writeFFloat(val);
             }
 
             @Override
             public void writeDouble(double val) throws IOException {
-                codec.writeFDouble(val);
+                getCodec().writeFDouble(val);
             }
 
             @Override
@@ -1019,7 +1030,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             public void writeUTF(String str) throws IOException {
-                codec.writeStringUTF(str);
+                getCodec().writeStringUTF(str);
             }
         };
 
@@ -1040,7 +1051,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * might cause creation of a byte array and a copy.
      */
     public byte[] getBuffer() {
-        return codec.getBuffer();
+        return getCodec().getBuffer();
     }
 
     /**
@@ -1051,12 +1062,12 @@ public class FSTObjectOutput implements ObjectOutput {
      * note: in case of non-stream based serialization (directbuffer, offheap mem) getBuffer will return a copy anyways.
      */
     public byte[] getCopyOfWrittenBuffer() {
-        if ( ! codec.isByteArrayBased() ) {
+        if ( ! getCodec().isByteArrayBased() ) {
             return getBuffer();
         }
-        byte res [] = new byte[codec.getWritten()];
+        byte res [] = new byte[getCodec().getWritten()];
         byte[] buffer = getBuffer();
-        System.arraycopy(buffer,0,res,0,codec.getWritten());
+        System.arraycopy(buffer,0,res,0, getCodec().getWritten());
         return res;
     }
 
@@ -1071,10 +1082,18 @@ public class FSTObjectOutput implements ObjectOutput {
      * the buffer will be smaller than the value given here or contain invalid bytes.
      */
     public int getWritten() {
-        return codec.getWritten();
+        return getCodec().getWritten();
     }
 
     public void writeClassTag(Class aClass) {
-        codec.writeClass(aClass);
+        getCodec().writeClass(aClass);
+    }
+
+    public FSTEncoder getCodec() {
+        return codec;
+    }
+
+    protected void setCodec(FSTEncoder codec) {
+        this.codec = codec;
     }
 }

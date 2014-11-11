@@ -98,7 +98,7 @@ public final class FSTObjectRegistry {
         } else {
             idToObject.get(handle);
         }
-        return idToObject.get(FSTConfiguration.getInt(handle));
+        return idToObject.get(handle);
     }
 
     public void replace(Object old, Object replaced, int streamPos) {

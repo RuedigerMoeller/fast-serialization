@@ -40,7 +40,7 @@ public class FSTClazzNameRegistry {
 
     public static final int LOWEST_CLZ_ID = 3;
     FSTIdentity2IdMap clzToId;
-    FSTInt2ObjectMap idToClz;
+    FSTClazzInfo idToClz[];
     FSTClazzNameRegistry parent;
     FSTConfiguration conf;
     int classIdCount = LOWEST_CLZ_ID;
@@ -52,17 +52,17 @@ public class FSTClazzNameRegistry {
         if ( parent != null ) {
             classIdCount = parent.classIdCount+1;
             clzToId = new FSTIdentity2IdMap(13);
-            idToClz = new FSTInt2ObjectMap(13);
+            idToClz = new FSTClazzInfo[classIdCount*2];
         } else {
             clzToId = new FSTIdentity2IdMap(FSTObject2IntMap.adjustSize(400));
-            idToClz = new FSTInt2ObjectMap(FSTObject2IntMap.adjustSize(400));
+            idToClz = new FSTClazzInfo[200];
         }
     }
 
     public void clear() {
         if ( clzToId.size() > 0 ) {
             clzToId.clear();
-            idToClz.clear();
+            //idToClz.clear();
         }
         classIdCount = LOWEST_CLZ_ID;
         if ( parent != null ) {
@@ -93,7 +93,13 @@ public class FSTClazzNameRegistry {
         clzToId.put(c, id);
         if (clInfo==null)
             clInfo = conf.getCLInfoRegistry().getCLInfo(c);
-        idToClz.put(id, clInfo);
+        if (idToClz.length<=id)
+        {
+            final FSTClazzInfo[] tmp = new FSTClazzInfo[id + 100];
+            System.arraycopy(idToClz,0,tmp,0,idToClz.length);
+            idToClz = tmp;
+        }
+        idToClz[id] = clInfo;
         if ( parent == null ) {
             clInfo.setClzId(id);
         }
@@ -231,7 +237,9 @@ public class FSTClazzNameRegistry {
             res = parent.getClazzFromId(c);
         }
         if ( res == null ) {
-            return (FSTClazzInfo) idToClz.get(c);
+            if ( c < 0 || c >= idToClz.length )
+                return null;
+            return idToClz[c];
         } else {
             return res;
         }

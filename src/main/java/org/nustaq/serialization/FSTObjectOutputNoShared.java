@@ -91,13 +91,13 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
 
     @Override
     protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
-        int startPosition = codec.getWritten();
+        int startPosition = getCodec().getWritten();
         boolean dontShare = true;
         objectWillBeWritten(toWrite,startPosition);
 
         try {
             if ( toWrite == null ) {
-                codec.writeTag(NULL, null, 0, toWrite);
+                getCodec().writeTag(NULL, null, 0, toWrite);
                 return null;
             }
             final Class clazz = toWrite.getClass();
@@ -107,27 +107,27 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     for (int i = 0; i < oneOf.length; i++) {
                         String s = oneOf[i];
                         if ( s.equals(toWrite) ) {
-                            codec.writeTag(ONE_OF, oneOf, i, toWrite);
-                            codec.writeFByte(i);
+                            getCodec().writeTag(ONE_OF, oneOf, i, toWrite);
+                            getCodec().writeFByte(i);
                             return null;
                         }
                     }
                 }
                 if (dontShare) {
-                    codec.writeTag(STRING, toWrite, 0, toWrite);
-                    codec.writeStringUTF((String) toWrite);
+                    getCodec().writeTag(STRING, toWrite, 0, toWrite);
+                    getCodec().writeStringUTF((String) toWrite);
                     return null;
                 }
             } else if ( clazz == Integer.class ) {
-                codec.writeTag(BIG_INT, null, 0, toWrite);
-                codec.writeFInt(((Integer) toWrite).intValue()); return null;
+                getCodec().writeTag(BIG_INT, null, 0, toWrite);
+                getCodec().writeFInt(((Integer) toWrite).intValue()); return null;
             } else if ( clazz == Long.class ) {
-                codec.writeTag(BIG_LONG, null, 0, toWrite);
-                codec.writeFLong(((Long) toWrite).longValue()); return null;
+                getCodec().writeTag(BIG_LONG, null, 0, toWrite);
+                getCodec().writeFLong(((Long) toWrite).longValue()); return null;
             } else if ( clazz == Boolean.class ) {
-                codec.writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
+                getCodec().writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
             } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-                if ( ! codec.writeTag(ENUM, toWrite, 0, toWrite) ) {
+                if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite) ) {
                     boolean isEnumClass = toWrite.getClass().isEnum();
                     if (!isEnumClass) {
                         // weird stuff ..
@@ -138,11 +138,11 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                         if (c == null) {
                             throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
                         }
-                        codec.writeClass(c);
+                        getCodec().writeClass(c);
                     } else {
-                        codec.writeClass(getFstClazzInfo(referencee, toWrite.getClass()));
+                        getCodec().writeClass(getFstClazzInfo(referencee, toWrite.getClass()));
                     }
-                    codec.writeFInt(((Enum) toWrite).ordinal());
+                    getCodec().writeFInt(((Enum) toWrite).ordinal());
                 }
                 return null;
             }
@@ -151,7 +151,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             // check for identical / equal objects
             FSTObjectSerializer ser = serializationInfo.getSer();
             if (clazz.isArray()) {
-                if (codec.writeTag(ARRAY, toWrite, 0, toWrite))
+                if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite))
                     return null; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {
@@ -160,37 +160,37 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
                     defaultWriteObject(toWrite, serializationInfo);
                     if ( serializationInfo.isExternalizable() )
-                        codec.externalEnd(serializationInfo);
+                        getCodec().externalEnd(serializationInfo);
                 }
             } else { // object has custom serializer
                 // Object header (nothing written till here)
-                int pos = codec.getWritten();
+                int pos = getCodec().getWritten();
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case code can write object as primitive
                     // write object depending on type (custom, externalizable, serializable/java, default)
                     ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
-                    codec.externalEnd(serializationInfo);
+                    getCodec().externalEnd(serializationInfo);
                 }
             }
             return serializationInfo;
         } finally {
-            objectHasBeenWritten(toWrite,startPosition,codec.getWritten());
+            objectHasBeenWritten(toWrite,startPosition, getCodec().getWritten());
         }
     }
 
     public void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        codec.reset();
+        getCodec().reset();
         if ( out != null ) {
-            codec.setOutstream(out);
+            getCodec().setOutstream(out);
         }
     }
 
     public void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        codec.reset();
-        codec.reset(out);
+        getCodec().reset();
+        getCodec().reset(out);
     }
 
 }

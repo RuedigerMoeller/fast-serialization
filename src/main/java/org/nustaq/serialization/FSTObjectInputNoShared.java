@@ -73,29 +73,29 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.reset();
-        codec.setInputStream(in);
+        getCodec().reset();
+        getCodec().setInputStream(in);
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        codec.reset();
-        codec.resetToCopyOf(bytes, off, len);
+        getCodec().reset();
+        getCodec().resetToCopyOf(bytes, off, len);
     }
 
     protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
         Object newObj;
-        newObj = clzSerInfo.newInstance(codec.isMapBased());
+        newObj = clzSerInfo.newInstance(getCodec().isMapBased());
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
         if ( clzSerInfo.isExternalizable() )
         {
-            codec.ensureReadAhead(readExternalReadAHead);
+            getCodec().ensureReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
-            codec.readExternalEnd();
+            getCodec().readExternalEnd();
         } else {
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clzSerInfo.getFieldInfo();
             readObjectFields(referencee, clzSerInfo, fieldInfo, newObj,0,0);

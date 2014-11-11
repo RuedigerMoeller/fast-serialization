@@ -54,7 +54,8 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
                 lastVClzI = out.writeObjectInternal(value, value.getClass() == lastVClz ? lastVClzI : null, null);
                 lastKClz = key.getClass();
                 lastVClz = value.getClass();
-            } else {
+            } else
+            {
                 out.writeObjectInternal(key, null, null);
                 out.writeObjectInternal(value, null, null);
             }
