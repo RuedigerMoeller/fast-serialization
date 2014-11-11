@@ -47,13 +47,13 @@ public class HeapBytez implements Bytez {
     long len;
 
     private void checkIndex(long index, int len ) {
-        if ( index >= base.length || index < off-byteoff ) {
-            throw new RuntimeException("aua");
-        }
-        index += len-1;
-        if ( index >= base.length || index < off-byteoff ) {
-            throw new RuntimeException("aua 1");
-        }
+//        if ( index >= base.length || index < off-byteoff ) {
+//            throw new RuntimeException("aua");
+//        }
+//        index += len-1;
+//        if ( index >= base.length || index < off-byteoff ) {
+//            throw new RuntimeException("aua 1");
+//        }
     }
 
     public HeapBytez(byte[] base) {
@@ -82,7 +82,7 @@ public class HeapBytez implements Bytez {
 
     @Override
     public byte get(long byteIndex) {
-        checkIndex(byteIndex,8);
+        checkIndex(byteIndex,1);
         return unsafe.getByte(base,off+byteIndex);
     }
 
