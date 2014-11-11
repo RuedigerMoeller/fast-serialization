@@ -161,8 +161,9 @@ public class FSTClazzNameRegistry {
         if ( c < LOWEST_CLZ_ID ) {
             // full class name
             String clName;
-            if ( c==0)
+            if ( c==0) {
                 clName = in.readStringUTF();
+            }
             else {
                 clName = in.readStringAsc();
             }

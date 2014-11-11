@@ -46,6 +46,16 @@ public class HeapBytez implements Bytez {
     long off;
     long len;
 
+    private void checkIndex(long index, int len ) {
+        if ( index >= base.length || index < off-byteoff ) {
+            throw new RuntimeException("aua");
+        }
+        index += len-1;
+        if ( index >= base.length || index < off-byteoff ) {
+            throw new RuntimeException("aua 1");
+        }
+    }
+
     public HeapBytez(byte[] base) {
         this(base,0);
     }
@@ -72,88 +82,104 @@ public class HeapBytez implements Bytez {
 
     @Override
     public byte get(long byteIndex) {
+        checkIndex(byteIndex,8);
         return unsafe.getByte(base,off+byteIndex);
     }
 
     @Override
     public boolean getBool(long byteIndex) {
+        checkIndex(byteIndex,1);
         return unsafe.getByte(base,off+byteIndex) != 0;
     }
 
     @Override
     public char getChar(long byteIndex) {
+        checkIndex(byteIndex,2);
         return unsafe.getChar(base, off + byteIndex);
     }
 
     @Override
     public short getShort(long byteIndex) {
+        checkIndex(byteIndex,2);
         return unsafe.getShort(base, off + byteIndex);
     }
 
     @Override
     public int getInt(long byteIndex) {
+        checkIndex(byteIndex,4);
         int res = unsafe.getInt(base, off + byteIndex);
         return res;
     }
 
     @Override
     public long getLong(long byteIndex) {
+        checkIndex(byteIndex,8);
         return unsafe.getLong(base, off + byteIndex);
     }
 
     @Override
     public float getFloat(long byteIndex) {
+        checkIndex(byteIndex,4);
         return unsafe.getFloat(base, off + byteIndex);
     }
 
     @Override
     public double getDouble(long byteIndex) {
+        checkIndex(byteIndex,8);
         return unsafe.getDouble(base, off + byteIndex);
     }
 
     @Override
     public void put(long byteIndex, byte value) {
+        checkIndex(byteIndex,1);
         unsafe.putByte(base,off+byteIndex,value);
     }
 
     @Override
     public void putBool(long byteIndex, boolean val) {
+        checkIndex(byteIndex,1);
         put(byteIndex,(byte) (val ? 1 : 0) );
     }
 
     @Override
     public void putChar(long byteIndex, char c) {
+        checkIndex(byteIndex,2);
         unsafe.putChar(base, off + byteIndex, c);
     }
 
     @Override
     public void putShort(long byteIndex, short s) {
+        checkIndex(byteIndex,2);
         unsafe.putShort(base, off + byteIndex, s);
     }
 
     @Override
     public void putInt(long byteIndex, int i) {
+        checkIndex(byteIndex,4);
         unsafe.putInt(base, off + byteIndex, i);
     }
 
     @Override
     public void putLong(long byteIndex, long l) {
+        checkIndex(byteIndex,8);
         unsafe.putLong(base, off + byteIndex, l);
     }
 
     @Override
     public void putFloat(long byteIndex, float f) {
+        checkIndex(byteIndex,4);
         unsafe.putFloat(base, off + byteIndex, f);
     }
 
     @Override
     public void putDouble(long byteIndex, double d) {
+        checkIndex(byteIndex,8);
         unsafe.putDouble(base, off + byteIndex, d);
     }
 
     @Override
     public long length() {
-        return base.length;
+        return len;
     }
 
     @Override
@@ -200,41 +226,49 @@ public class HeapBytez implements Bytez {
 
     @Override
     public void set(long byteIndex, byte[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems);
         unsafe.copyMemory(source,off+elemoff,base,off+byteIndex,numElems);
     }
 
     @Override
     public void setChar(long byteIndex, char[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*2);
         unsafe.copyMemory(source,caoff+off-byteoff+elemoff*2,base,off+byteIndex,numElems*2);
     }
 
     @Override
     public void setShort(long byteIndex, short[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*2);
         unsafe.copyMemory(source,caoff+off-byteoff+elemoff*2,base,off+byteIndex,numElems*2);
     }
 
     @Override
     public void setInt(long byteIndex, int[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*4);
         unsafe.copyMemory(source,iaoff+off-byteoff+elemoff*4,base,off+byteIndex,numElems*4);
     }
 
     @Override
     public void setLong(long byteIndex, long[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*8);
         unsafe.copyMemory(source,laoff+off-byteoff+elemoff*8,base,off+byteIndex,numElems*8);
     }
 
     @Override
     public void setFloat(long byteIndex, float[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*4);
         unsafe.copyMemory(source,faoff+off-byteoff+elemoff*4,base,off+byteIndex,numElems*4);
     }
 
     @Override
     public void setDouble(long byteIndex, double[] source, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems*8);
         unsafe.copyMemory(source,daoff+off-byteoff+elemoff*8,base,off+byteIndex,numElems*8);
     }
 
     @Override
     public void setBoolean(long byteIndex, boolean[] o, int elemoff, int numElems) {
+        checkIndex(byteIndex,numElems);
         for ( int i = 0; i < numElems; i++) {
             put(byteIndex+i, (byte) (o[i+elemoff] ? 1 : 0));
         }
@@ -242,6 +276,9 @@ public class HeapBytez implements Bytez {
 
     @Override
     public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
+        if ( lenBytes == 0 )
+            return;
+        checkIndex(myByteIndex, (int) lenBytes);
         if ( other instanceof HeapBytez) {
             HeapBytez hp = (HeapBytez) other;
             unsafe.copyMemory(base,off+myByteIndex,hp.base,hp.off+otherByteIndex,lenBytes);

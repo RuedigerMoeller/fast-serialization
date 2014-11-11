@@ -107,7 +107,7 @@ public final class FSTConfiguration {
     public static FSTConfiguration createCrossPlatformConfiguration() {
         final FSTConfiguration res = createDefaultConfiguration();
         res.setCrossPlatform(true);
-        res.type = ConfType.UNSAFE;
+        res.type = ConfType.MINBIN;
         res.setStreamCoderFactory(new StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
@@ -195,7 +195,6 @@ public final class FSTConfiguration {
             public FSTEncoder createStreamEncoder() {
                 return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
             }
-
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTBytezDecoder(conf);
@@ -538,6 +537,19 @@ public final class FSTConfiguration {
                         return st; // try to avoid megamorph calls
                     }
                 };
+            } else if ( type == ConfType.UNSAFE ) {
+                return new FSTObjectOutput(FSTConfiguration.this) {
+                    FSTBytezEncoder st;
+
+                    @Override
+                    protected void setCodec(FSTEncoder codec) {
+                        st = (FSTBytezEncoder) codec;
+                    }
+                    @Override
+                    public FSTBytezEncoder getCodec() {
+                        return st; // try to avoid megamorph calls
+                    }
+                };
             } else
                 return new FSTObjectOutput(FSTConfiguration.this);
         }
@@ -557,6 +569,19 @@ public final class FSTConfiguration {
 
                         @Override
                         public FSTStreamDecoder getCodec() {
+                            return st;
+                        }
+                    };
+                } else if ( type == ConfType.UNSAFE ) {
+                    return new FSTObjectInput(FSTConfiguration.this){
+                        FSTBytezDecoder st;
+                        @Override
+                        void setCodec(FSTDecoder codec) {
+                            st = (FSTBytezDecoder) codec;
+                        }
+
+                        @Override
+                        public FSTBytezDecoder getCodec() {
                             return st;
                         }
                     };

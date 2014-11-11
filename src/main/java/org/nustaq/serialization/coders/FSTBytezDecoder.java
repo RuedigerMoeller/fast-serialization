@@ -50,7 +50,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     protected void readNextInputChunk(int bytes) {
         try {
-            int toRead = Math.max(800000, bytes);
+            int toRead = Math.max(Integer.MAX_VALUE, bytes);
             if ( inputStream instanceof ByteArrayInputStream ) {
                 toRead = Math.min(((ByteArrayInputStream) inputStream).available(),toRead);
             }

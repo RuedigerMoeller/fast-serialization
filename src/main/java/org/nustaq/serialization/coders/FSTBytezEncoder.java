@@ -151,7 +151,7 @@ public class FSTBytezEncoder implements FSTEncoder {
         ensureFree(strlen*2);
         char c[] = getCharBuf(strlen);
         str.getChars(0,strlen,c,0);
-        buffout.setChar(pos,c,0,c.length);
+        buffout.setChar(pos,c,0,strlen);
         pos += strlen*2;
     }
 
