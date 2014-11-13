@@ -28,6 +28,11 @@ public class FSTBytezDecoder  implements FSTDecoder {
     InputStream inputStream;
     long readUntil = 0;
 
+    public FSTBytezDecoder(FSTConfiguration conf, BasicBytez input) {
+        this(conf);
+        this.input = input;
+    }
+
     public FSTBytezDecoder(FSTConfiguration conf) {
         this.conf = conf;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);

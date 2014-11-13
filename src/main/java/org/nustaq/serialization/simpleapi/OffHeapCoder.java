@@ -1,6 +1,8 @@
 package org.nustaq.serialization.simpleapi;
 
+import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytez;
+import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.coders.FSTBytezDecoder;
@@ -33,16 +35,18 @@ public class OffHeapCoder {
     public OffHeapCoder() {
         conf = FSTConfiguration.createFastBinaryConfiguration();
         writeTarget = new MallocBytez(0l,0);
-        conf.setStreamCoderFactory( new FSTConfiguration.StreamCoderFactory() {
+        readTarget = new MallocBytez(0l,0);
+        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 FSTBytezEncoder fstBytezEncoder = new FSTBytezEncoder(conf, writeTarget);
-                fstBytezEncoder.setAutoResize(true);
+                fstBytezEncoder.setAutoResize(false);
                 return fstBytezEncoder;
             }
+
             @Override
             public FSTDecoder createStreamDecoder() {
-                return new FSTBytezDecoder(conf);
+                return new FSTBytezDecoder(conf,readTarget);
             }
         });
         out = conf.getObjectOutput();
@@ -59,28 +63,27 @@ public class OffHeapCoder {
     }
 
     /**
-     * throws FSTBufferTooSmallExcpetion in case object does not fit
+     * throws FSTBufferTooSmallExcpetion in case object does not fit into given range
+     *
      * @param o
      * @param address
      * @param availableSize
      * @throws IOException
+     * @return number of bytes written to the memory region
      */
-    public void writeObject( Object o, long address, int availableSize ) throws IOException {
+    public int writeObject( Object o, long address, int availableSize ) throws IOException {
         writeTarget.setBase(address, availableSize);
         out.writeObject(o);
+        int written = out.getWritten();
         out.resetForReUse();
+        return out.getWritten();
     }
 
-    public Object readObject( long address, int availableSize ) {
-        return null;
-    }
-
-    public void writeObjectUnshared( Object o, long address, int availableSize ) {
-
-    }
-
-    public Object readObjectUnshared( long address, int availableSize ) {
-        return null;
+    public Object readObject( long address, int availableSize ) throws IOException, ClassNotFoundException {
+        readTarget.setBase(address,availableSize);
+        Object o = in.readObject();
+        in.resetForReuse(null);
+        return o;
     }
 
 }
