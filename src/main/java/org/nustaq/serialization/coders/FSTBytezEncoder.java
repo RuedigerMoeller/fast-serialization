@@ -1,13 +1,12 @@
 package org.nustaq.serialization.coders;
 
 import org.nustaq.offheap.bytez.BasicBytez;
-import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTClazzNameRegistry;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTEncoder;
-import org.nustaq.serialization.util.FSTOutputStream;
+import org.nustaq.serialization.simpleapi.FSTBufferTooSmallException;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
@@ -29,6 +28,7 @@ public class FSTBytezEncoder implements FSTEncoder {
     private long pos;
     private byte[] ascStringCache;
     OutputStream outStream;
+    boolean autoResize = true;
 
     public FSTBytezEncoder(FSTConfiguration conf, BasicBytez base) {
         this.conf = conf;
@@ -272,16 +272,29 @@ public class FSTBytezEncoder implements FSTEncoder {
     @Override
     public void ensureFree(int bytes) throws IOException {
         if ( buffout.length() <= pos+bytes) {
-            BasicBytez newbytez = buffout.newInstance( Math.max(pos+bytes,buffout.length() * 2) );
-            buffout.copyTo(newbytez,0,0,pos);
-            // debug
-//            for ( int i = 0; i < pos; i++) {
-//                if ( buffout.get(i) != newbytez.get(i) ) {
-//                    throw new RuntimeException("error");
-//                }
-//            }
-            buffout = newbytez;
+            if ( autoResize ) {
+                BasicBytez newbytez = buffout.newInstance(Math.max(pos + bytes, buffout.length() * 2));
+                buffout.copyTo(newbytez, 0, 0, pos);
+                // debug
+                //            for ( int i = 0; i < pos; i++) {
+                //                if ( buffout.get(i) != newbytez.get(i) ) {
+                //                    throw new RuntimeException("error");
+                //                }
+                //            }
+                buffout = newbytez;
+            } else {
+                throw FSTBufferTooSmallException.Instance;
+            }
         }
+    }
+
+    // default is true
+    public boolean isAutoResize() {
+        return autoResize;
+    }
+
+    public void setAutoResize(boolean autoResize) {
+        this.autoResize = autoResize;
     }
 
     @Override

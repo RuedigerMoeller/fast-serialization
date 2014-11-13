@@ -13,8 +13,7 @@ import org.nustaq.serialization.FSTConfiguration;
  *
  * KEEP and reuse instances, creation is expensive.
  *
- * This class can be used from multiple threads. If you are sure to run into contention issues,
- * consider using a threadlocal to hold your coder instance.
+ * This class cannot be used concurrently.
  *
  */
 public class DefaultCoder {
@@ -35,7 +34,7 @@ public class DefaultCoder {
     }
 
     /**
-     * will throw an FSTBuffer2SmallException if buffer is too small.
+     * will throw an FSTBufferTooSmallException if buffer is too small.
      * The required size is part of the exception.
      *
      */

@@ -4,6 +4,7 @@ import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
+import org.nustaq.serialization.simpleapi.FSTBufferTooSmallException;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -19,7 +20,7 @@ import java.io.InputStream;
  */
 public class FSTBytezDecoder  implements FSTDecoder {
 
-    HeapBytez input;
+    BasicBytez input;
     HeapBytez ascStringCache;
     FSTConfiguration conf;
     public FSTClazzNameRegistry clnames;
@@ -44,7 +45,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
                 readNextInputChunk(bytes);
             }
         } else if ( pos+bytes > input.length() ) {
-            throw new RuntimeException("unexpected end of input reached");
+            throw FSTBufferTooSmallException.Instance;
         }
     }
 
@@ -111,6 +112,14 @@ public class FSTBytezDecoder  implements FSTDecoder {
         input.copyTo(ascStringCache, 0, pos, len);
         pos += len;
         return new String(ascStringCache.getBase(), 0, 0, len);
+    }
+
+    public BasicBytez getInput() {
+        return input;
+    }
+
+    public void setInput(BasicBytez input) {
+        this.input = input;
     }
 
     /**
