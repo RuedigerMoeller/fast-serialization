@@ -1,8 +1,6 @@
 package org.nustaq.serialization.simpleapi;
 
-import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytez;
-import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.coders.FSTBytezDecoder;
@@ -11,31 +9,20 @@ import org.nustaq.serialization.coders.FSTBytezEncoder;
 import java.io.IOException;
 
 /**
- * Created by ruedi on 09.11.14.
- *
- * enables zero copy encoding to offheap memory. The encoding is platform dependent (endianess) and
- * no attemps on compression are made.
- *
- * Use case: messaging, offheap en/decoding, tmp preservation of state
- * NOT thread safe
- *
- * Do not confuse this with a stream. Each single writeObject is an isolated operation,
- * so restoring of references inside an object graph only happens for refs inside the object graph
- * given to writeObject.
- *
+ * Created by ruedi on 13.11.14.
  */
-public class OffHeapCoder {
+public class OnHeapCoder {
 
     protected FSTConfiguration conf;
-    MallocBytez writeTarget;
-    MallocBytez readTarget;
+    HeapBytez writeTarget;
+    HeapBytez readTarget;
     FSTObjectOutput out;
     FSTObjectInput in;
 
-    public OffHeapCoder() {
+    public OnHeapCoder() {
         conf = FSTConfiguration.createFastBinaryConfiguration();
-        writeTarget = new MallocBytez(0l,0);
-        readTarget = new MallocBytez(0l,0);
+        writeTarget = new HeapBytez(new byte[0]);
+        readTarget = new HeapBytez(new byte[0]);
         conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
@@ -57,7 +44,7 @@ public class OffHeapCoder {
      * throw
      * @param preregister
      */
-    public OffHeapCoder( Class ... preregister ) {
+    public OnHeapCoder( Class ... preregister ) {
         this();
         conf.registerClass(preregister);
     }
@@ -66,21 +53,20 @@ public class OffHeapCoder {
      * throws FSTBufferTooSmallExcpetion in case object does not fit into given range
      *
      * @param o
-     * @param address
      * @param availableSize
-     * @throws IOException
+     * @throws java.io.IOException
      * @return number of bytes written to the memory region
      */
-    public int writeObject( Object o, long address, int availableSize ) throws IOException {
-        writeTarget.setBase(address, availableSize);
+    public int writeObject( Object o, byte arr[], int startIndex, int availableSize ) throws IOException {
+        writeTarget.setBase(arr, startIndex, availableSize);
         out.writeObject(o);
         int written = out.getWritten();
         out.resetForReUse();
         return written;
     }
 
-    public Object readObject( long address, int availableSize ) throws IOException, ClassNotFoundException {
-        readTarget.setBase(address,availableSize);
+    public Object readObject( byte arr[], int startIndex, int availableSize ) throws IOException, ClassNotFoundException {
+        readTarget.setBase(arr,startIndex,availableSize);
         Object o = in.readObject();
         in.resetForReuse(null);
         return o;

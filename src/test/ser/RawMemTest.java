@@ -7,6 +7,7 @@ import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.simpleapi.OffHeapCoder;
+import org.nustaq.serialization.simpleapi.OnHeapCoder;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -82,17 +83,43 @@ public class RawMemTest extends BasicFSTTest {
         return deser;
     }
 
+    enum Model {
+        A,B,C
+    }
+
+    static class Engine implements Serializable {
+        short capacity;
+        byte cylinders;
+        short maxRpm;
+        String manufactureCode = "POK";
+        String fuel = "Petrol";
+    }
+
     static class SimpleTest implements Serializable {
-        String x = "pok";
-        int i1 = 12345, i2 = 14;
-        double a = 23984.234;
+        int serialNumber;
+        short modelYear;
+        boolean available;
+        Model code;
+        int someNumbers[] = new int[] {1,2,3,4,5};  // 5
+        String vehicleCode = "123456"; // 6
+        byte optionalExtras;
+        Engine engine = new Engine();
+        short fuelSpeed[] = new short[] {60,45};
+        float fuelMpg[] = new float[] {7.1f, 3.4f};
+
+        String make = "MAKE";
+        String model = "MODEL";
     }
 
     static Object smallClazz = new SimpleTest();
 
     @Test
     public void testOffHeapCoder() throws Exception {
-        OffHeapCoder coder = new OffHeapCoder(SimpleTest.class);
+        OffHeapCoder coder = new OffHeapCoder(SimpleTest.class,Engine.class,Model.class);
+
+        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+        conf.registerClass(SimpleTest.class,Engine.class,Model.class);
+        byte b[] = conf.asByteArray(smallClazz);
 
         MallocBytezAllocator alloc = new MallocBytezAllocator();
         MallocBytez bytez = (MallocBytez) alloc.alloc(1000 * 1000);
@@ -136,4 +163,46 @@ public class RawMemTest extends BasicFSTTest {
         System.out.println("offheap enc COUNT:"+count);
         return deser;
     }
+
+
+    @Test
+    public void testOnHeapCoder() throws Exception {
+        OnHeapCoder coder = new OnHeapCoder(SimpleTest.class,Engine.class,Model.class);
+
+        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+        conf.registerClass(SimpleTest.class,Engine.class,Model.class);
+        byte b[] = conf.asByteArray(smallClazz);
+
+        byte arr[] = new byte[1000000];
+        onhbench(original, coder, arr, 0);
+        Object deser = onhbench(original, coder, arr, 0);
+        assertTrue(DeepEquals.deepEquals(original, deser));
+
+        System.out.println("-----");
+        deser = onhbench(smallClazz, coder, arr, 0);
+        assertTrue(DeepEquals.deepEquals(smallClazz, deser));
+
+        boolean lenEx = false;
+        try {
+            coder.writeObject(original,arr,0,10);
+        } catch (Exception e) {
+            lenEx = true;
+        }
+
+        Assert.assertTrue(lenEx);
+    }
+
+    protected Object onhbench(Object toSer, OnHeapCoder coder, byte[] bytez, int off) throws Exception {
+        long tim = System.currentTimeMillis();
+        int count = 0;
+        Object deser = null;
+        while ( System.currentTimeMillis() - tim < 2000 ) {
+            count++;
+            coder.writeObject(toSer, bytez, off, (int) bytez.length);
+            deser = coder.readObject(bytez, off, (int)bytez.length);
+        }
+        System.out.println("onheap enc COUNT:"+count);
+        return deser;
+    }
+
 }
