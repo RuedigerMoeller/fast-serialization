@@ -10,6 +10,10 @@ import java.io.IOException;
 
 /**
  * Created by ruedi on 13.11.14.
+ *
+ * A coder writing fast binary encoding using unsafe to an underlying byte array.
+ * Note there is some copied code from OffHeaüCoder to avoid losing performance caused
+ * by polymorphic method dispatch.
  */
 public class OnHeapCoder {
 
@@ -20,7 +24,12 @@ public class OnHeapCoder {
     FSTObjectInput in;
 
     public OnHeapCoder() {
+        this(true);
+    }
+
+    public OnHeapCoder(boolean sharedRefs) {
         conf = FSTConfiguration.createFastBinaryConfiguration();
+        conf.setShareReferences(sharedRefs);
         writeTarget = new HeapBytez(new byte[0]);
         readTarget = new HeapBytez(new byte[0]);
         conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
@@ -30,14 +39,18 @@ public class OnHeapCoder {
                 fstBytezEncoder.setAutoResize(false);
                 return fstBytezEncoder;
             }
-
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTBytezDecoder(conf,readTarget);
             }
         });
-        out = conf.getObjectOutput();
-        in = conf.getObjectInput();
+        if ( sharedRefs ) {
+            out = conf.getObjectOutput();
+            in = conf.getObjectInput();
+        } else {
+            out = new FSTObjectOutputNoShared(conf);
+            in = new FSTObjectInputNoShared(conf);
+        }
     }
 
     /**
@@ -46,6 +59,11 @@ public class OnHeapCoder {
      */
     public OnHeapCoder( Class ... preregister ) {
         this();
+        conf.registerClass(preregister);
+    }
+
+    public OnHeapCoder( boolean sharedRefs, Class ... preregister ) {
+        this(sharedRefs);
         conf.registerClass(preregister);
     }
 
@@ -58,17 +76,17 @@ public class OnHeapCoder {
      * @return number of bytes written to the memory region
      */
     public int writeObject( Object o, byte arr[], int startIndex, int availableSize ) throws IOException {
+        out.resetForReUse();
         writeTarget.setBase(arr, startIndex, availableSize);
         out.writeObject(o);
         int written = out.getWritten();
-        out.resetForReUse();
         return written;
     }
 
     public Object readObject( byte arr[], int startIndex, int availableSize ) throws IOException, ClassNotFoundException {
+        in.resetForReuse(null);
         readTarget.setBase(arr,startIndex,availableSize);
         Object o = in.readObject();
-        in.resetForReuse(null);
         return o;
     }
 

@@ -35,8 +35,7 @@ public interface FSTEncoder {
      * @throws java.io.IOException
      */
     void close() throws IOException;
-    void reset();
-    void reset(byte[] out);
+    void reset(byte[] out); // resets outbuff only
 
     /**
      * resets stream (positions are lost)

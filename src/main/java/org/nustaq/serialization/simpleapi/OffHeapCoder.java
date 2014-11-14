@@ -33,7 +33,11 @@ public class OffHeapCoder {
     FSTObjectInput in;
 
     public OffHeapCoder() {
+        this(true);
+    }
+    public OffHeapCoder(boolean sharedRefs) {
         conf = FSTConfiguration.createFastBinaryConfiguration();
+        conf.setShareReferences(sharedRefs);
         writeTarget = new MallocBytez(0l,0);
         readTarget = new MallocBytez(0l,0);
         conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
@@ -49,16 +53,26 @@ public class OffHeapCoder {
                 return new FSTBytezDecoder(conf,readTarget);
             }
         });
-        out = conf.getObjectOutput();
-        in = conf.getObjectInput();
+        if (sharedRefs) {
+            out = conf.getObjectOutput();
+            in = conf.getObjectInput();
+        } else {
+            out = new FSTObjectOutputNoShared(conf);
+            in = new FSTObjectInputNoShared(conf);
+        }
     }
 
     /**
      * throw
      * @param preregister
      */
+    public OffHeapCoder( boolean sharedRefs, Class ... preregister ) {
+        this(sharedRefs);
+        conf.registerClass(preregister);
+    }
+
     public OffHeapCoder( Class ... preregister ) {
-        this();
+        this(true);
         conf.registerClass(preregister);
     }
 
@@ -72,17 +86,17 @@ public class OffHeapCoder {
      * @return number of bytes written to the memory region
      */
     public int writeObject( Object o, long address, int availableSize ) throws IOException {
+        out.resetForReUse();
         writeTarget.setBase(address, availableSize);
         out.writeObject(o);
         int written = out.getWritten();
-        out.resetForReUse();
         return written;
     }
 
     public Object readObject( long address, int availableSize ) throws IOException, ClassNotFoundException {
+        in.resetForReuse(null);
         readTarget.setBase(address,availableSize);
         Object o = in.readObject();
-        in.resetForReuse(null);
         return o;
     }
 

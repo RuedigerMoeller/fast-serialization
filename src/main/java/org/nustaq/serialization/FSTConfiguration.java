@@ -77,11 +77,11 @@ public final class FSTConfiguration {
 
     int cpAttrIdCount = 0;
     // contains symbol => full qualified name
-    private HashMap<String, String> crossPlatformNames = new HashMap<>();
+    private HashMap<String, String> minbinNames = new HashMap<>();
     // may contain symbol => cached binary output
-    private HashMap<String, byte[]> crossPlatformNamesBytez = new HashMap<>();
+    private HashMap<String, byte[]> minBinNamesBytez = new HashMap<>();
     // contains full qualified name => symbol
-    private HashMap<String, String> crossPlatformNamesReverse = new HashMap<>();
+    private HashMap<String, String> minbinNamesReverse = new HashMap<>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
     // end cross platform stuff only
@@ -104,7 +104,13 @@ public final class FSTConfiguration {
         this.classLoader = classLoader;
     }
 
-    public static FSTConfiguration createCrossPlatformConfiguration() {
+    /**
+     * Warning: MinBin contains full metainformation (fieldnames,..), so its way slower than the other configs.
+     * It should be used in case of cross language (e.g. java - javascript) serialization only.
+     *
+     * @return a configuration to encode MinBin format.
+     */
+    public static FSTConfiguration createMinBinConfiguration() {
         final FSTConfiguration res = createDefaultConfiguration();
         res.setCrossPlatform(true);
         res.type = ConfType.MINBIN;
@@ -376,6 +382,12 @@ public final class FSTConfiguration {
     public void registerClass( Class ... c) {
         for (int i = 0; i < c.length; i++) {
             classRegistry.registerClass(c[i]);
+            try {
+                Class ac = Class.forName("[L"+c[i].getName()+";");
+                classRegistry.registerClass(ac);
+            } catch (ClassNotFoundException e) {
+                // silent
+            }
         }
     }
 
@@ -710,7 +722,7 @@ public final class FSTConfiguration {
     public void registerCrossPlatformClassBinaryCache( String fulLQName, byte[] binary ) {
         try {
             while (cplock.compareAndSet(false, true)) { } // spin
-            crossPlatformNamesBytez.put(fulLQName, binary);
+            minBinNamesBytez.put(fulLQName, binary);
         } finally {
             cplock.set(false);
         }
@@ -719,7 +731,7 @@ public final class FSTConfiguration {
     public byte[] getCrossPlatformBinaryCache(String symbolicName) {
         try {
             while ( cplock.compareAndSet(false, true)) { } // spin
-            return crossPlatformNamesBytez.get(symbolicName);
+            return minBinNamesBytez.get(symbolicName);
         } finally {
             cplock.set(false);
         }
@@ -727,6 +739,8 @@ public final class FSTConfiguration {
 
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
+     * currently only for minbin serialization
+     *
      * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
      */
     public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
@@ -737,8 +751,8 @@ public final class FSTConfiguration {
     }
 
     public void registerCrossPlatformClassMapping( String shortName,  String fqName ) {
-        crossPlatformNames.put( shortName, fqName);
-        crossPlatformNamesReverse.put( fqName, shortName);
+        minbinNames.put(shortName, fqName);
+        minbinNamesReverse.put(fqName, shortName);
     }
 
     /**
@@ -751,8 +765,8 @@ public final class FSTConfiguration {
     public void registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
         for (int i = 0; i < classes.size(); i++) {
             Class clz = classes.get(i);
-            crossPlatformNames.put( clz.getSimpleName(), clz.getName() );
-            crossPlatformNamesReverse.put( clz.getName(), clz.getSimpleName() );
+            minbinNames.put(clz.getSimpleName(), clz.getName());
+            minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
         }
     }
 
@@ -762,7 +776,7 @@ public final class FSTConfiguration {
      * @return
      */
     public String getCPNameForClass( Class cl ) {
-        String res = crossPlatformNamesReverse.get(cl.getName());
+        String res = minbinNamesReverse.get(cl.getName());
         if (res == null) {
             return cl.getName();
         }
@@ -770,7 +784,7 @@ public final class FSTConfiguration {
     }
 
     public String getClassForCPName( String name ) {
-        String res = crossPlatformNames.get(name);
+        String res = minbinNames.get(name);
         if (res == null) {
             return name;
         }

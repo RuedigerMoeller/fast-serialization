@@ -219,14 +219,10 @@ public class FSTBytezEncoder implements FSTEncoder {
 
     @Override
     public void reset(byte[] out) {
-        throw new RuntimeException("not implemented");
-//        buffout.reset(out); // fixme: classname clearing ?
-    }
-
-    @Override
-    public void reset() {
         pos = 0;
         clnames.clear();
+        if (out!=null)
+            throw new RuntimeException("not implemented");
     }
 
     @Override

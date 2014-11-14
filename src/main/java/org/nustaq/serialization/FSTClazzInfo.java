@@ -163,6 +163,13 @@ public final class FSTClazzInfo {
         return bufferedName;
     }
 
+    @Override
+    public String toString() {
+        return "FSTClazzInfo{" +
+                "clazz=" + clazz +
+                '}';
+    }
+
     public boolean isAsciiNameShortString() {
         return isAsciiNameShortString;
     }

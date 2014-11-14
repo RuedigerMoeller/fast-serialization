@@ -180,7 +180,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     public void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        getCodec().reset();
+        getCodec().reset(null);
         if ( out != null ) {
             getCodec().setOutstream(out);
         }
@@ -189,7 +189,6 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
     public void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        getCodec().reset();
         getCodec().reset(out);
     }
 

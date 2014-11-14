@@ -11,7 +11,7 @@ import org.nustaq.serialization.FSTConfiguration;
 public class MinBinCoder extends DefaultCoder {
 
     public MinBinCoder() {
-        conf = FSTConfiguration.createCrossPlatformConfiguration();
+        conf = FSTConfiguration.createMinBinConfiguration();
     }
 
     /**

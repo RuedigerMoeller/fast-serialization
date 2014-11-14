@@ -347,12 +347,11 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     @Override
     public void reset(byte[] out) {
-        buffout.reset(out); // fixme: classname clearing ?
-    }
-
-    @Override
-    public void reset() {
-        buffout.reset();
+        if (out==null) {
+            buffout.reset();
+        } else {
+            buffout.reset(out);
+        }
         clnames.clear();
     }
 

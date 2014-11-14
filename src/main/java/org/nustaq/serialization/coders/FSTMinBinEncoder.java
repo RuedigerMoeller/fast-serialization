@@ -89,7 +89,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
 
     @Override
     public void writeFLong(long anInt) throws IOException {
-        out.writeInt(MinBin.INT_64,anInt);
+        out.writeInt(MinBin.INT_64, anInt);
     }
 
     @Override
@@ -126,15 +126,12 @@ public class FSTMinBinEncoder implements FSTEncoder {
     }
 
     @Override
-    public void reset() {
-        offset = 0;
-        out.reset();
-    }
-
-    @Override
     public void reset(byte[] bytez) {
         offset = 0;
-        out.reset(bytez);
+        if (bytez!=null)
+            out.reset(bytez);
+        else
+            out.reset();
     }
 
     /**
@@ -449,7 +446,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
 
     public static void main(String arg[]) throws IOException, ClassNotFoundException {
 
-        FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
                 { "mixtest", Test.class.getName() },
                 { "rect", Rectangle.class.getName() },

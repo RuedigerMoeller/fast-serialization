@@ -791,7 +791,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     void resetAndClearRefs() {
-        getCodec().reset();
+        getCodec().reset(null);
         objects.clearForWrite();
     }
 
@@ -803,7 +803,7 @@ public class FSTObjectOutput implements ObjectOutput {
     public void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        getCodec().reset();
+        getCodec().reset(null);
         if ( out != null ) {
             getCodec().setOutstream(out);
         }
@@ -814,13 +814,12 @@ public class FSTObjectOutput implements ObjectOutput {
      * reset keeping the last used byte[] buffer
      */
     public void resetForReUse() {
-        resetForReUse((OutputStream)null);
+        resetForReUse((byte[])null);
     }
 
     public void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
-        getCodec().reset();
         getCodec().reset(out);
         objects.clearForWrite();
     }
