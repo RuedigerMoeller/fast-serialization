@@ -139,7 +139,7 @@ public class MinBinTest {
 
     @Test
     public void demo() {
-        FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
         conf.registerCrossPlatformClassMappingUseSimpleName( Arrays.asList(
             (Class)MinBinDemo.class,
             (Class)ARecord.class

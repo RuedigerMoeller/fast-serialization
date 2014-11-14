@@ -74,7 +74,7 @@ public class RawMemTest extends BasicFSTTest {
         int count = 0;
         long tim = System.currentTimeMillis();
         int len[] = { 0 };
-        while ( System.currentTimeMillis() - tim < 2000 ) {
+        while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
             ser = conf.asByteArray(original);
             deser = conf.asObject(ser);
@@ -83,43 +83,21 @@ public class RawMemTest extends BasicFSTTest {
         return deser;
     }
 
-    enum Model {
-        A,B,C
-    }
-
-    static class Engine implements Serializable {
-        short capacity;
-        byte cylinders;
-        short maxRpm;
-        String manufactureCode = "POK";
-        String fuel = "Petrol";
-    }
-
-    static class SimpleTest implements Serializable {
-        int serialNumber;
-        short modelYear;
-        boolean available;
-        Model code;
-        int someNumbers[] = new int[] {1,2,3,4,5};  // 5
-        String vehicleCode = "123456"; // 6
-        byte optionalExtras;
-        Engine engine = new Engine();
-        short fuelSpeed[] = new short[] {60,45};
-        float fuelMpg[] = new float[] {7.1f, 3.4f};
-
-        String make = "MAKE";
-        String model = "MODEL";
-    }
-
-    static Object smallClazz = new SimpleTest();
+    static Object smallClazz = CarBench.setupSampleObject();
 
     @Test
     public void testOffHeapCoder() throws Exception {
-        OffHeapCoder coder = new OffHeapCoder(SimpleTest.class,Engine.class,Model.class);
+        testOffHeapCoder0(true);
+        System.out.println("----------unshared----------");
+        testOffHeapCoder0(false);
+    }
 
-        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
-        conf.registerClass(SimpleTest.class,Engine.class,Model.class);
-        byte b[] = conf.asByteArray(smallClazz);
+    public void testOffHeapCoder0( boolean shared ) throws Exception {
+        OffHeapCoder coder = new OffHeapCoder(shared,
+                CarBench.SimpleTest.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Accel.class, CarBench.PerformanceFigures.class,
+                CarBench.FueldData.class, CarBench.OptionalExtras.class);
+//        OffHeapCoder coder = new OffHeapCoder();
 
         MallocBytezAllocator alloc = new MallocBytezAllocator();
         MallocBytez bytez = (MallocBytez) alloc.alloc(1000 * 1000);
@@ -155,7 +133,7 @@ public class RawMemTest extends BasicFSTTest {
         long tim = System.currentTimeMillis();
         int count = 0;
         Object deser = null;
-        while ( System.currentTimeMillis() - tim < 2000 ) {
+        while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
             coder.writeObject(toSer, bytez.getBaseAdress(), (int) bytez.length());
             deser = coder.readObject(bytez.getBaseAdress(),(int)bytez.length());
@@ -164,21 +142,37 @@ public class RawMemTest extends BasicFSTTest {
         return deser;
     }
 
-
     @Test
     public void testOnHeapCoder() throws Exception {
-        OnHeapCoder coder = new OnHeapCoder(SimpleTest.class,Engine.class,Model.class);
+        testOnHeapCoder0(true);
+        System.out.println("unshared ..");
+        testOnHeapCoder0(false);
+    }
 
-        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
-        conf.registerClass(SimpleTest.class,Engine.class,Model.class);
-        byte b[] = conf.asByteArray(smallClazz);
+    public void testOnHeapCoder0(boolean shared) throws Exception {
+        OnHeapCoder coder =new OnHeapCoder(shared,
+                CarBench.SimpleTest.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Accel.class, CarBench.PerformanceFigures.class,
+                CarBench.FueldData.class, CarBench.OptionalExtras.class);
 
         byte arr[] = new byte[1000000];
+        int len = coder.writeObject(original, arr, 0, (int) arr.length);
+
+        Object deser = coder.readObject(arr, 0, (int)arr.length);
+        assertTrue(DeepEquals.deepEquals(deser,original));
+
         onhbench(original, coder, arr, 0);
-        Object deser = onhbench(original, coder, arr, 0);
+        onhbench(original, coder, arr, 0);
+        onhbench(original, coder, arr, 0);
+        onhbench(original, coder, arr, 0);
+        deser = onhbench(original, coder, arr, 0);
         assertTrue(DeepEquals.deepEquals(original, deser));
 
         System.out.println("-----");
+        deser = onhbench(smallClazz, coder, arr, 0);
+        deser = onhbench(smallClazz, coder, arr, 0);
+        deser = onhbench(smallClazz, coder, arr, 0);
+        deser = onhbench(smallClazz, coder, arr, 0);
         deser = onhbench(smallClazz, coder, arr, 0);
         assertTrue(DeepEquals.deepEquals(smallClazz, deser));
 
@@ -196,7 +190,7 @@ public class RawMemTest extends BasicFSTTest {
         long tim = System.currentTimeMillis();
         int count = 0;
         Object deser = null;
-        while ( System.currentTimeMillis() - tim < 2000 ) {
+        while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
             coder.writeObject(toSer, bytez, off, (int) bytez.length);
             deser = coder.readObject(bytez, off, (int)bytez.length);

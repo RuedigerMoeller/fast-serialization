@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class BasicMinBinTest extends BasicFSTTest {
     @Override
     public void setUp() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createCrossPlatformConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
         conf.registerCrossPlatformClassMapping( new String[][] {
                         {"senum", "ser.Basics$SampleEnum"},
                         {"special", "ser.Basics$SpecialEnum"},
