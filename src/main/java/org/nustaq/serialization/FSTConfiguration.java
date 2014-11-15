@@ -44,7 +44,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Date: 18.11.12
  * Time: 20:41
  *
- * Holds a serialization configuration. Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
+ * Holds a serialization configuration/metadata.
+ * Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
+ *
  */
 public final class FSTConfiguration {
 
