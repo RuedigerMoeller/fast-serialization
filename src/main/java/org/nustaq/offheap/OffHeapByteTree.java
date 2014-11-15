@@ -8,6 +8,9 @@ import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 
 /**
  * Created by ruedi on 29.06.14.
+ *
+ * A specialized offheap map [byte[] => long] using a tree structure internally.
+ * Nodes consist of sparse arrays.
  */
 public class OffHeapByteTree {
 
@@ -453,141 +456,6 @@ public class OffHeapByteTree {
                     arrs[tag].dump(arr); break;
             }
         }
-
-    }
-
-
-    public static void main(String a[]) {
-        int klen = 3;
-        OffHeapByteTree bt = new OffHeapByteTree(klen, 100);
-
-        LeftCutStringByteSource kwrap = new LeftCutStringByteSource(null, 0, klen);
-        String keys[] = { "123","145" };
-        for (int i = 0; i < keys.length; i++) {
-            String key = keys[i];
-            kwrap.setString(key);
-            long put = bt.put(kwrap, (long) i+1);
-            if (put != 0)
-                System.out.println("err " + i + "'" + key + "'" + put);
-        }
-        for (int i = 0; i < keys.length; i++) {
-            String key = keys[i];
-            kwrap.setString(key);
-            System.out.println(" i "+key+" "+bt.get(kwrap));
-        }
-        dumpBT(bt);
-        System.out.println();
-
-
-        kwrap.setString(keys[0]);
-        System.out.println("get "+bt.get(kwrap));
-        bt.remove(kwrap);
-        System.out.println("get "+bt.get(kwrap));
-        dumpBT(bt);
-        System.out.println();
-
-        kwrap.setString(keys[1]);
-        System.out.println("get "+bt.get(kwrap));
-        bt.remove(kwrap);
-        System.out.println("get "+bt.get(kwrap));
-        dumpBT(bt);
-        System.out.println();
-    }
-
-    public static void _main(String a[]) {
-        int klen = 12;
-        OffHeapByteTree bt = new OffHeapByteTree(klen, 100);
-
-        long tim = System.currentTimeMillis();
-        LeftCutStringByteSource kwrap = new LeftCutStringByteSource(null, 0, klen);
-//        int MAX = 1000000;
-        int MAX = 5*1000000;
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            long put = bt.put(kwrap, (long) i);
-            if ( put != 0 )
-                System.out.println("err "+i+"'"+key+"'"+put);
-        }
-        long dur = System.currentTimeMillis() - tim+1;
-        System.out.println("PUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-        dumpBT(bt);
-
-        tim = System.currentTimeMillis();
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            bt.put(kwrap, (long) i);
-        }
-        dur = System.currentTimeMillis() - tim+1;
-        System.out.println("REPUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-        dumpBT(bt);
-
-        tim = System.currentTimeMillis();
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            long put = bt.get(kwrap);
-            if ( put != i )
-                System.out.println("err");
-        }
-        dur = System.currentTimeMillis() - tim+1;
-        System.out.println("GET need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-
-        for ( int i = 0; i < 5; i++ ) {
-            System.gc();
-            System.out.println("mem "+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/1024/1024+" MB");
-        }
-
-        kwrap.setString("test:99");
-        System.out.println("rem  : " + bt.get(kwrap));
-        bt.remove(kwrap);
-        System.out.println("  get: " + bt.get(kwrap));
-
-        tim = System.currentTimeMillis();
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            bt.remove(kwrap);
-        }
-        dur = System.currentTimeMillis() - tim+1;
-        System.out.println("DEL need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-        dumpBT(bt);
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            if ( bt.get(kwrap) != 0 )
-                System.out.println("err");
-        }
-        dumpBT(bt);
-
-        tim = System.currentTimeMillis();
-        for ( int i = 1; i < MAX; i++ ) {
-            String key = "test:"+i;
-            kwrap.setString(key);
-            bt.put(kwrap, (long) i);
-        }
-        dur = System.currentTimeMillis() - tim+1;
-        System.out.println("REPUT need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
-        System.out.println(" used MB "+bt.baseOff/1024/1024);
-        dumpBT(bt);
-
-//        tim = System.currentTimeMillis();
-//        for ( int i = 0; i < MAX; i++ ) {
-//            String key = "test:"+i;
-//            kwrap.setString(key);
-//            Long put = bt.remove(kwrap);
-//            if ( put.longValue() != i )
-//                System.out.println("err");
-//        }
-//        bt.clean();
-//        System.out.println("ba count " + bacount);
-//        dur = System.currentTimeMillis() - tim+1;
-//        System.out.println("REMOVE need "+ dur +" for "+MAX+" recs. "+(MAX/dur)+" per ms ");
 
     }
 

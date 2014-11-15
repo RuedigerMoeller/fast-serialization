@@ -53,8 +53,6 @@ public class DefaultCoder implements FSTCoder {
 
     /**
      * will throw an FSTBufferTooSmallException if buffer is too small.
-     * The required size is part of the exception.
-     *
      */
     public int toByteArray( Object obj, byte result[], int resultOffset, int avaiableSize ) {
         output.resetForReUse();
