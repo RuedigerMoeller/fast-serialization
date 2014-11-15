@@ -107,6 +107,13 @@ public final class FSTConfiguration {
     /**
      * Warning: MinBin contains full metainformation (fieldnames,..), so its way slower than the other configs.
      * It should be used in case of cross language (e.g. java - javascript) serialization only.
+     * Additionally you can read MinBin serialized streams without access to original classes.
+     *
+     * See MBPrinter on an example on how to read a MinBin stream without having access to
+     * original classes. Useful for cross language serialization/long term archiving.
+     *
+     * Warning: MinBin serialization ('binary JSon') is much slower than the other
+     * serialization configurations.
      *
      * @return a configuration to encode MinBin format.
      */
@@ -157,6 +164,19 @@ public final class FSTConfiguration {
         return res;
     }
 
+    /**
+     * the standard FSTConfiguration.
+     * - safe (no unsafe r/w)
+     * - platform independent byte order
+     * - moderate compression
+     *
+     * note that if you are just read/write from/to byte arrays, its faster
+     * to use DefaultCoder.
+     *
+     * This should be used most of the time.
+     *
+     * @return
+     */
     public static FSTConfiguration createDefaultConfiguration() {
         FSTConfiguration conf = new FSTConfiguration();
         conf.addDefaultClazzes();
@@ -191,7 +211,17 @@ public final class FSTConfiguration {
     }
 
     /**
-     * @return a configuration which encodes platform dependent and optimized for speed (no value compression is applied)
+     * Returns a configuration using Unsafe to read write data.
+     * - platform dependent byte order
+     * - no value compression attempts
+     * - makes heavy use of Unsafe, which can be dangerous in case
+     *   of version conflicts
+     *
+     * Use only in case it makes a significant difference and you absolutely need the performance gain.
+     * Performance gains depend on data. There are cases where this is even slower,
+     * in some scenarios (many native arrays) it can be several times faster.
+     * see also OffHeapCoder, OnHeapCoder.
+     *
      */
     public static FSTConfiguration createFastBinaryConfiguration() {
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
@@ -210,10 +240,23 @@ public final class FSTConfiguration {
     }
 
 
+    /**
+     * register a custom serializer for a given class or the class and all of its subclasses.
+     * Serializers must be configured identical on read/write side and should be set before
+     * actually making use of the Configuration.
+     *
+     * @param clazz
+     * @param ser
+     * @param alsoForAllSubclasses
+     */
     public void registerSerializer(Class clazz, FSTObjectSerializer ser, boolean alsoForAllSubclasses ) {
         serializationInfoRegistry.serializerRegistry.putSerializer(clazz, ser, alsoForAllSubclasses);
     }
 
+    /**
+     * special configuration used internally for struct emulation
+     * @return
+     */
     public static FSTConfiguration createStructConfiguration() {
         FSTConfiguration conf = new FSTConfiguration();
         conf.setStructMode(true);
@@ -275,6 +318,10 @@ public final class FSTConfiguration {
         }
     }
 
+    /**
+     * ignored currently
+     * @return
+     */
     public boolean isPreferSpeed() {
         return preferSpeed;
     }
@@ -376,8 +423,15 @@ public final class FSTConfiguration {
     }
 
     /**
-     * attention: id should be > CUSTOM_ID_BASE
-     * @param c
+     *
+     * Preregister a class (use at init time). This avoids having to write class names.
+     * Its a very simple and effective optimization (frequently > 2 times faster for small objects).
+     *
+     * Read and write side need to have classes preregistered in the exact same order.
+     *
+     * The list doe not have to be complete. Just add you most frequently serialized classes here
+     * to get significant gains in speed and smaller serialized representation size.
+     *
      */
     public void registerClass( Class ... c) {
         for (int i = 0; i < c.length; i++) {
@@ -494,36 +548,6 @@ public final class FSTConfiguration {
     public FSTClazzInfoRegistry getCLInfoRegistry() {
         return serializationInfoRegistry;
     }
-
-    /**
-     * mark the given class as being replaceable by an equal instance.
-     * E.g. if A=Integer(1) is written and later on an B=Integer(1) is written, after deserializing A == B.
-     * This is safe for a lot of immutable classes (A.equals(B) transformed to A == B), e.g. for Number subclasses
-     * and String class. See also the EqualnessIsIdentity Annotation
-     */
-    // needs more testing
-//    public void registerAsEqualnessReplaceable(Class cl) {
-//        getCLInfoRegistry().getCLInfo(cl).equalIsIdentity = true;
-//    }
-
-    // needs more testing
-//    public void registerAsFlat(Class cl) {
-//        getCLInfoRegistry().getCLInfo(cl).flat = true;
-//    }
-
-    /**
-     * mark the given class as being replaced by a copy of an equal instance.
-     * E.g. if A=Dimension(10,10) is written and later on an B=Dimension(10,10) is written, after deserializing B will be copied from A without writing the data of B.
-     * This is safe for 99% of the classes e.g. for Number subclasses
-     * and String class. See also the EqualnessIsBinary Annotation
-     * Note that in addition to equalsness, it is required that A.class == B.class.
-     * WARNING: adding collection classes might decrease performance significantly (trade cpu efficiency against size)
-     */
-     // needs more testing
-//    public void registerAsEqualnessCopyable(Class cl) {
-//        getCLInfoRegistry().getCLInfo(cl).equalIsBinary = true;
-//    }
-
 
     public ClassLoader getClassLoader() {
         return classLoader;

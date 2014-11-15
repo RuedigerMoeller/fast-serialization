@@ -26,8 +26,7 @@ import java.lang.reflect.Array;
  * Date: 13.04.2014
  * Time: 18:08
  * 
- * added sideways to separate code required for porting from 'nice-to-have' stuff
- * 
+ * decodes and prints a MinBin serialized stream
  */
 public class MBPrinter {
 
