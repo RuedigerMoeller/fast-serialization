@@ -7,6 +7,8 @@ import org.nustaq.offheap.OffHeapByteTree;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.bytesource.AsciiStringByteSource;
 import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.simpleapi.DefaultCoder;
+import org.nustaq.serialization.simpleapi.FSTCoder;
 
 import java.io.File;
 import java.io.Serializable;
@@ -62,11 +64,11 @@ public class StringOffHeapTest {
     @Test
     public void testKeys() throws Exception {
         new File("/tmp/test1.mmf").delete();
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
 
         int count = 10;
-        FSTAsciiStringOffheapMap<String> store = new FSTAsciiStringOffheapMap<>("/tmp/test1.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap<String> store = new FSTAsciiStringOffheapMap<>("/tmp/test1.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, coder);
         while( count-->0 ) {
 
             for (int i = 0; i < MAX; i++) {
@@ -98,7 +100,7 @@ public class StringOffHeapTest {
         count = 10;
         while( count-->0 ) {
 
-            store = new FSTAsciiStringOffheapMap<>("/tmp/test1.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, conf);
+            store = new FSTAsciiStringOffheapMap<>("/tmp/test1.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, coder);
             for (int i = 0; i < MAX; i++) {
                 String key = "" + Math.random() + "0000000000000000000";
                 key = key.substring(0, klen);
@@ -121,26 +123,26 @@ public class StringOffHeapTest {
     public void hardcore() throws Exception {
         new File("/tmp/test.mmf").delete();
         fillMemMapped();
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
 
-        int count = 10;
+        int count = 5;
 //        while (true)
         while (count-- > 0)
         {
-            FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, conf);
+            FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, coder);
             checkIter(store);
             mutateRandom(MAX, store);
             checkIter(store);
             store.free();
 
-            store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, conf);
+            store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, coder);
             store.dumpIndexStats();
             addRemRandom(store);
             checkIter(store);
             store.free();
 
-            store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, conf);
+            store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2 * FSTAsciiStringOffheapMap.GB, MAX, coder);
             store.dumpIndexStats();
             checkIter(store);
             mutateRandom(MAX, store);
@@ -183,31 +185,31 @@ public class StringOffHeapTest {
     public void fillAndReloadMemMapped() throws Exception {
         new File("/tmp/test.mmf").delete();
         fillMemMapped();
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
 
-        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
 
         Assert.assertTrue(store.getSize() == MAX);
         checkStore(store);
 
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         mutateRandom(MAX,store);
         checkStore(store);
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         checkStore(store);
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         store.remove("test:13");
         System.out.println("store size after remove " + store.getSize());
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         System.out.println("store size after reload "+store.getSize());
         Assert.assertTrue(store.getSize() == MAX - 1);
         TestRec val = new TestRec();
@@ -219,21 +221,21 @@ public class StringOffHeapTest {
         checkStore(store);
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         fillAll(store);
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         removeAll(MAX,store);
         System.out.println("store size after remove "+store.getSize());
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         fillAll(store);
         checkStore(store);
         store.free();
 
-        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         checkStore(store);
         store.free();
     }
@@ -257,23 +259,24 @@ public class StringOffHeapTest {
 
     @Test
     public void fillMemMapped() throws Exception {
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
         new File("/tmp/test.mmf").delete();
 
-        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap<TestRec> store = new FSTAsciiStringOffheapMap<>("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
 
         fillAll(store);
         for ( int i = 0; i < store.getSize(); i++ ) {
             String key = "test:" + i;
-            Assert.assertTrue(store.get(key).getX() == i);
+            int x = store.get(key).getX();
+            Assert.assertTrue(x == i);
         }
         Assert.assertTrue(store.getSize() == MAX);
         store.free();
     }
 
-    protected FSTConfiguration createConfiguration() {
-        return FSTConfiguration.createDefaultConfiguration();
+    protected FSTCoder createCoder() {
+        return new DefaultCoder();
     }
 
     private void fillAll(FSTAsciiStringOffheapMap<TestRec> store) {
@@ -292,11 +295,11 @@ public class StringOffHeapTest {
 
     @Test
     public void removeSomeMemMapped() throws Exception {
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
         int klen = 16;
         new File("/tmp/test.mmf").delete();
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap("/tmp/test.mmf", klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         fillAll(store);
         System.out.println("size pre "+store.getSize());
         removeAll(MAX, store);
@@ -320,12 +323,12 @@ public class StringOffHeapTest {
 
     @Test
     public void testPutGetIter() {
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
         int klen = 16;
         int MAX = 100000;
 
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
 
         long tim = System.currentTimeMillis();
         TestRec val = new TestRec();
@@ -436,13 +439,13 @@ public class StringOffHeapTest {
 
     @Test
     public void randomTest() {
-        FSTConfiguration conf = createConfiguration();
-        conf.registerClass(TestRec.class);
+        FSTCoder coder = createCoder();
+        coder.getConf().registerClass(TestRec.class);
         int klen = 16;
         int MAX = 10000;
 
         ArrayList<String> keys = new ArrayList<>();
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, conf);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.GB, MAX, coder);
         TestRec val = new TestRec();
 
         //while( true )

@@ -9,9 +9,6 @@ import org.nustaq.serialization.*;
 import org.nustaq.serialization.simpleapi.OffHeapCoder;
 import org.nustaq.serialization.simpleapi.OnHeapCoder;
 
-import java.io.IOException;
-import java.io.Serializable;
-
 import static junit.framework.TestCase.assertTrue;
 
 /**
@@ -94,7 +91,7 @@ public class RawMemTest extends BasicFSTTest {
 
     public void testOffHeapCoder0( boolean shared ) throws Exception {
         OffHeapCoder coder = new OffHeapCoder(shared,
-                CarBench.SimpleTest.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Car.class, CarBench.Engine.class, CarBench.Model.class,
                 CarBench.Accel.class, CarBench.PerformanceFigures.class,
                 CarBench.FueldData.class, CarBench.OptionalExtras.class);
 //        OffHeapCoder coder = new OffHeapCoder();
@@ -119,7 +116,7 @@ public class RawMemTest extends BasicFSTTest {
 
         boolean lenEx = false;
         try {
-            coder.writeObject(original,bytez.getBaseAdress(),10);
+            coder.toMemory(original, bytez.getBaseAdress(), 10);
         } catch (Exception e) {
             lenEx = true;
         }
@@ -135,8 +132,8 @@ public class RawMemTest extends BasicFSTTest {
         Object deser = null;
         while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
-            coder.writeObject(toSer, bytez.getBaseAdress(), (int) bytez.length());
-            deser = coder.readObject(bytez.getBaseAdress(),(int)bytez.length());
+            coder.toMemory(toSer, bytez.getBaseAdress(), (int) bytez.length());
+            deser = coder.toObject(bytez.getBaseAdress(), (int) bytez.length());
         }
         System.out.println("offheap enc COUNT:"+count);
         return deser;
@@ -151,14 +148,14 @@ public class RawMemTest extends BasicFSTTest {
 
     public void testOnHeapCoder0(boolean shared) throws Exception {
         OnHeapCoder coder =new OnHeapCoder(shared,
-                CarBench.SimpleTest.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Car.class, CarBench.Engine.class, CarBench.Model.class,
                 CarBench.Accel.class, CarBench.PerformanceFigures.class,
                 CarBench.FueldData.class, CarBench.OptionalExtras.class);
 
         byte arr[] = new byte[1000000];
-        int len = coder.writeObject(original, arr, 0, (int) arr.length);
+        int len = coder.toByteArray(original, arr, 0, (int) arr.length);
 
-        Object deser = coder.readObject(arr, 0, (int)arr.length);
+        Object deser = coder.toObject(arr, 0, (int) arr.length);
         assertTrue(DeepEquals.deepEquals(deser,original));
 
         onhbench(original, coder, arr, 0);
@@ -178,7 +175,7 @@ public class RawMemTest extends BasicFSTTest {
 
         boolean lenEx = false;
         try {
-            coder.writeObject(original,arr,0,10);
+            coder.toByteArray(original, arr, 0, 10);
         } catch (Exception e) {
             lenEx = true;
         }
@@ -192,8 +189,8 @@ public class RawMemTest extends BasicFSTTest {
         Object deser = null;
         while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
-            coder.writeObject(toSer, bytez, off, (int) bytez.length);
-            deser = coder.readObject(bytez, off, (int)bytez.length);
+            coder.toByteArray(toSer, bytez, off, (int) bytez.length);
+            deser = coder.toObject(bytez, off, (int) bytez.length);
         }
         System.out.println("onheap enc COUNT:"+count);
         return deser;

@@ -34,8 +34,8 @@ public final class FSTInputStream extends InputStream {
     public int chunk_size = 5000;
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
     public byte buf[];
-    public  int pos;
-    public  int count; // avaiable valid read bytes
+    public int pos;
+    public int count; // avaiable valid read bytes
     InputStream in;
     boolean fullyRead = false;
 
@@ -47,9 +47,9 @@ public final class FSTInputStream extends InputStream {
         fullyRead = false;
         pos = 0;
         this.in = in;
-        if (buf==null) {
+        if (buf == null) {
             buf = cachedBuffer.get();
-            if ( buf == null ) {
+            if (buf == null) {
                 buf = new byte[chunk_size];
                 cachedBuffer.set(buf);
             }
@@ -60,27 +60,26 @@ public final class FSTInputStream extends InputStream {
     public void readNextChunk(InputStream in) {
         int read;
         try {
-            if ( buf.length < count+chunk_size ) {
-                ensureCapacity(Math.max(buf.length*2,count+chunk_size));
+            if (buf.length < count + chunk_size) {
+                ensureCapacity(Math.max(buf.length * 2, count + chunk_size));
             }
-            read = in.read(buf,count,chunk_size);
-            if ( read > 0 ) {
+            read = in.read(buf, count, chunk_size);
+            if (read > 0) {
                 count += read;
-            }
-            else {
+            } else {
                 fullyRead = true;
             }
-        } catch ( Exception iex ) {
+        } catch (Exception iex) {
             fullyRead = true;
         }
     }
 
     public void ensureCapacity(int siz) {
-        if ( buf.length < siz ) {
+        if (buf.length < siz) {
             byte newBuf[] = new byte[siz];
-            System.arraycopy(buf,0,newBuf,0,buf.length);
+            System.arraycopy(buf, 0, newBuf, 0, buf.length);
             buf = newBuf;
-            if ( siz < 10*1024*1024) { // issue 19, don't go overboard with buffer caching
+            if (siz < 10 * 1024 * 1024) { // issue 19, don't go overboard with buffer caching
                 cachedBuffer.set(buf);
             }
         }
@@ -99,21 +98,21 @@ public final class FSTInputStream extends InputStream {
     }
 
     public int read() {
-        if  (pos < count) {
+        if (pos < count) {
             return (buf[pos++] & 0xff);
         }
         readNextChunk(in);
-        if ( fullyRead )
+        if (fullyRead)
             return -1;
         return -1;
     }
 
     public int read(byte b[], int off, int len) {
-        if ( fullyRead )
+        if (fullyRead)
             return -1;
-        while (pos+len >= count) {
+        while (pos + len >= count) {
             readNextChunk(in);
-            if ( fullyRead )
+            if (fullyRead)
                 break;
         }
         int avail = count - pos;
@@ -159,8 +158,8 @@ public final class FSTInputStream extends InputStream {
     }
 
     public void ensureReadAhead(int bytes) {
-        int targetCount = pos+bytes;
-        while ( ! fullyRead && count < targetCount ) {
+        int targetCount = pos + bytes;
+        while (!fullyRead && count < targetCount) {
             readNextChunk(in);
         }
     }

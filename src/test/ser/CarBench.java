@@ -2,6 +2,9 @@ package ser;
 
 import com.cedarsoftware.util.DeepEquals;
 import org.junit.Test;
+import org.nustaq.serialization.simpleapi.DefaultCoder;
+import org.nustaq.serialization.simpleapi.FSTCoder;
+import org.nustaq.serialization.simpleapi.MinBinCoder;
 import org.nustaq.serialization.simpleapi.OnHeapCoder;
 
 import java.io.Serializable;
@@ -54,7 +57,7 @@ public class CarBench {
         }
     }
 
-    public static class SimpleTest implements Serializable {
+    public static class Car implements Serializable {
         int serialNumber;
         short modelYear;
         boolean available;
@@ -78,8 +81,8 @@ public class CarBench {
         }
     }
 
-    public static SimpleTest setupSampleObject() {
-        final SimpleTest car = new SimpleTest();
+    public static Car setupSampleObject() {
+        final Car car = new Car();
 
         car.code = Model.A;
         car.modelYear = 2005;
@@ -126,7 +129,7 @@ public class CarBench {
 
     public void carBenchIntern(boolean shared) throws Exception {
         OnHeapCoder coder =new OnHeapCoder(shared,
-                CarBench.SimpleTest.class, CarBench.Engine.class, CarBench.Model.class,
+                Car.class, CarBench.Engine.class, CarBench.Model.class,
                 CarBench.Accel.class, CarBench.PerformanceFigures.class,
                 CarBench.FueldData.class, CarBench.OptionalExtras.class);
 
@@ -142,20 +145,73 @@ public class CarBench {
         assertTrue(DeepEquals.deepEquals(car, deser));
     }
 
-    protected Object onhbench(Object toSer, OnHeapCoder coder, byte[] bytez, int off) throws Exception {
+    @Test
+    public void carBenchDefault() throws Exception {
+        System.out.println("default shared ..");
+        carBenchInternDefault(true);
+        System.out.println("default unshared ..");
+        carBenchInternDefault(false);
+    }
+
+    public void carBenchInternDefault(boolean shared) throws Exception {
+        DefaultCoder coder =new DefaultCoder(shared,
+                Car.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Accel.class, CarBench.PerformanceFigures.class,
+                CarBench.FueldData.class, CarBench.OptionalExtras.class);
+
+        byte arr[] = new byte[10000];
+
+        System.out.println("-----");
+        Object car = setupSampleObject();
+        Object deser = null;
+
+        for (int i=0; i<10; i++) {
+            deser = onhbench(car, coder, arr, 0);
+        }
+        assertTrue(DeepEquals.deepEquals(car, deser));
+    }
+
+    @Test
+    public void carBenchMinBin() throws Exception {
+        System.out.println("minbin shared ..");
+        carBenchInternMinBin(true);
+        System.out.println("minbin unshared ..");
+        carBenchInternMinBin(false);
+    }
+
+    public void carBenchInternMinBin(boolean shared) throws Exception {
+        MinBinCoder coder =new MinBinCoder(shared,
+                Car.class, CarBench.Engine.class, CarBench.Model.class,
+                CarBench.Accel.class, CarBench.PerformanceFigures.class,
+                CarBench.FueldData.class, CarBench.OptionalExtras.class);
+
+        byte arr[] = new byte[10000];
+
+        System.out.println("-----");
+        Object car = setupSampleObject();
+        Object deser = null;
+
+        for (int i=0; i<10; i++) {
+            deser = onhbench(car, coder, arr, 0);
+        }
+        assertTrue(DeepEquals.deepEquals(car, deser));
+    }
+
+
+    protected Object onhbench(Object toSer, FSTCoder coder, byte[] bytez, int off) throws Exception {
         long tim = System.currentTimeMillis();
         int count = 0;
         Object deser = null;
         while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
-            coder.writeObject(toSer, bytez, off, (int) bytez.length);
+            coder.toByteArray(toSer, bytez, off, (int) bytez.length);
         }
         System.out.println("onheap enc COUNT:"+count);
         tim = System.currentTimeMillis();
         count = 0;
         while ( System.currentTimeMillis() - tim < 1000 ) {
             count++;
-            deser = coder.readObject(bytez, off, (int)bytez.length);
+            deser = coder.toObject(bytez, off, (int) bytez.length);
         }
         System.out.println("onheap dec COUNT:"+count);
         return deser;

@@ -21,6 +21,7 @@ public class FSTOrderedConcurrentJobExecutor {
         }
 
         public abstract void runConcurrent();
+
         public abstract void runInOrder();
 
     }
@@ -52,7 +53,7 @@ public class FSTOrderedConcurrentJobExecutor {
 
     public FSTOrderedConcurrentJobExecutor(int threads) {
         threads *= 2;
-        this.pool = Executors.newFixedThreadPool(threads/2);
+        this.pool = Executors.newFixedThreadPool(threads / 2);
         this.orderedPool = Executors.newSingleThreadExecutor();
         this.threads = threads;
         jobs = new FSTRunnable[threads];
@@ -67,7 +68,7 @@ public class FSTOrderedConcurrentJobExecutor {
 
     public void addCall(final FSTRunnable toRun) throws InterruptedException {
         gateway.acquire();
-        if ( jobs[curIdx] == null ) {
+        if (jobs[curIdx] == null) {
             jobs[curIdx] = toRun;
         } else {
             jobs[curIdx].sem.acquire();
@@ -81,7 +82,7 @@ public class FSTOrderedConcurrentJobExecutor {
         OrderedRunnable ord = orderedRunnableCache[curIdx];
         ord.toRun = toRun;
 
-        curIdx = (curIdx+1) % threads;
+        curIdx = (curIdx + 1) % threads;
 
         orderedPool.execute(ord);
         pool.execute(toRun);
@@ -100,14 +101,14 @@ public class FSTOrderedConcurrentJobExecutor {
     }
 
     public int getNumThreads() {
-        return sems.length/2;
+        return sems.length / 2;
     }
 
-    public static void main( String args[] ) throws InterruptedException {
+    public static void main(String args[]) throws InterruptedException {
         FSTOrderedConcurrentJobExecutor jex = new FSTOrderedConcurrentJobExecutor(8);
 
         final long sumtim = System.currentTimeMillis();
-        for ( int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             final int finalI = i;
             FSTRunnable job = new FSTRunnable() {
 
@@ -116,15 +117,15 @@ public class FSTOrderedConcurrentJobExecutor {
                 @Override
                 public void runConcurrent() {
                     long tim = System.currentTimeMillis();
-                    for ( int j=0; j < 99999999; j++ ) {
-                        String s = "asdipo"+j+"oij";
+                    for (int j = 0; j < 99999999; j++) {
+                        String s = "asdipo" + j + "oij";
                         int idx = s.indexOf("oij");
-                        for ( int k=0; k < 1; k++ ) {
-                            String ss = "asdipo"+k+"oij";
+                        for (int k = 0; k < 1; k++) {
+                            String ss = "asdipo" + k + "oij";
                             idx = s.indexOf("oij");
                         }
                     }
-                    System.out.println("tim "+count+" "+(System.currentTimeMillis()-tim));
+                    System.out.println("tim " + count + " " + (System.currentTimeMillis() - tim));
                 }
 
                 @Override

@@ -1,6 +1,6 @@
 package org.nustaq.serialization.simpleapi;
 
-import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.*;
 
 /**
  * Created by ruedi on 09.11.14.
@@ -10,20 +10,22 @@ import org.nustaq.serialization.FSTConfiguration;
  */
 public class MinBinCoder extends DefaultCoder {
 
-    public MinBinCoder() {
+    public MinBinCoder(boolean shared, Class ... toPreRegister) {
         conf = FSTConfiguration.createMinBinConfiguration();
+        conf.setShareReferences(shared);
+        if ( toPreRegister != null && toPreRegister.length > 0 ) {
+            conf.registerCrossPlatformClassMappingUseSimpleName(toPreRegister);
+        }
+        input = new FSTObjectInput(conf);
+        output = new FSTObjectOutput(conf);
     }
 
-    /**
-     * registers given classes as shortnames (using class.simpleName).
-     * This means the resulting stream will contain short names instead of full qualified names for
-     * these classes.
-     *
-     * @param preregister
-     */
-    public MinBinCoder(Class... preregister) {
-        this();
-        conf.registerCrossPlatformClassMappingUseSimpleName(preregister);
+    public MinBinCoder(Class ... preregister) {
+        this(true,preregister);
+    }
+
+    public MinBinCoder() {
+        this(true);
     }
 
 }

@@ -45,7 +45,7 @@ public final class FSTOutputStream extends OutputStream {
     private int off;
 
     public FSTOutputStream(OutputStream out) {
-        this(32000,out);
+        this(32000, out);
     }
 
     public FSTOutputStream(int size, OutputStream out) {
@@ -71,8 +71,8 @@ public final class FSTOutputStream extends OutputStream {
 
     public final void ensureFree(int free) throws IOException {
         // inline ..
-        if (pos+free - buf.length > 0)
-            grow(pos+free);
+        if (pos + free - buf.length > 0)
+            grow(pos + free);
     }
 
     public final void ensureCapacity(int minCapacity) throws IOException {
@@ -84,9 +84,9 @@ public final class FSTOutputStream extends OutputStream {
         // overflow-conscious code
         int oldCapacity = buf.length;
         int newCapacity = oldCapacity * 2;
-        if (oldCapacity > 50*1024*1024) // for large object graphs, grow more carefully
-            newCapacity = minCapacity+1024*1024*20;
-        else if ( oldCapacity < 1001 ) {
+        if (oldCapacity > 50 * 1024 * 1024) // for large object graphs, grow more carefully
+            newCapacity = minCapacity + 1024 * 1024 * 20;
+        else if (oldCapacity < 1001) {
             newCapacity = 4000; // large step initially
         }
         if (newCapacity - minCapacity < 0)
@@ -95,7 +95,7 @@ public final class FSTOutputStream extends OutputStream {
         try {
             buf = Arrays.copyOf(buf, newCapacity);
         } catch (OutOfMemoryError ome) {
-            System.out.println("OME resize from "+buf.length+" to "+newCapacity+" clearing caches ..");
+            System.out.println("OME resize from " + buf.length + " to " + newCapacity + " clearing caches ..");
             throw new RuntimeException(ome);
         }
     }
@@ -114,6 +114,7 @@ public final class FSTOutputStream extends OutputStream {
 
     /**
      * only works if no flush has been triggered (aka only write one object per stream instance)
+     *
      * @param out
      * @throws IOException
      */
@@ -136,17 +137,17 @@ public final class FSTOutputStream extends OutputStream {
 
     public void close() throws IOException {
         flush();
-        if ( outstream != this )
+        if (outstream != this)
             outstream.close();
     }
 
     public void flush() throws IOException {
-        if ( pos > 0 && outstream != null && outstream != this) {
+        if (pos > 0 && outstream != null && outstream != this) {
             copyTo(outstream);
             off = pos;
             reset();
         }
-        if ( outstream != this )
+        if (outstream != this)
             outstream.flush();
     }
 

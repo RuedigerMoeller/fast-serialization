@@ -19,10 +19,18 @@ import java.io.IOException;
  * Use case: messaging, offheap en/decoding, tmp preservation of state
  * NOT thread safe
  *
+ * Future version may choose to operate on DirectByteBuffer in case unsafe class vanishes
+ *
  * Do not confuse this with a stream. Each single writeObject is an isolated operation,
  * so restoring of references inside an object graph only happens for refs inside the object graph
  * given to writeObject.
  *
+ * ***********************************************************************
+ * USE ONLY IF DEFAULTCODER (no unsafe) HAS BEEN PROVEN TO SLOW YOU DOWN.
+ * ***********************************************************************
+ *
+ * Note this does not satisfy the FSTCoder interface. Its purely targeted to directly read/write native memory
+ * allocates using unsafe.
  */
 public class OffHeapCoder {
 
@@ -77,7 +85,7 @@ public class OffHeapCoder {
     }
 
     /**
-     * throws FSTBufferTooSmallExcpetion in case object does not fit into given range
+     * throws FSTBufferTooSmallException in case object does not fit into given range
      *
      * @param o
      * @param address
@@ -85,7 +93,7 @@ public class OffHeapCoder {
      * @throws IOException
      * @return number of bytes written to the memory region
      */
-    public int writeObject( Object o, long address, int availableSize ) throws IOException {
+    public int toMemory(Object o, long address, int availableSize) throws IOException {
         out.resetForReUse();
         writeTarget.setBase(address, availableSize);
         out.writeObject(o);
@@ -93,7 +101,7 @@ public class OffHeapCoder {
         return written;
     }
 
-    public Object readObject( long address, int availableSize ) throws IOException, ClassNotFoundException {
+    public Object toObject(long address, int availableSize) throws IOException, ClassNotFoundException {
         in.resetForReuse(null);
         readTarget.setBase(address,availableSize);
         Object o = in.readObject();

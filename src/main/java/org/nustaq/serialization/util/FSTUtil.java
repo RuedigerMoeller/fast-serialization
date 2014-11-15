@@ -43,7 +43,7 @@ public class FSTUtil {
     public static Unsafe unFlaggedUnsafe = FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
 
     static {
-        if ( unFlaggedUnsafe != null ) {
+        if (unFlaggedUnsafe != null) {
             refoff = unFlaggedUnsafe.arrayBaseOffset(Object[].class);
             bufoff = unFlaggedUnsafe.arrayBaseOffset(byte[].class);
             intoff = unFlaggedUnsafe.arrayBaseOffset(int[].class);
@@ -91,8 +91,8 @@ public class FSTUtil {
     public static void clear(int[] arr) {
         int count = 0;
         final int length = EmptyIntArray.length;
-        while( arr.length - count > length) {
-            System.arraycopy(EmptyIntArray,0,arr,count, length);
+        while (arr.length - count > length) {
+            System.arraycopy(EmptyIntArray, 0, arr, count, length);
             count += length;
         }
         System.arraycopy(EmptyIntArray, 0, arr, count, arr.length - count);
@@ -106,22 +106,22 @@ public class FSTUtil {
     public static void clear(Object[] arr, int arrlen) {
         int count = 0;
         final int length = EmptyObjArray.length;
-        while( arrlen - count > length) {
-            System.arraycopy(EmptyObjArray,0,arr,count, length);
+        while (arrlen - count > length) {
+            System.arraycopy(EmptyObjArray, 0, arr, count, length);
             count += length;
         }
-        System.arraycopy(EmptyObjArray,0,arr,count, arrlen -count);
+        System.arraycopy(EmptyObjArray, 0, arr, count, arrlen - count);
     }
 
     public static String toString(Throwable th) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         th.printStackTrace(pw);
-        return th.getClass().getSimpleName()+":"+th.getMessage()+"\n"+sw.toString();
+        return th.getClass().getSimpleName() + ":" + th.getMessage() + "\n" + sw.toString();
     }
 
-    public static RuntimeException rethrow( Throwable ex ) {
-        if ( ex instanceof RuntimeException ) {
+    public static RuntimeException rethrow(Throwable ex) {
+        if (ex instanceof RuntimeException) {
             return (RuntimeException) ex;
         }
         return new RuntimeException(ex);
@@ -155,7 +155,7 @@ public class FSTUtil {
     }
 
     public static Constructor findConstructorForSerializable(Class clazz) {
-        if ( ! Serializable.class.isAssignableFrom(clazz) ) {
+        if (!Serializable.class.isAssignableFrom(clazz)) {
             // in case forceSerializable flag is present, just look for no-arg constructor
             return findConstructorForExternalize(clazz);
         }
@@ -169,8 +169,8 @@ public class FSTUtil {
             Constructor c = curCl.getDeclaredConstructor((Class[]) null);
             int mods = c.getModifiers();
             if ((mods & Modifier.PRIVATE) != 0 ||
-                ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
-                    !isPackEq(clazz, curCl))) {
+                    ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
+                         !isPackEq(clazz, curCl))) {
                 return null;
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
@@ -188,14 +188,12 @@ public class FSTUtil {
     }
 
     public static Method findPrivateMethod(Class clazz, String methName,
-                                           Class[] clazzArgs,
-                                           Class retClazz)
-    {
+                                              Class[] clazzArgs,
+                                              Class retClazz) {
         try {
             Method m = clazz.getDeclaredMethod(methName, clazzArgs);
             int modif = m.getModifiers();
-            if ((m.getReturnType() == retClazz) && ((modif & Modifier.PRIVATE) != 0) && ((modif & Modifier.STATIC) == 0))
-            {
+            if ((m.getReturnType() == retClazz) && ((modif & Modifier.PRIVATE) != 0) && ((modif & Modifier.STATIC) == 0)) {
                 m.setAccessible(true);
                 return m;
             }
@@ -206,9 +204,8 @@ public class FSTUtil {
     }
 
     public static Method findDerivedMethod(Class clazz, String metnam,
-                                           Class[] argClzz,
-                                           Class retClz)
-    {
+                                              Class[] argClzz,
+                                              Class retClz) {
         Method m = null;
         Class defCl = clazz;
         while (defCl != null) {
@@ -239,7 +236,7 @@ public class FSTUtil {
             return null;
         } else {
             m.setAccessible(true);
-            if ( isPackEq(clazz, defCl) ) {
+            if (isPackEq(clazz, defCl)) {
                 return m;
             }
             return null;
@@ -247,7 +244,7 @@ public class FSTUtil {
     }
 
     public static void printEx(Throwable e) {
-        while( e.getCause() != null && e.getCause() != e ) {
+        while (e.getCause() != null && e.getCause() != e) {
             e = e.getCause();
         }
         e.printStackTrace();
@@ -255,7 +252,7 @@ public class FSTUtil {
 
     public static boolean isPrimitiveArray(Class c) {
         Class componentType = c.getComponentType();
-        if ( componentType == null ) {
+        if (componentType == null) {
             return c.isPrimitive();
         }
         return isPrimitiveArray(c.getComponentType());
@@ -263,11 +260,11 @@ public class FSTUtil {
 
     public static Unsafe getUnsafe() {
         try {
-            if ( unFlaggedUnsafe !=null )
+            if (unFlaggedUnsafe != null)
                 return unFlaggedUnsafe;
             Field f = Unsafe.class.getDeclaredField("theUnsafe");
             f.setAccessible(true);
-            return (Unsafe)f.get(null);
+            return (Unsafe) f.get(null);
         } catch (Exception e) { /* ... */ }
         return null;
     }
@@ -278,10 +275,10 @@ public class FSTUtil {
 
     public static int writeUnsignedVarInt(int value, byte[] out, int index) {
         while ((value & 0xFFFFFF80) != 0L) {
-            out[index++]= (byte) ((value & 0x7F) | 0x80);
+            out[index++] = (byte) ((value & 0x7F) | 0x80);
             value >>>= 7;
         }
-        out[index++]= (byte) (value & 0x7F);
+        out[index++] = (byte) (value & 0x7F);
         return index;
     }
 }

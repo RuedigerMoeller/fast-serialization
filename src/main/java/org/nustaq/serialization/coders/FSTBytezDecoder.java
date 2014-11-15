@@ -136,6 +136,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
      */
     @Override
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
+        // FIXME: if else chaining could be avoided
         if (componentType == byte.class) {
             ensureReadAhead(len);
             byte arr[] = (byte[]) array;

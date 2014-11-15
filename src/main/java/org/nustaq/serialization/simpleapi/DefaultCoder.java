@@ -1,6 +1,9 @@
 package org.nustaq.serialization.simpleapi;
 
-import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.*;
+import org.nustaq.serialization.util.FSTUtil;
+
+import java.io.IOException;
 
 /**
  * Created by ruedi on 09.11.14.
@@ -15,22 +18,37 @@ import org.nustaq.serialization.FSTConfiguration;
  *
  * This class cannot be used concurrently.
  *
+ * Works similar to the unsafe coders, but does not use Unsafe. Note that reading and writing
+ * coder must match each other in type and configuration.
+ *
  */
-public class DefaultCoder {
+public class DefaultCoder implements FSTCoder {
 
     protected FSTConfiguration conf;
+    FSTObjectInput input;
+    FSTObjectOutput output;
 
-    public DefaultCoder() {
+    public DefaultCoder(boolean shared, Class ... toPreRegister) {
         conf = FSTConfiguration.createDefaultConfiguration();
+        conf.setShareReferences(shared);
+        if ( toPreRegister != null && toPreRegister.length > 0 ) {
+            conf.registerClass(toPreRegister);
+        }
+        if ( shared ) {
+            input = new FSTObjectInput(conf);
+            output = new FSTObjectOutput(conf);
+        } else {
+            input = new FSTObjectInputNoShared(conf);
+            output = new FSTObjectOutputNoShared(conf);
+        }
     }
 
-    /**
-     * throw
-     * @param preregister
-     */
     public DefaultCoder( Class ... preregister ) {
-        this();
-        conf.registerClass(preregister);
+        this(true, preregister);
+    }
+
+    public DefaultCoder() {
+        this(true);
     }
 
     /**
@@ -38,16 +56,53 @@ public class DefaultCoder {
      * The required size is part of the exception.
      *
      */
-    public void toByteArray( Object obj, byte result[], int resultOffset ) {
-
+    public int toByteArray( Object obj, byte result[], int resultOffset, int avaiableSize ) {
+        output.resetForReUse();
+        try {
+            output.writeObject(obj);
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
+        }
+        int written = output.getWritten();
+        if ( written > avaiableSize ) {
+            throw FSTBufferTooSmallException.Instance;
+        }
+        System.arraycopy(output.getBuffer(),0,result,resultOffset, written);
+        return written;
     }
 
-    public byte[] asByteArray( Object o ) {
+    public byte[] toByteArray( Object o ) {
+        output.resetForReUse();
+        try {
+            output.writeObject(o);
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
+        }
+        return output.getCopyOfWrittenBuffer();
+    }
+
+    @Override
+    public FSTConfiguration getConf() {
+        return conf;
+    }
+
+
+    public Object toObject( byte arr[], int off, int len ) {
+        try {
+            if ( off == 0 ) {
+                    input.resetForReuseUseArray(arr);
+            } else {
+                input.resetForReuseCopyArray(arr, off, len);
+            }
+            return input.readObject();
+        } catch (Exception e) {
+            FSTUtil.rethrow(e);
+        }
         return null;
     }
 
-    public Object toObject( byte arr[], int off ) {
-        return null;
+    public Object toObject( byte arr[] ) {
+        return toObject(arr,0,arr.length);
     }
 
 }

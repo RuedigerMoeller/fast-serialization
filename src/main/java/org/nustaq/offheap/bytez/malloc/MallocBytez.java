@@ -26,7 +26,9 @@ import sun.misc.Unsafe;
  * <p/>
  * Date: 17.11.13
  * Time: 00:01
- * To change this template use File | Settings | File Templates.
+ *
+ * implementation of Bytez interface using unsafe on raw allocated memory
+ *
  */
 public class MallocBytez implements Bytez {
 

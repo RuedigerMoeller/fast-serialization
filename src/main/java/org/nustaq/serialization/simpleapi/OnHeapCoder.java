@@ -5,23 +5,32 @@ import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.coders.FSTBytezDecoder;
 import org.nustaq.serialization.coders.FSTBytezEncoder;
+import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
 
 /**
  * Created by ruedi on 13.11.14.
  *
- * A coder writing fast binary encoding using unsafe to an underlying byte array.
+ * A coder writing fast binary encoding using unsafe to an underlying byte array ZERO COPY.
+ *
+ * Future version may choose to operate on DirectByteBuffer in case unsafe vanishes
+ *
  * Note there is some copied code from OffHeaüCoder to avoid losing performance caused
  * by polymorphic method dispatch.
+ *
+ * ***********************************************************************
+ * USE ONLY IF DEFAULTCODER (no unsafe) HAS BEEN PROVEN TO SLOW YOU DOWN.
+ * ***********************************************************************
+ *
  */
-public class OnHeapCoder {
+public class OnHeapCoder implements FSTCoder {
 
     protected FSTConfiguration conf;
-    HeapBytez writeTarget;
-    HeapBytez readTarget;
-    FSTObjectOutput out;
-    FSTObjectInput in;
+    protected HeapBytez writeTarget;
+    protected HeapBytez readTarget;
+    protected FSTObjectOutput out;
+    protected FSTObjectInput in;
 
     public OnHeapCoder() {
         this(true);
@@ -69,25 +78,82 @@ public class OnHeapCoder {
 
     /**
      * throws FSTBufferTooSmallExcpetion in case object does not fit into given range
+     * Zero Copy method
      *
      * @param o
      * @param availableSize
      * @throws java.io.IOException
      * @return number of bytes written to the memory region
      */
-    public int writeObject( Object o, byte arr[], int startIndex, int availableSize ) throws IOException {
+    @Override
+    public int toByteArray( Object o, byte arr[], int startIndex, int availableSize ) {
         out.resetForReUse();
         writeTarget.setBase(arr, startIndex, availableSize);
-        out.writeObject(o);
+        try {
+            out.writeObject(o);
+        } catch (IOException e) {
+            FSTUtil.rethrow(e);
+        }
         int written = out.getWritten();
         return written;
     }
 
-    public Object readObject( byte arr[], int startIndex, int availableSize ) throws IOException, ClassNotFoundException {
-        in.resetForReuse(null);
-        readTarget.setBase(arr,startIndex,availableSize);
-        Object o = in.readObject();
-        return o;
+    protected byte[] buff = new byte[4096];
+    @Override
+    public byte[] toByteArray(Object o) {
+        try {
+            out.resetForReUse();
+            writeTarget.setBase(buff, 0, buff.length);
+            try {
+                out.writeObject(o);
+            } catch (IOException e) {
+                FSTUtil.rethrow(e);
+            }
+            return out.getCopyOfWrittenBuffer();
+        } catch (FSTBufferTooSmallException ex) {
+            buff = new byte[buff.length*2];
+            return toByteArray(o);
+        }
     }
+
+    @Override
+    public FSTConfiguration getConf() {
+        return conf;
+    }
+
+    /**
+     * throws FSTBufferTooSmallExcpetion in case object does not fit into given range
+     *
+     * @param arr
+     * @param startIndex
+     * @param availableSize
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public Object toObject( byte arr[], int startIndex, int availableSize) {
+        try {
+            in.resetForReuse(null);
+            readTarget.setBase(arr,startIndex,availableSize);
+            Object o = in.readObject();
+            return o;
+        } catch (Exception e) {
+            FSTUtil.rethrow(e);
+        }
+        return null;
+    }
+
+    /**
+     * decode object into byte array (at position null)
+     *
+     * @param arr
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public Object toObject(byte[] arr) {
+        return toObject(arr,0,arr.length);
+    }
+
 
 }

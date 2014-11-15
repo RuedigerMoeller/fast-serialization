@@ -429,7 +429,7 @@ public class OffHeapByteTree {
                     long res1 = arrFull.newArr();
                     arrs[tag].copyTo(arrFull,arr, res1);
                     arrs[tag].addFree(arr);
-                    break;
+                    return res1;
                 default:
                     long res0 = arrs[tag+1].newArr();
                     arrs[tag].copyTo(arrs[tag+1], arr, res0);
@@ -440,7 +440,7 @@ public class OffHeapByteTree {
 //                    arr32.dump(res0);
                     return res0;
             }
-            throw new RuntimeException("?");
+//            throw new RuntimeException("?");
         }
 
         public void dump(long arr) {
