@@ -30,7 +30,7 @@ public class MMFBytez extends MallocBytez {
         }
         this.file = f;
 
-        if ( f.exists() && length <= 0 ) {
+        if ( f.exists() ) {
             length = f.length();
         }
 

@@ -7,6 +7,10 @@ import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MMFBytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -46,8 +50,9 @@ public class FSTBinaryOffheapMap {
     protected MallocBytezAllocator alloc;
     protected int numElem;
     protected int keyLen;
-    protected long bytezOffset = FILE_HEADER_LEN;
-    protected FreeList freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
+    protected long bytezOffset;
+    protected FreeList freeList;// FIXME: missing merge/split of different block sizes
+    protected String mappedFile;
 
     public FSTBinaryOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
         initFromFile(mappedFile, keyLen, sizeMemBytes, numberOfElems);
@@ -58,6 +63,10 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void initFromFile(String file, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
+        numElem = 0;
+        bytezOffset = FILE_HEADER_LEN;
+        freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
+        this.mappedFile = file;
         memory = new MMFBytez(file,sizeMemBytes,false);
         customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
@@ -106,13 +115,16 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
+        numElem = 0;
+        bytezOffset = FILE_HEADER_LEN;
+        freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
         alloc = new MallocBytezAllocator();
         memory = alloc.alloc(sizeMemBytes);
         customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
         this.keyLen = keyLen;
         index = new OffHeapByteTree(keyLen,OffHeapByteTree.estimateMBytesForIndex(keyLen,numberOfElems));
-        memory.putInt(4,HEADER_TAG);
+        memory.putInt(4, HEADER_TAG);
     }
 
     @Override
@@ -127,7 +139,10 @@ public class FSTBinaryOffheapMap {
         }
         if ( memory instanceof MMFBytez ) {
             ((MMFBytez) memory).freeAndClose();
+            memory = null;
         }
+//        index.free();
+        index = null;
     }
 
     public void putBinary( ByteSource key, ByteSource value ) {
@@ -143,12 +158,13 @@ public class FSTBinaryOffheapMap {
                 return;
             }
             // set removed and fall through to add
+            index.put(key, addEntry(key, value));
             removeEntry(put);
         } else {
             // add
+            index.put(key, addEntry(key, value));
             incElems();
         }
-        index.put(key, addEntry(key, value));
     }
 
     protected void removeEntry(long offset) {
@@ -157,11 +173,11 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void addToFreeList(long offset) {
-        freeList.addToFree(offset,getLenFromHeader(offset)+getHeaderLen());
+        freeList.addToFree(offset, getLenFromHeader(offset) + getHeaderLen());
     }
 
     protected void setEntry(long off, int entryLen, ByteSource value) {
-        writeEntryHeader(off,entryLen,(int)value.length(),false);
+        writeEntryHeader(off, entryLen, (int) value.length(), false);
         off += getHeaderLen();
         for ( int i = 0; i < value.length(); i++ ) {
             memory.put( off++, value.get(i) );
@@ -189,8 +205,10 @@ public class FSTBinaryOffheapMap {
         int entryLen = getEntryLengthForContentLength(value.length());
         // size to power of 2
         entryLen = freeList.computeLen(entryLen+getHeaderLen())-getHeaderLen();
-        if ( memory.length() <= bytezOffset+entryLen+getHeaderLen()) // FIXME: needs pow2
-            throw new RuntimeException("store is full "+numElem);
+        if ( memory.length() <= bytezOffset+entryLen+getHeaderLen()) {
+            resizeStore(bytezOffset + entryLen + getHeaderLen());
+            return addEntry(key,value); // fixme loses one freelist entry
+        }
         long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
         // put key
@@ -203,6 +221,41 @@ public class FSTBinaryOffheapMap {
         }
         bytezOffset+=entryLen+getHeaderLen();
         return res;
+    }
+
+    /**
+     * currently a very expensive operation .. frees everything, resize file and remap.
+     * Remapping involves rebuild of index.
+     * @param required
+     */
+    private void resizeStore(long required) {
+        if ( mappedFile == null )
+            throw new RuntimeException("store is full. Required: "+required);
+        System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
+        index.dumpStats();
+        long tim = System.currentTimeMillis();
+        free();
+        try {
+            File mf = new File(mappedFile);
+            FileOutputStream f = new FileOutputStream(mf);
+            long len = mf.length();
+            required *= 2;
+            byte[] toWrite = new byte[1000];
+            long max = (required - len)/1000;
+            for ( long i = 0; i < max+2; i++ ) {
+                f.write(toWrite);
+            }
+            f.flush();
+            f.close();
+            initFromFile(mappedFile,keyLen,required,numElem);
+            System.out.println("resizing done in "+(System.currentTimeMillis()-tim)+" numElemAfter:"+numElem);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
