@@ -11,7 +11,7 @@ public class LongMapTest {
 
     @Test
     public void testLongMap() {
-        FSTLongOffheapMap<String> longMap = new FSTLongOffheapMap<>(FSTLongOffheapMap.GB*2,1000000);
+        FSTLongOffheapMap<String> longMap = new FSTLongOffheapMap<>(FSTLongOffheapMap.GB,1000000);
 
         for ( int i = 0; i < 1000000; i++) {
             longMap.put((long) i,"HalliHallo"+i);

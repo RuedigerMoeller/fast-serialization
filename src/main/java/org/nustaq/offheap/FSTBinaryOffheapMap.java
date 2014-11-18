@@ -67,9 +67,7 @@ public class FSTBinaryOffheapMap {
         bytezOffset = FILE_HEADER_LEN;
         freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
         this.mappedFile = file;
-        memory = new MMFBytez(file,sizeMemBytes,false);
-        customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
-        tmpValueBytez = new BytezByteSource(memory,0,0);
+        resetMem(file, sizeMemBytes);
         this.keyLen = keyLen;
         if ( memory.getInt(4) != HEADER_TAG || memory.getInt(0) <= 0 ) {
             // newly created or empty file
@@ -108,6 +106,12 @@ public class FSTBinaryOffheapMap {
                 off+= getHeaderLen() + len;
             }
         }
+    }
+
+    private void resetMem(String file, long sizeMemBytes) throws Exception {
+        memory = new MMFBytez(file,sizeMemBytes,false);
+        customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
+        tmpValueBytez = new BytezByteSource(memory,0,0);
     }
 
     public FSTBinaryOffheapMap(int keyLen, long sizeMemBytes, int numberOfElems) {
@@ -207,7 +211,7 @@ public class FSTBinaryOffheapMap {
         entryLen = freeList.computeLen(entryLen+getHeaderLen())-getHeaderLen();
         if ( memory.length() <= bytezOffset+entryLen+getHeaderLen()) {
             resizeStore(bytezOffset + entryLen + getHeaderLen());
-            return addEntry(key,value); // fixme loses one freelist entry
+//            return addEntry(key,value); // fixme loses one freelist entry
         }
         long res = bytezOffset;
         writeEntryHeader(bytezOffset, entryLen,(int)value.length(),false);
@@ -234,12 +238,13 @@ public class FSTBinaryOffheapMap {
         System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
         index.dumpStats();
         long tim = System.currentTimeMillis();
-        free();
+        ((MMFBytez) memory).freeAndClose();
+        memory = null;
         try {
             File mf = new File(mappedFile);
-            FileOutputStream f = new FileOutputStream(mf);
+            FileOutputStream f = new FileOutputStream(mf,true);
             long len = mf.length();
-            required *= 2;
+            required = required + Math.min(required,MB*512);
             byte[] toWrite = new byte[1000];
             long max = (required - len)/1000;
             for ( long i = 0; i < max+2; i++ ) {
@@ -247,7 +252,7 @@ public class FSTBinaryOffheapMap {
             }
             f.flush();
             f.close();
-            initFromFile(mappedFile,keyLen,required,numElem);
+            resetMem(mappedFile,mf.length());
             System.out.println("resizing done in "+(System.currentTimeMillis()-tim)+" numElemAfter:"+numElem);
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -455,7 +455,7 @@ public class StringOffHeapTest {
         int MAX = 10000;
 
         ArrayList<String> keys = new ArrayList<>();
-        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, 2*FSTAsciiStringOffheapMap.MB, MAX, coder);
+        FSTAsciiStringOffheapMap store = new FSTAsciiStringOffheapMap(klen, FSTAsciiStringOffheapMap.GB, MAX, coder);
         TestRec val = new TestRec();
 
         //while( true )
