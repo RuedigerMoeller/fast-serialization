@@ -108,7 +108,7 @@ public final class FSTObjectRegistry {
             if ( this.reuseMap[pos] == old ) {
                 this.reuseMap[pos] = replaced;
             } else {
-                if ( this.reuseMap[pos] == null ) // BUG !!
+                if ( this.reuseMap[pos] == null || reuseMap[pos] == old )
                 {
                     this.reuseMap[pos] = replaced;
                 } else {

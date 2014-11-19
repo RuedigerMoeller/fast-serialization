@@ -492,16 +492,22 @@ public class FSTObjectInput implements ObjectInput {
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
-        if ( ! referencee.isFlat() && ! clzSerInfo.isFlat() ) {
+        final boolean needsRefLookup = !referencee.isFlat() && !clzSerInfo.isFlat();
+        if (needsRefLookup) {
             objects.registerObjectForRead(newObj, readPos);
         }
         if ( clzSerInfo.isExternalizable() )
         {
+            int tmp = readPos;
             getCodec().ensureReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
             getCodec().readExternalEnd();
             if ( clzSerInfo.getReadResolveMethod() != null ) {
-                newObj = handleReadRessolve(clzSerInfo,newObj);
+                final Object prevNew = newObj;
+                newObj = handleReadRessolve(clzSerInfo, newObj);
+                if ( newObj != prevNew && needsRefLookup ) {
+                    objects.replace(prevNew,newObj,tmp);
+                }
             }
         } else if (clzSerInfo.useCompatibleMode())
         {
