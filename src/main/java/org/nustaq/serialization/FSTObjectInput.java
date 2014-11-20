@@ -506,7 +506,7 @@ public class FSTObjectInput implements ObjectInput {
                 final Object prevNew = newObj;
                 newObj = handleReadRessolve(clzSerInfo, newObj);
                 if ( newObj != prevNew && needsRefLookup ) {
-                    objects.replace(prevNew,newObj,tmp);
+                    objects.replace(prevNew, newObj, tmp);
                 }
             }
         } else if (clzSerInfo.useCompatibleMode())
@@ -573,8 +573,19 @@ public class FSTObjectInput implements ObjectInput {
                 {
                     // came from writeMethod, but no readMethod defined => assume defaultWriteObject
                     tag = readByte(); // consume tag of defaultwriteobject (99)
-//                    if ( tag != 99 )
-//                        System.out.println("weird stuff incoming");
+                    if ( tag == 77 ) // came from putfield
+                    {
+                        HashMap<String, Object> fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
+                        final FSTClazzInfo.FSTFieldInfo[] fieldArray = fstCompatibilityInfo.getFieldArray();
+                        for (int i = 0; i < fieldArray.length; i++) {
+                            FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldArray[i];
+                            final Object val = fieldMap.get(fstFieldInfo.getField().getName());
+                            if ( val != null ) {
+                                fstFieldInfo.setObjectValue(toRead,val);
+                            }
+                        }
+                        return;
+                    }
                 }
                 readObjectFields(referencee, serializationInfo, fstCompatibilityInfo.getFieldArray(), toRead,0,0);
             }

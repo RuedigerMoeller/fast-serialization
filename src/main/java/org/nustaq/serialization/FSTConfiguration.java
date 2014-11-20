@@ -206,7 +206,7 @@ public final class FSTConfiguration {
         reg.putSerializer(HashSet.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
-        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), false); // subclass should register manually
+        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true); // subclass should register manually
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true); // subclass should register manually
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true); // subclasses also use this
         return conf;

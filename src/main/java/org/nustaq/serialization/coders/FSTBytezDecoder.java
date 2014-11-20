@@ -74,7 +74,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
                 readUntil = pos+read;
             }
         } catch (IOException e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
     }
 

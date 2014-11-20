@@ -240,7 +240,7 @@ public class FSTBytezEncoder implements FSTEncoder {
         try {
             ensureFree( position+4);
         } catch (IOException e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
         buffout.putInt(position,v);
     }

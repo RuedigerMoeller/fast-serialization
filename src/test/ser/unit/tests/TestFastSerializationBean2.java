@@ -1,4 +1,4 @@
-package unit.tests;
+package ser.unit.tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,16 +7,18 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTObjectOutput;
 
-import unit.tests.externalizable.BeanTestClass1;
-import unit.tests.externalizable.ExternalizableTestClass;
+import ser.unit.tests.externalizable.BeanTestClass2;
+import ser.unit.tests.externalizable.ExternalizableTestClass;
 
-public class TestFastSerializationBean1 {
+public class TestFastSerializationBean2 {
 
 	@Test
 	public void serializationTest() throws IOException, ClassNotFoundException {
@@ -24,7 +26,9 @@ public class TestFastSerializationBean1 {
 		int integer = 10;
 		String path = "path";
 		ExternalizableTestClass object = new ExternalizableTestClass(integer, path);
-		BeanTestClass1 bean = new BeanTestClass1(object, object);
+		Set<ExternalizableTestClass> set = new HashSet<ExternalizableTestClass>();
+		set.add(object);
+		BeanTestClass2 bean = new BeanTestClass2(object, set);
 
 		// when serialized and deserialized, the integer value of all ExternalizableTestClass objects should be
 		// overwritten by readResolve and set to 1.
@@ -38,13 +42,13 @@ public class TestFastSerializationBean1 {
 		}
 
 		// 2. deserialize
-		BeanTestClass1 bean1;
+		BeanTestClass2 bean1;
 		try (ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis)) {
-			bean1 = (BeanTestClass1) in.readObject();
+			bean1 = (BeanTestClass2) in.readObject();
 		}
 
-		Assert.assertEquals(1, bean1.getObject1().getInteger());
-		Assert.assertEquals(1, bean1.getObject2().getInteger());
+		Assert.assertEquals(1, bean1.getObject().getInteger());
+		Assert.assertEquals(1, ((ExternalizableTestClass) bean1.getSet().toArray()[0]).getInteger());
 
 		// FST
 		// 1. serialize
@@ -55,10 +59,10 @@ public class TestFastSerializationBean1 {
 		out2.close();
 
 		// 2. deserialize
-		BeanTestClass1 bean2 = (BeanTestClass1) config.getObjectInput(data2).readObject();
+		BeanTestClass2 bean2 = (BeanTestClass2) config.getObjectInput(data2).readObject();
 		
-		Assert.assertEquals(1, bean2.getObject1().getInteger());
-		Assert.assertEquals(1, bean2.getObject2().getInteger());
+		Assert.assertEquals(1, bean2.getObject().getInteger());
+		Assert.assertEquals(1, ((ExternalizableTestClass) bean2.getSet().toArray()[0]).getInteger());
 	}
 
 }

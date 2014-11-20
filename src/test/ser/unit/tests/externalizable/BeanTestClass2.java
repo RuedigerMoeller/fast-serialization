@@ -1,4 +1,4 @@
-package unit.tests.externalizable;
+package ser.unit.tests.externalizable;
 
 import java.io.Serializable;
 import java.util.Set;

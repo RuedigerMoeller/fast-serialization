@@ -59,7 +59,7 @@ public class DefaultCoder implements FSTCoder {
         try {
             output.writeObject(obj);
         } catch (IOException e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
         int written = output.getWritten();
         if ( written > avaiableSize ) {
@@ -74,7 +74,7 @@ public class DefaultCoder implements FSTCoder {
         try {
             output.writeObject(o);
         } catch (IOException e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
         return output.getCopyOfWrittenBuffer();
     }
@@ -94,9 +94,8 @@ public class DefaultCoder implements FSTCoder {
             }
             return input.readObject();
         } catch (Exception e) {
-            FSTUtil.rethrow(e);
+            throw FSTUtil.rethrow(e);
         }
-        return null;
     }
 
     public Object toObject( byte arr[] ) {
