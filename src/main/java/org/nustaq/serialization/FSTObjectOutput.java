@@ -303,6 +303,14 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
+    /**
+     *
+     * @param obj
+     * @param ci
+     * @param possibles
+     * @return last FSTClazzInfo if class is plain reusable (not replaceable, needs compatible mode)
+     * @throws IOException
+     */
     public FSTClazzInfo writeObjectInternal(Object obj, FSTClazzInfo ci, Class... possibles) throws IOException {
         if ( curDepth == 0 ) {
             throw new RuntimeException("not intended to be called from external application. Use public writeObject instead");
@@ -311,7 +319,7 @@ public class FSTObjectOutput implements ObjectOutput {
         curDepth++;
         FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
         curDepth--;
-        return fstClazzInfo;
+        return fstClazzInfo.useCompatibleMode() ? null:fstClazzInfo;
     }
 
     public FSTSerialisationListener getListener() {
