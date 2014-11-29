@@ -13,14 +13,14 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 
 **note:** maven.org might lag 1 day behind after releasing.
 
-users of 2.12, .., 2.15 are ecouraged to upgrade to 2.15
+users of 2.12 .. 2.15 are ecouraged to upgrade to 2.16
 
 2.0 version
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.15</version>
+    <version>2.16</version>
 </dependency>
 ```
 
