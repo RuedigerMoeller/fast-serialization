@@ -319,6 +319,8 @@ public class FSTObjectOutput implements ObjectOutput {
         curDepth++;
         FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
         curDepth--;
+        if ( fstClazzInfo == null )
+            return null;
         return fstClazzInfo.useCompatibleMode() ? null:fstClazzInfo;
     }
 
