@@ -1,5 +1,6 @@
 package org.nustaq.offheap.structs;
 
+import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
@@ -328,7 +329,12 @@ public class FSTStruct implements Serializable {
          ___bytes.set(___offset,source,sourceIndex,len);
      }
 
-    public void setBytes(Bytez source, int sourceIndex, int len ) {
+     public void setBytes(ByteSource source, long sourceIndex, int len ) {
+         for ( long i = 0; i < len; i++)
+            ___bytes.put(___offset+i, source.get(i+sourceIndex));
+     }
+
+    public void setBytes(Bytez source, long sourceIndex, int len ) {
         if ( ! isOffHeap() ) {
             throw new RuntimeException("must be offheap to call this");
         }
