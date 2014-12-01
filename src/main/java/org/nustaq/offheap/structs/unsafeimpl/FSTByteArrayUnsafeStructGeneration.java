@@ -144,7 +144,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                         "return; " +
                     "}"+
                     "int obj_len=___bytes.getInt(tmpOff); "+
-                    "FSTStruct struct = (FSTStruct)$1;"+
+                    "org.nustaq.offheap.structs.FSTStruct struct = (org.nustaq.offheap.structs.FSTStruct)$1;"+
                     "if ( !struct.isOffHeap() ) {"+
                     "    struct=___fac.toStruct(struct);"+ // FIMXE: do direct toByte to avoid tmp alloc
                     "}"+
@@ -359,7 +359,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
         } else {
             try {
                 if (indexfi.isIntegral()) {
-                    method.setBody("{ return (FSTStruct)___fac.createPrimitiveArrayBasePointer(___bytes, ___offset, "+index+"); }");
+                    method.setBody("{ return (org.nustaq.offheap.structs.FSTStruct)___fac.createPrimitiveArrayBasePointer(___bytes, ___offset, "+index+"); }");
                 } else
                     method.setBody("{ return ("+indexfi.getArrayType().getName()+")___fac.createTypedArrayBasePointer(___bytes, ___offset, "+index+"); }");
             } catch (CannotCompileException e) {
@@ -431,7 +431,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                         "long __tmpOff = ___offset + tmpIdx; " +
                         "" + typeString + " tmp = (" + typeString + ")___fac.getStructPointerByOffset(___bytes,__tmpOff); " +
                         "if ( tmp == null ) return null;" +
-                        "tmp.tracker = new FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " +
+                        "tmp.tracker = new org.nustaq.offheap.structs.FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " +
                         "$_ = tmp; " +
                         "}";
                 f.replace(statement);

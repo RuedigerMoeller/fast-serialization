@@ -79,7 +79,16 @@ public class FSTStructFactory {
             }
         };
         defaultPool.appendSystemPath();
-        proxyLoader = new Loader(FSTStructFactory.class.getClassLoader(), defaultPool);
+        proxyLoader = new Loader(FSTStructFactory.class.getClassLoader(), defaultPool)
+        {
+            protected Class loadClassByDelegation(String name)
+                    throws ClassNotFoundException
+            {
+                try { return delegateToParent(name); } catch (Exception ex) {
+                    return null;
+                }
+            }
+        };
     }
 
     ConcurrentHashMap<Class, Class> proxyClzMap = new ConcurrentHashMap<Class, Class>();
@@ -343,7 +352,7 @@ public class FSTStructFactory {
         }
     }
 
-    public <T extends FSTStruct> T createWrapper(Class<T> onHeap, Bytez bytes, int index) throws Exception {
+    public <T extends FSTStruct> T createWrapper(Class<T> onHeap, Bytez bytes, long index) throws Exception {
         Class proxy = getProxyClass(onHeap);
         T res = (T) FSTUtil.getUnsafe().allocateInstance(proxy);
         res.baseOn(bytes, index, this);
@@ -357,7 +366,7 @@ public class FSTStructFactory {
      * @param index
      * @return
      */
-    public FSTStruct createStructWrapper(Bytez b, int index) {
+    public FSTStruct createStructWrapper(Bytez b, long index) {
         int clzId = b.getInt(index + 4);
         return createStructPointer(b, index, clzId);
     }
@@ -370,8 +379,8 @@ public class FSTStructFactory {
      * @param index
      * @return
      */
-    public FSTStruct createStructPointer(Bytez b, int index, int clzId) {
-        synchronized (this) {
+    public FSTStruct createStructPointer(Bytez b, long index, int clzId) {
+        synchronized (this) { // FIXME FIXME FIXME: contention point
             Class clazz = mIntToClz.get(clzId);
             if (clazz==null)
                 throw new RuntimeException("unregistered class "+clzId);

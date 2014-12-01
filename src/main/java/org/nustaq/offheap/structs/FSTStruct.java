@@ -22,7 +22,7 @@ import java.io.*;
  * <p/>
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * Foundation, InFSTStrc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  * <p/>
  * Date: 01.07.13
@@ -251,13 +251,13 @@ public class FSTStruct implements Serializable {
     /**
      * @return a volatile pointer of the exact type this points to
      */
-    public FSTStruct cast() {
+    public <T extends FSTStruct> T cast() {
         int clzId = getClzId();
         if ( ___fac.getClazz(clzId) == getClass().getSuperclass() )
-            return this;
+            return (T) this;
         FSTStruct res = (FSTStruct) ___fac.getStructPointerByOffset(___bytes, ___offset);
         res.___elementSize = ___elementSize;
-        return res;
+        return (T)res;
     }
 
     public byte getByte() {
