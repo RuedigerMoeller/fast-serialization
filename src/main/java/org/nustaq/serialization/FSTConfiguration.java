@@ -26,7 +26,6 @@ import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
