@@ -22,6 +22,9 @@ package org.nustaq.serialization;
 import org.nustaq.offheap.structs.Align;
 import org.nustaq.serialization.annotations.*;
 import org.nustaq.serialization.util.FSTUtil;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
+import org.objenesis.instantiator.ObjectInstantiator;
 
 import java.io.*;
 import java.lang.reflect.*;
@@ -73,6 +76,8 @@ public final class FSTClazzInfo {
             return res;
         }
     };
+    private static final Objenesis objenesis = new ObjenesisStd();
+
     Class[] predict;
     private boolean ignoreAnn;
     HashMap<String, FSTFieldInfo> fieldMap = new HashMap<String, FSTFieldInfo>(15); // all fields
@@ -90,7 +95,7 @@ public final class FSTClazzInfo {
 
     Class clazz;
     Object[] enumConstants;
-    Constructor cons;
+    ObjectInstantiator objInstantiator;
     int clzId = -1;
     int structSize = 0;
 
@@ -108,34 +113,14 @@ public final class FSTClazzInfo {
         ignoreAnn = ignoreAnnotations;
         createFields(clazz);
 
-        if (Externalizable.class.isAssignableFrom(clazz)) {
-            externalizable = true;
-            cons = FSTUtil.findConstructorForExternalize(clazz);
-        } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class) {
-            externalizable = false;
-            cons = FSTUtil.findConstructorForSerializable(clazz);
-        } else {
-            if (!reg.isStructMode()) {
-                if ( conf.isForceSerializable() || getSer() != null ) {
-                    externalizable = false;
-                    cons = FSTUtil.findConstructorForSerializable(clazz);
-                } else {
-                    throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
-                }
-            } else {
-                cons = FSTUtil.findConstructorForSerializable(clazz);
-            }
-        }
+        objInstantiator = objenesis.getInstantiatorOf( clazz );
+
         if (!ignoreAnnotations) {
             Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
             if (annotation != null) {
                 predict = annotation.value();
             }
             flat = clazz.isAnnotationPresent(Flat.class);
-        }
-
-        if (cons != null) {
-            cons.setAccessible(true);
         }
 
         final String name = clazz.getName();
@@ -210,21 +195,20 @@ public final class FSTClazzInfo {
             if (!doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
-            if ( cons == null ) // no suitable constructor found
+            if ( conf.isForceSerializable() || objInstantiator == null ) // no suitable constructor found
             {
-                if ( conf.isForceSerializable() || cons == null ) {
-                    // best effort. use Unsafe to instantiate.
-                    // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
-                    // those will not be assigned after deserialization as unsafe instantiation does not execute any default
-                    // construction code.
-                    // Define a public no-arg constructor to avoid this behaviour (rarely an issue, but there are cases).
-                    if ( FSTUtil.unFlaggedUnsafe != null ) {
-                        return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
-                    }
-                    throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate "+clazz.getName());
+                // best effort. use Unsafe to instantiate.
+                // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
+                // those will not be assigned after deserialization as unsafe instantiation does not execute any default
+                // construction code.
+                // Define a public no-arg constructor to avoid this behaviour (rarely an issue, but there are cases).
+                if ( FSTUtil.unFlaggedUnsafe != null ) {
+                    return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
                 }
+                throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate "+clazz.getName());
             }
-            return cons.newInstance();
+
+            return objInstantiator.newInstance();
         } catch (Throwable ignored) {
             ignored.printStackTrace();
             return null;
