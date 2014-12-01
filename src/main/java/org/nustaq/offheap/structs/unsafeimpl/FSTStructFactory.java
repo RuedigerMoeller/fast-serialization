@@ -342,7 +342,8 @@ public class FSTStructFactory {
     }
 
     public Class getProxyClass(Class clz) throws Exception {
-        synchronized (this) {
+//        synchronized (this)
+        {
             Class res = proxyClzMap.get(clz);
             if ( res == null ) {
                 res = createStructClz(clz);
@@ -380,7 +381,9 @@ public class FSTStructFactory {
      * @return
      */
     public FSTStruct createStructPointer(Bytez b, long index, int clzId) {
-        synchronized (this) { // FIXME FIXME FIXME: contention point
+//        synchronized (this) // FIXME FIXME FIXME: contention point
+        // desynced expecting class registering happens on startup
+        {
             Class clazz = mIntToClz.get(clzId);
             if (clazz==null)
                 throw new RuntimeException("unregistered class "+clzId);
