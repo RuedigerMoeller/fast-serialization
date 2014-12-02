@@ -26,7 +26,6 @@ import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
@@ -463,11 +462,13 @@ public final class FSTConfiguration {
         classRegistry.registerClass(HashMap.class);
         classRegistry.registerClass(ArrayList.class);
         classRegistry.registerClass(ConcurrentHashMap.class);
-        classRegistry.registerClass(Color.class);
-        classRegistry.registerClass(Dimension.class);
-        classRegistry.registerClass(Point.class);
-        classRegistry.registerClass(Rectangle.class);
-        classRegistry.registerClass(Font.class);
+
+        //classRegistry.registerClass(Color.class);
+        //classRegistry.registerClass(Dimension.class);
+        //classRegistry.registerClass(Point.class);
+        //classRegistry.registerClass(Rectangle.class);
+        //classRegistry.registerClass(Font.class);
+
         classRegistry.registerClass(URL.class);
         classRegistry.registerClass(Date.class);
         classRegistry.registerClass(java.sql.Date.class);
