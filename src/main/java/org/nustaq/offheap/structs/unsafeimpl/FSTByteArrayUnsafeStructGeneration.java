@@ -431,7 +431,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                         "long __tmpOff = ___offset + tmpIdx; " +
                         "" + typeString + " tmp = (" + typeString + ")___fac.getStructPointerByOffset(___bytes,__tmpOff); " +
                         "if ( tmp == null ) return null;" +
-                        "tmp.tracker = new org.nustaq.offheap.structs.FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " +
+                        (trackChanges ? "tmp.tracker = new org.nustaq.offheap.structs.FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " : "")+
                         "$_ = tmp; " +
                         "}";
                 f.replace(statement);
