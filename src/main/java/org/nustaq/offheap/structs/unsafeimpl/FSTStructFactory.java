@@ -496,7 +496,7 @@ public class FSTStructFactory {
      * @param index
      * @return
      */
-    public FSTStruct getStructPointer(Bytez b, int index) {
+    public FSTStruct getStructPointer(Bytez b, long index) {
         return getStructPointerByOffset(b,index);
     }
 
