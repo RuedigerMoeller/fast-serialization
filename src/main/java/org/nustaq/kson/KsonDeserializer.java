@@ -471,7 +471,9 @@ public class KsonDeserializer {
         long fak = 1;
         int ch = in.readChar();
         boolean empty = true;
-        while (Character.isDigit(ch)) {
+        while (Character.isDigit(ch) || ch == '_') {
+            if ( ch == '_' )
+                ch = in.readChar();
             read++;
             empty = false;
             res += (ch - '0') * fak;
@@ -543,11 +545,11 @@ public class KsonDeserializer {
         skipWS();
         int pos = in.position();
         int ch = in.readChar();
-        while (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '+' || ch == '-') {
+        while (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '+' || ch == '-' || ch == '_') {
             ch = in.readChar();
         }
         in.back(1);
-        return in.getString(pos, in.position() - pos);
+        return in.getString(pos, in.position() - pos).replace("_","");
     }
 
     protected String readId() {
