@@ -41,7 +41,7 @@ import java.util.Scanner;
  */
 public class Kson {
 
-    public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
+    public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration().setForceClzInit(true);
 
     KsonTypeMapper mapper;
 

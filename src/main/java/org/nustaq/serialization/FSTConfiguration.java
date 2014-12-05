@@ -74,6 +74,24 @@ public final class FSTConfiguration {
     ClassLoader classLoader = getClass().getClassLoader();
     boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
 
+    public boolean isForceClzInit() {
+        return forceClzInit;
+    }
+
+    /**
+     * always execute default fields init, even if no transients (so would get overwritten anyway)
+     * required for lossy codecs (kson)
+     *
+     * @param forceClzInit
+     * @return
+     */
+    public FSTConfiguration setForceClzInit(boolean forceClzInit) {
+        this.forceClzInit = forceClzInit;
+        return this;
+    }
+
+    boolean forceClzInit = false; // always execute default fields init, even if no transients
+
     /////////////////////////////////////
     // cross platform stuff only
 

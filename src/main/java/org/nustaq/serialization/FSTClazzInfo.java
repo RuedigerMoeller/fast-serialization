@@ -149,7 +149,8 @@ public final class FSTClazzInfo {
             }
         }
 
-        requiresInit = isExternalizable() || useCompatibleMode() || hasTransient;
+        requiresInit = isExternalizable() || useCompatibleMode() || hasTransient || conf.isForceClzInit();
+
         if (useCompatibleMode() && crossPlatform && getSer() == null && !clazz.isEnum())
             throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class " + clazz.getName());
     }
@@ -212,7 +213,7 @@ public final class FSTClazzInfo {
             }
             if ( cons == null ) // no suitable constructor found
             {
-                if ( conf.isForceSerializable() || cons == null ) {
+                if ( (!requiresInit && conf.isForceSerializable()) || cons == null ) {
                     // best effort. use Unsafe to instantiate.
                     // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
                     // those will not be assigned after deserialization as unsafe instantiation does not execute any default

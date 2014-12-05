@@ -1,5 +1,6 @@
 package org.nustaq.offheap.structs;
 
+import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
@@ -330,8 +331,15 @@ public class FSTStruct implements Serializable {
      }
 
      public void setBytes(ByteSource source, long sourceIndex, int len ) {
-         for ( long i = 0; i < len; i++)
-            ___bytes.put(___offset+i, source.get(i+sourceIndex));
+         if ( ! isOffHeap() ) {
+             throw new RuntimeException("must be offheap to call this");
+         }
+         if (source instanceof BasicBytez) {
+             ((BasicBytez) source).copyTo(___bytes,___offset,sourceIndex,len);
+         } else {
+             for (long i = 0; i < len; i++)
+                 ___bytes.put(___offset + i, source.get(i + sourceIndex));
+         }
      }
 
     public void setBytes(Bytez source, long sourceIndex, int len ) {
