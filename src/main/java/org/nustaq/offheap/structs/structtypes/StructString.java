@@ -133,19 +133,19 @@ public class StructString extends FSTStruct implements Comparable {
 
     @Override
     public int hashCode() {
-        // well that's a dummy implementation ..
-        if ( len > 6)
-            return chars(0)+chars(3)<<16+chars(len-1)<<32+chars(len-3)<<48;
-        else if ( len > 1)
-            return chars(0)+chars(1)<<16+chars(len-1)<<32+chars(len-2)<<48;
-        else if ( len > 0 )
-            return chars(0);
-        return 97979797;
+        int l = len;
+        int h = 0;
+        if (l > 0) {
+            for (int i = 0; i < len; i++) {
+                h = 31 * h + chars(i);
+            }
+        }
+        return h;
     }
 
     @NoAssist
     public boolean equals( Object o ) {
-        if ( o instanceof StructString) {
+        if ( o instanceof StructString ) {
             StructString ss = (StructString) o;
             if ( ss.getLen() != getLen() ) {
                 return false;
