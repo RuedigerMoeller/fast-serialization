@@ -54,7 +54,7 @@ public interface Bytez extends BasicBytez {
 
     public byte[] toBytes(long startIndex, int len);
     /**
-     * @return return underlying as byte array, not supported by MallocBytez. Use getArr to extract data instead.
+     * @return return the underlying byte array, not supported by MallocBytez !. Use getArr to extract data by copy instead.
      */
     public byte[] asByteArray();
 
