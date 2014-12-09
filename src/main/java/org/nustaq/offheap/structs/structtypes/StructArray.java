@@ -179,7 +179,7 @@ public class StructArray<E extends FSTStruct> extends FSTStruct {
         this.template = template;
     }
 
-    public final class StructArrIterator<T extends FSTStruct> implements Iterator<T> {
+    public class StructArrIterator<T extends FSTStruct> implements Iterator<T> {
 
         T current;
         final long maxPos;

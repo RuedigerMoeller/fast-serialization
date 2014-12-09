@@ -37,7 +37,15 @@ import java.util.Scanner;
  * - Supports Pojo's only.
  * - No multidimensional or nested arrays.
  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
- * - Collections: Map and List
+ * - Collections: Map and List. Use Generics to type collections (can omit type tags then)
+ * Example from fast-cast:
+ * <pre>
+ *     public static ClusterConf readFrom( String filePath ) throws Exception {
+ *       return (ClusterConf) new Kson()
+ *              .map(PublisherConf.class, SubscriberConf.class, TopicConf.class, ClusterConf.class)
+ *              .readObject(new File(filePath));
+ *   }
+ * </pre>
  */
 public class Kson {
 

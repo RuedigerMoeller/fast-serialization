@@ -23,6 +23,7 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
@@ -103,7 +104,6 @@ public class FSTStructFactory {
         registerClz(FSTStruct.class);
         registerClz(StructString.class);
         registerClz(StructArray.class);
-        registerClz(StructArray.StructArrIterator.class);
         registerClz(StructByteString.class);
     }
 
@@ -114,7 +114,7 @@ public class FSTStructFactory {
     public <T> Class<T> createStructClz( Class<T> clazz ) throws Exception {
         //FIXME: ensure FSTStruct is superclass, check protected, no private methods+fields
         if ( Modifier.isFinal(clazz.getModifiers()) || Modifier.isAbstract(clazz.getModifiers()) ) {
-            throw new RuntimeException("Cannot add final classes to structs");
+            throw new RuntimeException("Cannot add final classes to structs "+clazz.getName());
         }
         if ( clazz.getName().endsWith("_Struct") ) {
             throw new RuntimeException("cannot create Struct on Struct class. Class "+clazz+" is already instrumented" );
@@ -362,6 +362,14 @@ public class FSTStructFactory {
         return res;
     }
 
+    public <T extends FSTStruct> T createEmptyStructPointer(Class<T> onHeap) {
+        try {
+            return createWrapper(onHeap,null,0);
+        } catch (Exception e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
     /**
      * allocates a StructAccessor ("pointer") matching the struct data expected in the byte
      * array at given position. The resulting pointer object is not "volatile" (not a cached instance)
@@ -596,10 +604,15 @@ public class FSTStructFactory {
             int id = idCount++;
             mIntToClz.put(id,c);
             mClzToInt.put(c,id);
+            try {
+                getProxyClass(c);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
+            }
         }
     }
 
-    // register from top to bottom to avoid inference with application interferences (fastcast)
+    // register from top to bottom to avoid interference with application (fastcast)
     public void registerSystemClz(byte startVal, Class ... classes) {
         for (int i = 0; i < classes.length; i++) {
             Class c = classes[i];
@@ -609,6 +622,11 @@ public class FSTStructFactory {
             int id = startVal--;
             mIntToClz.put(id,c);
             mClzToInt.put(c,id);
+            try {
+                getProxyClass(c);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
+            }
         }
     }
 
