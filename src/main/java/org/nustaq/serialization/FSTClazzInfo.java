@@ -115,6 +115,12 @@ public final class FSTClazzInfo {
 
         objInstantiator = objenesis.getInstantiatorOf( clazz );
 
+        if (Externalizable.class.isAssignableFrom(clazz)) {
+            externalizable = true;
+        } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class) {
+            externalizable = false;
+        }
+
         if (!ignoreAnnotations) {
             Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
             if (annotation != null) {
