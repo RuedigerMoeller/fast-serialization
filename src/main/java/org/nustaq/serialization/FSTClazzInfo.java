@@ -97,6 +97,7 @@ public final class FSTClazzInfo {
 
     FSTClazzInfoRegistry reg;
     FSTConfiguration conf;
+    protected FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
     boolean crossPlatform;
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
@@ -108,22 +109,23 @@ public final class FSTClazzInfo {
         ignoreAnn = ignoreAnnotations;
         createFields(clazz);
 
+        instantiator = conf.getInstantiator(clazz);
         if (Externalizable.class.isAssignableFrom(clazz)) {
             externalizable = true;
-            cons = FSTUtil.findConstructorForExternalize(clazz);
+            cons = instantiator.findConstructorForExternalize(clazz);
         } else if (Serializable.class.isAssignableFrom(clazz) || clazz == Object.class) {
             externalizable = false;
-            cons = FSTUtil.findConstructorForSerializable(clazz);
+            cons = instantiator.findConstructorForSerializable(clazz);
         } else {
             if (!reg.isStructMode()) {
                 if ( conf.isForceSerializable() || getSer() != null ) {
                     externalizable = false;
-                    cons = FSTUtil.findConstructorForSerializable(clazz);
+                    cons = instantiator.findConstructorForSerializable(clazz);
                 } else {
                     throw new RuntimeException("Class " + clazz.getName() + " does not implement Serializable or externalizable");
                 }
             } else {
-                cons = FSTUtil.findConstructorForSerializable(clazz);
+                cons = instantiator.findConstructorForSerializable(clazz);
             }
         }
         if (!ignoreAnnotations) {
@@ -207,29 +209,7 @@ public final class FSTClazzInfo {
     }
 
     public final Object newInstance(boolean doesRequireInit) {
-        try {
-            if (!doesRequireInit && !requiresInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
-                return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
-            }
-            if ( cons == null ) // no suitable constructor found
-            {
-                if ( (!requiresInit && conf.isForceSerializable()) || cons == null ) {
-                    // best effort. use Unsafe to instantiate.
-                    // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
-                    // those will not be assigned after deserialization as unsafe instantiation does not execute any default
-                    // construction code.
-                    // Define a public no-arg constructor to avoid this behaviour (rarely an issue, but there are cases).
-                    if ( FSTUtil.unFlaggedUnsafe != null ) {
-                        return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
-                    }
-                    throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate "+clazz.getName());
-                }
-            }
-            return cons.newInstance();
-        } catch (Throwable ignored) {
-            ignored.printStackTrace();
-            return null;
-        }
+        return instantiator.newInstance(clazz, cons, doesRequireInit || requiresInit, conf.isForceSerializable() );
     }
 
     /**

@@ -25,8 +25,9 @@ import org.nustaq.serialization.coders.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
  *
  */
-public final class FSTConfiguration {
+public class FSTConfiguration {
 
     static enum ConfType {
         DEFAULT, UNSAFE, MINBIN
@@ -73,6 +74,7 @@ public final class FSTConfiguration {
     boolean shareReferences = true;
     ClassLoader classLoader = getClass().getClassLoader();
     boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
+    FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
     public boolean isForceClzInit() {
         return forceClzInit;
@@ -88,6 +90,14 @@ public final class FSTConfiguration {
     public FSTConfiguration setForceClzInit(boolean forceClzInit) {
         this.forceClzInit = forceClzInit;
         return this;
+    }
+
+    public FSTClassInstantiator getInstantiator(Class clazz) {
+        return instantiator;
+    }
+
+    public void setInstantiator(FSTClassInstantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
@@ -184,6 +194,17 @@ public final class FSTConfiguration {
         return res;
     }
 
+    public static FSTConfiguration createAndroidDefaultConfiguration() {
+        final Objenesis genesis = new ObjenesisStd();
+        FSTConfiguration conf = new FSTConfiguration() {
+            @Override
+            public FSTClassInstantiator getInstantiator(Class clazz) {
+                return new FSTObjenesisInstantiator(genesis,clazz);
+            }
+        };
+        return initDefaultFstConfigurationInternal(conf);
+    }
+
     /**
      * the standard FSTConfiguration.
      * - safe (no unsafe r/w)
@@ -199,6 +220,10 @@ public final class FSTConfiguration {
      */
     public static FSTConfiguration createDefaultConfiguration() {
         FSTConfiguration conf = new FSTConfiguration();
+        return initDefaultFstConfigurationInternal(conf);
+    }
+
+    protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
         conf.addDefaultClazzes();
         // serializers
         FSTSerializerRegistry reg = conf.serializationInfoRegistry.serializerRegistry;
@@ -283,7 +308,7 @@ public final class FSTConfiguration {
         return conf;
     }
 
-    private FSTConfiguration() {
+    protected FSTConfiguration() {
 
     }
 
@@ -481,11 +506,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(HashMap.class);
         classRegistry.registerClass(ArrayList.class);
         classRegistry.registerClass(ConcurrentHashMap.class);
-        classRegistry.registerClass(Color.class);
-        classRegistry.registerClass(Dimension.class);
-        classRegistry.registerClass(Point.class);
-        classRegistry.registerClass(Rectangle.class);
-        classRegistry.registerClass(Font.class);
         classRegistry.registerClass(URL.class);
         classRegistry.registerClass(Date.class);
         classRegistry.registerClass(java.sql.Date.class);

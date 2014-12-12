@@ -265,7 +265,7 @@ public class BasicFSTTest {
     public void testVersioning() {
         Versioning v = new Versioning();
 
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getTestConfiguration();
         conf.registerClass(Versioning.class);
 
         byte[] bytes = conf.asByteArray(v);
@@ -274,7 +274,7 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(v,res));
 
 
-        FSTConfiguration old = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration old = getTestConfiguration();
         old.registerClass(VersioningOld.class);
         VersioningOld vold = new VersioningOld();
         vold.originalMap.put("uz","aspdokasd");
@@ -283,7 +283,7 @@ public class BasicFSTTest {
         Versioning newReadFromOld = (Versioning) conf.asObject(bytes);
         assertTrue(newReadFromOld.originalOne.equals("OOPASDKAPSODKPASODKBla"));
 
-        FSTConfiguration oldv4 = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration oldv4 = getTestConfiguration();
         oldv4.registerClass(VersioningV4.class);
         VersioningV4 oldv4Inst = new VersioningV4();
         oldv4Inst.veryNew.put("uz","aspdokasd");
@@ -292,6 +292,10 @@ public class BasicFSTTest {
         Versioning newReadFromV4 = (Versioning) conf.asObject(bytes);
         assertTrue(newReadFromV4.veryNew.get("uz").equals("aspdokasd"));
 
+    }
+
+    protected FSTConfiguration getTestConfiguration() {
+        return FSTConfiguration.createDefaultConfiguration();
     }
 
 
@@ -440,7 +444,7 @@ public class BasicFSTTest {
 
     @Test
     public void testExternalizableOverride() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getTestConfiguration();
         Object original[] = {"A", new SubClassedAList().$("A").$("B").$("C"), "Ensure stream not corrupted" };
         Object deser = conf.asObject(conf.asByteArray(original));
         assertTrue( DeepEquals.deepEquals(original, deser) );
@@ -482,7 +486,7 @@ public class BasicFSTTest {
 
     @Test
     public void testNotSerializable() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration().setForceSerializable(true);
+        FSTConfiguration conf = getTestConfiguration().setForceSerializable(true);
         NotSer ser = new NotSer(11,12);
         assertTrue(DeepEquals.deepEquals(ser, conf.asObject(conf.asByteArray(ser))) );
         NotSerSub sersub = new NotSerSub(11,12);

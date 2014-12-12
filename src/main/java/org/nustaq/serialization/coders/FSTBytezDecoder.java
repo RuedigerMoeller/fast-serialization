@@ -50,7 +50,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
                 readNextInputChunk(bytes);
             }
         } else if ( pos+bytes > input.length() ) {
-            throw FSTBufferTooSmallException.Instance;
+//            throw FSTBufferTooSmallException.Instance;
         }
     }
 

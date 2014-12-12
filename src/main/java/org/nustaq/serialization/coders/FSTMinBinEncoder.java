@@ -5,7 +5,6 @@ import org.nustaq.serialization.minbin.MBOut;
 import org.nustaq.serialization.minbin.MBPrinter;
 import org.nustaq.serialization.minbin.MinBin;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -441,43 +440,6 @@ public class FSTMinBinEncoder implements FSTEncoder {
             l2 = in.readLong();
             d = in.readDouble();
         }
-    }
-
-
-    public static void main(String arg[]) throws IOException, ClassNotFoundException {
-
-        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
-        conf.registerCrossPlatformClassMapping( new String[][] {
-                { "mixtest", Test.class.getName() },
-                { "rect", Rectangle.class.getName() },
-                { "dim", Dimension.class.getName() },
-                { "dim[3]", Dimension[][][].class.getName() },
-                { "dim[2]", Dimension[][].class.getName() },
-                { "dim[1]", Dimension[].class.getName() },
-                { "int[2]", int[][].class.getName() },
-                { "int[3]", int[][][].class.getName() },
-        } );
-        FSTObjectOutput out = new FSTObjectOutput(conf);
-
-        HashMap obj = new HashMap();
-        ArrayList li = new ArrayList(); li.add("zero"); li.add("second");
-        obj.put("x", li);
-//        obj.put("in", new int[]{1,2,3,4});
-//        obj.put("y", li);
-        obj.put(4,"99999");
-
-//        out.writeObject(obj);
-        Test obj1[] = Test.getArray(10);
-        out.writeObject(obj1);
-//        out.writeObject(new int[][] {{99,98,97}, {77,76,75}});
-        MBPrinter.printMessage(out.getBuffer(), System.out);
-
-        FSTObjectInput fin = new FSTObjectInput(conf);
-        fin.resetForReuseUseArray(out.getBuffer(),out.getWritten());
-        Object deser = fin.readObject();
-        System.out.println("");
-        System.out.println("SIZE "+out.getWritten());
-
     }
 
     public boolean isPrimitiveArray(Object array, Class<?> componentType) {

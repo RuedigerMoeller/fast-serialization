@@ -20,11 +20,8 @@
 package org.nustaq.serialization.util;
 
 import sun.misc.Unsafe;
-import sun.reflect.ReflectionFactory;
-
 import java.io.ObjectStreamField;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.Arrays;
@@ -142,50 +139,7 @@ public class FSTUtil {
         return "";
     }
 
-    public static Constructor findConstructorForExternalize(Class clazz) {
-        try {
-            Constructor c = clazz.getDeclaredConstructor((Class[]) null);
-            c.setAccessible(true);
-            if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
-                return c;
-            } else {
-                return null;
-            }
-        } catch (NoSuchMethodException ex) {
-            return null;
-        }
-    }
-
-    public static Constructor findConstructorForSerializable(Class clazz) {
-        if (!Serializable.class.isAssignableFrom(clazz)) {
-            // in case forceSerializable flag is present, just look for no-arg constructor
-            return findConstructorForExternalize(clazz);
-        }
-        Class curCl = clazz;
-        while (Serializable.class.isAssignableFrom(curCl)) {
-            if ((curCl = curCl.getSuperclass()) == null) {
-                return null;
-            }
-        }
-        try {
-            Constructor c = curCl.getDeclaredConstructor((Class[]) null);
-            int mods = c.getModifiers();
-            if ((mods & Modifier.PRIVATE) != 0 ||
-                    ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
-                         !isPackEq(clazz, curCl))) {
-                return null;
-            }
-            c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
-            c.setAccessible(true);
-            return c;
-        } catch (NoClassDefFoundError cle) {
-            return null;
-        } catch (NoSuchMethodException ex) {
-            return null;
-        }
-    }
-
-    static boolean isPackEq(Class clazz1, Class clazz2) {
+    public static boolean isPackEq(Class clazz1, Class clazz2) {
         return getPackage(clazz1).equals(getPackage(clazz2));
     }
 
