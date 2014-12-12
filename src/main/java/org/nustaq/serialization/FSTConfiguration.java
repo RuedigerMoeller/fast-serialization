@@ -194,6 +194,15 @@ public class FSTConfiguration {
         return res;
     }
 
+    /**
+     *
+     * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
+     * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
+     *
+     * FIXME: automagically select android conf
+     *
+     * @return
+     */
     public static FSTConfiguration createAndroidDefaultConfiguration() {
         final Objenesis genesis = new ObjenesisStd();
         FSTConfiguration conf = new FSTConfiguration() {
