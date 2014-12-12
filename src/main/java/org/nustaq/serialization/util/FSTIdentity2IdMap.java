@@ -20,6 +20,9 @@
 
 package org.nustaq.serialization.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: ruedi
@@ -29,6 +32,7 @@ package org.nustaq.serialization.util;
  */
 public class FSTIdentity2IdMap {
     private static final int RESERVE = 4;
+    private static final int MAX_DEPTH = 4;
     static int[] prim = {
                             3, 5, 7, 11, 13, 17, 19, 23, 29, 37, 67, 97, 139,
                             211, 331, 641, 1097, 1531, 2207, 3121, 5059, 7607, 10891,
@@ -54,6 +58,8 @@ public class FSTIdentity2IdMap {
     private int mValues[];
     private int mNumberOfElements;
     private FSTIdentity2IdMap next;
+    private List linearScanList; // in case of too depth nesting, this one is filled and linear search is applied
+    private List<Integer> linearScanVals; // in case of too depth nesting, this one is filled and linear search is applied
 
     public FSTIdentity2IdMap(int initialSize) {
         if (initialSize < 2) {
@@ -70,15 +76,28 @@ public class FSTIdentity2IdMap {
     }
 
     public int size() {
+        if ( linearScanList != null )
+            return linearScanList.size();
         return mNumberOfElements + (next != null ? next.size() : 0);
     }
 
     final public int putOrGet(Object key, int value) {
         int hash = calcHash(key);
-        return putOrGetHash(key, value, hash, this);
+        return putOrGetHash(key, value, hash, this, 0);
     }
 
-    final int putOrGetHash(Object key, int value, int hash, FSTIdentity2IdMap parent) {
+    final int putOrGetHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth ) {
+        if ( linearScanList != null ) {
+            for (int i = 0; i < linearScanList.size(); i++) {
+                Object o = linearScanList.get(i);
+                if ( o == key ) {
+                    return linearScanVals.get(i);
+                }
+            }
+            linearScanList.add(key);
+            linearScanVals.add(value);
+            return Integer.MIN_VALUE;
+        }
         if (mNumberOfElements * GROFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
@@ -129,28 +148,44 @@ public class FSTIdentity2IdMap {
                 {
                     return mValues[idx + 2];
                 } else {
-                    return putOrGetNext(hash, key, value);
+                    return putOrGetNext(hash, key, value, depth+1);
                 }
             }
         }
     }
 
-    final int putOrGetNext(final int hash, final Object key, final int value) {
+    final int putOrGetNext(final int hash, final Object key, final int value, int depth) {
         if (next == null) { // new
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
-            next.putHash(key, value, hash, this);
+            if ( depth > MAX_DEPTH ) {
+                next.linearScanVals = new ArrayList<>(3);
+                next.linearScanList = new ArrayList<>(3);
+            }
+            next.putHash(key, value, hash, this, depth);
             return Integer.MIN_VALUE;
         }
-        return next.putOrGetHash(key, value, hash, this);
+        return next.putOrGetHash(key, value, hash, this, depth+1);
     }
 
     final public void put(Object key, int value) {
         int hash = calcHash(key);
-        putHash(key, value, hash, this);
+        putHash(key, value, hash, this, 0);
     }
 
-    final void putHash(Object key, int value, int hash, FSTIdentity2IdMap parent) {
+    final void putHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth) {
+        if ( linearScanList != null ) {
+            for (int i = 0; i < linearScanList.size(); i++) {
+                Object o = linearScanList.get(i);
+                if ( o == key ) {
+                    linearScanVals.set(i, value);
+                    return;
+                }
+            }
+            linearScanList.add(key);
+            linearScanVals.add(value);
+            return;
+        }
         if (mNumberOfElements * GROFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
@@ -198,18 +233,22 @@ public class FSTIdentity2IdMap {
 //                    bloom|=hash;
                     mValues[idx + 2] = value;
                 } else {
-                    putNext(hash, key, value);
+                    putNext(hash, key, value, depth+1);
                 }
             }
         }
     }
 
-    final void putNext(final int hash, final Object key, final int value) {
+    final void putNext(final int hash, final Object key, final int value, int depth) {
         if (next == null) {
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
+            if ( depth > MAX_DEPTH ) {
+                next.linearScanVals = new ArrayList<>(3);
+                next.linearScanList = new ArrayList<>(3);
+            }
         }
-        next.putHash(key, value, hash, this);
+        next.putHash(key, value, hash, this, depth+1);
     }
 
     final public int get(final Object key) {
@@ -218,6 +257,16 @@ public class FSTIdentity2IdMap {
     }
 
     final int getHash(final Object key, final int hash) {
+        if ( linearScanList != null ) {
+            for (int i = 0; i < linearScanList.size(); i++) {
+                Object o = linearScanList.get(i);
+                if ( o == key ) {
+                    return linearScanVals.get(i);
+                }
+            }
+            return Integer.MIN_VALUE;
+        }
+
         final int idx = calcIndexFromHash(hash, mKeys);
 
         Object mapsKey = mKeys[idx];
@@ -306,6 +355,10 @@ public class FSTIdentity2IdMap {
         if (size() == 0) {
             return;
         }
+        if ( linearScanList != null ) {
+            linearScanList.clear();
+            linearScanVals.clear();
+        }
         FSTUtil.clear(mKeys);
         FSTUtil.clear(mValues);
 //        Arrays.fill(mKeys,null);
@@ -313,99 +366,6 @@ public class FSTIdentity2IdMap {
         mNumberOfElements = 0;
         if (next != null) {
             next.clear();
-        }
-    }
-
-    public static void main(String arg[]) {
-        String strings[] = new String[5000];
-        for (int i = 0; i < strings.length; i++) {
-            strings[i] = "" + Math.random();
-        }
-
-
-        FSTIdentity2IdMap map = new FSTIdentity2IdMap(97);
-
-        // warm
-        for (int j = 0; j < 50000; j++) {
-            testNewPut(strings, map);
-            map.clear();
-        }
-
-        long tim = System.currentTimeMillis();
-        for (int j = 0; j < 50000; j++) {
-            testNewPut(strings, map);
-            map.clear();
-        }
-
-        testNewPut(strings, map);
-        testGet(strings, map);
-        map.clear();
-        testPut(strings, map);
-        testGet(strings, map);
-        testWrongGet(map);
-        long now = System.currentTimeMillis();
-        System.out.println("time new " + (now - tim));
-
-        tim = System.currentTimeMillis();
-        for (int j = 0; j < 50000; j++) {
-//            testExistPut(strings, map);
-            testPut(strings, map);
-        }
-        now = System.currentTimeMillis();
-        System.out.println("time exist put " + (now - tim));
-
-        tim = System.currentTimeMillis();
-        for (int j = 0; j < 50000; j++) {
-            testGet(strings, map);
-        }
-        now = System.currentTimeMillis();
-        System.out.println("time exist " + (now - tim));
-
-
-    }
-
-    private static void testExistPut(String[] strings, FSTIdentity2IdMap map) {
-        for (int i = 0; i < strings.length; i++) {
-            String string = strings[i];
-            int fieldId = map.putOrGet(string, i);
-//            if ( fieldId != i ) {
-//                throw new RuntimeException("möp 1 "+i+" "+fieldId);
-//            }
-        }
-    }
-
-    private static void testPut(String[] strings, FSTIdentity2IdMap map) {
-        for (int i = 0; i < strings.length; i++) {
-            String string = strings[i];
-            map.put(string, i);
-        }
-    }
-
-    private static void testGet(String[] strings, FSTIdentity2IdMap map) {
-        for (int i = 0; i < strings.length; i++) {
-            String string = strings[i];
-            int fieldId = map.get(string);
-            if (fieldId != i) {
-                throw new RuntimeException("möp 2 " + i + " " + fieldId);
-            }
-        }
-    }
-
-    private static void testWrongGet(FSTIdentity2IdMap map) {
-        for (int i = 0; i < 1000; i++) {
-            int fieldId = map.get("pok" + i);
-            if (fieldId != Integer.MIN_VALUE) {
-                throw new RuntimeException("möp 3 " + i + " " + fieldId);
-            }
-        }
-    }
-
-    private static void testNewPut(String[] strings, FSTIdentity2IdMap map) {
-        for (int i = 0; i < strings.length; i++) {
-            String string = strings[i];
-            if (map.putOrGet(string, i) > 0) {
-                throw new RuntimeException("möp");
-            }
         }
     }
 
