@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="2.16"
+version="2.17"
 
 targetCompatibility = 1.7
 sourceCompatibility = 1.7
@@ -39,6 +39,7 @@ task testJar(type: Jar, dependsOn:classes) {
 
 task allJar(type: Jar, dependsOn:jar) {
     archiveName = 'fst-'+version+"-onejar.jar"
+    from zipTree('lib/objenesis-2.1.jar').matching { true }
     from zipTree('lib/javassist-3.18.1-GA.jar').matching { true }
     from zipTree('build/libs/fst-'+version+'.jar').matching { true }
 }
@@ -58,6 +59,7 @@ task release(type: Jar, dependsOn:allJar) {
         from 'src/main/java'
     }
     into ('lib') {
+        from 'lib/objenesis-2.1.jar'
         from 'lib/javassist-3.18.1-GA.jar'
         from 'build/libs/fst-'+version+'.jar'
         from 'build/libs/fst-'+version+'-onejar.jar'

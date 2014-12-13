@@ -1,30 +1,27 @@
 /*
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
+ * Copyright 2014 Ruediger Moeller.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.nustaq.serialization.util;
 
 import sun.misc.Unsafe;
-import sun.reflect.ConstructorAccessor;
-import sun.reflect.ReflectionFactory;
-
-import java.io.*;
+import java.io.ObjectStreamField;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -138,7 +135,7 @@ public class FSTUtil {
         return "";
     }
 
-    static boolean isPackEq(Class clazz1, Class clazz2) {
+    public static boolean isPackEq(Class clazz1, Class clazz2) {
         return getPackage(clazz1).equals(getPackage(clazz2));
     }
 
@@ -236,4 +233,13 @@ public class FSTUtil {
         out[index++] = (byte) (value & 0x7F);
         return index;
     }
+
+    public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+        if (type.getSuperclass() != null) {
+            fields = getAllFields(fields, type.getSuperclass());
+        }
+        return fields;
+    }
+
 }
