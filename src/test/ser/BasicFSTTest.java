@@ -484,6 +484,7 @@ public class BasicFSTTest {
         }
     }
 
+    // fails if objenesis is used
     @Test
     public void testNotSerializable() {
         FSTConfiguration conf = getTestConfiguration().setForceSerializable(true);

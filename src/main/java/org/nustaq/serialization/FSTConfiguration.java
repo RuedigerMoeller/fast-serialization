@@ -1,21 +1,17 @@
 /*
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
+ * Copyright 2014 Ruediger Moeller.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.nustaq.serialization;
 
@@ -199,8 +195,6 @@ public class FSTConfiguration {
      * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
      * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
      *
-     * FIXME: automagically select android conf
-     *
      * @return
      */
     public static FSTConfiguration createAndroidDefaultConfiguration() {
@@ -211,7 +205,8 @@ public class FSTConfiguration {
                 return new FSTObjenesisInstantiator(genesis,clazz);
             }
         };
-        return initDefaultFstConfigurationInternal(conf);
+        initDefaultFstConfigurationInternal(conf);
+        return conf;
     }
 
     /**
@@ -228,8 +223,15 @@ public class FSTConfiguration {
      * @return
      */
     public static FSTConfiguration createDefaultConfiguration() {
+        if (isAndroid()) {
+            return createAndroidDefaultConfiguration();
+        }
         FSTConfiguration conf = new FSTConfiguration();
         return initDefaultFstConfigurationInternal(conf);
+    }
+
+    public static boolean isAndroid() {
+        return System.getProperty("java.runtime.name","no").toLowerCase().indexOf("android") >= 0;
     }
 
     protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
@@ -251,16 +253,15 @@ public class FSTConfiguration {
 
         // for most cases don't register for subclasses as in many cases we'd like to fallback to JDK implementation
         // (e.g. TreeMap) in order to guarantee complete serialization
-        reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false); // subclass should register manually
-//        reg.putSerializer(ArrayList.class, new FSTCollectionSerializer(), false); // subclass should register manually
-        reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false); // EXCEPTION !!! subclass should register manually
+        reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false);
+        reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false);
         reg.putSerializer(LinkedList.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashSet.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
-        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true); // subclass should register manually
-        reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true); // subclass should register manually
-        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true); // subclasses also use this
+        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
+        reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
+        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
         return conf;
     }
 
