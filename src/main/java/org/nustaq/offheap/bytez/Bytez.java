@@ -1,27 +1,20 @@
-package org.nustaq.offheap.bytez;
-
-/**
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
- * <p/>
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * <p/>
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- * <p/>
- * Date: 16.11.13
- * Time: 12:15
- * To change this template use File | Settings | File Templates.
+/*
+ * Copyright 2014 Ruediger Moeller.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+package org.nustaq.offheap.bytez;
 
 /**
  * abstraction of byte arrays similar to ByteBuffer without the need to create temp objects in order to get long,int,.. views
@@ -54,7 +47,7 @@ public interface Bytez extends BasicBytez {
 
     public byte[] toBytes(long startIndex, int len);
     /**
-     * @return return underlying as byte array, not supported by MallocBytez. Use getArr to extract data instead.
+     * @return return the underlying byte array, not supported by MallocBytez !. Use getArr to extract data by copy instead.
      */
     public byte[] asByteArray();
 

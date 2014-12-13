@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Ruediger Moeller.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.nustaq.offheap.structs.unsafeimpl;
 
 import org.nustaq.offheap.bytez.Bytez;
@@ -5,6 +20,7 @@ import org.nustaq.offheap.bytez.BytezAllocator;
 import org.nustaq.offheap.bytez.onheap.HeapBytezAllocator;
 import org.nustaq.offheap.structs.*;
 import org.nustaq.offheap.structs.structtypes.StructArray;
+import org.nustaq.offheap.structs.structtypes.StructByteString;
 import org.nustaq.offheap.structs.structtypes.StructString;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;
@@ -22,28 +38,10 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
- * <p/>
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * <p/>
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- * <p/>
- * Date: 22.06.13
- * Time: 15:00
- * To change this template use File | Settings | File Templates.
+ * manages + generates struct instrumented classes
  */
 public class FSTStructFactory {
 
@@ -102,7 +100,7 @@ public class FSTStructFactory {
         registerClz(FSTStruct.class);
         registerClz(StructString.class);
         registerClz(StructArray.class);
-        registerClz(StructArray.StructArrIterator.class);
+        registerClz(StructByteString.class);
     }
 
     public void registerRawClass( String name, byte bytes[] ) {
@@ -112,7 +110,7 @@ public class FSTStructFactory {
     public <T> Class<T> createStructClz( Class<T> clazz ) throws Exception {
         //FIXME: ensure FSTStruct is superclass, check protected, no private methods+fields
         if ( Modifier.isFinal(clazz.getModifiers()) || Modifier.isAbstract(clazz.getModifiers()) ) {
-            throw new RuntimeException("Cannot add final classes to structs");
+            throw new RuntimeException("Cannot add final classes to structs "+clazz.getName());
         }
         if ( clazz.getName().endsWith("_Struct") ) {
             throw new RuntimeException("cannot create Struct on Struct class. Class "+clazz+" is already instrumented" );
@@ -360,6 +358,14 @@ public class FSTStructFactory {
         return res;
     }
 
+    public <T extends FSTStruct> T createEmptyStructPointer(Class<T> onHeap) {
+        try {
+            return createWrapper(onHeap,null,0);
+        } catch (Exception e) {
+            throw FSTUtil.rethrow(e);
+        }
+    }
+
     /**
      * allocates a StructAccessor ("pointer") matching the struct data expected in the byte
      * array at given position. The resulting pointer object is not "volatile" (not a cached instance)
@@ -496,7 +502,7 @@ public class FSTStructFactory {
      * @param index
      * @return
      */
-    public FSTStruct getStructPointer(Bytez b, int index) {
+    public FSTStruct getStructPointer(Bytez b, long index) {
         return getStructPointerByOffset(b,index);
     }
 
@@ -594,10 +600,15 @@ public class FSTStructFactory {
             int id = idCount++;
             mIntToClz.put(id,c);
             mClzToInt.put(c,id);
+            try {
+                getProxyClass(c);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
+            }
         }
     }
 
-    // register from top to bottom to avoid inference with application interferences (fastcast)
+    // register from top to bottom to avoid interference with application (fastcast)
     public void registerSystemClz(byte startVal, Class ... classes) {
         for (int i = 0; i < classes.length; i++) {
             Class c = classes[i];
@@ -607,6 +618,11 @@ public class FSTStructFactory {
             int id = startVal--;
             mIntToClz.put(id,c);
             mClzToInt.put(c,id);
+            try {
+                getProxyClass(c);
+            } catch (Exception e) {
+                throw FSTUtil.rethrow(e);
+            }
         }
     }
 

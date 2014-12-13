@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Ruediger Moeller.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.nustaq.kson;
 
 import org.nustaq.serialization.FSTConfiguration;
@@ -9,39 +25,25 @@ import java.lang.reflect.Type;
 import java.util.Scanner;
 
 /**
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
- * <p/>
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * <p/>
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- * <p/>
- * Date: 20.12.13
- * Time: 16:45
- */
-
-/**
  * a simple text <=> object serialization. More readable than JSon, less complication/error prone than Yaml.
  * <p>
  * Main use is configuration files.
  * - Supports Pojo's only.
  * - No multidimensional or nested arrays.
  * - No untyped Arrays (e.g. Object x[] = new byte[] { 1, 2})
- * - Collections: Map and List
+ * - Collections: Map and List. Use Generics to type collections (can omit type tags then)
+ * Example from fast-cast:
+ * <pre>
+ *     public static ClusterConf readFrom( String filePath ) throws Exception {
+ *       return (ClusterConf) new Kson()
+ *              .map(PublisherConf.class, SubscriberConf.class, TopicConf.class, ClusterConf.class)
+ *              .readObject(new File(filePath));
+ *   }
+ * </pre>
  */
 public class Kson {
 
-    public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration();
+    public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration().setForceClzInit(true);
 
     KsonTypeMapper mapper;
 

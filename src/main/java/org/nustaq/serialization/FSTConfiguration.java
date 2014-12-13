@@ -1,21 +1,17 @@
 /*
- * Copyright (c) 2012, Ruediger Moeller. All rights reserved.
+ * Copyright 2014 Ruediger Moeller.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.nustaq.serialization;
 
@@ -25,8 +21,9 @@ import org.nustaq.serialization.coders.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
@@ -48,7 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
  *
  */
-public final class FSTConfiguration {
+public class FSTConfiguration {
 
     static enum ConfType {
         DEFAULT, UNSAFE, MINBIN
@@ -73,6 +70,33 @@ public final class FSTConfiguration {
     boolean shareReferences = true;
     ClassLoader classLoader = getClass().getClassLoader();
     boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
+    FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
+
+    public boolean isForceClzInit() {
+        return forceClzInit;
+    }
+
+    /**
+     * always execute default fields init, even if no transients (so would get overwritten anyway)
+     * required for lossy codecs (kson)
+     *
+     * @param forceClzInit
+     * @return
+     */
+    public FSTConfiguration setForceClzInit(boolean forceClzInit) {
+        this.forceClzInit = forceClzInit;
+        return this;
+    }
+
+    public FSTClassInstantiator getInstantiator(Class clazz) {
+        return instantiator;
+    }
+
+    public void setInstantiator(FSTClassInstantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    boolean forceClzInit = false; // always execute default fields init, even if no transients
 
     /////////////////////////////////////
     // cross platform stuff only
@@ -167,6 +191,25 @@ public final class FSTConfiguration {
     }
 
     /**
+     *
+     * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
+     * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
+     *
+     * @return
+     */
+    public static FSTConfiguration createAndroidDefaultConfiguration() {
+        final Objenesis genesis = new ObjenesisStd();
+        FSTConfiguration conf = new FSTConfiguration() {
+            @Override
+            public FSTClassInstantiator getInstantiator(Class clazz) {
+                return new FSTObjenesisInstantiator(genesis,clazz);
+            }
+        };
+        initDefaultFstConfigurationInternal(conf);
+        return conf;
+    }
+
+    /**
      * the standard FSTConfiguration.
      * - safe (no unsafe r/w)
      * - platform independent byte order
@@ -180,7 +223,18 @@ public final class FSTConfiguration {
      * @return
      */
     public static FSTConfiguration createDefaultConfiguration() {
+        if (isAndroid()) {
+            return createAndroidDefaultConfiguration();
+        }
         FSTConfiguration conf = new FSTConfiguration();
+        return initDefaultFstConfigurationInternal(conf);
+    }
+
+    public static boolean isAndroid() {
+        return System.getProperty("java.runtime.name","no").toLowerCase().indexOf("android") >= 0;
+    }
+
+    protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
         conf.addDefaultClazzes();
         // serializers
         FSTSerializerRegistry reg = conf.serializationInfoRegistry.serializerRegistry;
@@ -199,16 +253,15 @@ public final class FSTConfiguration {
 
         // for most cases don't register for subclasses as in many cases we'd like to fallback to JDK implementation
         // (e.g. TreeMap) in order to guarantee complete serialization
-        reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false); // subclass should register manually
-//        reg.putSerializer(ArrayList.class, new FSTCollectionSerializer(), false); // subclass should register manually
-        reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false); // EXCEPTION !!! subclass should register manually
+        reg.putSerializer(ArrayList.class, new FSTArrayListSerializer(), false);
+        reg.putSerializer(Vector.class, new FSTCollectionSerializer(), false);
         reg.putSerializer(LinkedList.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashSet.class, new FSTCollectionSerializer(), false); // subclass should register manually
         reg.putSerializer(HashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
-        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true); // subclass should register manually
-        reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true); // subclass should register manually
-        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true); // subclasses also use this
+        reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
+        reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
+        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
         return conf;
     }
 
@@ -265,7 +318,7 @@ public final class FSTConfiguration {
         return conf;
     }
 
-    private FSTConfiguration() {
+    protected FSTConfiguration() {
 
     }
 
@@ -463,11 +516,6 @@ public final class FSTConfiguration {
         classRegistry.registerClass(HashMap.class);
         classRegistry.registerClass(ArrayList.class);
         classRegistry.registerClass(ConcurrentHashMap.class);
-        classRegistry.registerClass(Color.class);
-        classRegistry.registerClass(Dimension.class);
-        classRegistry.registerClass(Point.class);
-        classRegistry.registerClass(Rectangle.class);
-        classRegistry.registerClass(Font.class);
         classRegistry.registerClass(URL.class);
         classRegistry.registerClass(Date.class);
         classRegistry.registerClass(java.sql.Date.class);
