@@ -59,6 +59,7 @@ task release(type: Jar, dependsOn:allJar) {
         from 'src/main/java'
     }
     into ('lib') {
+        from 'lib/objenesis-2.1.jar'
         from 'lib/javassist-3.18.1-GA.jar'
         from 'build/libs/fst-'+version+'.jar'
         from 'build/libs/fst-'+version+'-onejar.jar'
