@@ -23,7 +23,7 @@ users of 2.12 .. 2.15 are ecouraged to upgrade to 2.16
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.17</version>
+    <version>2.18</version>
 </dependency>
 ```
 
