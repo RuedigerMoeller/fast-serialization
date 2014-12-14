@@ -4,6 +4,9 @@ fast-serialization
 * 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..).
 * OffHeap Maps, Persistent OffHeap maps
 * FSTStructs is very similar to IBM's packed objects. Difference is: You can run it with Oracle JDK today.
+* should be Android compatible since version >= 2.17
+* Apache 2.0 license since 2.17
+
 
 Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure childishness)
 
@@ -20,7 +23,7 @@ users of 2.12 .. 2.15 are ecouraged to upgrade to 2.16
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.16</version>
+    <version>2.17</version>
 </dependency>
 ```
 
