@@ -43,13 +43,42 @@ public interface BasicBytez extends ByteSource {
 
     public long length();
 
+    /**
+     * copy to a byte array
+     * @param byteIndex - offset index in this buffer to start copying
+     * @param target - array to copy to
+     * @param elemoff - offset in target array
+     * @param numElems - length to copy to
+     */
     public void getArr(long byteIndex, byte[] target, int elemoff, int numElems);
+
+    /**
+     * see getArr
+     */
     public void getCharArr(long byteIndex, char[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getShortArr(long byteIndex, short[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getIntArr(long byteIndex, int[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getLongArr(long byteIndex, long[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getFloatArr(long byteIndex, float[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getDoubleArr(long byteIndex, double[] target, int elemoff, int numElems);
+    /**
+     * see getArr
+     */
     public void getBooleanArr(long byteIndex, boolean[] target, int elemoff, int numElems);
 
     public void set(long byteIndex, byte[] source, int elemoff, int numElems);

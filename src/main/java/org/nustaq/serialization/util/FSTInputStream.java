@@ -34,6 +34,7 @@ public final class FSTInputStream extends InputStream {
     public int count; // avaiable valid read bytes
     InputStream in;
     boolean fullyRead = false;
+    public boolean byteBacked = false;
 
     public FSTInputStream(InputStream in) {
         initFromStream(in);
@@ -41,6 +42,7 @@ public final class FSTInputStream extends InputStream {
 
     public void initFromStream(InputStream in) {
         fullyRead = false;
+        byteBacked = false;
         pos = 0;
         this.in = in;
         if (buf == null) {
@@ -147,6 +149,7 @@ public final class FSTInputStream extends InputStream {
         count = 0;
         pos = 0;
         fullyRead = false;
+        byteBacked = false;
     }
 
     public void close() throws IOException {
@@ -154,6 +157,8 @@ public final class FSTInputStream extends InputStream {
     }
 
     public void ensureReadAhead(int bytes) {
+        if ( byteBacked )
+            return;
         int targetCount = pos + bytes;
         while (!fullyRead && count < targetCount) {
             readNextChunk(in);

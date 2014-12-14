@@ -103,7 +103,7 @@ public class DefaultCoder implements FSTCoder {
     public Object toObject( byte arr[], int off, int len ) {
         try {
             if ( off == 0 ) {
-                    input.resetForReuseUseArray(arr);
+                input.resetForReuseUseArray(arr);
             } else {
                 input.resetForReuseCopyArray(arr, off, len);
             }

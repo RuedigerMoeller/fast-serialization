@@ -404,6 +404,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         input.count = len;
         System.arraycopy(bytes, off, input.buf, 0, len);
         clnames.clear();
+        input.byteBacked = true;
     }
 
     @Override
@@ -413,6 +414,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         input.count = len;
         input.buf = bytes;
         input.pos = 0;
+        input.byteBacked = true;
     }
 
     @Override
