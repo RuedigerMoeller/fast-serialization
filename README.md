@@ -16,7 +16,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 
 **note:** maven.org might lag 1 day behind after releasing.
 
-users of 2.12 .. 2.15 are ecouraged to upgrade to 2.16
+users of 2.12 .. 2.15 are ecouraged to upgrade to 2.18
 
 2.0 version
 ```.xml
