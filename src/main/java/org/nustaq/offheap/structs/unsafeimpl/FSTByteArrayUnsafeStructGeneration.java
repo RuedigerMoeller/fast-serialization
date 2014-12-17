@@ -420,8 +420,11 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
             } else
             if ( type == CtPrimitiveType.doubleType ) {
                 f.replace("$_ = ___bytes.getDouble"+insert+"("+off+"+___offset);");
-            } else { // object ref
+            } else { // object ref or obje array
                 String typeString = type.getName();
+                if ( type.isArray() ) {
+                    throw new RuntimeException("invalid direct access to array in struct code. Use arrayaccessor name convention as documented."+fieldInfo);
+                }
                 if ( ! FSTStruct.class.isAssignableFrom(Class.forName( typeString) ) ) {
                     throw new RuntimeException("invalid type, require at least FSTStruct "+fieldInfo);
                 }
