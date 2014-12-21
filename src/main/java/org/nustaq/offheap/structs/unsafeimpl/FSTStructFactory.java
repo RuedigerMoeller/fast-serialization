@@ -50,7 +50,7 @@ public class FSTStructFactory {
 
     public static FSTStructFactory getInstance() {
         if (instance==null) {
-            instance = new FSTStructFactory();
+            instance = new FSTStructFactory(); // fixme: should be final
         }
         return instance;
     }
