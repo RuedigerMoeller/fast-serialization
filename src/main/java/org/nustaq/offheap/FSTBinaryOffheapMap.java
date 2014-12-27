@@ -20,6 +20,7 @@ import org.nustaq.offheap.bytez.bytesource.AsciiStringByteSource;
 import org.nustaq.offheap.bytez.bytesource.BytezByteSource;
 import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.malloc.MMFBytez;
+import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
 
 import java.io.File;
@@ -125,7 +126,13 @@ public class FSTBinaryOffheapMap {
 
     private void resetMem(String file, long sizeMemBytes) throws Exception {
         memory = new MMFBytez(file,sizeMemBytes,false);
-        customHeader = memory.slice(CORE_HEADER_LEN,CUSTOM_FILEHEADER_LEN);
+        if ( customHeader != null ) {
+            MMFBytez newHeader = (MMFBytez) memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
+            ((MMFBytez)customHeader).setBase(newHeader.getBaseAdress(), newHeader.getLength() );
+            ((MMFBytez)customHeader)._setMMFData(newHeader.getFile(), newHeader.getFileChannel(), newHeader.getCleaner() );
+        } else {
+            customHeader = memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
+        }
         tmpValueBytez = new BytezByteSource(memory,0,0);
     }
 
@@ -267,7 +274,7 @@ public class FSTBinaryOffheapMap {
             }
             f.flush();
             f.close();
-            resetMem(mappedFile,mf.length());
+            resetMem(mappedFile, mf.length());
             System.out.println("resizing done in "+(System.currentTimeMillis()-tim)+" numElemAfter:"+numElem);
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -63,9 +63,26 @@ public class MMFBytez extends MallocBytez {
         cleaner.clean();
     }
 
-
-
     /**
+     * hack to update underlying file in slices handed out to app
+     */
+    public void _setMMFData(File file, FileChannel fileChannel,Cleaner cleaner) {
+        this.file = file; this.fileChannel = fileChannel; this.cleaner = cleaner;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public FileChannel getFileChannel() {
+        return fileChannel;
+    }
+
+    public Cleaner getCleaner() {
+        return cleaner;
+    }
+
+/**
      * stuff copied from OpenHFT library (too big to depend on for fst) ...
      *
      * Copyright 2013 Peter Lawrey
