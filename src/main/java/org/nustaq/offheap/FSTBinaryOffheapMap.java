@@ -126,13 +126,7 @@ public class FSTBinaryOffheapMap {
 
     private void resetMem(String file, long sizeMemBytes) throws Exception {
         memory = new MMFBytez(file,sizeMemBytes,false);
-        if ( customHeader != null ) {
-            MMFBytez newHeader = (MMFBytez) memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
-            ((MMFBytez)customHeader).setBase(newHeader.getBaseAdress(), newHeader.getLength() );
-            ((MMFBytez)customHeader)._setMMFData(newHeader.getFile(), newHeader.getFileChannel(), newHeader.getCleaner() );
-        } else {
-            customHeader = memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
-        }
+        customHeader = memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
     }
 
