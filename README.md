@@ -10,7 +10,9 @@ fast-serialization
 
 Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure childishness)
 
-###[Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
+###[For serialization: Read at least first chapter !](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
+
+###[Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
 
 ###mvn
 
