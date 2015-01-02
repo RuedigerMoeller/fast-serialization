@@ -175,7 +175,13 @@ var MinBin = new function MinBin() {
     this.encode = function (object) {
         this.MBOut.reset();
         this.MBOut.writeObject(object);
-        return new Int8Array(this.MBOut.bytez, this.MBOut.pos);
+        var res = new Int8Array(this.MBOut.pos);
+        var from = this.MBOut.bytez;
+        for ( var i=0; i < res.length; i++) {
+            res[i] = from[i];
+        }
+        return res;
+//        return new Int8Array(this.MBOut.bytez, 0, this.MBOut.pos); buggy impl in chrome
     };
 
     // END public API
