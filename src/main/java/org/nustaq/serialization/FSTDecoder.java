@@ -73,4 +73,5 @@ public interface FSTDecoder {
     boolean isEndMarker(String s);
 
     int readVersionTag() throws IOException;
+    void pushBack(int bytes);
 }

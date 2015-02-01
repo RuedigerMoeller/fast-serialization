@@ -185,6 +185,10 @@ public class MBIn {
         return pos;
     }
 
+    public void setPos(int newpos) {
+        pos = newpos;
+    }
+
     public void setBuffer(byte[] buf, int count) {
         this.bytez = buf;
         pos = 0;

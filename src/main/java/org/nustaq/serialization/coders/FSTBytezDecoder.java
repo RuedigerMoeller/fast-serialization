@@ -428,4 +428,9 @@ public class FSTBytezDecoder  implements FSTDecoder {
         return readFByte();
     }
 
+    @Override
+    public void pushBack(int bytes) {
+        pos -= bytes;
+    }
+
 }

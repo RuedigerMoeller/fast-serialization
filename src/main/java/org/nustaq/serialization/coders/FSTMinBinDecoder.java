@@ -409,4 +409,9 @@ public class FSTMinBinDecoder implements FSTDecoder {
         return 0; // versioning not supported for minbin
     }
 
+    @Override
+    public void pushBack(int bytes) {
+        input.setPos(input.getPos()-bytes);
+    }
+
 }

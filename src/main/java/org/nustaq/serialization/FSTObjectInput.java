@@ -18,6 +18,7 @@ package org.nustaq.serialization;
 import org.nustaq.serialization.util.FSTUtil;
 import java.io.*;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -920,6 +921,25 @@ public class FSTObjectInput implements ObjectInput {
             @Override
             public Object readObjectOverride() throws IOException, ClassNotFoundException {
                 try {
+                    byte b = FSTObjectInput.this.readByte();
+                    if ( b != FSTObjectOutput.SPECIAL_COMPATIBILITY_OBJECT_TAG ) {
+                        Constructor<?>[] constructors = OptionalDataException.class.getDeclaredConstructors();
+                        FSTObjectInput.this.pushBack(1);
+                        for (int i = 0; i < constructors.length; i++) {
+                            Constructor constructor = constructors[i];
+                            if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0] == int.class) {
+                                constructor.setAccessible(true);
+                                OptionalDataException ode;
+                                try {
+                                    ode = (OptionalDataException) constructor.newInstance(0);
+                                    throw ode;
+                                } catch (InvocationTargetException e) {
+                                    break;
+                                }
+                            }
+                        }
+                        throw new EOFException("if your code relies on this, think");
+                    }
                     return FSTObjectInput.this.readObjectInternal(referencee.getPossibleClasses());
                 } catch (IllegalAccessException e) {
                     throw new IOException(e);
@@ -1196,6 +1216,10 @@ public class FSTObjectInput implements ObjectInput {
         }
         fakeWrapper.push(wrapped);
         return fakeWrapper;
+    }
+
+    protected void pushBack(int i) {
+        getCodec().pushBack(i);
     }
 
     static class MyObjectStream extends ObjectInputStream {

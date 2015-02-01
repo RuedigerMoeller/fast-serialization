@@ -487,6 +487,11 @@ public class FSTStreamDecoder implements FSTDecoder {
         return readFByte();
     }
 
+    @Override
+    public void pushBack(int bytes) {
+        input.pos -= bytes;
+    }
+
 
 }
 

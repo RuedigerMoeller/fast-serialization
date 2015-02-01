@@ -34,6 +34,7 @@ import java.util.*;
  */
 public class FSTObjectOutput implements ObjectOutput {
 
+    public static final byte SPECIAL_COMPATIBILITY_OBJECT_TAG = -19; // see issue 52
     public static final byte ONE_OF = -18;
     public static final byte BIG_BOOLEAN_FALSE = -17;
     public static final byte BIG_BOOLEAN_TRUE = -16;
@@ -855,6 +856,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
             @Override
             protected void writeObjectOverride(Object obj) throws IOException {
+                getCodec().writeFByte( SPECIAL_COMPATIBILITY_OBJECT_TAG );
                 FSTObjectOutput.this.writeObjectInternal(obj, null, referencee.getPossibleClasses());
             }
 
