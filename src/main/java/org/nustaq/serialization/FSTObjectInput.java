@@ -924,8 +924,8 @@ public class FSTObjectInput implements ObjectInput {
                         FSTObjectInput.this.pushBack(1);
                         for (int i = 0; i < constructors.length; i++) {
                             Constructor constructor = constructors[i];
-                            TypeVariable[] typeParameters = constructor.getTypeParameters();
-                            if ( typeParameters != null && typeParameters.length == 1 && constructor.getParameterTypes()[0] == int.class) {
+                            Class[] typeParameters = constructor.getParameterTypes();
+                            if ( typeParameters != null && typeParameters.length == 1 && typeParameters[0] == int.class) {
                                 constructor.setAccessible(true);
                                 OptionalDataException ode;
                                 try {
