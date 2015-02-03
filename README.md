@@ -23,7 +23,7 @@ Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure 
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.19</version>
+    <version>2.20</version>
 </dependency>
 ```
 
