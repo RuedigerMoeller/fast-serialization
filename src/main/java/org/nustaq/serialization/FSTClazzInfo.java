@@ -718,21 +718,21 @@ public final class FSTClazzInfo {
         }
 
         public final int getByteValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getByte(obj, memOffset);
             }
             return field.getByte(obj);
         }
 
         public final int getCharValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getChar(obj, memOffset);
             }
             return field.getChar(obj);
         }
 
         public final int getShortValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getShort(obj, memOffset);
             }
             return field.getShort(obj);
@@ -748,7 +748,7 @@ public final class FSTClazzInfo {
         }
 
         public final boolean getBooleanValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getBoolean(obj, memOffset);
             }
             return field.getBoolean(obj);
@@ -770,14 +770,14 @@ public final class FSTClazzInfo {
         }
 
         public final float getFloatValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getFloat(obj, memOffset);
             }
             return field.getFloat(obj);
         }
 
         public final void setCharValue(Object newObj, char c) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putChar(newObj, memOffset, c);
                 return;
             }
@@ -785,7 +785,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setShortValue(Object newObj, short i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putShort(newObj, memOffset, i1);
                 return;
             }
@@ -801,7 +801,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setFloatValue(Object newObj, float l) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putFloat(newObj, memOffset, l);
                 return;
             }
@@ -809,7 +809,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
             }
@@ -832,7 +832,7 @@ public final class FSTClazzInfo {
         }
 
         public final double getDoubleValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getDouble(obj, memOffset);
             }
             return field.getDouble(obj);
@@ -854,7 +854,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setBooleanValue(Object newObj, boolean i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putBoolean(newObj, memOffset, i1);
                 return;
             }
@@ -862,7 +862,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setByteValue(Object newObj, byte b) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putByte(newObj, memOffset, b);
                 return;
             }
