@@ -1003,6 +1003,7 @@ public class FSTObjectInput implements ObjectInput {
                     } else if (tag == 66) { // has been written from writeObjectCompatible without writeMethod
                         fieldMap = new HashMap<String, Object>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
+                        getCodec().readVersionTag(); // consume dummy version tag as created by defaultWriteObject
                     } else {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }

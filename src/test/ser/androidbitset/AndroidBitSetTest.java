@@ -5,6 +5,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 
+import java.util.Objects;
+
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -22,14 +24,15 @@ public class AndroidBitSetTest {
         jdkConf.registerClass(JDKBitSet.class);
 
 
-        AndroidBItSet androidOriginal = new AndroidBItSet(777);
-        androidOriginal.set(666, 700, true);
-        byte androidSerialized[] = androidConf.asByteArray(androidOriginal);
+        final AndroidBItSet abs = new AndroidBItSet(777);
+        Object androidOriginal = new Object[] {abs,"dummy"};
+        abs.set(666, 700, true);
+        byte androidSerialized[] = androidConf.asByteArray( androidOriginal );
 
-        JDKBitSet read = (JDKBitSet) jdkConf.asObject(androidSerialized);
+        Object read = jdkConf.asObject(androidSerialized);
         byte reverse[] = jdkConf.asByteArray(read);
         
-        AndroidBItSet androidBS = (AndroidBItSet) androidConf.asObject(reverse);
+        Object androidBS = androidConf.asObject(reverse);
         
         assertTrue(DeepEquals.deepEquals(androidBS, androidOriginal));
     }
