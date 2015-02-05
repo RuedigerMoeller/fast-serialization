@@ -110,7 +110,8 @@ public class FSTConfiguration {
     private HashMap<String, String> minbinNamesReverse = new HashMap<>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
-    public static final boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
+    // non-final for testing
+    public static boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
 
     // end cross platform stuff only
     /////////////////////////////////////
@@ -277,6 +278,8 @@ public class FSTConfiguration {
      *
      */
     public static FSTConfiguration createFastBinaryConfiguration() {
+        if ( isAndroid )
+            throw new RuntimeException("not supported under android platform, use default configuration");
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.type = ConfType.UNSAFE;
         conf.setStreamCoderFactory( new FSTConfiguration.StreamCoderFactory() {
@@ -482,7 +485,7 @@ public class FSTConfiguration {
      *
      * Read and write side need to have classes preregistered in the exact same order.
      *
-     * The list doe not have to be complete. Just add you most frequently serialized classes here
+     * The list does not have to be complete. Just add your most frequently serialized classes here
      * to get significant gains in speed and smaller serialized representation size.
      *
      */

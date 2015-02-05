@@ -45,6 +45,8 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     public FSTBytezDecoder(FSTConfiguration conf, BasicBytez input) {
         this(conf);
+        if ( FSTConfiguration.isAndroid )
+            throw new RuntimeException("not supported on android");
         this.input = input;
     }
 

@@ -9,6 +9,7 @@ public class BasicBinaryUnsafeTest extends BasicFSTTest {
 
     @Override
     protected FSTConfiguration getTestConfiguration() {
+        FSTConfiguration.isAndroid = false;
         return FSTConfiguration.createFastBinaryConfiguration();
     }
 

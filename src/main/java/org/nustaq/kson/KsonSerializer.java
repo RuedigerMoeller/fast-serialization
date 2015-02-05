@@ -171,7 +171,7 @@ public class KsonSerializer {
                 //              fieldValue = mapper.coerceWriting(fieldValue);
                 if (!isNullValue(fstFieldInfo, fieldValue) || writeNull) {
                     writeIndent(indent + 1);
-                    final String name = fstFieldInfo.getField().getName();
+                    final String name = fstFieldInfo.getName();
                     writeKey(name);
                     out.writeChar(':');
                     if (isSingleLine(fstFieldInfo, fieldValue)) {

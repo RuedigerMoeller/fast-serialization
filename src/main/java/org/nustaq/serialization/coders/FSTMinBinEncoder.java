@@ -200,7 +200,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
             // fully cache metadata
             int pos = out.getWritten();
 
-            out.writeTag(subInfo.getField().getName());
+            out.writeTag(subInfo.getName());
 
             int len = out.getWritten() - pos;
             bufferedName = new byte[len];

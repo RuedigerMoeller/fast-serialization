@@ -1,6 +1,7 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nustaq.serialization.simpleapi.DefaultCoder;
 import org.nustaq.serialization.simpleapi.FSTCoder;
@@ -118,7 +119,7 @@ public class CarBenchBinarized {
         return car;
     }
 
-    @Test
+    @Test @Ignore
     public void carBenchBinarized() throws Exception {
         System.out.println("shared ..");
         carBenchIntern(true);
@@ -144,7 +145,7 @@ public class CarBenchBinarized {
         assertTrue(DeepEquals.deepEquals(car, deser));
     }
 
-    @Test
+    @Test @Ignore
     public void carBenchDefault() throws Exception {
         System.out.println("default shared ..");
         carBenchInternDefault(true);

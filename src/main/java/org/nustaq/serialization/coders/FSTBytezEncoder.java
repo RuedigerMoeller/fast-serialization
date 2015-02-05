@@ -46,6 +46,8 @@ public class FSTBytezEncoder implements FSTEncoder {
     boolean autoResize = true;
 
     public FSTBytezEncoder(FSTConfiguration conf, BasicBytez base) {
+        if ( FSTConfiguration.isAndroid )
+            throw new RuntimeException("not supported on android");
         this.conf = conf;
         buffout = base;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);

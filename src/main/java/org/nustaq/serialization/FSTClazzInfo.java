@@ -62,7 +62,7 @@ public final class FSTClazzInfo {
             if (res == 0)
                 res = o1.getType().getSimpleName().compareTo(o2.getType().getSimpleName());
             if (res == 0)
-                res = o1.getField().getName().compareTo(o2.getField().getName());
+                res = o1.getName().compareTo(o2.getName());
             if (res == 0) {
                 return o1.getField().getDeclaringClass().getName().compareTo(o2.getField().getDeclaringClass().getName());
             }
@@ -363,7 +363,10 @@ public final class FSTClazzInfo {
                                 curClzFields.add(fstFieldInfo);
                                 fields.add(fstFieldInfo.getField());
                             } else {
-                                // TODO: throw exception ? (needs testing)
+                                FSTFieldInfo fake = new FSTFieldInfo(null, null, true );
+                                fake.type = objectStreamField.getType();
+                                fake.fakeName = objectStreamField.getName();
+                                curClzFields.add(fake);
                             }
                         }
                     }
@@ -471,12 +474,18 @@ public final class FSTClazzInfo {
         byte version;
         int integralType;
         long memOffset = -1;
+        boolean isAndroid = FSTConfiguration.isAndroid; // hope for better locality
 
         int structOffset = 0;
         int indexId; // position in serializable fields array
         int align = 0;
         int alignPad = 0;
         byte[] bufferedName; // cache byte rep of field name (used for cross platform)
+
+        // hacke required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
+        // in rare cases, a field used in putField is not present as a real field
+        // in this case only these to fields of a fieldinfo are set
+        public String fakeName;
 
         public FSTFieldInfo(Class[] possibleClasses, Field fi, boolean ignoreAnnotations) {
             this.possibleClasses = possibleClasses;
@@ -487,7 +496,7 @@ public final class FSTClazzInfo {
                 isArr = field.getType().isArray();
                 type = fi.getType();
                 primitive = type.isPrimitive();
-                if (FSTUtil.unFlaggedUnsafe != null) {
+                if (FSTUtil.unFlaggedUnsafe != null ) {
                     fi.setAccessible(true);
                     if (!Modifier.isStatic(fi.getModifiers())) {
                         try {
@@ -718,21 +727,21 @@ public final class FSTClazzInfo {
         }
 
         public final int getByteValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getByte(obj, memOffset);
             }
             return field.getByte(obj);
         }
 
         public final int getCharValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getChar(obj, memOffset);
             }
             return field.getChar(obj);
         }
 
         public final int getShortValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getShort(obj, memOffset);
             }
             return field.getShort(obj);
@@ -748,7 +757,7 @@ public final class FSTClazzInfo {
         }
 
         public final boolean getBooleanValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getBoolean(obj, memOffset);
             }
             return field.getBoolean(obj);
@@ -770,14 +779,14 @@ public final class FSTClazzInfo {
         }
 
         public final float getFloatValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getFloat(obj, memOffset);
             }
             return field.getFloat(obj);
         }
 
         public final void setCharValue(Object newObj, char c) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putChar(newObj, memOffset, c);
                 return;
             }
@@ -785,7 +794,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setShortValue(Object newObj, short i1) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putShort(newObj, memOffset, i1);
                 return;
             }
@@ -801,7 +810,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setFloatValue(Object newObj, float l) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putFloat(newObj, memOffset, l);
                 return;
             }
@@ -809,7 +818,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
             }
@@ -832,7 +841,7 @@ public final class FSTClazzInfo {
         }
 
         public final double getDoubleValue(Object obj) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getDouble(obj, memOffset);
             }
             return field.getDouble(obj);
@@ -854,7 +863,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setBooleanValue(Object newObj, boolean i1) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putBoolean(newObj, memOffset, i1);
                 return;
             }
@@ -862,13 +871,16 @@ public final class FSTClazzInfo {
         }
 
         public final void setByteValue(Object newObj, byte b) throws IllegalAccessException {
-            if (!FSTConfiguration.isAndroid && memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putByte(newObj, memOffset, b);
                 return;
             }
             field.setByte(newObj, b);
         }
 
+        public String getName() {
+            return field != null ? field.getName() : fakeName;
+        }
     }
 
     public FSTObjectSerializer getSer() {

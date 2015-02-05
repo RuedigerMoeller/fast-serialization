@@ -573,7 +573,7 @@ public class FSTObjectInput implements ObjectInput {
                         final FSTClazzInfo.FSTFieldInfo[] fieldArray = fstCompatibilityInfo.getFieldArray();
                         for (int i = 0; i < fieldArray.length; i++) {
                             FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldArray[i];
-                            final Object val = fieldMap.get(fstFieldInfo.getField().getName());
+                            final Object val = fieldMap.get(fstFieldInfo.getName());
                             if ( val != null ) {
                                 fstFieldInfo.setObjectValue(toRead,val);
                             }
@@ -760,27 +760,27 @@ public class FSTObjectInput implements ObjectInput {
                         boolean val = (booleanMask & 128) != 0;
                         booleanMask = booleanMask << 1;
                         boolcount++;
-                        res.put(subInfo.getField().getName(), val);
+                        res.put(subInfo.getName(), val);
                     }
                     if (subInfoType == byte.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFByte());
+                        res.put(subInfo.getName(), getCodec().readFByte());
                     } else if (subInfoType == char.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFChar());
+                        res.put(subInfo.getName(), getCodec().readFChar());
                     } else if (subInfoType == short.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFShort());
+                        res.put(subInfo.getName(), getCodec().readFShort());
                     } else if (subInfoType == int.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFInt());
+                        res.put(subInfo.getName(), getCodec().readFInt());
                     } else if (subInfoType == double.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFDouble());
+                        res.put(subInfo.getName(), getCodec().readFDouble());
                     } else if (subInfoType == float.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFFloat());
+                        res.put(subInfo.getName(), getCodec().readFFloat());
                     } else if (subInfoType == long.class) {
-                        res.put(subInfo.getField().getName(), getCodec().readFLong());
+                        res.put(subInfo.getName(), getCodec().readFLong());
                     }
                 } else {
                     // object
                     Object subObject = readObjectWithHeader(subInfo);
-                    res.put(subInfo.getField().getName(), subObject);
+                    res.put(subInfo.getName(), subObject);
                 }
             } catch (IllegalAccessException ex) {
                 throw new IOException(ex);
@@ -964,6 +964,16 @@ public class FSTObjectInput implements ObjectInput {
                     if ( tag == 77 ) // came from writeFields
                     {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
+                        // object has been written with writeFields, is no read with defaultReadObjects,
+                        // need to autoapply map to object vars.
+                        // this might be redundant in case readObject() pulls a getFields() .. (see bitset testcase)
+                        for (Iterator<String> iterator = fieldMap.keySet().iterator(); iterator.hasNext(); ) {
+                            String key = iterator.next();
+                            FSTClazzInfo.FSTFieldInfo fieldInfo = clInfo.getFieldInfo(key, null);// in case fieldName is not unique => cannot recover/fix
+                            if ( fieldInfo != null ) {
+                                fieldInfo.setObjectValue(toRead,fieldMap.get(key));
+                            }
+                        }
                     } else {
                         FSTObjectInput.this.readObjectFields(
                                 referencee,
@@ -990,6 +1000,9 @@ public class FSTObjectInput implements ObjectInput {
                         fieldMap = new HashMap<String, Object>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                         getCodec().readVersionTag(); // consume dummy version tag as created by defaultWriteObject
+                    } else if (tag == 66) { // has been written from writeObjectCompatible without writeMethod
+                        fieldMap = new HashMap<String, Object>();
+                        FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                     } else {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }

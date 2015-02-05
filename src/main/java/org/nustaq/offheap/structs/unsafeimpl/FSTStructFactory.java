@@ -225,21 +225,21 @@ public class FSTStructFactory {
                                   !java.lang.reflect.Modifier.isStatic(modifiers)
                                 )
                             {
-                                body.append( "\""+fstFieldInfo.getField().getName()+"\", " );
+                                body.append( "\""+fstFieldInfo.getName()+"\", " );
                                 Class type = fstFieldInfo.getType();
                                 if ( FSTStruct.class.isAssignableFrom(type) ) {
-                                    body.append(fstFieldInfo.getField().getName()).append(".getFieldValues()");
+                                    body.append(fstFieldInfo.getName()).append(".getFieldValues()");
                                 } else {
                                     if ( type.isPrimitive() ) {
                                         if ( long.class == type ) {
-                                            body.append("new Long("+fstFieldInfo.getField().getName()+")");
+                                            body.append("new Long("+fstFieldInfo.getName()+")");
                                         } else if ( float.class == type ||double.class == type ) {
-                                            body.append("new Double("+fstFieldInfo.getField().getName()+")");
+                                            body.append("new Double("+fstFieldInfo.getName()+")");
                                         } else {
-                                            body.append("new Integer("+fstFieldInfo.getField().getName()+")");
+                                            body.append("new Integer("+fstFieldInfo.getName()+")");
                                         }
                                     } else {
-                                        body.append(fstFieldInfo.getField().getName());
+                                        body.append(fstFieldInfo.getName());
                                     }
                                 }
                                 if ( j != fieldInfo.length-1 )
@@ -528,7 +528,7 @@ public class FSTStructFactory {
                     continue;
                 int modifiers = fi.getField().getModifiers();
                 if ( ! Modifier.isProtected(modifiers) && ! Modifier.isPublic(modifiers) )
-                    throw new RuntimeException("all fields of a structable class must be public or protected. Field:"+fi.getField().getName()+" in class "+fi.getField().getDeclaringClass().getName() );
+                    throw new RuntimeException("all fields of a structable class must be public or protected. Field:"+fi.getName()+" in class "+fi.getField().getDeclaringClass().getName() );
                 // FIXME: check for null refs, check for FSTStruct subclasses
                 if ( fi.getType().isArray() ) {
                     if ( fi.getType().getComponentType().isArray() ) {

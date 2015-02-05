@@ -134,9 +134,15 @@ public class KsonDeserializer {
             }
             Object res = null;
             if (Map.class.isAssignableFrom(clInfo.getClazz())) {
-                res = clInfo.newInstance(true);
+                if ( clInfo.getClazz() == HashMap.class ) {
+                    // newInstance delivers errorneous initialized hashmap, constructorForSerializable ..
+                    // should switch to other instantiation method as this is not a serialization ..
+                    res = new HashMap<>();
+                }
+                else
+                    res = clInfo.newInstance(true);
                 if (DEBUG_STACK) {
-                    stack.push(new ParseStep("read map " + clInfo.getClazz().getName()+"<"+genericKeyType+","+genericValueType+">", in));
+                    stack.push(new ParseStep("read map " + clInfo.getClazz().getName() + "<" + genericKeyType + "," + genericValueType + ">", in));
                 }
                 List keyVals = readList(genericKeyType, genericValueType);
                 for (int i = 0; i < keyVals.size(); i += 2) {
@@ -281,7 +287,7 @@ public class KsonDeserializer {
 
             if (fieldInfo != null) {
                 if (DEBUG_STACK) {
-                    stack.push(new ParseStep("read field '"+fieldInfo.getField().getName()+"' of type "+type.getName(),in));
+                    stack.push(new ParseStep("read field '"+fieldInfo.getName()+"' of type "+type.getName(),in));
                 }
                 result.add(readValue(type, Kson.fumbleOutGenericKeyType(fieldInfo.getField()), Kson.fumbleOutGenericValueType(fieldInfo.getField())));
                 if (DEBUG_STACK) {

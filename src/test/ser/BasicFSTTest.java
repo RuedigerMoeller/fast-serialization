@@ -295,6 +295,7 @@ public class BasicFSTTest {
     }
 
     protected FSTConfiguration getTestConfiguration() {
+        FSTConfiguration.isAndroid = false;
         return FSTConfiguration.createDefaultConfiguration();
     }
 

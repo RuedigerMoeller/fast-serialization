@@ -44,7 +44,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
             if ( vola ) {
                 insert = "Volatile";
             }
-            String fieldName = "\""+fieldInfo.getField().getName()+"\"";
+            String fieldName = "\""+fieldInfo.getName()+"\"";
             if ( type == CtPrimitiveType.booleanType ) {
                 final String body = "___bytes.putBool" + insert + "((long)" + off + "+___offset, $1 );";
                 if (trackChanges) {
@@ -182,7 +182,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                     "if ($1>=_st_len||$1<0) throw new ArrayIndexOutOfBoundsException(\"index:\"+$1+\" len:\"+_st_len);";
             if ( method.getReturnType() == CtClass.voidType ) {
                 String record = "";
-                String fieldName = "\""+fieldInfo.getField().getName()+"\"";
+                String fieldName = "\""+fieldInfo.getName()+"\"";
                 if ( arrayType == boolean.class ) {
                     if (trackChanges) {
                         record = "if (tracker!=null) tracker.addChange(_st_off+$1,1,"+ fieldName +");";
@@ -432,7 +432,7 @@ public class FSTByteArrayUnsafeStructGeneration implements FSTStructGeneration {
                         "long __tmpOff = ___offset + tmpIdx; " +
                         "" + typeString + " tmp = (" + typeString + ")___fac.getStructPointerByOffset(___bytes,__tmpOff); " +
                         "if ( tmp == null ) return null;" +
-                        (trackChanges ? "tmp.tracker = new org.nustaq.offheap.structs.FSTStructChange(tracker,\"" + fieldInfo.getField().getName() + "\"); " : "")+
+                        (trackChanges ? "tmp.tracker = new org.nustaq.offheap.structs.FSTStructChange(tracker,\"" + fieldInfo.getName() + "\"); " : "")+
                         "$_ = tmp; " +
                         "}";
                 f.replace(statement);

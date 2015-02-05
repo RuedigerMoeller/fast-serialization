@@ -664,35 +664,35 @@ public class FSTObjectOutput implements ObjectOutput {
                             getCodec().writeFByte(booleanMask << (8 - boolcount));
                             boolcount = 0; booleanMask = 0;
                         }
-                        boolean booleanValue = ((Boolean)fields.get(subInfo.getField().getName())).booleanValue();
+                        boolean booleanValue = ((Boolean)fields.get(subInfo.getName())).booleanValue();
                         booleanMask = booleanMask<<1;
                         booleanMask = (booleanMask|(booleanValue?1:0));
                         boolcount++;
                     } else
                     if ( subInfType == int.class ) {
-                        getCodec().writeFInt(((Number) fields.get(subInfo.getField().getName())).intValue());
+                        getCodec().writeFInt(((Number) fields.get(subInfo.getName())).intValue());
                     } else
                     if ( subInfType == long.class ) {
-                        getCodec().writeFLong(((Number) fields.get(subInfo.getField().getName())).longValue());
+                        getCodec().writeFLong(((Number) fields.get(subInfo.getName())).longValue());
                     } else
                     if ( subInfType == byte.class ) {
-                        getCodec().writeFByte(((Number) fields.get(subInfo.getField().getName())).byteValue());
+                        getCodec().writeFByte(((Number) fields.get(subInfo.getName())).byteValue());
                     } else
                     if ( subInfType == char.class ) {
-                        getCodec().writeFChar((char) ((Number) fields.get(subInfo.getField().getName())).intValue());
+                        getCodec().writeFChar((char) ((Number) fields.get(subInfo.getName())).intValue());
                     } else
                     if ( subInfType == short.class ) {
-                        getCodec().writeFShort(((Number) fields.get(subInfo.getField().getName())).shortValue());
+                        getCodec().writeFShort(((Number) fields.get(subInfo.getName())).shortValue());
                     } else
                     if ( subInfType == float.class ) {
-                        getCodec().writeFFloat(((Number) fields.get(subInfo.getField().getName())).floatValue());
+                        getCodec().writeFFloat(((Number) fields.get(subInfo.getName())).floatValue());
                     } else
                     if ( subInfType == double.class ) {
-                        getCodec().writeFDouble(((Number) fields.get(subInfo.getField().getName())).doubleValue());
+                        getCodec().writeFDouble(((Number) fields.get(subInfo.getName())).doubleValue());
                     }
                 } else {
                     // object
-                    Object subObject = fields.get(subInfo.getField().getName());
+                    Object subObject = fields.get(subInfo.getName());
                     writeObjectWithContext(subInfo, subObject);
                 }
             } catch (Exception ex) {
