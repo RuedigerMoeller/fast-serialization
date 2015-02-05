@@ -110,6 +110,8 @@ public class FSTConfiguration {
     private HashMap<String, String> minbinNamesReverse = new HashMap<>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
+    public static final boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
+
     // end cross platform stuff only
     /////////////////////////////////////
 
@@ -223,15 +225,11 @@ public class FSTConfiguration {
      * @return
      */
     public static FSTConfiguration createDefaultConfiguration() {
-        if (isAndroid()) {
+        if (isAndroid) {
             return createAndroidDefaultConfiguration();
         }
         FSTConfiguration conf = new FSTConfiguration();
         return initDefaultFstConfigurationInternal(conf);
-    }
-
-    public static boolean isAndroid() {
-        return System.getProperty("java.runtime.name","no").toLowerCase().indexOf("android") >= 0;
     }
 
     protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
