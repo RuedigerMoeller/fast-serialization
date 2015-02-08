@@ -382,6 +382,7 @@ public class BasicFSTTest {
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();
         Object res = in.readObject();
+        // note: false alarm with 1.7_71
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 
