@@ -997,6 +997,14 @@ public class FSTObjectInput implements ObjectInput {
                 try {
                     FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clInfo.compInfo.get(cl);
                     if (tag==99) { // came from defaultwriteobject
+                        // Note: in case number and names of instance fields of reader/writer are different,
+                        // this fails as code below implicitely assumes, fields of writer == fields of reader
+                        // unfortunately one can use defaultWriteObject at writer side but use getFields at reader side
+                        // in readObject(). if then fields differ, code below reads BS and fails.
+                        // Its impossible to fix that except by always using putField + getField for
+                        // JDK compatibility classes, however this will waste lots of performance. As
+                        // it woould be necessary to *always* write full metainformation (a map of fieldName => value pairs)
+                        // see #53
                         fieldMap = new HashMap<String, Object>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                         getCodec().readVersionTag(); // consume dummy version tag as created by defaultWriteObject

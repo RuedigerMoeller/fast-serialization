@@ -261,6 +261,9 @@ public class FSTConfiguration {
         reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
+
+        // serializers for classes failing in fst JDK emulation (e.g. Android<=>JDK)
+        reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
         return conf;
     }
 
