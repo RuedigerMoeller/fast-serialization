@@ -28,6 +28,8 @@ public class FSTBigIntegerSerializer  extends FSTBasicObjectSerializer {
                               int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         byte[] buf = new byte[in.readInt()];
         in.read(buf);
-        return new BigInteger(buf);
+        BigInteger bigInteger = new BigInteger(buf);
+        in.registerObject(bigInteger,streamPositioin,serializationInfo,referencee);
+        return bigInteger;
     }
 }
