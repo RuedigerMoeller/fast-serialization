@@ -1245,17 +1245,15 @@ public class FSTObjectInput implements ObjectInput {
     static class MyObjectStream extends ObjectInputStream {
 
         ObjectInputStream wrapped;
-        ObjectInputStream wrappedArr[] = new ObjectInputStream[30]; // if this is not sufficient use another lib ..
-        int idx = 0;
+        ArrayDeque<ObjectInputStream> wrappedStack = new ArrayDeque<ObjectInputStream>();
 
         public void push( ObjectInputStream in ) {
-            wrappedArr[idx++] = in;
+            wrappedStack.push(in);
             wrapped = in;
         }
 
         public void pop() {
-            idx--;
-            wrapped = wrappedArr[idx];
+            wrapped = wrappedStack.pop();
         }
 
         MyObjectStream() throws IOException, SecurityException {
