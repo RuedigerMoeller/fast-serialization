@@ -45,8 +45,9 @@ public class FSTStreamDecoder implements FSTDecoder {
         }
     }
 
-    public void ensureReadAhead(int bytes) {
+    public int ensureReadAhead(int bytes) {
         input.ensureReadAhead(bytes);
+        return 0; // checking for eof too expensive ..
     }
 
     char chBufS[];
@@ -247,6 +248,14 @@ public class FSTStreamDecoder implements FSTDecoder {
     public final byte readFByte() throws IOException {
         input.ensureReadAhead(1);
         return input.buf[input.pos++];
+    }
+
+    @Override
+    public final int readIntByte() throws IOException {
+        input.ensureReadAhead(1);
+        if ( input.isFullyRead() )
+            return -1;
+        return input.buf[input.pos++] & 0xff;
     }
 
     @Override

@@ -31,6 +31,7 @@ public interface FSTDecoder {
     double readFDouble() throws IOException;
     float readFFloat() throws IOException;
     byte readFByte() throws IOException;
+    int readIntByte() throws IOException;
     long readFLong() throws IOException;
     char readFChar() throws IOException;
     short readFShort() throws IOException;
@@ -40,7 +41,7 @@ public interface FSTDecoder {
     int getInputPos();
     void moveTo(int position);
     void setInputStream(InputStream in);
-    void ensureReadAhead(int bytes);
+    int ensureReadAhead(int bytes); // might signal eof by returning -1, depends on decoder impl though
 
     void reset();
     void resetToCopyOf(byte[] bytes, int off, int len);

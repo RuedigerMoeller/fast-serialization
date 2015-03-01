@@ -9,11 +9,8 @@ import org.junit.Test;
 import javax.security.auth.Subject;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
-import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashSet;
@@ -84,6 +81,36 @@ public class SpecialsTest {
         }
     }
 
+
+    @Test
+    public void testReadByte() throws IOException {
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        final ByteArrayOutputStream fstbaos = new ByteArrayOutputStream();
+
+        ObjectOutputStream oout = new ObjectOutputStream(baos);
+        writebytes(baos,oout);
+
+        FSTObjectOutput fsto = new FSTObjectOutput(fstbaos);
+        writebytes(fstbaos,fsto);
+
+        ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+        FSTObjectInput fstin = new FSTObjectInput(new ByteArrayInputStream(fstbaos.toByteArray()));
+        int rd;
+        while( (rd=oin.read()) != -1 ) {
+            Assert.assertTrue(rd == fstin.read() );
+        }
+        Assert.assertTrue( fstin.read() == -1 );
+    }
+
+    private void writebytes(ByteArrayOutputStream baos, ObjectOutput oout) throws IOException {
+        int written[] = {  1, -13, 13, 127, 128, 129, -127, -128, -129, -1, 99, 199, };
+        for (int i = 0; i < written.length; i++) {
+            oout.write(written[i]);
+        }
+        oout.close();
+    }
 
     @Test
     public void main() throws Exception {

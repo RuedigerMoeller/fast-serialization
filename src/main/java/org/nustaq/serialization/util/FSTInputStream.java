@@ -55,6 +55,10 @@ public final class FSTInputStream extends InputStream {
         readNextChunk(in);
     }
 
+    public boolean isFullyRead() {
+        return fullyRead && pos >= count;
+    }
+
     public void readNextChunk(InputStream in) {
         int read;
         try {

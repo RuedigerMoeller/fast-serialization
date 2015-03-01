@@ -243,7 +243,7 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public int read() throws IOException {
-        return getCodec().readFByte();
+        return getCodec().readIntByte();
     }
 
     @Override

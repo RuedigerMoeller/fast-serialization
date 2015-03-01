@@ -61,17 +61,18 @@ public class FSTBytezDecoder  implements FSTDecoder {
     }
 
     byte tmp[];
-    public void ensureReadAhead(int bytes) {
+    public int ensureReadAhead(int bytes) {
         if ( inputStream != null ) {
             if ( pos+bytes > readUntil ) {
-                readNextInputChunk(bytes);
+                return readNextInputChunk(bytes);
             }
         } else if ( pos+bytes > input.length() ) {
-//            throw FSTBufferTooSmallException.Instance;
+            return -1;
         }
+        return 0;
     }
 
-    protected void readNextInputChunk(int bytes) {
+    protected int readNextInputChunk(int bytes) {
         try {
             int toRead = Math.max(Integer.MAX_VALUE, bytes);
             if ( inputStream instanceof ByteArrayInputStream ) {
@@ -89,10 +90,14 @@ public class FSTBytezDecoder  implements FSTDecoder {
                 }
                 input.set(pos,tmp,0,read);
                 readUntil = pos+read;
-            }
+                return read;
+            } else if ( read == -1 )
+                return -1;
+            // fixme: should loop in case read == 0
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);
         }
+        return 0;
     }
 
     char chBufS[];
@@ -235,6 +240,14 @@ public class FSTBytezDecoder  implements FSTDecoder {
     public final byte readFByte() throws IOException {
         ensureReadAhead(1);
         return input.get(pos++);
+    }
+
+    @Override
+    public int readIntByte() throws IOException {
+        final int res = ensureReadAhead(1);
+        if ( res == -1 )
+            return -1;
+        return input.get(pos++) & 0xff;
     }
 
     @Override

@@ -132,6 +132,11 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
+    public int readIntByte() throws IOException {
+        return (int) input.readInt();
+    }
+
+    @Override
     public long readFLong() throws IOException {
         return input.readInt();
     }
@@ -202,7 +207,8 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
-    public void ensureReadAhead(int bytes) {
+    public int ensureReadAhead(int bytes) {
+        return 0;
     }
 
     @Override
