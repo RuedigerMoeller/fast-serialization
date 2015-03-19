@@ -195,7 +195,7 @@ public class FSTClazzNameRegistry {
                             clName = clName.substring(0, clName.length() - "_Struct".length());
                             Class onHeapStructClz = classCache.get(clName);
                             if (onHeapStructClz == null)
-                                onHeapStructClz = Class.forName(clName); // fixme: classloaders
+                                onHeapStructClz = Class.forName(clName, false, conf.getClassLoader() );
                             res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
                         } catch (Throwable th1) {
                             throw FSTUtil.rethrow(th1);
@@ -206,7 +206,7 @@ public class FSTClazzNameRegistry {
                         clName = clName.substring(0, clName.length() - "_ActorProxy".length());
                         Class actorClz = classCache.get(clName);
                         if (actorClz == null)
-                            actorClz = Class.forName(clName); // fixme: classloaders
+                            actorClz = Class.forName(clName, false, conf.getClassLoader());
                         return actorClz;
                     } else {
                         throw new RuntimeException("CLASSNAME:" + clName, th);
