@@ -130,4 +130,7 @@ public class TCPObjectSocket {
         return socket;
     }
 
+    public FSTConfiguration getConf() {
+        return conf;
+    }
 }
