@@ -68,7 +68,7 @@ public class FSTConfiguration {
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
     boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
     boolean shareReferences = true;
-    ClassLoader classLoader = getClass().getClassLoader();
+    volatile ClassLoader classLoader = getClass().getClassLoader();
     boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
     FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 

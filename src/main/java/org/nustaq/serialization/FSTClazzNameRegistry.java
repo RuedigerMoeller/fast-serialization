@@ -209,7 +209,7 @@ public class FSTClazzNameRegistry {
                             actorClz = Class.forName(clName, false, conf.getClassLoader());
                         return actorClz;
                     } else {
-                        throw new RuntimeException("CLASSNAME:" + clName, th);
+                        throw new RuntimeException("class not found CLASSNAME:" + clName + " loader:"+conf.getClassLoader(), th);
                     }
                 }
                 if (res != null) {
