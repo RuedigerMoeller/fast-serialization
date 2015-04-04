@@ -16,9 +16,8 @@
 package org.nustaq.serialization.util;
 
 import sun.misc.Unsafe;
-import java.io.ObjectStreamField;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
@@ -242,4 +241,29 @@ public class FSTUtil {
         return fields;
     }
 
+    public static byte[] readAll(InputStream is)
+        throws Exception {
+        int pos = 0;
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int toRead;
+            if (pos >= buffer.length) {
+                toRead = buffer.length * 2;
+                if (buffer.length < pos + toRead) {
+                    buffer = Arrays.copyOf(buffer, pos + toRead);
+                }
+            } else {
+                toRead = buffer.length - pos;
+            }
+            int byt = is.read(buffer, pos, toRead);
+            if (byt < 0) {
+                if (pos != buffer.length) {
+                    buffer = Arrays.copyOf(buffer, pos);
+                }
+                break;
+            }
+            pos += byt;
+        }
+        return buffer;
+    }
 }
