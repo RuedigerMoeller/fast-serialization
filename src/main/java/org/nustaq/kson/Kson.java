@@ -173,7 +173,8 @@ public class Kson {
 
     public String writePlainJSonObject(Object o) throws Exception {
         KsonStringOutput out = new KsonStringOutput();
-        new JSonSerializer(out,mapper, conf).noTypeTags().writeObject(o, null);
+//        new JSonSerializer(out,mapper, conf).noTypeTags().writeObject(o, null);
+        new JSonSerializer(out,mapper, conf).writeObject(o, null);
         return out.getBuilder().toString();
     }
 

@@ -88,6 +88,12 @@ public class KsonDeserializer {
     }
 
     public Object readObject(Class expect, Class genericKeyType, Class genericValueType) throws Exception {
+        if ( expect == Object.class )
+            expect = null;
+        if ( genericKeyType == Object.class )
+            genericKeyType = null;
+        if ( genericValueType == Object.class )
+            genericValueType = null;
         try {
             skipWS();
             if (in.isEof())
@@ -114,6 +120,8 @@ public class KsonDeserializer {
                         mappedClass = mapper.getType(clz);
                     // rewind
                     in.back(in.position() - position);
+                } else if ( expect != null ) {
+                    mappedClass = expect;
                 } else
                     return type; // assume string
             }
@@ -121,6 +129,8 @@ public class KsonDeserializer {
                 mappedClass = ArrayList.class;
             if (mappedClass == Map.class)
                 mappedClass = HashMap.class;
+            if (mappedClass == Set.class)
+                mappedClass = HashSet.class;
             FSTClazzInfo clInfo = Kson.conf.getCLInfoRegistry().getCLInfo(mappedClass);
             if (DEBUG_STACK) {
                 if ( clInfo != null ) {
@@ -339,6 +349,9 @@ public class KsonDeserializer {
             }
             skipWS();
             index++;
+//            if ( index >= valueType.length ) {
+//                break;
+//            }
         }
         in.readChar(); // consume }
         return result;
@@ -385,12 +398,13 @@ public class KsonDeserializer {
             // string
             return mapper.coerceReading(expected, readString(ch == '"' || ch == '\''));
         } else if (Character.isLetter(ch) || ch == '{' || ch == '[') {
-            if ( ch == '[' /*&& ! isContainer(expected) */&& (expected == null || expected == Object.class || expected.isInterface())) {
+            if ( ch == '[' && ! isContainer(expected) && (expected == null || expected == Object.class || expected.isInterface())) {
                 in.readChar();
                 if ( expected != null &&
                     ! Map.class.isAssignableFrom(expected) &&
                     Collection.class.isAssignableFrom(expected) &&
-                    genericValueType == null ) {
+                    genericValueType == null )
+                {
                     // default vlaueType to keyType for nnon-maps
                     genericValueType = genericKeyType;
                 }
