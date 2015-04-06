@@ -95,6 +95,7 @@ public class KsonDeserializer {
         if ( genericValueType == Object.class )
             genericValueType = null;
         try {
+            int position = in.position();
             skipWS();
             if (in.isEof())
                 return null;
@@ -107,7 +108,7 @@ public class KsonDeserializer {
             Class mappedClass = null;
             if ( "".equals(type)) {
                 String tp = scanJSonType();
-                if ( tp != null )
+                if ( tp != null && mapper.getType(tp) != null )
                     type = tp;
             }
             if ("".equals(type)) {
@@ -118,8 +119,12 @@ public class KsonDeserializer {
             if (mappedClass == null) {
                 if ( expect != null ) {
                     mappedClass = expect;
-                } else
+                } else {
+                    if ( in.position() == position ) {
+                        throw new KsonParseException("could not evaluate type ", in);
+                    }
                     return type; // assume string
+                }
             }
             if (mappedClass == List.class || mappedClass == Collection.class)
                 mappedClass = ArrayList.class;

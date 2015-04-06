@@ -42,16 +42,23 @@ public class KsonTypeMapper {
         map("map", HashMap.class).map("list", HashMap.class).map("set",HashSet.class);
     }
 
+    final Class NONE = Object.class;
     public Class getType(String type) {
         Class res = typeMap.get(type);
         if ( res == null ) {
             try {
                 res = Class.forName(type);
-                typeMap.put(type,res);
+                if ( res == null ) {
+                    typeMap.put(type,NONE);
+                } else
+                    typeMap.put(type,res);
             } catch (ClassNotFoundException e) {
+                typeMap.put(type,NONE);
                 return null;
             }
         }
+        if ( res == NONE )
+            res = null;
         return res;
     }
 
