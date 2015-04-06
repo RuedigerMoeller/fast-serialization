@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * simple implementation of type mapper.
@@ -32,10 +33,10 @@ public class KsonTypeMapper {
 
     public static final Object NULL_LITERAL = "NULL";
     protected boolean useSimplClzName = true;
-    protected HashMap<String,Class> typeMap = new HashMap<String, Class>();
-    protected HashMap<Class, String> reverseTypeMap = new HashMap<Class, String>();
+    protected HashMap<String,Class> typeMap = new HashMap<String, Class>(31);
+    protected HashMap<Class, String> reverseTypeMap = new HashMap<Class, String>(31);
 
-    protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();;
+    protected DateFormat dateTimeInstance = DateFormat.getDateTimeInstance();
 
     public KsonTypeMapper() {
         map("map", HashMap.class).map("list", HashMap.class).map("set",HashSet.class);
@@ -46,6 +47,7 @@ public class KsonTypeMapper {
         if ( res == null ) {
             try {
                 res = Class.forName(type);
+                typeMap.put(type,res);
             } catch (ClassNotFoundException e) {
                 return null;
             }

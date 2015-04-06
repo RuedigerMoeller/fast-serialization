@@ -105,22 +105,18 @@ public class KsonDeserializer {
             }
             skipWS();
             Class mappedClass = null;
+            if ( "".equals(type)) {
+                String tp = scanJSonType();
+                if ( tp != null )
+                    type = tp;
+            }
             if ("".equals(type)) {
                 mappedClass = expect;
             } else {
                 mappedClass = mapper.getType(type);
             }
             if (mappedClass == null) {
-                if ("".equals(type)) {
-                    // always with json
-                    // => take first attribute as type (see subclass)
-                    final int position = in.position();
-                    String clz = huntType();
-                    if (clz != null)
-                        mappedClass = mapper.getType(clz);
-                    // rewind
-                    in.back(in.position() - position);
-                } else if ( expect != null ) {
+                if ( expect != null ) {
                     mappedClass = expect;
                 } else
                     return type; // assume string
@@ -223,19 +219,17 @@ public class KsonDeserializer {
         }
     }
 
-    /**
-     * guess am object type from raw input stream.
-     *
-     * @return
-     */
-    protected String huntType() {
+    protected String scanJSonType() {
+        int position = in.position();
         skipWS();
         int ch;
         // just scan first sttribute and expect a string value which is taken as mapped class name
         while ((ch = in.readChar()) != ':' && ch != '}' && ch > 0) {
         }
         skipWS();
-        return readString();
+        String res = readString();
+        in.back(in.position()-position);
+        return res;
     }
 
     private String readString() {
