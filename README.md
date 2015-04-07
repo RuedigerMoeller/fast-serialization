@@ -8,7 +8,7 @@ fast-serialization
 * Apache 2.0 license since 2.17
 
 ###Docs:
-[For serialization: Read at least first chapter ..](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
+[For serialization (Read at least first chapter)](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
 [Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
 
