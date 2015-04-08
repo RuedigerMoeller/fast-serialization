@@ -7,12 +7,10 @@ fast-serialization
 * should be Android compatible since version >= 2.17
 * Apache 2.0 license since 2.17
 
+###Docs:
+[For serialization (Read at least first chapter)](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
-Project Page http://ruedigermoeller.github.io/fast-serialization/  (out of pure childishness)
-
-###[For serialization: Read at least first chapter !](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
-
-###[Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
+[Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
 
 ###mvn
 
