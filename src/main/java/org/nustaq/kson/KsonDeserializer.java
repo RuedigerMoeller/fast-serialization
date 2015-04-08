@@ -36,6 +36,7 @@ public class KsonDeserializer {
     protected KsonCharInput in;
     protected KsonTypeMapper mapper;
     protected Stack<ParseStep> stack;
+    protected boolean supportJSon = true;
 
     private KsonArgTypesResolver argTypesRessolver;
 
@@ -72,6 +73,15 @@ public class KsonDeserializer {
         }
     }
 
+    public boolean isSupportJSon() {
+        return supportJSon;
+    }
+
+    public KsonDeserializer supportJSon(boolean supportJSon) {
+        this.supportJSon = supportJSon;
+        return this;
+    }
+
     public void skipWS() {
         int ch = in.readChar();
         while (ch >= 0 && Character.isWhitespace(ch)) {
@@ -106,7 +116,7 @@ public class KsonDeserializer {
             }
             skipWS();
             Class mappedClass = null;
-            if ( "".equals(type)) {
+            if ( supportJSon && "".equals(type)) {
                 String tp = scanJSonType();
                 if ( tp != null && mapper.getType(tp) != null )
                     type = tp;

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * decodes a stream written with FTSStreamEnconder
+ * decodes a binary stream written with FSTStreamEncoder
  */
 public class FSTStreamDecoder implements FSTDecoder {
 

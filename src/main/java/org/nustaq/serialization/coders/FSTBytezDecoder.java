@@ -30,7 +30,7 @@ import java.io.InputStream;
 /**
  * Created by ruedi on 09.11.2014.
  *
- * no value compression is applied. uses unsafe to read values from memory
+ * no value compression is applied. uses unsafe to read values directly from memory instead an inputstream
  *
  */
 public class FSTBytezDecoder  implements FSTDecoder {

@@ -46,6 +46,7 @@ public class Kson {
     public static FSTConfiguration conf = FSTConfiguration.createStructConfiguration().setForceClzInit(true);
 
     KsonTypeMapper mapper;
+    boolean supportJSon = true;
 
     public Kson(KsonTypeMapper mapper) {
         this.mapper = mapper;
@@ -113,14 +114,14 @@ public class Kson {
 
     public Object readObject(String dson) throws Exception {
         KsonStringCharInput in = new KsonStringCharInput(dson);
-        return new KsonDeserializer(in, mapper).readObject(null, null, null);
+        return new KsonDeserializer(in, mapper).supportJSon(supportJSon).readObject(null, null, null);
     }
 
     public Object readObject(String dsonOrJSon, String expectedType, KsonArgTypesResolver resolve) throws Exception {
 //        System.out.println(dsonOrJSon);
         KsonStringCharInput in = new KsonStringCharInput(dsonOrJSon);
         final Class type = mapper.getType(expectedType);
-        return new KsonDeserializer(in, mapper).setArgTypesRessolver(resolve).readObject(type, String.class, null);
+        return new KsonDeserializer(in, mapper).supportJSon(supportJSon).setArgTypesRessolver(resolve).readObject(type, String.class, null);
     }
 
     public Object readObject(String dsonOrJSon, String expectedType) throws Exception {
@@ -129,7 +130,16 @@ public class Kson {
         }
         KsonStringCharInput in = new KsonStringCharInput(dsonOrJSon);
         final Class type = mapper.getType(expectedType);
-        return new KsonDeserializer(in, mapper).readObject(type, String.class, null);
+        return new KsonDeserializer(in, mapper).supportJSon(supportJSon).readObject(type, String.class, null);
+    }
+
+    public boolean isSupportJSon() {
+        return supportJSon;
+    }
+
+    public Kson supportJSon(boolean supportJSon) {
+        this.supportJSon = supportJSon;
+        return this;
     }
 
     public Object readObject(File file) throws Exception {
