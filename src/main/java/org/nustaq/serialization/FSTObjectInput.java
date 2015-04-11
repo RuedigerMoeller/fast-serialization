@@ -15,6 +15,7 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.serialization.minbin.MBObject;
 import org.nustaq.serialization.util.FSTUtil;
 import java.io.*;
 import java.lang.reflect.*;
@@ -692,46 +693,51 @@ public class FSTObjectInput implements ObjectInput {
             if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) )
                 return;
             count++;
-            FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name, null);
-            if (fieldInfo == null) {
-                System.out.println("warning: unknown field: " + name + " on class " + serializationInfo.getClazz().getName());
+            if ( newObj.getClass() == MBObject.class ) {
+                Object toSet = readObjectWithHeader(null);
+                ((MBObject)newObj).put(name,toSet);
             } else {
-                if (fieldInfo.isPrimitive()) {
-                    // direct primitive field
-                    switch (fieldInfo.getIntegralType()) {
-                        case FSTClazzInfo.FSTFieldInfo.BOOL:
-                            fieldInfo.setBooleanValue(newObj, getCodec().readFByte() == 0 ? false : true);
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.BYTE:
-                            fieldInfo.setByteValue(newObj, getCodec().readFByte());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.CHAR:
-                            fieldInfo.setCharValue(newObj, getCodec().readFChar());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.SHORT:
-                            fieldInfo.setShortValue(newObj, getCodec().readFShort());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.INT:
-                            fieldInfo.setIntValue(newObj, getCodec().readFInt());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.LONG:
-                            fieldInfo.setLongValue(newObj, getCodec().readFLong());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.FLOAT:
-                            fieldInfo.setFloatValue(newObj, getCodec().readFFloat());
-                            break;
-                        case FSTClazzInfo.FSTFieldInfo.DOUBLE:
-                            fieldInfo.setDoubleValue(newObj, getCodec().readFDouble());
-                            break;
-                        default:
-                            throw new RuntimeException("unkown primitive type " + fieldInfo);
-                    }
-//                } else if ( fieldInfo.isArray() && fieldInfo.getType().getComponentType().isPrimitive() ) {
-//                    Object arr = codec.readFPrimitiveArray(null, fieldInfo.getType().getComponentType(), -1);
-//                    fieldInfo.setObjectValue(newObj,arr); // fixme: ref lookup
+                FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name, null);
+                if (fieldInfo == null) {
+                    System.out.println("warning: unknown field: " + name + " on class " + serializationInfo.getClazz().getName());
                 } else {
-                    Object toSet = readObjectWithHeader(fieldInfo);
-                    fieldInfo.setObjectValue(newObj, toSet);
+                    if (fieldInfo.isPrimitive()) {
+                        // direct primitive field
+                        switch (fieldInfo.getIntegralType()) {
+                            case FSTClazzInfo.FSTFieldInfo.BOOL:
+                                fieldInfo.setBooleanValue(newObj, getCodec().readFByte() == 0 ? false : true);
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.BYTE:
+                                fieldInfo.setByteValue(newObj, getCodec().readFByte());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.CHAR:
+                                fieldInfo.setCharValue(newObj, getCodec().readFChar());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.SHORT:
+                                fieldInfo.setShortValue(newObj, getCodec().readFShort());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.INT:
+                                fieldInfo.setIntValue(newObj, getCodec().readFInt());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.LONG:
+                                fieldInfo.setLongValue(newObj, getCodec().readFLong());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.FLOAT:
+                                fieldInfo.setFloatValue(newObj, getCodec().readFFloat());
+                                break;
+                            case FSTClazzInfo.FSTFieldInfo.DOUBLE:
+                                fieldInfo.setDoubleValue(newObj, getCodec().readFDouble());
+                                break;
+                            default:
+                                throw new RuntimeException("unkown primitive type " + fieldInfo);
+                        }
+    //                } else if ( fieldInfo.isArray() && fieldInfo.getType().getComponentType().isPrimitive() ) {
+    //                    Object arr = codec.readFPrimitiveArray(null, fieldInfo.getType().getComponentType(), -1);
+    //                    fieldInfo.setObjectValue(newObj,arr); // fixme: ref lookup
+                    } else {
+                        Object toSet = readObjectWithHeader(fieldInfo);
+                        fieldInfo.setObjectValue(newObj, toSet);
+                    }
                 }
             }
         }
