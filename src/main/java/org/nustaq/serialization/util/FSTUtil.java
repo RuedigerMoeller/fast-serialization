@@ -316,7 +316,7 @@ public class FSTUtil {
 
     private static void testOrdinaryFillO(Object[] array) {
         for ( int i = 0; i < 100000; i++ ) {
-            Arrays.fill(array,0);
+            Arrays.fill(array,null);
         }
     }
 
