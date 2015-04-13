@@ -80,5 +80,7 @@ public class AsciiStringByteSource implements ByteSource {
         this.off = off;
     }
 
-
+    public String toString() {
+        return string.substring(off,off+len);
+    }
 }

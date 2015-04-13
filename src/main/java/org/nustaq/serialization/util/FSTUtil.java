@@ -31,7 +31,6 @@ import java.util.List;
  */
 public class FSTUtil {
 
-    static int[] EmptyIntArray = new int[10000];
     static Object[] EmptyObjArray = new Object[10000];
     static ObjectStreamField[] NO_FIELDS = new ObjectStreamField[0];
     public static Unsafe unFlaggedUnsafe = FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
@@ -83,13 +82,7 @@ public class FSTUtil {
     public final static long doublescal;
 
     public static void clear(int[] arr) {
-        int count = 0;
-        final int length = EmptyIntArray.length;
-        while (arr.length - count > length) {
-            System.arraycopy(EmptyIntArray, 0, arr, count, length);
-            count += length;
-        }
-        System.arraycopy(EmptyIntArray, 0, arr, count, arr.length - count);
+        Arrays.fill(arr,0);
     }
 
     public static void clear(Object[] arr) {
@@ -121,6 +114,7 @@ public class FSTUtil {
         return new RuntimeException(ex);
     }
 
+    // obsolete
     public static String getPackage(Class clazz) {
         String s = clazz.getName();
         int i = s.lastIndexOf('[');
