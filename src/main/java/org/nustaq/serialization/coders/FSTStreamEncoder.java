@@ -47,6 +47,7 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {
+        buffout.ensureFree(len);
         for (int i = off; i < off+len; i++)
             writeFByte(arr[i] ? 1 : 0);
     }
@@ -86,11 +87,13 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     public void writeFShortArr(short[] arr, int off, int len) throws IOException {
+        buffout.ensureFree(len*2);
         for (int i = off; i < off+len; i++)
             writeFShort(arr[i]);
     }
 
     public void writeFCharArr(char[] arr, int off, int len) throws IOException {
+        buffout.ensureFree(len*2);
         for (int i = off; i < off+len; i++)
             writeFChar(arr[i]);
     }
