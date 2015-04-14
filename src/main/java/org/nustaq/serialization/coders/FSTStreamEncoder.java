@@ -52,13 +52,37 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     public void writeFFloatArr(float[] arr, int off, int len) throws IOException {
-        for (int i = off; i < off+len; i++)
-            writeFFloat(arr[i]);
+        int byteLen = arr.length * 4;
+        buffout.ensureFree(byteLen);
+        byte buf[] = buffout.buf;
+        int count = buffout.pos;
+        for (int i = off; i < off+len; i++) {
+            long anInt = Float.floatToIntBits(arr[i]);
+            buf[count++] = (byte) (anInt >>> 0);
+            buf[count++] = (byte) (anInt >>> 8);
+            buf[count++] = (byte) (anInt >>> 16);
+            buf[count++] = (byte) (anInt >>> 24);
+        }
+        buffout.pos+= byteLen;
     }
 
     public void writeFDoubleArr(double[] arr, int off, int len) throws IOException {
-        for (int i = off; i < off+len; i++)
-            writeFDouble(arr[i]);
+        int byteLen = arr.length * 8;
+        buffout.ensureFree(byteLen);
+        byte buf[] = buffout.buf;
+        int count = buffout.pos;
+        for (int i = off; i < off+len; i++) {
+            long anInt = Double.doubleToLongBits(arr[i]);
+            buf[count++] = (byte) (anInt >>> 0);
+            buf[count++] = (byte) (anInt >>> 8);
+            buf[count++] = (byte) (anInt >>> 16);
+            buf[count++] = (byte) (anInt >>> 24);
+            buf[count++] = (byte) (anInt >>> 32);
+            buf[count++] = (byte) (anInt >>> 40);
+            buf[count++] = (byte) (anInt >>> 48);
+            buf[count++] = (byte) (anInt >>> 56);
+        }
+        buffout.pos+= byteLen;
     }
 
     public void writeFShortArr(short[] arr, int off, int len) throws IOException {
