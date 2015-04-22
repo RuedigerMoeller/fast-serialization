@@ -411,6 +411,7 @@ public class FSTObjectInput implements ObjectInput {
             clzSerInfo = lastInfo;
         } else {
             clzSerInfo = clInfoRegistry.getCLInfo(c);
+            referencee.lastInfo = clzSerInfo;
         }
         return clzSerInfo;
     }
