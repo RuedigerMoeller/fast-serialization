@@ -12,6 +12,7 @@ import java.io.OutputStream;
  */
 public class FloatBench {
 
+    // as originally submitted. problematic as GC dominates runtime
     public static void main0(String[] args) throws Exception {
 
         while( true ) {
@@ -19,6 +20,8 @@ public class FloatBench {
             long start, elapsed;
 
             Object obj = new double[100_000_000];
+//            FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+            FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
 
             count = new CountingOutputStream();
@@ -31,7 +34,7 @@ public class FloatBench {
 
             count = new CountingOutputStream();
             start = System.nanoTime();
-            try(FSTObjectOutput fos = new FSTObjectOutput(count)) {
+            try(FSTObjectOutput fos = new FSTObjectOutput(count,conf)) {
                 fos.writeObject(obj);
             }
             elapsed = System.nanoTime() - start;
@@ -45,30 +48,41 @@ public class FloatBench {
             CountingOutputStream count;
             long start, elapsed;
 
-            double obj[] = new double[1_000];
-            ByteArrayOutputStream bout = new ByteArrayOutputStream(4*obj.length);
+            count = new CountingOutputStream();
+
+//            Object obj = new float[20_000];
+//            Object obj = new long[10_000];
+            Object obj = new boolean[80_000];
+//            Object obj = new byte[80_000];
+//            Object obj = new double[10_000];
+//            Object obj = new char[40_000];
+//            Object obj = new short[40_000];
+//            Object obj = new int[20_000];
+
+//            FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+            FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
             start = System.nanoTime();
-            for ( int n = 0; n < 100000; n++ ) {
-                try(ObjectOutputStream oos = new ObjectOutputStream(bout)) {
+            for ( int n = 0; n < 10000; n++ ) {
+                try(ObjectOutputStream oos = new ObjectOutputStream(count)) {
                     oos.writeObject(obj);
                 }
-                bout.reset();
             }
             elapsed = System.nanoTime() - start;
             System.out.println("STD :" + (elapsed)/1000000L + "ms");
 
-            FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
             start = System.nanoTime();
-            for ( int n = 0; n < 100000; n++ ) {
-                bout.write(conf.asByteArray(obj));
-                bout.reset();
+            for ( int n = 0; n < 10000; n++ ) {
+                try(FSTObjectOutput fos = new FSTObjectOutput(count,conf)) {
+                    fos.writeObject(obj);
+                }
             }
             elapsed = System.nanoTime() - start;
             System.out.println("FST :" + (elapsed)/1000000L + "ms");
 
         }
     }
+
 
     public static class CountingOutputStream extends OutputStream {
         public long count = 0;

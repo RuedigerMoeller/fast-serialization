@@ -168,7 +168,35 @@ public class FSTStreamDecoder implements FSTDecoder {
         }
     }
 
-    @Override
+    // compressed version
+    public void _readFIntArr(int len, int[] arr) throws IOException {
+        ensureReadAhead(5 * len);
+        final byte buf[] = input.buf;
+        int count = input.pos;
+        for (int j = 0; j < len; j++) {
+            final byte head = buf[count++];
+            // -128 = short byte, -127 == 4 byte
+            if (head > -127 && head <= 127) {
+                arr[j] = head;
+                continue;
+            }
+            if (head == -128) {
+                final int ch1 = (buf[count++]+256)&0xff;
+                final int ch2 = (buf[count++]+256)&0xff;
+                arr[j] = (short)((ch1 << 8) + (ch2 << 0));
+                continue;
+            } else {
+                int ch1 = (buf[count++]+256)&0xff;
+                int ch2 = (buf[count++]+256)&0xff;
+                int ch3 = (buf[count++]+256)&0xff;
+                int ch4 = (buf[count++]+256)&0xff;
+                arr[j] = ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+            }
+        }
+        input.pos = count;
+    }
+
+    @Override // uncompressed version
     public void readFIntArr(int len, int[] arr) throws IOException {
         int bytelen = arr.length * 4;
         ensureReadAhead(bytelen);
