@@ -1,1 +1,0 @@
-- be able to process both length delimited/terminated sequences, objects
