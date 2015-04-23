@@ -118,8 +118,9 @@ public class KsonDeserializer {
             Class mappedClass = null;
             if ( supportJSon && "".equals(type)) {
                 String tp = scanJSonType();
-                if ( tp != null && mapper.getType(tp) != null )
+                if ( tp != null && mapper.getType(tp) != null ) {
                     type = tp;
+                }
             }
             if ("".equals(type)) {
                 mappedClass = expect;
@@ -239,12 +240,31 @@ public class KsonDeserializer {
         skipWS();
         int ch;
         // just scan first sttribute and expect a string value which is taken as mapped class name
-        while ((ch = in.readChar()) != ':' && ch != '}' && ch > 0) {
-        }
-        skipWS();
-        String res = readString();
+        do {
+            skipWS();
+            ch = in.readChar();
+            if ( ch == '{' ) {
+                skipWS();
+                String key = readString();
+                if ( "_type".equals(key) ) {
+                    skipWS();
+                    if ( in.readChar() != ':' ) {
+                        in.back(in.position()-position);
+                        return null;
+                    }
+                    skipWS();
+                    String res = readString();
+                    in.back(in.position()-position);
+                    return res;
+                } else {
+                    in.back(in.position()-position);
+                    return null;
+                }
+            }
+        } while ( ch != ':' && ch != '}' && ch != '[');
+
         in.back(in.position()-position);
-        return res;
+        return null;
     }
 
     private String readString() {

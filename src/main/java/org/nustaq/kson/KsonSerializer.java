@@ -58,8 +58,6 @@ public class KsonSerializer {
         if (o instanceof Character) {
             if (indent >= 0) writeIndent(indent);
             final char ch = ((Character) o).charValue();
-            if (ch==0)
-                System.out.println("POK");
             if (ch <128 && ch > 32)
                 out.writeString(o.toString());
             else
