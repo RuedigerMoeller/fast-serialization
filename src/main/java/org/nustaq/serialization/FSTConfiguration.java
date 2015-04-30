@@ -913,4 +913,58 @@ public class FSTConfiguration {
         }
     }
 
+    /**
+     * helper to write series of objects to streams/files > Integer.MAX_VALUE.
+     * it
+     *  - serializes the object
+     *  - writes the length of the serialized object to the stream
+     *  - the writes the serialized object data
+     *
+     * on reader side (e.g. from a blocking socketstream, the reader then
+     *  - reads the length
+     *  - reads [length] bytes from the stream
+     *  - deserializes
+     *
+     * @see decodeFromStream
+     *
+     * @param out
+     * @param toSerialize
+     * @throws IOException
+     */
+    public void encodeToStream( OutputStream out, Object toSerialize ) throws IOException {
+        FSTObjectOutput objectOutput = getObjectOutput(); // could also do new with minor perf impact
+        objectOutput.writeObject(toSerialize);
+        int written = objectOutput.getWritten();
+        out.write((written >>> 0) & 0xFF);
+        out.write((written >>> 8) & 0xFF);
+        out.write((written >>> 16) & 0xFF);
+        out.write((written >>> 24) & 0xFF);
+
+        // copy internal buffer to bufferedoutput
+        out.write(objectOutput.getBuffer(), 0, written);
+        objectOutput.flush();
+    }
+
+    /**
+     * @see encodeToStream
+     *
+     * @param in
+     * @return
+     * @throws Exception
+     */
+    public Object decodeFromStream( InputStream in ) throws Exception {
+        int ch1 = (in.read() + 256) & 0xff;
+        int ch2 = (in.read()+ 256) & 0xff;
+        int ch3 = (in.read() + 256) & 0xff;
+        int ch4 = (in.read() + 256) & 0xff;
+        int len = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
+        if ( len <= 0 )
+            throw new EOFException("stream is closed");
+        byte buffer[] = new byte[len]; // this could be reused !
+        while (len > 0) {
+            len -= in.read(buffer, buffer.length - len, len);
+        }
+        return getObjectInput(buffer).readObject();
+    }
+
 }
