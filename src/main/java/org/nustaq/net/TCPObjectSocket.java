@@ -70,24 +70,9 @@ public class TCPObjectSocket {
     public Object readObject() throws Exception {
         try {
             while ( !readLock.compareAndSet(false,true) );
-            int ch1 = (in.read() + 256) & 0xff;
-            int ch2 = (in.read()+ 256) & 0xff;
-            int ch3 = (in.read() + 256) & 0xff;
-            int ch4 = (in.read() + 256) & 0xff;
-            int len = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
-            if ( len <= 0 )
-                throw new EOFException("client closed");
-            int orglen = len;
-            byte buffer[] = new byte[len]; // this could be reused !
-            while (len > 0)
-                len -= in.read(buffer, buffer.length - len, len);
-            try {
-                return conf.getObjectInput(buffer).readObject();
-            } catch (Exception e) {
-                System.out.println("orglen: "+orglen+" "+new String(buffer,0));
-                final Object retry = conf.getObjectInput(buffer).readObject();
-                throw e;
-            }
+
+            return conf.decodeFromStream(in);
+
         } finally {
             readLock.set(false);
         }
@@ -96,17 +81,7 @@ public class TCPObjectSocket {
     public void writeObject(Object toWrite) throws Exception {
         try {
             while ( !writeLock.compareAndSet(false,true) );
-            FSTObjectOutput objectOutput = conf.getObjectOutput(); // could also do new with minor perf impact
-            objectOutput.writeObject(toWrite);
-
-            int written = objectOutput.getWritten();
-            out.write((written >>> 0) & 0xFF);
-            out.write((written >>> 8) & 0xFF);
-            out.write((written >>> 16) & 0xFF);
-            out.write((written >>> 24) & 0xFF);
-
-            out.write(objectOutput.getBuffer(), 0, written);
-            objectOutput.flush();
+            conf.encodeToStream(out,toWrite);
         } finally {
             writeLock.set(false);
         }
