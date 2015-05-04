@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="2.26"
+version="2.27"
 
 targetCompatibility = 1.7
 sourceCompatibility = 1.7

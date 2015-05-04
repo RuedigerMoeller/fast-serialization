@@ -63,7 +63,7 @@ public final class FSTInputStream extends InputStream {
         int read;
         try {
             if (buf.length < count + chunk_size) {
-                ensureCapacity(Math.max( Math.max(Integer.MAX_VALUE-1,buf.length * 2), count + chunk_size)); // at least grab 5kb
+                ensureCapacity(Math.max( Math.min(Integer.MAX_VALUE-1,buf.length * 2), count + chunk_size)); // at least grab 5kb
             }
             read = in.read(buf, count, chunk_size);
             if (read > 0) {
