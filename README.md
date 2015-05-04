@@ -16,12 +16,14 @@ fast-serialization
 
 **note:** maven.org might lag 1 day behind after releasing.
 
+**2.26** is a broken build, don't use (bad habit, run testsuite *after* starting upload ;-) )
+
 2.0 version
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.26</version>
+    <version>2.27</version>
 </dependency>
 ```
 
