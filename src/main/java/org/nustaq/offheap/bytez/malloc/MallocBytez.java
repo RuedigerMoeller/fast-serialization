@@ -241,7 +241,7 @@ public class MallocBytez implements Bytez {
     }
 
     @Override
-    public Bytez newInstance(long size) {
+    public BasicBytez newInstance(long size) {
         return new MallocBytez(unsafe.allocateMemory(size),size);
     }
 

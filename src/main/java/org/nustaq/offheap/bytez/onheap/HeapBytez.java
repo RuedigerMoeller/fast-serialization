@@ -58,6 +58,9 @@ public class HeapBytez implements Bytez {
         this(base,0);
     }
 
+    public HeapBytez(int size) {
+        this(new byte[size],0);
+    }
     public HeapBytez(byte[] base, long offIndex) {
         this(base,offIndex, base.length-offIndex);
     }
@@ -291,7 +294,7 @@ public class HeapBytez implements Bytez {
     }
 
     @Override
-    public Bytez newInstance(long size) {
+    public BasicBytez newInstance(long size) {
         return new HeapBytez(new byte[(int) size]);
     }
 

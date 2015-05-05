@@ -22,7 +22,10 @@ import java.util.*;
  * User: ruedi
  * Date: 10.11.12
  * Time: 15:04
- * To change this template use File | Settings | File Templates.
+ *
+ * contains a map from class => serializer.
+ * One can register Serializers for exact classes or a class and all its subclasses (can have unexpected consequences in case a subclass holds additional state).
+ *
  */
 public class FSTSerializerRegistry {
 

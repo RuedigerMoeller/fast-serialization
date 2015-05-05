@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
  *
  * basic memory abstraction
  */
-public interface BasicBytez extends ByteSource {
+public interface BasicBytez extends ByteSource, ByteSink {
     public byte get(long byteIndex);
     public boolean getBool(long byteIndex);
     public char getChar(long byteIndex);
@@ -91,6 +91,6 @@ public interface BasicBytez extends ByteSource {
     public void setBoolean(long byteIndex, boolean[] o, int i, int siz);
 
     public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes);
-    public Bytez newInstance(long size);
+    public BasicBytez newInstance(long size);
 
 }
