@@ -3,7 +3,6 @@ package offheap;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.offheap.BinaryQueue;
-import org.nustaq.offheap.bytez.ByteSink;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 
@@ -20,19 +19,19 @@ public class BinaryQueueTest {
         BinaryQueue q = new BinaryQueue();
         for ( int ii = 0; ii < 500; ii++ ) {
             q.add(createMSG((byte) 1, 88));
-            Assert.assertTrue(q.size() == 88);
+            Assert.assertTrue(q.available() == 88);
             q.add(createMSG((byte) 2, 99));
-            Assert.assertTrue(q.size() == 88 + 99);
+            Assert.assertTrue(q.available() == 88 + 99);
             long len = q.poll(sink, 0, 88);
             for (int i = 0; i < len; i++) {
                 Assert.assertTrue(sink.get(i) == 1);
             }
-            Assert.assertTrue(q.size() == 99);
+            Assert.assertTrue(q.available() == 99);
             len = q.poll(sink, 0, 99);
             for (int i = 0; i < len; i++) {
                 Assert.assertTrue(sink.get(i) == 2);
             }
-            Assert.assertTrue(q.size() == 0);
+            Assert.assertTrue(q.available() == 0);
         }
     }
 
@@ -44,7 +43,7 @@ public class BinaryQueueTest {
             q.add(createMSG((byte) 1, 88));
             q.add(createMSG((byte) 2, 99));
         }
-        Assert.assertTrue(q.size() == 50 * (99 + 88));
+        Assert.assertTrue(q.available() == 50 * (99 + 88));
         for ( int ii = 0; ii < 50; ii++ ) {
             long len = q.poll(sink, 0, 88);
             for (int i = 0; i < len; i++) {
@@ -55,7 +54,7 @@ public class BinaryQueueTest {
                 Assert.assertTrue(sink.get(i) == 2);
             }
         }
-        System.out.println("cap "+q.capacity()+" size "+q.size());
+        System.out.println("cap "+q.capacity()+" size "+q.available());
     }
 
     private ByteSource createMSG(byte num, int len) {

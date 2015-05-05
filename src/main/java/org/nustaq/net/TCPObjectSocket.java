@@ -54,6 +54,7 @@ public class TCPObjectSocket {
 
     public TCPObjectSocket( Socket socket, FSTConfiguration conf) throws IOException {
         this.socket = socket;
+//        socket.setSoLinger(true,0);
         this.out = new BufferedOutputStream(socket.getOutputStream(), BUFFER_SIZE);
         this.in  = new BufferedInputStream(socket.getInputStream(), BUFFER_SIZE);
         this.conf = conf;
