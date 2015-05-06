@@ -68,6 +68,14 @@ public class TCPObjectSocket {
         return stopped;
     }
 
+    /**
+     * enables reading raw bytes from socket
+     * @return
+     */
+    public InputStream getIn() {
+        return in;
+    }
+
     public Object readObject() throws Exception {
         try {
             while ( !readLock.compareAndSet(false,true) );

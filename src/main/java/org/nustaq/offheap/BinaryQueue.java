@@ -18,10 +18,18 @@ import org.nustaq.offheap.bytez.onheap.HeapBytez;
  */
 public class BinaryQueue {
 
-    Bytez storage = new HeapBytez(1024);
+    Bytez storage;
 
     long addIndex = 0;
     long pollIndex = 0;
+
+    public BinaryQueue() {
+        this(1024);
+    }
+
+    public BinaryQueue(int qsize) {
+        storage = new HeapBytez(qsize);
+    }
 
     /**
      * add bytes to the queue. Again by using (reusable) Wrapper classes any kind of memory
@@ -43,11 +51,7 @@ public class BinaryQueue {
      */
     public void add(ByteSource source, long sourceoff, long sourcelen) {
         if ( sourcelen > remaining() ) {
-            HeapBytez newStorage = new HeapBytez((int) Math.max(capacity()*2,capacity()+sourcelen));
-            long len = poll(newStorage, 0, available());
-            pollIndex = 0;
-            addIndex = len;
-            storage = newStorage;
+            grow(sourcelen);
             add(source,sourceoff,sourcelen);
             return;
         }
@@ -56,6 +60,33 @@ public class BinaryQueue {
             if ( addIndex >= storage.length() )
                 addIndex -= storage.length();
         }
+    }
+
+    public void addInt(int written)
+    {
+        add((byte) ((written >>> 0) & 0xFF));
+        add((byte) ((written >>> 8) & 0xFF));
+        add((byte) ((written >>> 16) & 0xFF));
+        add((byte) ((written >>> 24) & 0xFF));
+    }
+
+    public void add(byte b) {
+        if ( 1 > remaining() ) {
+            grow(1);
+            add(b);
+            return;
+        }
+        storage.put(addIndex++, b);
+        if ( addIndex >= storage.length() )
+            addIndex -= storage.length();
+    }
+
+    protected void grow(long sourcelen) {
+        HeapBytez newStorage = new HeapBytez((int) Math.max(capacity()*2,capacity()+sourcelen));
+        long len = poll(newStorage, 0, available());
+        pollIndex = 0;
+        addIndex = len;
+        storage = newStorage;
     }
 
     /**
@@ -79,11 +110,15 @@ public class BinaryQueue {
      */
     public long poll(ByteSink destination, long destoff, long destlen) {
         long count = 0;
-        while ( pollIndex != addIndex && count < destlen ) {
-            destination.put(destoff+count++,storage.get(pollIndex++));
-            if ( pollIndex >= storage.length() ) {
-                pollIndex = 0;
+        try {
+            while (pollIndex != addIndex && count < destlen) {
+                destination.put(destoff + count++, storage.get(pollIndex++));
+                if (pollIndex >= storage.length()) {
+                    pollIndex = 0;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return count;
     }
@@ -164,4 +199,12 @@ public class BinaryQueue {
         return storage.length();
     }
 
+    @Override
+    public String toString() {
+        return "BinaryQueue{" +
+                "storage=" + storage +
+                ", addIndex=" + addIndex +
+                ", pollIndex=" + pollIndex +
+                '}';
+    }
 }

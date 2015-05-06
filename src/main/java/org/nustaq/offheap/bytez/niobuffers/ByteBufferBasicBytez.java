@@ -57,7 +57,7 @@ public class ByteBufferBasicBytez implements BasicBytez {
 
     @Override
     public void put(long byteIndex, byte value) {
-        buffer.putDouble((int) byteIndex,value);
+        buffer.put((int) byteIndex,value);
     }
 
     @Override
