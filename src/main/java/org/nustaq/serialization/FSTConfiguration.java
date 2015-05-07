@@ -475,7 +475,13 @@ public class FSTConfiguration {
 
     /**
      * if false, identical objects will get serialized twice. Gains speed as long there are no double objects/cyclic references (typical for small snippets as used in e.g. RPC)
+     *
+     * Cycles and Objects referenced more than once will not be detected (if set to false).
+     * Additionally JDK compatibility is not supported (read/writeObject and stuff). Use case is highperformance
+     * serialization of plain cycle free data (e.g. messaging). Can perform significantly faster (20-40%).
+     *
      * @param shareReferences
+     *
      */
     public void setShareReferences(boolean shareReferences) {
         this.shareReferences = shareReferences;
