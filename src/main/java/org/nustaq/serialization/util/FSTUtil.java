@@ -261,57 +261,7 @@ public class FSTUtil {
         return buffer;
     }
 
-    public static void main( String arg[] ) {
-
-        int array[] = new int[30_000];
-        for ( int i = 0; i < 20; i++ ) {
-            long tim = System.currentTimeMillis();
-            testOrdinaryFill(array);
-            System.out.println("tim ordinary:"+(System.currentTimeMillis()-tim));
-        }
-
-        for ( int i = 0; i < 20; i++ ) {
-            long tim = System.currentTimeMillis();
-            testCopyFill(array);
-            System.out.println("tim:"+(System.currentTimeMillis()-tim));
-        }
-
-        Object oarray[] = new Object[30_000];
-        for ( int i = 0; i < 20; i++ ) {
-            long tim = System.currentTimeMillis();
-            testOrdinaryFillO(oarray);
-            System.out.println("tim Object ordinary:"+(System.currentTimeMillis()-tim));
-        }
-
-        for ( int i = 0; i < 20; i++ ) {
-            long tim = System.currentTimeMillis();
-            testCopyFillO(oarray);
-            System.out.println("tim Object:"+(System.currentTimeMillis()-tim));
-        }
+    public static int nextPow2( int num ) {
+        return 1<<(num == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(num - 1));
     }
-
-    private static void testCopyFill(int[] array) {
-        for ( int i = 0; i < 100000; i++ ) {
-            clear(array);
-        }
-    }
-
-    private static void testOrdinaryFill(int[] array) {
-        for ( int i = 0; i < 100000; i++ ) {
-            Arrays.fill(array,0);
-        }
-    }
-
-    private static void testCopyFillO(Object[] array) {
-        for ( int i = 0; i < 100000; i++ ) {
-            clear(array);
-        }
-    }
-
-    private static void testOrdinaryFillO(Object[] array) {
-        for ( int i = 0; i < 100000; i++ ) {
-            Arrays.fill(array,null);
-        }
-    }
-
 }
