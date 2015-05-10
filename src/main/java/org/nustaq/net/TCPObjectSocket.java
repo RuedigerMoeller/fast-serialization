@@ -38,7 +38,7 @@ public class TCPObjectSocket {
     OutputStream out;
     FSTConfiguration conf;
     Socket socket;
-    Exception lastErr;
+    Throwable lastErr;
     boolean stopped;
 
     AtomicBoolean readLock = new AtomicBoolean(false);
@@ -58,10 +58,6 @@ public class TCPObjectSocket {
         this.out = new BufferedOutputStream(socket.getOutputStream(), BUFFER_SIZE);
         this.in  = new BufferedInputStream(socket.getInputStream(), BUFFER_SIZE);
         this.conf = conf;
-    }
-
-    public Exception getLastErr() {
-        return lastErr;
     }
 
     public boolean isStopped() {
@@ -100,9 +96,13 @@ public class TCPObjectSocket {
         out.flush();
     }
 
-    public void setLastError(Exception ex) {
+    public void setLastError(Throwable ex) {
         stopped = true;
         lastErr = ex;
+    }
+
+    public Throwable getLastError() {
+        return lastErr;
     }
 
     public void close() throws IOException {
@@ -117,4 +117,9 @@ public class TCPObjectSocket {
     public FSTConfiguration getConf() {
         return conf;
     }
+
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
 }
