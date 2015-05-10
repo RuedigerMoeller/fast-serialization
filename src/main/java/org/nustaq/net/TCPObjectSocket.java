@@ -64,6 +64,10 @@ public class TCPObjectSocket {
         return stopped;
     }
 
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
+
     /**
      * enables reading raw bytes from socket
      * @return
