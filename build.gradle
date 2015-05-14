@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compile fileTree("src/test/lib")
-    compile group: 'org.javassist', name: 'javassist', version: '3.18.1-GA'
+    compile group: 'org.javassist', name: 'javassist', version: '3.19.0-GA'
     compile 'org.objenesis:objenesis:2.1'
 }
 
