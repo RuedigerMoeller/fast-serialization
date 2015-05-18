@@ -40,7 +40,7 @@ task testJar(type: Jar, dependsOn:classes) {
 task allJar(type: Jar, dependsOn:jar) {
     archiveName = 'fst-'+version+"-onejar.jar"
     from zipTree('lib/objenesis-2.1.jar').matching { true }
-    from zipTree('lib/javassist-3.18.1-GA.jar').matching { true }
+    from zipTree('lib/javassist-3.19.0-GA.jar').matching { true }
     from zipTree('build/libs/fst-'+version+'.jar').matching { true }
 }
 
@@ -60,7 +60,7 @@ task release(type: Jar, dependsOn:allJar) {
     }
     into ('lib') {
         from 'lib/objenesis-2.1.jar'
-        from 'lib/javassist-3.18.1-GA.jar'
+        from 'lib/javassist-3.19.0-GA.jar'
         from 'build/libs/fst-'+version+'.jar'
         from 'build/libs/fst-'+version+'-onejar.jar'
     }
