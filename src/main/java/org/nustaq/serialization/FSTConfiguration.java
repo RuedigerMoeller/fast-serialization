@@ -960,7 +960,7 @@ public class FSTConfiguration {
      */
     public Object decodeFromStream( InputStream in ) throws Exception {
         int read = in.read();
-        if ( read <= 0 )
+        if ( read < 0 )
             throw new EOFException("stream is closed");
         int ch1 = (read + 256) & 0xff;
         int ch2 = (in.read()+ 256) & 0xff;
