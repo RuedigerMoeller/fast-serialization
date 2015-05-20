@@ -183,6 +183,11 @@ public class RawMemTest extends BasicFSTTest {
         Assert.assertTrue(lenEx);
     }
 
+    @Test
+    public void testEnums() throws Exception {
+        super.testEnums();
+    }
+
     protected Object onhbench(Object toSer, OnHeapCoder coder, byte[] bytez, int off) throws Exception {
         long tim = System.currentTimeMillis();
         int count = 0;

@@ -558,7 +558,7 @@ public class FSTObjectOutput implements ObjectOutput {
             int boolcount = 0;
             final int length = fieldInfo.length;
             int j = startIndex;
-            if ( ! getCodec().isWritingAttributes() ) {
+            if ( ! getCodec().isWritingAttributes() ) { // pack bools into bits in case it's not a chatty codec
                 for (;; j++) {
                     if ( j == length || fieldInfo[j].getVersion() != version ) {
                         if ( boolcount > 0 ) {

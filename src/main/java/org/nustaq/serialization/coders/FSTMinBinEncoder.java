@@ -345,6 +345,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
         return conf.getCPNameForClass(clz);
     }
 
+    @Override
     public void externalEnd(FSTClazzInfo clz) {
         if ( clz == null ||
              clz.isExternalizable() ||
@@ -357,87 +358,6 @@ public class FSTMinBinEncoder implements FSTEncoder {
     @Override
     public boolean isWritingAttributes() {
         return true;
-    }
-
-
-    /**
-     * Created with IntelliJ IDEA.
-     * User: ruedi
-     * Date: 12.11.12
-     * Time: 03:13
-     * To change this template use File | Settings | File Templates.
-     */
-    public static class Test implements Externalizable, Serializable {
-
-        static String staticString = "Should not serialize this";
-        final static String finalStaticString = "Should not serialize this. Should not serialize this. Should not serialize this. Should not serialize this. Should not serialize this.";
-
-        public static Test[] getArray(int siz) {
-            Test[] instance = new Test[siz];
-            for (int i = 0; i < instance.length; i++) {
-                instance[i] = new Test(i);
-            }
-            return instance;
-        }
-
-        public Test()
-        {
-        }
-
-        public Test(int index) {
-            // avoid benchmarking identity references instead of StringPerf
-            str = "R.Moeller"+index;
-            str1 = "R.Moeller1"+index;
-        }
-
-        private String str;
-        private String str1;
-        private boolean b0 = true;
-        private boolean b1 = false;
-        private boolean b2 = true;
-        private int test1 = 123456;
-        private int test2 = 234234;
-        private int test3 = 456456;
-        private int test4 = -234234344;
-        private int test5 = -1;
-        private int test6 = 0;
-        private long l1 = -38457359987788345l;
-        private long l2 = 0l;
-        private double d = 122.33;
-
-        public void writeExternal(ObjectOutput out) throws IOException {
-            out.writeUTF(str);
-            out.writeUTF(str1);
-            out.writeBoolean(b0);
-            out.writeBoolean(b1);
-            out.writeBoolean(b2);
-            out.writeInt(test1);
-            out.writeInt(test2);
-            out.writeInt(test3);
-            out.writeInt(test4);
-            out.writeInt(test5);
-            out.writeInt(test6);
-            out.writeLong(l1);
-            out.writeLong(l2);
-            out.writeDouble(d);
-        }
-
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            str = in.readUTF();
-            str1 = in.readUTF();
-            b0 = in.readBoolean();
-            b1 = in.readBoolean();
-            b2 = in.readBoolean();
-            test1 = in.readInt();
-            test2 = in.readInt();
-            test3 = in.readInt();
-            test4 = in.readInt();
-            test5 = in.readInt();
-            test6 = in.readInt();
-            l1 = in.readLong();
-            l2 = in.readLong();
-            d = in.readDouble();
-        }
     }
 
     public boolean isPrimitiveArray(Object array, Class<?> componentType) {

@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, UNSAFE, MINBIN
+        DEFAULT, UNSAFE, MINBIN, JSON
     }
     StreamCoderFactory streamCoderFactory = new StreamCoderFactory() {
         @Override

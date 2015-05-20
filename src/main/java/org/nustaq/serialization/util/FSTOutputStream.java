@@ -143,7 +143,7 @@ public final class FSTOutputStream extends OutputStream {
             off = pos;
             reset();
         }
-        if (outstream != this)
+        if (outstream != this && outstream != null)
             outstream.flush();
     }
 

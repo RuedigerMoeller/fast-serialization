@@ -1,6 +1,7 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
+import org.junit.Ignore;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
@@ -382,7 +383,7 @@ public class BasicFSTTest {
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();
         Object res = in.readObject();
-        // note: false alarm with 1.7_71
+        // note: false alarm with 1.7_71 + newer 1.8
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 

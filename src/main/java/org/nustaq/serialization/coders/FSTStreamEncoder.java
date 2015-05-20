@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * serializes into a binary stream
+ * Default Coder used for serialization. Serializes into a binary stream
  */
 public class FSTStreamEncoder implements FSTEncoder {
 
