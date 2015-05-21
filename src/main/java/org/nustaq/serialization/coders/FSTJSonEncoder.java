@@ -303,8 +303,11 @@ public class FSTJSonEncoder implements FSTEncoder {
     @Override
     public void externalEnd(FSTClazzInfo clz) {
         try {
-            gen.writeEndArray();
-            gen.writeEndObject();
+            if ( gen.getOutputContext().inObject() ) {
+                gen.writeEndObject();
+            } else {
+                gen.writeEndArray();
+            }
             gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -331,8 +334,12 @@ public class FSTJSonEncoder implements FSTEncoder {
         // versioning not supported for minbin
         // use as endobject trigger
         if ( version == 0 ) {
-            gen.writeEndObject();
-            gen.writeEndObject();
+            if ( gen.getOutputContext().inObject() ) {
+                gen.writeEndObject();
+            } else {
+                gen.writeEndArray();
+            }
+//            gen.writeEndObject();
             gen.flush();
         }
     }
@@ -344,16 +351,20 @@ public class FSTJSonEncoder implements FSTEncoder {
 
 
     static class JSTST implements Serializable {
-        int i = 1;
+        int i = 41;
+        int ii[] = { 1,2,3,4 };
+//        String st[] = {"A","B"};
         String test = "psodkf";
+        Integer bi = 666;
+        double d = 44.5555;
+//        Double dd = 555.44;
 //        int arr[] = { 1,2,3,4 };
-//        HashMap mp = new HashMap();
-//        ArrayList l = new ArrayList();
-//        int arr1[] = arr;
-//        {
-//            mp.put("Hello", 13);
-//            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
-//        }
+        HashMap mp = new HashMap();
+        ArrayList l = new ArrayList();
+        {
+            mp.put("Hello", 13);
+            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
+        }
     }
 
     public static void main( String a[] ) {

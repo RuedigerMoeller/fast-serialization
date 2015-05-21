@@ -40,6 +40,7 @@ public class FSTObjectOutput implements ObjectOutput {
     public static final byte BIG_BOOLEAN_TRUE = -16;
     public static final byte BIG_LONG = -10;
     public static final byte BIG_INT = -9;
+    public static final byte DIRECT_ARRAY_OBJECT = -8;
     public static final byte HANDLE = -7;
     public static final byte ENUM = -6;
     public static final byte ARRAY = -5;

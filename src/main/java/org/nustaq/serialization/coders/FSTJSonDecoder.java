@@ -13,7 +13,10 @@ import org.nustaq.serialization.util.FSTUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by moelrue on 5/21/15.
@@ -262,11 +265,33 @@ public class FSTJSonDecoder implements FSTDecoder {
     public byte readObjectHeaderTag() throws IOException {
         lastObjectLen = -1;
         lastReadDirectObject = null;
+        lastDirectClass = null;
         JsonToken jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.VALUE_STRING ) {
             lastReadDirectObject = input.getText();
-            lastDirectClass = null;
             return FSTObjectOutput.DIRECT_OBJECT;
+        }
+        if ( jsonToken == JsonToken.VALUE_NUMBER_INT ) {
+            lastReadDirectObject = input.getLongValue();
+            return FSTObjectOutput.DIRECT_OBJECT;
+        }
+        if ( jsonToken == JsonToken.VALUE_NUMBER_FLOAT ) {
+            lastReadDirectObject = input.getDoubleValue();
+            return FSTObjectOutput.DIRECT_OBJECT;
+        }
+        if ( jsonToken == JsonToken.START_ARRAY ) {
+            List arrayTokens = new ArrayList();
+            JsonToken elem = input.nextToken();
+            while ( ! elem.isStructEnd() ) {
+                if ( elem == JsonToken.VALUE_NUMBER_INT ) {
+                    arrayTokens.add(input.getLongValue());
+                } else if ( elem == JsonToken.VALUE_NUMBER_FLOAT ) {
+                    arrayTokens.add(input.getDoubleValue());
+                }
+                elem = input.nextValue();
+            }
+            lastReadDirectObject = arrayTokens;
+            return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
         }
         if ( jsonToken != JsonToken.START_OBJECT ) {
             throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");

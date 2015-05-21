@@ -379,6 +379,34 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec().readFByte()]; }
                 case FSTObjectOutput.NULL: { return null; }
+                case FSTObjectOutput.DIRECT_ARRAY_OBJECT: {
+                    List directObject = (List) getCodec().getDirectObject();
+                    if ( referencee.isIntegral() ) {
+                        Class arrT = referencee.getType().getComponentType();
+                        Object newObj = Array.newInstance(arrT, directObject.size());
+                        for (int i = 0; i < directObject.size(); i++) {
+                            Number n = (Number) directObject.get(i);
+                            if (arrT == boolean.class )
+                                Array.setBoolean(newObj, i, n.intValue() != 0);
+                            else if (arrT == byte.class )
+                                Array.setByte(newObj, i, n.byteValue());
+                            else if (arrT == char.class )
+                                Array.setChar(newObj, i, (char) n.intValue());
+                            else if (arrT == short.class )
+                                Array.setShort(newObj, i, n.shortValue());
+                            else if (arrT == int.class )
+                                Array.setInt(newObj, i, n.intValue());
+                            else if (arrT == long.class )
+                                Array.setLong(newObj, i, n.longValue());
+                            else if (arrT == float.class )
+                                Array.setFloat(newObj, i, n.floatValue());
+                            else if (arrT == float.class )
+                                Array.setDouble(newObj, i, n.doubleValue());
+                        }
+                        return newObj;
+                    }
+                    return null;
+                }
                 case FSTObjectOutput.DIRECT_OBJECT: {
                     Object directObject = getCodec().getDirectObject();
                     if (directObject.getClass() == byte[].class) { // fixme. special for minibin, move it there
