@@ -330,9 +330,11 @@ public class FSTJSonEncoder implements FSTEncoder {
     public void writeVersionTag(int version) throws IOException {
         // versioning not supported for minbin
         // use as endobject trigger
-        gen.writeEndObject();
-        gen.writeEndObject();
-        gen.flush();
+        if ( version == 0 ) {
+            gen.writeEndObject();
+            gen.writeEndObject();
+            gen.flush();
+        }
     }
 
     @Override
@@ -368,8 +370,14 @@ public class FSTJSonEncoder implements FSTEncoder {
             }
         });
 
+        conf.registerCrossPlatformClassMappingUseSimpleName(new Class[] {JSTST.class} );
         JSTST object[] = { new JSTST(),new JSTST(),new JSTST() };
         byte[] bytes = conf.asByteArray(object);
         System.out.println(new String(bytes,0));
+
+
+        bytes = conf.asByteArray(new String[] {"hello"});
+        System.out.println(new String(bytes,0));
+
     }
 }

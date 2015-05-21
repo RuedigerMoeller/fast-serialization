@@ -842,7 +842,7 @@ public class FSTConfiguration {
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
-    public void registerCrossPlatformClassMappingUseSimpleName( Class[] classes ) {
+    public void registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
         registerCrossPlatformClassMappingUseSimpleName(new ArrayList<>(Arrays.asList(classes)));
     }
 
