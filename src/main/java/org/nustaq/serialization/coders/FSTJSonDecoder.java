@@ -32,7 +32,11 @@ public class FSTJSonDecoder implements FSTDecoder {
 
     @Override
     public String readStringUTF() throws IOException {
-        return input.nextTextValue();
+        String res = input.nextFieldName();
+        if ( res == null )
+            return input.getText();
+        return res;
+//        return input.nextTextValue();
 //        Object read = input.readObject();
 //        if (read instanceof String)
 //            return (String) read;
@@ -133,7 +137,7 @@ public class FSTJSonDecoder implements FSTDecoder {
         if ( ! jsonToken.isStructStart() )
             throw new RuntimeException("Expected array start");
         for (int i = 0; i < len; i++) {
-            input.nextToken(); arr[i] = (int) input.getIntValue();
+            input.nextToken(); arr[i] = input.getIntValue();
         }
     }
 
@@ -191,12 +195,12 @@ public class FSTJSonDecoder implements FSTDecoder {
 
     @Override
     public byte[] getBuffer() {
-        return input.getBuffer();
+        return fstInput.buf;
     }
 
     @Override
     public int getInputPos() {
-        return input.getPos();
+        return fstInput.pos;
     }
 
     @Override
@@ -231,21 +235,25 @@ public class FSTJSonDecoder implements FSTDecoder {
         byte b[] = new byte[len];
         System.arraycopy(bytes,off,b,0,len);
         fstInput = new FSTInputStream(b);
+        try {
+            input = FSTJSonEncoder.fac.createParser(fstInput);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void resetWith(byte[] bytes, int len) {
         fstInput = new FSTInputStream(bytes,0,len);
+        try {
+            input = FSTJSonEncoder.fac.createParser(fstInput);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getObjectHeaderLen() // len field of last header read (if avaiable)
     {
-        if ( lastObjectLen < 0 )
-            try {
-                return input.nextIntValue(-1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         return lastObjectLen;
     }
 
@@ -253,64 +261,99 @@ public class FSTJSonDecoder implements FSTDecoder {
     Class lastDirectClass;
     public byte readObjectHeaderTag() throws IOException {
         lastObjectLen = -1;
-        byte tag = input.peekIn();
-        lastDirectClass = null;
-        if ( MinBin.isTag(tag) ) {
-            if ( MinBin.getTagId(tag) == MinBin.HANDLE ) {
-                input.readIn(); // consume
-                return FSTObjectOutput.HANDLE;
-            }
-            if ( MinBin.getTagId(tag) == MinBin.STRING )
-                return FSTObjectOutput.STRING;
-            if ( MinBin.getTagId(tag) == MinBin.BOOL ) {
-                Boolean b = (Boolean) input.readObject();
-                return b ? FSTObjectOutput.BIG_BOOLEAN_TRUE : FSTObjectOutput.BIG_BOOLEAN_FALSE;
-            }
-            if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
-                    MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
-                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
-                    MinBin.getTagId(tag) == MinBin.FLOAT
-                    )
-            {
-                lastReadDirectObject = input.readObject();
-                return FSTObjectOutput.DIRECT_OBJECT;
-            }
-            input.readIn();
-            if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
-                try {
-                    String cln = (String) input.readObject();
-//                  client should use explicit sequence constructor
-//                    if ( cln == null ) {
-//                        lastDirectClass = MBSequence.class;
-//                        // fast terminate as assume js object array so no int for len there ..
-//                        return FSTObjectOutput.OBJECT;
-//                    } else
-                    {
-                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
-                    }
-                } catch (ClassNotFoundException e) {
-                    throw FSTUtil.rethrow(e);
-                }
-                if ( lastDirectClass.isEnum() ) {
-                    input.readInt(); // consume length of 1
-                    String enumString = (String) input.readObject();
-                    lastReadDirectObject = Enum.valueOf(lastDirectClass,enumString);
-                    lastDirectClass = null;
-                    return FSTObjectOutput.DIRECT_OBJECT;
-                } else
-                if ( lastDirectClass.isArray() )
-                    return FSTObjectOutput.ARRAY;
-                else {
-                    input.readInt(); // consume -1 for unknown sequence length
-                    return FSTObjectOutput.OBJECT; // with serializer
-                }
-            }
-            if (MinBin.getTagId(tag)==MinBin.NULL)
-                return FSTObjectOutput.NULL;
-            return FSTObjectOutput.OBJECT;
+        lastReadDirectObject = null;
+        JsonToken jsonToken = input.nextToken();
+        if ( jsonToken == JsonToken.VALUE_STRING ) {
+            lastReadDirectObject = input.getText();
+            lastDirectClass = null;
+            return FSTObjectOutput.DIRECT_OBJECT;
         }
-        lastReadDirectObject = input.readObject();
-        return FSTObjectOutput.DIRECT_OBJECT;
+        if ( jsonToken != JsonToken.START_OBJECT ) {
+            throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");
+        }
+
+        String typeTag = input.nextFieldName();
+        if ( typeTag.equals("type") ) {
+            // object
+            String type = input.nextTextValue();
+            String valueTag = input.nextFieldName();
+            if ( ! "value".equals(valueTag) ) {
+                throw new RuntimeException("expected value attribute for object of type:"+type);
+            }
+            if ( ! input.nextToken().isStructStart() ) {
+                throw new RuntimeException("expected struct start");
+            }
+            try {
+                lastDirectClass = classForName(conf.getClassForCPName(type));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            return FSTObjectOutput.OBJECT;
+        } else if ( typeTag.equals("seqType") ) {
+            // sequence
+            String type = input.nextTextValue();
+            try {
+                lastDirectClass = classForName(type);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            return FSTObjectOutput.ARRAY;
+        } else if ( typeTag.equals("ref") ) {
+            // ref
+        }
+//        byte tag = input.peekIn();
+//        lastDirectClass = null;
+//        if ( MinBin.isTag(tag) ) {
+//            if ( MinBin.getTagId(tag) == MinBin.HANDLE ) {
+//                input.readIn(); // consume
+//                return FSTObjectOutput.HANDLE;
+//            }
+//            if ( MinBin.getTagId(tag) == MinBin.STRING )
+//                return FSTObjectOutput.STRING;
+//            if ( MinBin.getTagId(tag) == MinBin.BOOL ) {
+//                Boolean b = (Boolean) input.readObject();
+//                return b ? FSTObjectOutput.BIG_BOOLEAN_TRUE : FSTObjectOutput.BIG_BOOLEAN_FALSE;
+//            }
+//            if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
+//                    MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
+//                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
+//                    MinBin.getTagId(tag) == MinBin.FLOAT
+//                    )
+//            {
+//                lastReadDirectObject = input.readObject();
+//                return FSTObjectOutput.DIRECT_OBJECT;
+//            }
+//            input.readIn();
+//            if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
+//                try {
+//                    String cln = (String) input.readObject();
+//                    {
+//                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
+//                    }
+//                } catch (ClassNotFoundException e) {
+//                    throw FSTUtil.rethrow(e);
+//                }
+//                if ( lastDirectClass.isEnum() ) {
+//                    input.readInt(); // consume length of 1
+//                    String enumString = (String) input.readObject();
+//                    lastReadDirectObject = Enum.valueOf(lastDirectClass,enumString);
+//                    lastDirectClass = null;
+//                    return FSTObjectOutput.DIRECT_OBJECT;
+//                } else
+//                if ( lastDirectClass.isArray() )
+//                    return FSTObjectOutput.ARRAY;
+//                else {
+//                    input.readInt(); // consume -1 for unknown sequence length
+//                    return FSTObjectOutput.OBJECT; // with serializer
+//                }
+//            }
+//            if (MinBin.getTagId(tag)==MinBin.NULL)
+//                return FSTObjectOutput.NULL;
+//            return FSTObjectOutput.OBJECT;
+//        }
+//        lastReadDirectObject = input.readObject();
+//        return FSTObjectOutput.DIRECT_OBJECT;
+        throw new RuntimeException("expected object header");
     }
 
     public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
@@ -328,10 +371,11 @@ public class FSTJSonDecoder implements FSTDecoder {
             lastDirectClass = null;
             return clInfo;
         }
-        Object read = input.readObject();
-        String name = (String) read;
-        String clzName = conf.getClassForCPName(name);
-        return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
+//        Object read = input.readObject();
+//        String name = (String) read;
+//        String clzName = conf.getClassForCPName(name);
+//        return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
+        return null;
     }
 
     HashMap<String,Class> clzCache = new HashMap<>();
@@ -365,8 +409,13 @@ public class FSTJSonDecoder implements FSTDecoder {
 
     @Override
     public void readPlainBytes(byte[] b, int off, int len) {
-        for (int i = 0; i < len; i++) {
-            b[i+off] = input.readIn();
+        try {
+            for (int i = 0; i < len; i++) {
+                input.nextToken();
+                b[i+off] = input.getByteValue();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -376,62 +425,66 @@ public class FSTJSonDecoder implements FSTDecoder {
     }
 
     public void consumeEndMarker() {
-        byte type = input.peekIn();
-        if (type==MinBin.END) {
-            input.readIn();
+        try {
+            if ( ! input.nextToken().isStructEnd() ) {
+                throw new RuntimeException("end of structure expected");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public Class readArrayHeader() throws Exception {
-        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
-        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
-            input.readIn();
-            lastDirectClass = null;
-            return null;
-        }
-        if ( lastDirectClass != null )
-            return readClass().getClazz();
-        if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
-            input.readIn(); // consume (multidim array)
-        } else if ( MinBin.isPrimitive(tag) ) {
-            input.readIn(); // consume tag
-            switch (MinBin.getBaseType(tag)) {
-                case MinBin.INT_8:
-                    return byte[].class;
-                case MinBin.INT_16:
-                    if (MinBin.isSigned(tag) )
-                        return short[].class;
-                    return char[].class;
-                case MinBin.INT_32:
-                    return int[].class;
-                case MinBin.INT_64:
-                    return long[].class;
-            }
-        }
-        return readClass().getClazz();
+        readObjectHeaderTag();
+        return lastDirectClass;
+//        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
+//        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
+//            input.readIn();
+//            lastDirectClass = null;
+//            return null;
+//        }
+//        if ( lastDirectClass != null )
+//            return readClass().getClazz();
+//        if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
+//            input.readIn(); // consume (multidim array)
+//        } else if ( MinBin.isPrimitive(tag) ) {
+//            input.readIn(); // consume tag
+//            switch (MinBin.getBaseType(tag)) {
+//                case MinBin.INT_8:
+//                    return byte[].class;
+//                case MinBin.INT_16:
+//                    if (MinBin.isSigned(tag) )
+//                        return short[].class;
+//                    return char[].class;
+//                case MinBin.INT_32:
+//                    return int[].class;
+//                case MinBin.INT_64:
+//                    return long[].class;
+//            }
+//        }
+//        return readClass().getClazz();
     }
 
     @Override
     public void readExternalEnd() {
-        if ( input.peekIn() == MinBin.END ) {
-            input.readIn();
-        }
+        consumeEndMarker();
     }
 
     @Override
     public boolean isEndMarker(String s) {
-        return MinBin.END_MARKER == s;
+        return s.equals("}") || s.equals("]");
     }
 
     @Override
     public int readVersionTag() throws IOException {
-        return 0; // versioning not supported for minbin
+        return 0; // versioning not supported for json
     }
 
     @Override
     public void pushBack(int bytes) {
-        input.setPos(input.getPos()-bytes);
+        //fstInput.psetPos(input.getPos()-bytes);
+        throw new RuntimeException("not supported");
     }
 
 

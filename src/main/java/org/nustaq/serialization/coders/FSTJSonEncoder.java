@@ -346,14 +346,14 @@ public class FSTJSonEncoder implements FSTEncoder {
     static class JSTST implements Serializable {
         int i = 1;
         String test = "psodkf";
-        int arr[] = { 1,2,3,4 };
-        HashMap mp = new HashMap();
-        ArrayList l = new ArrayList();
-        int arr1[] = arr;
-        {
-            mp.put("Hello", 13);
-            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
-        }
+//        int arr[] = { 1,2,3,4 };
+//        HashMap mp = new HashMap();
+//        ArrayList l = new ArrayList();
+//        int arr1[] = arr;
+//        {
+//            mp.put("Hello", 13);
+//            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
+//        }
     }
 
     public static void main( String a[] ) {
@@ -366,18 +366,17 @@ public class FSTJSonEncoder implements FSTEncoder {
 
             @Override
             public FSTDecoder createStreamDecoder() {
-                return null;
+                return new FSTJSonDecoder(conf);
             }
         });
 
         conf.registerCrossPlatformClassMappingUseSimpleName(new Class[] {JSTST.class} );
-        JSTST object[] = { new JSTST(),new JSTST(),new JSTST() };
+//        JSTST object[] = { new JSTST(),new JSTST(),new JSTST() };
+        JSTST object = new JSTST();
         byte[] bytes = conf.asByteArray(object);
         System.out.println(new String(bytes,0));
 
-
-        bytes = conf.asByteArray(new String[] {"hello"});
-        System.out.println(new String(bytes,0));
-
+        Object deser = conf.asObject(bytes);
+        System.out.println("deser");
     }
 }
