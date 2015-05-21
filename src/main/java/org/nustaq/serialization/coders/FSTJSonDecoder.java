@@ -241,7 +241,11 @@ public class FSTJSonDecoder implements FSTDecoder {
     public int getObjectHeaderLen() // len field of last header read (if avaiable)
     {
         if ( lastObjectLen < 0 )
-            return (int) input.readInt();
+            try {
+                return input.nextIntValue(-1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         return lastObjectLen;
     }
 
