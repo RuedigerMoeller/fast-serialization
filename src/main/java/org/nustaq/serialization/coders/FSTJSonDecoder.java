@@ -203,7 +203,7 @@ public class FSTJSonDecoder implements FSTDecoder {
 
     @Override
     public int getInputPos() {
-        return fstInput.pos;
+        return (int) input.getCurrentLocation().getByteOffset();
     }
 
     @Override
@@ -267,6 +267,8 @@ public class FSTJSonDecoder implements FSTDecoder {
         lastReadDirectObject = null;
         lastDirectClass = null;
         JsonToken jsonToken = input.nextToken();
+        if ( jsonToken == JsonToken.END_OBJECT )
+            jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.VALUE_STRING ) {
             lastReadDirectObject = input.getText();
             return FSTObjectOutput.DIRECT_OBJECT;
@@ -319,12 +321,19 @@ public class FSTJSonDecoder implements FSTDecoder {
             String type = input.nextTextValue();
             try {
                 lastDirectClass = classForName(conf.getClassForCPName(type));
+                String valueTag = input.nextFieldName();
+                if ( ! "seq".equals(valueTag) ) {
+                    throw new RuntimeException("expected value attribute for object of type:"+type);
+                }
+                if ( ! input.nextToken().isStructStart() ) {
+                    throw new RuntimeException("expected array start");
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
             return FSTObjectOutput.ARRAY;
         } else if ( typeTag.equals("ref") ) {
-            // ref
+            return FSTObjectOutput.HANDLE;
         }
 //        byte tag = input.peekIn();
 //        lastDirectClass = null;
@@ -449,19 +458,11 @@ public class FSTJSonDecoder implements FSTDecoder {
         return true;
     }
 
-    public void consumeEndMarker() {
-        try {
-            if ( ! input.nextToken().isStructEnd() ) {
-                throw new RuntimeException("end of structure expected");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void consumeEndMarker() { // empty as flawed in minbin impl
     }
 
     @Override
     public Class readArrayHeader() throws Exception {
-        readObjectHeaderTag();
         return lastDirectClass;
 //        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
 //        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
@@ -510,6 +511,28 @@ public class FSTJSonDecoder implements FSTDecoder {
     public void pushBack(int bytes) {
         //fstInput.psetPos(input.getPos()-bytes);
         throw new RuntimeException("not supported");
+    }
+
+    private void consumeEnd() {
+        try {
+            JsonToken jsonToken = input.nextToken();
+            if ( ! jsonToken.isStructEnd() ) {
+                throw new RuntimeException("end of structure expected");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void readArrayEnd() {
+        consumeEnd();
+        consumeEnd();
+    }
+
+    @Override
+    public void readObjectEnd() {
+        consumeEnd();
     }
 
 

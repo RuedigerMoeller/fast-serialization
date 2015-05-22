@@ -74,5 +74,11 @@ public interface FSTDecoder {
     boolean isEndMarker(String s);
 
     int readVersionTag() throws IOException;
+
     void pushBack(int bytes);
+
+    // clashes with read end marker, however avoid breaking minbin, so new methods for JSONDe/Encoding
+    void readArrayEnd();
+
+    void readObjectEnd();
 }

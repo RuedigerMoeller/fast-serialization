@@ -529,6 +529,14 @@ public class FSTStreamDecoder implements FSTDecoder {
         input.pos -= bytes;
     }
 
+    @Override
+    public void readArrayEnd() {
+    }
+
+    @Override
+    public void readObjectEnd() {
+    }
+
 
 }
 

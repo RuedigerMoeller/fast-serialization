@@ -420,4 +420,14 @@ public class FSTMinBinDecoder implements FSTDecoder {
         input.setPos(input.getPos()-bytes);
     }
 
+    @Override
+    public void readArrayEnd() {
+
+    }
+
+    @Override
+    public void readObjectEnd() {
+
+    }
+
 }

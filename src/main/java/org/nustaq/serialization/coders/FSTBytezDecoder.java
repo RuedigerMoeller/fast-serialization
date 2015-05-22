@@ -448,4 +448,10 @@ public class FSTBytezDecoder  implements FSTDecoder {
         pos -= bytes;
     }
 
+    @Override
+    public void readArrayEnd() {}
+
+    @Override
+    public void readObjectEnd() {}
+
 }

@@ -340,6 +340,7 @@ public class FSTObjectInput implements ObjectInput {
             c = clzSerInfo.getClazz();
             if ( c.isArray() )
                 return readArrayNoHeader(referencee,readPos,c);
+            // fall through
         } else if ( code == FSTObjectOutput.TYPED ) {
             c = referencee.getType();
             clzSerInfo = getClazzInfo(c, referencee);
@@ -347,14 +348,17 @@ public class FSTObjectInput implements ObjectInput {
             c = referencee.getPossibleClasses()[code - 1];
             clzSerInfo = getClazzInfo(c, referencee);
         } else {
-            return instantiateSpecialTag(referencee, readPos, code);
+            Object res = instantiateSpecialTag(referencee, readPos, code);
+            return res;
         }
         try {
             FSTObjectSerializer ser = clzSerInfo.getSer();
             if (ser != null) {
-                return instantiateAndReadWithSer(c, ser, clzSerInfo, referencee, readPos);
+                Object res = instantiateAndReadWithSer(c, ser, clzSerInfo, referencee, readPos);
+                return res;
             } else {
-                return instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);
+                Object res = instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);
+                return res;
             }
         } catch (Exception e) {
             throw FSTUtil.rethrow(e);
@@ -424,8 +428,15 @@ public class FSTObjectInput implements ObjectInput {
                     return directObject;
                 }
                 case FSTObjectOutput.STRING: return getCodec().readStringUTF();
-                case FSTObjectOutput.HANDLE: { return instantiateHandle(referencee); }
-                case FSTObjectOutput.ARRAY: { return instantiateArray(referencee, readPos); }
+                case FSTObjectOutput.HANDLE: {
+                    Object res = instantiateHandle(referencee);
+                    getCodec().readObjectEnd();
+                    return res;
+                }
+                case FSTObjectOutput.ARRAY: {
+                    Object res = instantiateArray(referencee, readPos);
+                    return res;
+                }
                 case FSTObjectOutput.ENUM: { return instantiateEnum(referencee, readPos); }
             }
             throw new RuntimeException("unknown object tag "+code);
@@ -458,6 +469,7 @@ public class FSTObjectInput implements ObjectInput {
         if ( ! referencee.isFlat() ) {
             objects.registerObjectForRead(res, readPos);
         }
+        getCodec().readArrayEnd();
         return res;
     }
 
