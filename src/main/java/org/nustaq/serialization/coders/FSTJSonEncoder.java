@@ -349,6 +349,17 @@ public class FSTJSonEncoder implements FSTEncoder {
         return true;
     }
 
+    @Override
+    public void writeArrayEnd() {
+        try {
+            gen.writeEndArray();
+            gen.writeEndObject();
+            gen.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     static class JSTST implements Serializable {
         int i = 41;
@@ -357,14 +368,15 @@ public class FSTJSonEncoder implements FSTEncoder {
         String test = "psodkf";
         Integer bi = 666;
         double d = 44.5555;
+        Object arr = new Object[] { "A", "B"};
 //        Double dd = 555.44;
 //        int arr[] = { 1,2,3,4 };
-        HashMap mp = new HashMap();
-        ArrayList l = new ArrayList();
-        {
-            mp.put("Hello", 13);
-            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
-        }
+//        HashMap mp = new HashMap();
+//        ArrayList l = new ArrayList();
+//        {
+//            mp.put("Hello", 13);
+//            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
+//        }
     }
 
     public static void main( String a[] ) {

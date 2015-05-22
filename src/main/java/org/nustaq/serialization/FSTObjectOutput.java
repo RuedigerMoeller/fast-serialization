@@ -416,6 +416,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite))
                     return serializationInfo; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
+                getCodec().writeArrayEnd();
             } else if ( ser == null ) {
                 // default write object wihtout custom serializer
                 // handle write replace

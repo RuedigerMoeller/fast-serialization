@@ -397,5 +397,10 @@ public class FSTBytezEncoder implements FSTEncoder {
         return false || isPlainBAAccessible();
     }
 
+    @Override
+    public void writeArrayEnd() {
+
+    }
+
 }
 

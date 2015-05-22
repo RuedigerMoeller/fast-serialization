@@ -378,4 +378,9 @@ public class FSTMinBinEncoder implements FSTEncoder {
         return true;
     }
 
+    @Override
+    public void writeArrayEnd() {
+
+    }
+
 }

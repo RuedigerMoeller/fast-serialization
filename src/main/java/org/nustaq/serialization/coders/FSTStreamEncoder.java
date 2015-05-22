@@ -635,5 +635,10 @@ public class FSTStreamEncoder implements FSTEncoder {
         return true;
     }
 
+    @Override
+    public void writeArrayEnd() {
+
+    }
+
 }
 

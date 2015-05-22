@@ -96,4 +96,6 @@ public interface FSTEncoder {
     void writeVersionTag(int version) throws IOException;
 
     boolean isByteArrayBased();
+
+    void writeArrayEnd();
 }

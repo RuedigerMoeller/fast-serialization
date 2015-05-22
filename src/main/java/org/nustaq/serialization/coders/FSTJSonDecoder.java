@@ -318,7 +318,7 @@ public class FSTJSonDecoder implements FSTDecoder {
             // sequence
             String type = input.nextTextValue();
             try {
-                lastDirectClass = classForName(type);
+                lastDirectClass = classForName(conf.getClassForCPName(type));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
