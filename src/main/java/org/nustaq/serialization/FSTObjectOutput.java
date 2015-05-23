@@ -643,6 +643,7 @@ public class FSTObjectOutput implements ObjectOutput {
         } catch (IllegalAccessException ex) {
             throw FSTUtil.rethrow(ex);
         }
+
     }
 
     // write identical to other version, but take field values from hashmap (because of annoying putField/getField feature)

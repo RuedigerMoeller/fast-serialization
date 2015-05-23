@@ -15,6 +15,9 @@
  */
 package org.nustaq.serialization;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.coders.*;
@@ -72,6 +75,8 @@ public class FSTConfiguration {
     boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
     FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
+    Object coderSpecific;
+
     public boolean isForceClzInit() {
         return forceClzInit;
     }
@@ -127,10 +132,6 @@ public class FSTConfiguration {
         } finally {
             conflock.set(false);
         }
-    }
-
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
     }
 
     /**
@@ -193,6 +194,38 @@ public class FSTConfiguration {
         return res;
     }
 
+    public static FSTConfiguration createJsonConfiguration() {
+        final FSTConfiguration conf = createMinBinConfiguration();
+        conf.setCoderSpecific(new JsonFactory());
+                conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
+            @Override
+            public FSTEncoder createStreamEncoder() {
+                return new FSTJsonEncoder(conf);
+            }
+
+            @Override
+            public FSTDecoder createStreamDecoder() {
+                return new FSTJsonDecoder(conf);
+            }
+        });
+        return conf;
+    }
+
+    /**
+     * debug only, very slow (creates config with each call)
+     *
+     * @param o
+     */
+    public static void prettyPrintJson(Object o) {
+        FSTConfiguration conf = createJsonConfiguration();
+        conf.setCoderSpecific(new JsonFactory() {
+            @Override
+            public JsonGenerator createGenerator(OutputStream out) throws IOException {
+                return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
+            }
+        });
+        System.out.println(conf.asJsonString(o));
+    }
     /**
      *
      * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
@@ -298,7 +331,6 @@ public class FSTConfiguration {
         return conf;
     }
 
-
     /**
      * register a custom serializer for a given class or the class and all of its subclasses.
      * Serializers must be configured identical on read/write side and should be set before
@@ -310,6 +342,18 @@ public class FSTConfiguration {
      */
     public void registerSerializer(Class clazz, FSTObjectSerializer ser, boolean alsoForAllSubclasses ) {
         serializationInfoRegistry.serializerRegistry.putSerializer(clazz, ser, alsoForAllSubclasses);
+    }
+
+    public <T> T getCoderSpecific() {
+        return (T) coderSpecific;
+    }
+
+    public void setCoderSpecific(Object coderSpecific) {
+        this.coderSpecific = coderSpecific;
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
     /**
@@ -827,31 +871,35 @@ public class FSTConfiguration {
      *
      * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
      */
-    public void registerCrossPlatformClassMapping( String[][] keysAndVals ) {
+    public FSTConfiguration registerCrossPlatformClassMapping( String[][] keysAndVals ) {
         for (int i = 0; i < keysAndVals.length; i++) {
             String[] keysAndVal = keysAndVals[i];
             registerCrossPlatformClassMapping(keysAndVal[0], keysAndVal[1]);
         }
+        return this;
     }
 
-    public void registerCrossPlatformClassMapping( String shortName,  String fqName ) {
+    public FSTConfiguration registerCrossPlatformClassMapping( String shortName,  String fqName ) {
         minbinNames.put(shortName, fqName);
         minbinNamesReverse.put(fqName, shortName);
+        return this;
     }
 
     /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
-    public void registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
+    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
         registerCrossPlatformClassMappingUseSimpleName(new ArrayList<>(Arrays.asList(classes)));
+        return this;
     }
 
-    public void registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
+    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
         for (int i = 0; i < classes.size(); i++) {
             Class clz = classes.get(i);
             minbinNames.put(clz.getSimpleName(), clz.getName());
             minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
         }
+        return this;
     }
 
     /**
@@ -916,6 +964,18 @@ public class FSTConfiguration {
             return objectOutput.getBuffer();
         } catch (IOException e) {
             throw FSTUtil.rethrow(e);
+        }
+    }
+
+    public String asJsonString(Object o) {
+        if ( getCoderSpecific() instanceof JsonFactory == false ) {
+            return "can be called on JsonConfiguration only";
+        } else {
+            try {
+                return new String(asByteArray(o),"UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw FSTUtil.rethrow(e);
+            }
         }
     }
 

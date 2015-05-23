@@ -2,11 +2,8 @@ package org.nustaq.serialization.coders;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.nustaq.serialization.*;
-import org.nustaq.serialization.minbin.MBIn;
 import org.nustaq.serialization.minbin.MBObject;
-import org.nustaq.serialization.minbin.MinBin;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -15,13 +12,12 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by moelrue on 5/21/15.
  */
-public class FSTJSonDecoder implements FSTDecoder {
+public class FSTJsonDecoder implements FSTDecoder {
 
     FSTConfiguration conf;
 
@@ -29,7 +25,7 @@ public class FSTJSonDecoder implements FSTDecoder {
 
     private FSTInputStream fstInput;
 
-    public FSTJSonDecoder(FSTConfiguration conf) {
+    public FSTJsonDecoder(FSTConfiguration conf) {
         this.conf = conf;
     }
 
@@ -215,7 +211,7 @@ public class FSTJSonDecoder implements FSTDecoder {
     public void setInputStream(InputStream in) {
         try {
             fstInput = new FSTInputStream(in);
-            input = FSTJSonEncoder.fac.createParser(fstInput);
+            input = FSTJsonEncoder.fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -239,7 +235,7 @@ public class FSTJSonDecoder implements FSTDecoder {
         System.arraycopy(bytes,off,b,0,len);
         fstInput = new FSTInputStream(b);
         try {
-            input = FSTJSonEncoder.fac.createParser(fstInput);
+            input = FSTJsonEncoder.fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -249,7 +245,7 @@ public class FSTJSonDecoder implements FSTDecoder {
     public void resetWith(byte[] bytes, int len) {
         fstInput = new FSTInputStream(bytes,0,len);
         try {
-            input = FSTJSonEncoder.fac.createParser(fstInput);
+            input = FSTJsonEncoder.fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -304,7 +300,7 @@ public class FSTJSonDecoder implements FSTDecoder {
             // object
             String type = input.nextTextValue();
             String valueTag = input.nextFieldName();
-            if ( ! "value".equals(valueTag) ) {
+            if ( ! "obj".equals(valueTag) ) {
                 throw new RuntimeException("expected value attribute for object of type:"+type);
             }
             if ( ! input.nextToken().isStructStart() ) {
@@ -334,59 +330,22 @@ public class FSTJSonDecoder implements FSTDecoder {
             return FSTObjectOutput.ARRAY;
         } else if ( typeTag.equals("ref") ) {
             return FSTObjectOutput.HANDLE;
+        } else if ( typeTag.equals("enum") ) {
+            try {
+                String clName = input.nextTextValue();
+                Class aClass = classForName(conf.getClassForCPName(clName));
+                String valueTag = input.nextFieldName();
+                if ( ! "val".equals(valueTag) ) {
+                    throw new RuntimeException("expected value attribute for enum of type:"+clName);
+                }
+                String enumString = input.nextTextValue();
+                lastReadDirectObject = Enum.valueOf(aClass,enumString);
+                input.nextToken(); // object end
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            return FSTObjectOutput.DIRECT_OBJECT;
         }
-//        byte tag = input.peekIn();
-//        lastDirectClass = null;
-//        if ( MinBin.isTag(tag) ) {
-//            if ( MinBin.getTagId(tag) == MinBin.HANDLE ) {
-//                input.readIn(); // consume
-//                return FSTObjectOutput.HANDLE;
-//            }
-//            if ( MinBin.getTagId(tag) == MinBin.STRING )
-//                return FSTObjectOutput.STRING;
-//            if ( MinBin.getTagId(tag) == MinBin.BOOL ) {
-//                Boolean b = (Boolean) input.readObject();
-//                return b ? FSTObjectOutput.BIG_BOOLEAN_TRUE : FSTObjectOutput.BIG_BOOLEAN_FALSE;
-//            }
-//            if (    MinBin.getTagId(tag) == MinBin.DOUBLE ||
-//                    MinBin.getTagId(tag) == MinBin.DOUBLE_ARR ||
-//                    MinBin.getTagId(tag) == MinBin.FLOAT_ARR ||
-//                    MinBin.getTagId(tag) == MinBin.FLOAT
-//                    )
-//            {
-//                lastReadDirectObject = input.readObject();
-//                return FSTObjectOutput.DIRECT_OBJECT;
-//            }
-//            input.readIn();
-//            if (MinBin.getTagId(tag) == MinBin.SEQUENCE) {
-//                try {
-//                    String cln = (String) input.readObject();
-//                    {
-//                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
-//                    }
-//                } catch (ClassNotFoundException e) {
-//                    throw FSTUtil.rethrow(e);
-//                }
-//                if ( lastDirectClass.isEnum() ) {
-//                    input.readInt(); // consume length of 1
-//                    String enumString = (String) input.readObject();
-//                    lastReadDirectObject = Enum.valueOf(lastDirectClass,enumString);
-//                    lastDirectClass = null;
-//                    return FSTObjectOutput.DIRECT_OBJECT;
-//                } else
-//                if ( lastDirectClass.isArray() )
-//                    return FSTObjectOutput.ARRAY;
-//                else {
-//                    input.readInt(); // consume -1 for unknown sequence length
-//                    return FSTObjectOutput.OBJECT; // with serializer
-//                }
-//            }
-//            if (MinBin.getTagId(tag)==MinBin.NULL)
-//                return FSTObjectOutput.NULL;
-//            return FSTObjectOutput.OBJECT;
-//        }
-//        lastReadDirectObject = input.readObject();
-//        return FSTObjectOutput.DIRECT_OBJECT;
         throw new RuntimeException("expected object header");
     }
 

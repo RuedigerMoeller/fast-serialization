@@ -355,6 +355,7 @@ public class FSTObjectInput implements ObjectInput {
             FSTObjectSerializer ser = clzSerInfo.getSer();
             if (ser != null) {
                 Object res = instantiateAndReadWithSer(c, ser, clzSerInfo, referencee, readPos);
+                getCodec().readArrayEnd();
                 return res;
             } else {
                 Object res = instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);

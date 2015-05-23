@@ -1,0 +1,36 @@
+{
+  "type" : "JSTST",
+  "obj" : {
+    "d" : 44.5555,
+    "aa" : 33,
+    "i" : 41,
+    "dd" : 555.44,
+    "bi" : 666,
+    "arr" : {
+      "seqType" : "array",
+      "seq" : [ 3, "aA", "aB", {
+        "seqType" : "array",
+        "seq" : [ 1, "POKPOK" ]
+      } ]
+    },
+    "arr1" : {
+      "seqType" : "array",
+      "seq" : [ 2, "aaA", "aaB" ]
+    },
+    "arr2" : {
+      "seqType" : "array",
+      "seq" : [ 2, {
+        "ref" : 345
+      }, {
+        "ref" : 352
+      } ]
+    },
+    "test" : "psodkf",
+    "st" : {
+      "seqType" : "String[]",
+      "seq" : [ 2, "A", "B" ]
+    },
+    "arri" : [ 1, 2, 3, 4 ],
+    "ii" : [ 1, 2, 3, 4 ]
+  }
+}

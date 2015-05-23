@@ -120,7 +120,8 @@ public final class FSTObjectRegistry {
         if (disabled /*|| streamPosition <= lastRegisteredReadPos*/) {
             return;
         }
-//        System.out.println("POK REGISTER:"+o+":"+streamPosition);
+        if (streamPosition==945)
+        System.out.println("POK REGISTER:"+o+":"+streamPosition);
         int pos = streamPosition / OBJ_DIVISOR;
         Object[] reuseMap = this.reuseMap;
         if ( pos < reuseMap.length ) {

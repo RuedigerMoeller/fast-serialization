@@ -17,16 +17,17 @@ import java.util.HashMap;
  * Created by ruedi on 20/05/15.
  *
  */
-public class FSTJSonEncoder implements FSTEncoder {
+public class FSTJsonEncoder implements FSTEncoder {
 
-    static JsonFactory fac = new JsonFactory();
+    static JsonFactory fac;// = new JsonFactory();
     FSTConfiguration conf;
 
     protected JsonGenerator gen;
     FSTOutputStream out;
 
-    public FSTJSonEncoder(FSTConfiguration conf) {
+    public FSTJsonEncoder(FSTConfiguration conf) {
         this.conf = conf;
+        fac = conf.getCoderSpecific();
     }
 
     @Override
@@ -142,7 +143,7 @@ public class FSTJSonEncoder implements FSTEncoder {
     public void setOutstream(OutputStream outstream) {
         out = new FSTOutputStream(outstream);
         try {
-            gen = fac.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
+            gen = fac.createGenerator(out);//.setPrettyPrinter(new DefaultPrettyPrinter());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -208,16 +209,16 @@ public class FSTJSonEncoder implements FSTEncoder {
                     break;
                 if ( clzInfo.getSer()!=null || clzInfo.isExternalizable() ) {
                     gen.writeStartObject();
-                    gen.writeFieldName("seqType");
+                    gen.writeFieldName("type");
                     writeSymbolicClazz(clzInfo.getClazz());
-                    gen.writeFieldName("seq");
+                    gen.writeFieldName("obj");
                     gen.writeStartArray();
                 } else
                 {
                     gen.writeStartObject();
                     gen.writeFieldName("type");
                     writeSymbolicClazz(clzInfo.getClazz());
-                    gen.writeFieldName("value");
+                    gen.writeFieldName("obj");
                     gen.writeStartObject();
                 }
                 gen.flush();
@@ -253,23 +254,24 @@ public class FSTJSonEncoder implements FSTEncoder {
                 }
                 break;
             case FSTObjectOutput.ENUM:
-//                out.writeTagHeader(MinBin.SEQUENCE);
-//                boolean isEnumClass = toWrite.getClass().isEnum();
-//                Class c = toWrite.getClass();
-//                if (!isEnumClass) {
-//                    // weird stuff ..
-//                    while (c != null && !c.isEnum()) {
-//                        c = toWrite.getClass().getEnclosingClass();
-//                    }
-//                    if (c == null) {
-//                        throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
-//                    }
-//                    writeSymbolicClazz(c);
-//                } else {
-//                    writeSymbolicClazz(c);
-//                }
-//                out.writeIntPacked(1);
-//                out.writeObject(toWrite.toString());
+                boolean isEnumClass = toWrite.getClass().isEnum();
+                Class c = toWrite.getClass();
+                if (!isEnumClass) {
+                    // weird stuff ..
+                    while (c != null && !c.isEnum()) {
+                        c = toWrite.getClass().getEnclosingClass();
+                    }
+                    if (c == null) {
+                        throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
+                    }
+                }
+                gen.writeStartObject();
+                gen.writeFieldName("enum");
+                writeSymbolicClazz(c);
+                gen.writeFieldName("val");
+                gen.writeString(toWrite.toString());
+                gen.writeEndObject();
+                gen.flush();
                 return true;
             default:
                 throw new RuntimeException("unexpected tag "+tag);
@@ -305,11 +307,8 @@ public class FSTJSonEncoder implements FSTEncoder {
         try {
             if ( Number.class.isAssignableFrom(clz.getClazz()) ) // special for bignums
                 return;
-            if ( gen.getOutputContext().inObject() ) {
-                gen.writeEndObject();
-            } else {
-                gen.writeEndArray();
-            }
+            gen.writeEndArray();
+            gen.writeEndObject();
             gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -341,7 +340,7 @@ public class FSTJSonEncoder implements FSTEncoder {
             } else {
                 gen.writeEndArray();
             }
-//            gen.writeEndObject();
+            gen.writeEndObject();
             gen.flush();
         }
     }
@@ -362,45 +361,49 @@ public class FSTJSonEncoder implements FSTEncoder {
         }
     }
 
+    static class JSTST_O implements Serializable {
+        int a = 13;
+
+        public JSTST_O(int a) {
+            this.a = a;
+        }
+    }
+
+    enum TE {
+        A,BB
+    }
 
     static class JSTST implements Serializable {
-//        int i = 41;
-//        int ii[] = { 1,2,3,4 };
-//        String st[] = {"A","B"};
-//        String test = "psodkf";
-//        Integer bi = 666;
-//        double d = 44.5555;
-//        Object arr = new Object[] { "aA", "aB", new Object[] {"POKPOK"}};
-//        String refString = "aAa";
-//        String refString1 = "aAa";
-//        Object arr1 = new Object[] { "aaA", "aaB", };
-//        Object arr2 = new Object[] { "aaA", "aaB", };
-//        Double dd = 555.44;
-//        int aa = 33;
-//        int arri[] = { 1,2,3,4 };
+
+        int i = 41;
+        int ii[] = { 1,2,3,4 };
+        String st[] = {"A","B"};
+        String test = "psodkf";
+        Integer bi = 666;
+        double d = 44.5555;
+        Object arr = new Object[] { "aA", "aB", new Object[] {"POKPOK"}};
+        String refString = "aAa";
+        String refString1 = "aAa";
+        Object arr1 = new Object[] { "aaA", "aaB", };
+        Object arr2 = new Object[] { "aaA", "aaB", TE.A};
+        Double dd = 555.44;
+        TE en = TE.BB;
+        int aa = 33;
+        int arri[] = { 1,2,3,4 };
         HashMap mp = new HashMap();
         ArrayList l = new ArrayList();
         {
             mp.put("Hello", 13);
-            l.add("pok");l.add(new HashMap<>());l.add(new double[]{ 12.3,44.5});
+            l.add("pok");
+            l.add(123);
+            l.add(new JSTST_O(456));
+            l.add(new double[]{ 12.3,44.5});
         }
     }
 
     public static void main( String a[] ) {
-        final FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
-        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
-            @Override
-            public FSTEncoder createStreamEncoder() {
-                return new FSTJSonEncoder(conf);
-            }
-
-            @Override
-            public FSTDecoder createStreamDecoder() {
-                return new FSTJSonDecoder(conf);
-            }
-        });
-
-        conf.registerCrossPlatformClassMappingUseSimpleName(new Class[] {JSTST.class} );
+        final FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        conf.registerCrossPlatformClassMappingUseSimpleName(JSTST.class);
 //        JSTST object[] = { new JSTST(),new JSTST(),new JSTST() };
         JSTST object = new JSTST();
         byte[] bytes = conf.asByteArray(object);
@@ -408,5 +411,7 @@ public class FSTJSonEncoder implements FSTEncoder {
 
         Object deser = conf.asObject(bytes);
         System.out.println("deser");
+        FSTConfiguration.prettyPrintJson(object);
+        FSTConfiguration.prettyPrintJson(deser);
     }
 }
