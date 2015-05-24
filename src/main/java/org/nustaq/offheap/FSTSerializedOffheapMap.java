@@ -59,7 +59,7 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
             tmpVal.setLen(buffer.length);
             return encodeValue(value);
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         return tmpVal;
     }

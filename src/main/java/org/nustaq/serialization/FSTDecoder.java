@@ -66,7 +66,8 @@ public interface FSTDecoder {
 
     void consumeEndMarker();
 
-    Class readArrayHeader() throws IOException, ClassNotFoundException, Exception;
+    // returns class or directly read array
+    Object readArrayHeader() throws IOException, ClassNotFoundException, Exception;
 
     // read end maker and consume, if no endmarker found do nothing
     void readExternalEnd();

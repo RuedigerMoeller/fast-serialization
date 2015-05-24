@@ -34,6 +34,7 @@ import java.util.*;
  */
 public class FSTObjectOutput implements ObjectOutput {
 
+    public static Object NULL_PLACEHOLDER = new Object() { public String toString() { return "NULL_PLACEHOLDER"; }};
     public static final byte SPECIAL_COMPATIBILITY_OBJECT_TAG = -19; // see issue 52
     public static final byte ONE_OF = -18;
     public static final byte BIG_BOOLEAN_FALSE = -17;
@@ -426,7 +427,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         try {
                             replaced = serializationInfo.getWriteReplaceMethod().invoke(toWrite);
                         } catch (Exception e) {
-                            throw FSTUtil.rethrow(e);
+                            FSTUtil.<RuntimeException>rethrow(e);
                         }
                         if ( replaced != toWrite ) {
                             toWrite = replaced;
@@ -487,7 +488,8 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     private boolean writeHandleIfApplicable(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
-        int handle = objects.registerObjectForWrite(toWrite, getCodec().getWritten(), serializationInfo, tmp);
+        int writePos = getCodec().getWritten();
+        int handle = objects.registerObjectForWrite(toWrite, writePos, serializationInfo, tmp);
         // determine class header
         if ( handle >= 0 ) {
             final boolean isIdentical = tmp[0] == 0; //objects.getReadRegisteredObject(handle) == toWrite;
@@ -544,7 +546,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 writeByte(55); // tag this is written with writeMethod
                 fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         } else {
             if ( fstCompatibilityInfo != null ) {
@@ -641,7 +643,7 @@ public class FSTObjectOutput implements ObjectOutput {
             }
             getCodec().writeVersionTag((byte) 0);
         } catch (IllegalAccessException ex) {
-            throw FSTUtil.rethrow(ex);
+            FSTUtil.<RuntimeException>rethrow(ex);
         }
 
     }
@@ -699,7 +701,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     writeObjectWithContext(subInfo, subObject);
                 }
             } catch (Exception ex) {
-                throw FSTUtil.rethrow(ex);
+                FSTUtil.<RuntimeException>rethrow(ex);
             }
         }
         if ( boolcount > 0 ) {
@@ -789,8 +791,10 @@ public class FSTObjectOutput implements ObjectOutput {
                         needsWrite = !getCodec().writeTag(ARRAY, subArr, 0, subArr);
                     }
                 }
-                if ( needsWrite )
+                if ( needsWrite ) {
                     writeArray(ref1, subArr);
+                    getCodec().writeArrayEnd();
+                }
             }
         }
     }
@@ -882,7 +886,7 @@ public class FSTObjectOutput implements ObjectOutput {
                             newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass());
                         }
                     } catch (Exception e) {
-                        throw FSTUtil.rethrow(e);
+                        FSTUtil.<RuntimeException>rethrow(e);
                     }
                 }
                 FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.compInfo.get(cl).getFieldArray(),0,0);

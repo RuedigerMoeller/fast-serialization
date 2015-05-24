@@ -257,7 +257,7 @@ public class FSTBytezEncoder implements FSTEncoder {
         try {
             ensureFree( position+4);
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         buffout.putInt(position,v);
     }
@@ -333,7 +333,7 @@ public class FSTBytezEncoder implements FSTEncoder {
         try {
             clnames.encodeClass(this,cl);
         } catch ( IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -342,7 +342,7 @@ public class FSTBytezEncoder implements FSTEncoder {
         try {
             clnames.encodeClass(this, clInf);
         } catch ( IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 

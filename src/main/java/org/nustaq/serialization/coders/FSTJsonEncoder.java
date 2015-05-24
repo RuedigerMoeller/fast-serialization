@@ -2,7 +2,6 @@ package org.nustaq.serialization.coders;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 
@@ -10,8 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by ruedi on 20/05/15.
@@ -19,7 +16,7 @@ import java.util.HashMap;
  */
 public class FSTJsonEncoder implements FSTEncoder {
 
-    static JsonFactory fac;// = new JsonFactory();
+    JsonFactory fac;
     FSTConfiguration conf;
 
     protected JsonGenerator gen;
@@ -33,73 +30,84 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException {
         gen.writeBinary(bufferedName,off,length);
-        gen.flush();
     }
 
     @Override
     public void writePrimitiveArray(Object array, int start, int length) throws IOException {
         gen.writeStartArray();
-        for (int i=0; i < length; i++ ) {
-            Number num = (Number) Array.get(array, start + i);
-            if ( num instanceof Float || num instanceof Double ) {
-                gen.writeNumber(num.doubleValue());
-            } else
-                gen.writeNumber(num.longValue());
+        Class<?> componentType = array.getClass().getComponentType();
+        if ( componentType != int.class ) {
+            gen.writeString(componentType.getSimpleName());
+        }
+        if ( array instanceof boolean[] ) {
+            boolean arr[] = (boolean[]) array;
+            for (int i=0; i < length; i++ ) {
+                gen.writeBoolean(arr[i]);
+            }
+        } else if ( array instanceof char[] ) {
+            char arr[] = (char[]) array;
+            for (int i=0; i < length; i++ ) {
+                gen.writeNumber(arr[i]);
+            }
+        } else {
+            for (int i=0; i < length; i++ ) {
+                Number num = (Number) Array.get(array, start + i);
+                if ( num instanceof Float || num instanceof Double ) {
+                    gen.writeNumber(num.doubleValue());
+                } else
+                    gen.writeNumber(num.longValue());
+            }
         }
         gen.writeEndArray();
-        gen.flush();
     }
 
     @Override
     public void writeStringUTF(String str) throws IOException {
         gen.writeString(str);
-        gen.flush();
     }
 
     @Override
     public void writeFShort(short c) throws IOException {
         gen.writeNumber(c);
-        gen.flush();
     }
 
     @Override
     public void writeFChar(char c) throws IOException {
         gen.writeNumber(c);
-        gen.flush();
     }
 
     @Override
     public void writeFByte(int v) throws IOException {
         gen.writeNumber(v);
-        gen.flush();
     }
 
     @Override
     public void writeFInt(int anInt) throws IOException {
         gen.writeNumber(anInt);
-        gen.flush();
     }
 
     @Override
     public void writeFLong(long anInt) throws IOException {
         gen.writeNumber(anInt);
-        gen.flush();
     }
 
     @Override
     public void writeFFloat(float value) throws IOException {
         gen.writeNumber(value);
-        gen.flush();
     }
 
     @Override
     public void writeFDouble(double value) throws IOException {
         gen.writeNumber(value);
-        gen.flush();
     }
 
     @Override
     public int getWritten() {
+        try {
+            gen.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return out.pos-out.getOff();
     }
 
@@ -221,7 +229,6 @@ public class FSTJsonEncoder implements FSTEncoder {
                     gen.writeFieldName("obj");
                     gen.writeStartObject();
                 }
-                gen.flush();
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
@@ -231,7 +238,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 gen.writeBoolean(Boolean.FALSE);
                 break; // ignore, header created by writing long. FIXME: won't work
             case FSTObjectOutput.BIG_BOOLEAN_TRUE:
-                gen.writeBoolean(Boolean.FALSE);
+                gen.writeBoolean(Boolean.TRUE);
                 break; // ignore, header created by writing long. FIXME: won't work
             case FSTObjectOutput.BIG_LONG:
                 break; // ignore, header implicitely created by writing long.
@@ -250,7 +257,6 @@ public class FSTJsonEncoder implements FSTEncoder {
                     writeSymbolicClazz(clz);
                     gen.writeFieldName("seq");
                     gen.writeStartArray();
-                    gen.flush();
                 }
                 break;
             case FSTObjectOutput.ENUM:
@@ -271,7 +277,6 @@ public class FSTJsonEncoder implements FSTEncoder {
                 gen.writeFieldName("val");
                 gen.writeString(toWrite.toString());
                 gen.writeEndObject();
-                gen.flush();
                 return true;
             default:
                 throw new RuntimeException("unexpected tag "+tag);
@@ -282,7 +287,6 @@ public class FSTJsonEncoder implements FSTEncoder {
     private void writeSymbolicClazz(Class<?> clz) {
         try {
             gen.writeString(classToString(clz));
-            gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -296,7 +300,6 @@ public class FSTJsonEncoder implements FSTEncoder {
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
         try {
             gen.writeFieldName(subInfo.getName());
-            gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -309,7 +312,6 @@ public class FSTJsonEncoder implements FSTEncoder {
                 return;
             gen.writeEndArray();
             gen.writeEndObject();
-            gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -341,7 +343,6 @@ public class FSTJsonEncoder implements FSTEncoder {
                 gen.writeEndArray();
             }
             gen.writeEndObject();
-            gen.flush();
         }
     }
 
@@ -355,63 +356,9 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             gen.writeEndArray();
             gen.writeEndObject();
-            gen.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    static class JSTST_O implements Serializable {
-        int a = 13;
-
-        public JSTST_O(int a) {
-            this.a = a;
-        }
-    }
-
-    enum TE {
-        A,BB
-    }
-
-    static class JSTST implements Serializable {
-
-        int i = 41;
-        int ii[] = { 1,2,3,4 };
-        String st[] = {"A","B"};
-        String test = "psodkf";
-        Integer bi = 666;
-        double d = 44.5555;
-        Object arr = new Object[] { "aA", "aB", new Object[] {"POKPOK"}};
-        String refString = "aAa";
-        String refString1 = "aAa";
-        Object arr1 = new Object[] { "aaA", "aaB", };
-        Object arr2 = new Object[] { "aaA", "aaB", TE.A};
-        Double dd = 555.44;
-        TE en = TE.BB;
-        int aa = 33;
-        int arri[] = { 1,2,3,4 };
-        HashMap mp = new HashMap();
-        ArrayList l = new ArrayList();
-        {
-            mp.put("Hello", 13);
-            l.add("pok");
-            l.add(123);
-            l.add(new JSTST_O(456));
-            l.add(new double[]{ 12.3,44.5});
-        }
-    }
-
-    public static void main( String a[] ) {
-        final FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
-        conf.registerCrossPlatformClassMappingUseSimpleName(JSTST.class);
-//        JSTST object[] = { new JSTST(),new JSTST(),new JSTST() };
-        JSTST object = new JSTST();
-        byte[] bytes = conf.asByteArray(object);
-        System.out.println(new String(bytes,0));
-
-        Object deser = conf.asObject(bytes);
-        System.out.println("deser");
-        FSTConfiguration.prettyPrintJson(object);
-        FSTConfiguration.prettyPrintJson(deser);
-    }
 }

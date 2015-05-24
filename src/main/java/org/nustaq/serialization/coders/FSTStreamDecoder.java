@@ -164,8 +164,9 @@ public class FSTStreamDecoder implements FSTDecoder {
                 throw new RuntimeException("unexpected primitive type " + componentType.getName());
             }
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);  //To change body of catch statement use File | Settings | File Templates.
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     // compressed version

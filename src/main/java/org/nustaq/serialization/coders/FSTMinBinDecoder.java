@@ -201,7 +201,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
                 in.close();
                 input.setBuffer(buf, count);
             } catch (IOException e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }            
         }
     }
@@ -275,7 +275,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
                         lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
                     }
                 } catch (ClassNotFoundException e) {
-                    throw FSTUtil.rethrow(e);
+                    FSTUtil.<RuntimeException>rethrow(e);
                 }
                 if ( lastDirectClass.isEnum() ) {
                     input.readInt(); // consume length of 1

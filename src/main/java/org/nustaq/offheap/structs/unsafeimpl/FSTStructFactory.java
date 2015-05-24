@@ -362,8 +362,9 @@ public class FSTStructFactory {
         try {
             return createWrapper(onHeap,null,0);
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     /**
@@ -603,7 +604,7 @@ public class FSTStructFactory {
             try {
                 getProxyClass(c);
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         }
     }
@@ -621,7 +622,7 @@ public class FSTStructFactory {
             try {
                 getProxyClass(c);
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         }
     }

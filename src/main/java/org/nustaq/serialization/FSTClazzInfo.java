@@ -349,7 +349,7 @@ public final class FSTClazzInfo {
                 try {
                     os = ObjectStreamClass.lookup(curCl);
                 } catch (Exception e) {
-                    throw FSTUtil.rethrow(e);
+                    FSTUtil.<RuntimeException>rethrow(e);
                 }
                 if (os != null) {
                     final ObjectStreamField[] fi = os.getFields();

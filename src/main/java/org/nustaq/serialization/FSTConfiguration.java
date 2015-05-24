@@ -195,19 +195,36 @@ public class FSTConfiguration {
     }
 
     public static FSTConfiguration createJsonConfiguration() {
+        return createJsonConfiguration(false,true);
+    }
+
+    public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
         final FSTConfiguration conf = createMinBinConfiguration();
-        conf.setCoderSpecific(new JsonFactory());
-                conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
+        JsonFactory fac;
+        if ( prettyPrint ) {
+        {
+            fac = new JsonFactory() {
+                @Override
+                public JsonGenerator createGenerator(OutputStream out) throws IOException {
+                    return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
+                }
+            }.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+        }
+        } else {
+            fac = new JsonFactory().disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+        }
+        conf.setCoderSpecific(fac);
+        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 return new FSTJsonEncoder(conf);
             }
-
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTJsonDecoder(conf);
             }
         });
+        conf.setShareReferences(shareReferences);
         return conf;
     }
 
@@ -217,13 +234,7 @@ public class FSTConfiguration {
      * @param o
      */
     public static void prettyPrintJson(Object o) {
-        FSTConfiguration conf = createJsonConfiguration();
-        conf.setCoderSpecific(new JsonFactory() {
-            @Override
-            public JsonGenerator createGenerator(OutputStream out) throws IOException {
-                return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
-            }
-        });
+        FSTConfiguration conf = createJsonConfiguration(true,true);
         System.out.println(conf.asJsonString(o));
     }
     /**
@@ -728,8 +739,9 @@ public class FSTConfiguration {
                 } else
                     return new FSTObjectInput(FSTConfiguration.this);
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
+            return null; // unreachable
         }
     };
 
@@ -745,8 +757,9 @@ public class FSTConfiguration {
             fstObjectInput.resetForReuse(in);
             return fstObjectInput;
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     public FSTObjectInput getObjectInput() {
@@ -769,8 +782,9 @@ public class FSTConfiguration {
             fstObjectInput.resetForReuseUseArray(arr,len);
             return fstObjectInput;
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     /**
@@ -889,7 +903,7 @@ public class FSTConfiguration {
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
     public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
-        registerCrossPlatformClassMappingUseSimpleName(new ArrayList<>(Arrays.asList(classes)));
+        registerCrossPlatformClassMappingUseSimpleName(Arrays.asList(classes));
         return this;
     }
 
@@ -898,6 +912,13 @@ public class FSTConfiguration {
             Class clz = classes.get(i);
             minbinNames.put(clz.getSimpleName(), clz.getName());
             minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
+            try {
+                Class ac = Class.forName("[L"+clz.getName()+";");
+                minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
+                minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
+            } catch (ClassNotFoundException e) {
+                FSTUtil.<RuntimeException>rethrow(e);
+            }
         }
         return this;
     }
@@ -930,8 +951,9 @@ public class FSTConfiguration {
         try {
             return getObjectInput(b).readObject();
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     /**
@@ -943,8 +965,9 @@ public class FSTConfiguration {
             objectOutput.writeObject(object);
             return objectOutput.getCopyOfWrittenBuffer();
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     /**
@@ -963,8 +986,9 @@ public class FSTConfiguration {
             length[0] = objectOutput.getWritten();
             return objectOutput.getBuffer();
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     public String asJsonString(Object o) {
@@ -974,9 +998,10 @@ public class FSTConfiguration {
             try {
                 return new String(asByteArray(o),"UTF-8");
             } catch (UnsupportedEncodingException e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         }
+        return null;
     }
 
     /**

@@ -65,8 +65,9 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
             }
             return res;
         } catch (Throwable th) {
-            throw FSTUtil.rethrow(th);
+            FSTUtil.<RuntimeException>rethrow(th);
         }
+        return null;
     }
 
 }

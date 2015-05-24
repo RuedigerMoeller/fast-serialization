@@ -198,7 +198,7 @@ public class FSTClazzNameRegistry {
                                 onHeapStructClz = Class.forName(clName, false, conf.getClassLoader() );
                             res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
                         } catch (Throwable th1) {
-                            throw FSTUtil.rethrow(th1);
+                            FSTUtil.<RuntimeException>rethrow(th1);
                         }
                     } else if ( clName.endsWith("_ActorProxy") ) {
                         // same as above for actors. As there is a custom serializer defined for actors, just instantiate

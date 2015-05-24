@@ -107,7 +107,7 @@ public class OnHeapCoder implements FSTCoder {
         try {
             out.writeObject(o);
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         int written = out.getWritten();
         return written;
@@ -122,7 +122,7 @@ public class OnHeapCoder implements FSTCoder {
             try {
                 out.writeObject(o);
             } catch (IOException e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
             return out.getCopyOfWrittenBuffer();
         } catch (FSTBufferTooSmallException ex) {
@@ -153,8 +153,9 @@ public class OnHeapCoder implements FSTCoder {
             Object o = in.readObject();
             return o;
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     /**

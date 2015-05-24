@@ -120,8 +120,7 @@ public final class FSTObjectRegistry {
         if (disabled /*|| streamPosition <= lastRegisteredReadPos*/) {
             return;
         }
-        if (streamPosition==945)
-        System.out.println("POK REGISTER:"+o+":"+streamPosition);
+//        System.out.println("POK REGISTER:"+o+":"+streamPosition);
         int pos = streamPosition / OBJ_DIVISOR;
         Object[] reuseMap = this.reuseMap;
         if ( pos < reuseMap.length ) {
@@ -147,6 +146,7 @@ public final class FSTObjectRegistry {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
+//        System.out.println("REGISTER FOR WRITE:"+streamPosition+" "+o);
 //        final Class clazz = o.getClass();
         if ( clzInfo == null ) { // array oder enum oder primitive
             // unused ?

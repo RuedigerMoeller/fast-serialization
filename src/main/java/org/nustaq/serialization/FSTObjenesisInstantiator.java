@@ -45,7 +45,7 @@ public class FSTObjenesisInstantiator implements FSTClassInstantiator {
             try {
                 return cons.newInstance(empty);
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         return objInstantiator.newInstance();
     }

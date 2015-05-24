@@ -95,7 +95,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
                 return -1;
             // fixme: should loop in case read == 0
         } catch (IOException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         return 0;
     }

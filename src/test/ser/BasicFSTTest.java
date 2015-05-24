@@ -324,6 +324,16 @@ public class BasicFSTTest {
     }
 
     @Test
+    public void testWeirdArray() throws Exception {
+        WeirdArrays obj = new WeirdArrays();
+        out.writeObject(obj);
+        in.resetForReuseUseArray(lastBinary = out.getCopyOfWrittenBuffer());
+        out.flush();
+        WeirdArrays res = (WeirdArrays) in.readObject();
+        assertTrue(DeepEquals.deepEquals(obj,res));
+    }
+
+    @Test
     public void testSimpleCollections() throws Exception {
         HashMap obj = new HashMap();
         ArrayList li = new ArrayList(); li.add("zero"); li.add(null); li.add("second");
@@ -339,6 +349,16 @@ public class BasicFSTTest {
         out.flush();
         HashMap res = (HashMap) in.readObject();
         assertTrue(res.get("x") == res.get("y"));
+        assertTrue(DeepEquals.deepEquals(obj,res));
+    }
+
+    @Test
+    public void testUTFString() throws Exception {
+        UTFStrings obj = new UTFStrings();
+        out.writeObject(obj);
+        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+        out.flush();
+        Object res = in.readObject();
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 

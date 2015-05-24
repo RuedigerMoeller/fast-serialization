@@ -1,5 +1,6 @@
 package org.nustaq.serialization.coders;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.nustaq.serialization.*;
@@ -22,11 +23,13 @@ public class FSTJsonDecoder implements FSTDecoder {
     FSTConfiguration conf;
 
     JsonParser input;
+    JsonFactory fac;
 
     private FSTInputStream fstInput;
 
     public FSTJsonDecoder(FSTConfiguration conf) {
         this.conf = conf;
+        fac = conf.getCoderSpecific();
     }
 
     @Override
@@ -126,8 +129,9 @@ public class FSTJsonDecoder implements FSTDecoder {
             }
             else throw new RuntimeException("unsupported type " + componentType.getName());
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     @Override
@@ -210,8 +214,12 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public void setInputStream(InputStream in) {
         try {
-            fstInput = new FSTInputStream(in);
-            input = FSTJsonEncoder.fac.createParser(fstInput);
+            if ( fstInput != null )
+                fstInput.initFromStream(in);
+            else
+                fstInput = new FSTInputStream(in);
+            if ( in != FSTObjectInput.emptyStream )
+                input = fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -225,6 +233,7 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public void reset() {
         fstInput.reset();
+        input = null;
     }
 
     @Override
@@ -235,7 +244,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         System.arraycopy(bytes,off,b,0,len);
         fstInput = new FSTInputStream(b);
         try {
-            input = FSTJsonEncoder.fac.createParser(fstInput);
+            input = fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -245,7 +254,7 @@ public class FSTJsonDecoder implements FSTDecoder {
     public void resetWith(byte[] bytes, int len) {
         fstInput = new FSTInputStream(bytes,0,len);
         try {
-            input = FSTJsonEncoder.fac.createParser(fstInput);
+            input = fac.createParser(fstInput);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -266,30 +275,32 @@ public class FSTJsonDecoder implements FSTDecoder {
         if ( jsonToken == JsonToken.END_OBJECT )
             jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.VALUE_STRING ) {
-            lastReadDirectObject = input.getText();
+            lastReadDirectObject = input.getValueAsString();
             return FSTObjectOutput.DIRECT_OBJECT;
         }
+        if ( jsonToken == JsonToken.VALUE_TRUE ) {
+            lastReadDirectObject = Boolean.TRUE;
+            return FSTObjectOutput.DIRECT_OBJECT;
+        } else
+        if ( jsonToken == JsonToken.VALUE_FALSE ) {
+            lastReadDirectObject = Boolean.FALSE;
+            return FSTObjectOutput.DIRECT_OBJECT;
+        } else
         if ( jsonToken == JsonToken.VALUE_NUMBER_INT ) {
-            lastReadDirectObject = input.getLongValue();
+            lastReadDirectObject = input.getNumberValue();
             return FSTObjectOutput.DIRECT_OBJECT;
-        }
+        } else
         if ( jsonToken == JsonToken.VALUE_NUMBER_FLOAT ) {
             lastReadDirectObject = input.getDoubleValue();
             return FSTObjectOutput.DIRECT_OBJECT;
-        }
+        } else
         if ( jsonToken == JsonToken.START_ARRAY ) {
-            List arrayTokens = new ArrayList();
-            JsonToken elem = input.nextToken();
-            while ( ! elem.isStructEnd() ) {
-                if ( elem == JsonToken.VALUE_NUMBER_INT ) {
-                    arrayTokens.add(input.getLongValue());
-                } else if ( elem == JsonToken.VALUE_NUMBER_FLOAT ) {
-                    arrayTokens.add(input.getDoubleValue());
-                }
-                elem = input.nextValue();
-            }
-            lastReadDirectObject = arrayTokens;
+            lastReadDirectObject = createPrimitiveArrayFrom(readJSonArr2List());
             return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
+        }
+        if ( jsonToken == JsonToken.VALUE_NULL ) {
+            lastReadDirectObject = null;
+            return FSTObjectOutput.NULL;
         }
         if ( jsonToken != JsonToken.START_OBJECT ) {
             throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");
@@ -347,6 +358,64 @@ public class FSTJsonDecoder implements FSTDecoder {
             return FSTObjectOutput.DIRECT_OBJECT;
         }
         throw new RuntimeException("expected object header");
+    }
+
+    private Object createPrimitiveArrayFrom( List directObject ) {
+        if ( directObject.size() == 0 || directObject.get(0) instanceof String == false ) {
+            directObject.add(0,"int");
+        }
+        Class arrT = null;
+        switch ((String)directObject.get(0)) {
+            case "boolean": arrT = boolean.class; break;
+            case "byte": arrT = byte.class; break;
+            case "char": arrT = char.class; break;
+            case "short": arrT = short.class; break;
+            case "int": arrT = int.class; break;
+            case "long": arrT = long.class; break;
+            case "float": arrT = float.class; break;
+            case "double": arrT = double.class; break;
+        }
+        Object newObj = Array.newInstance(arrT, directObject.size()-1);
+        for (int i = 0; i < directObject.size()-1; i++) {
+            Object n = directObject.get(i+1);
+            if (arrT == boolean.class )
+                Array.setBoolean(newObj, i, (Boolean) n);
+            else if (arrT == byte.class )
+                Array.setByte(newObj, i, ((Number) n).byteValue());
+            else if (arrT == char.class )
+                Array.setChar(newObj, i, (char) ((Number)n).intValue());
+            else if (arrT == short.class )
+                Array.setShort(newObj, i, ((Number)n).shortValue());
+            else if (arrT == int.class )
+                Array.setInt(newObj, i, ((Number)n).intValue());
+            else if (arrT == long.class )
+                Array.setLong(newObj, i, ((Number)n).longValue());
+            else if (arrT == float.class )
+                Array.setFloat(newObj, i, ((Number)n).floatValue());
+            else if (arrT == double.class )
+                Array.setDouble(newObj, i, ((Number)n).doubleValue());
+        }
+        return newObj;
+    }
+
+    public List readJSonArr2List() throws IOException {
+        List arrayTokens = new ArrayList();
+        JsonToken elem = input.nextToken();
+        while ( ! elem.isStructEnd() ) {
+            if ( elem == JsonToken.VALUE_NUMBER_INT ) {
+                arrayTokens.add(input.getLongValue());
+            } else if ( elem == JsonToken.VALUE_NUMBER_FLOAT ) {
+                arrayTokens.add(input.getDoubleValue());
+            } else if ( elem == JsonToken.VALUE_TRUE ) {
+                arrayTokens.add(true);
+            } else if ( elem == JsonToken.VALUE_FALSE ) {
+                arrayTokens.add(false);
+            } else {
+                arrayTokens.add(input.getText());
+            }
+            elem = input.nextValue();
+        }
+        return arrayTokens;
     }
 
     public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
@@ -420,9 +489,30 @@ public class FSTJsonDecoder implements FSTDecoder {
     public void consumeEndMarker() { // empty as flawed in minbin impl
     }
 
+    Class prevArrayClass;
     @Override
-    public Class readArrayHeader() throws Exception {
-        return lastDirectClass;
+    public Object readArrayHeader() throws Exception {
+        if ( lastDirectClass == null ) {
+            JsonToken jsonToken = input.nextToken();
+            if ( jsonToken == JsonToken.START_ARRAY ) {
+                // direct primitive array [1,2, ..]
+                return createPrimitiveArrayFrom(readJSonArr2List());
+            } else if ( jsonToken == JsonToken.VALUE_NULL ) {
+                return null;
+            } else {
+                jsonToken = input.nextToken(); // seqType
+                jsonToken = input.nextToken(); // seqType : ""
+                jsonToken = input.nextToken(); // seq
+                jsonToken = input.nextToken(); // seq : [
+            }
+//                throw new RuntimeException("expected array start of nested array");
+//                lastReadDirectObject = readJSonArr2List();
+            return prevArrayClass.getComponentType();
+        }
+        Class ldc = this.lastDirectClass;
+        this.lastDirectClass = null; // marker, only valid once
+        prevArrayClass = ldc;
+        return ldc;
 //        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
 //        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
 //            input.readIn();
@@ -458,7 +548,7 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public boolean isEndMarker(String s) {
-        return s.equals("}") || s.equals("]");
+        return s == null || s.equals("}") || s.equals("]");
     }
 
     @Override

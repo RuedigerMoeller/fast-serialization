@@ -107,11 +107,9 @@ public class FSTUtil {
         return th.getClass().getSimpleName() + ":" + th.getMessage() + "\n" + sw.toString();
     }
 
-    public static RuntimeException rethrow(Throwable ex) {
-        if (ex instanceof RuntimeException) {
-            return (RuntimeException) ex;
-        }
-        return new RuntimeException(ex);
+    public static <T extends Throwable> void rethrow(Throwable exception) throws T
+    {
+        throw (T) exception;
     }
 
     // obsolete

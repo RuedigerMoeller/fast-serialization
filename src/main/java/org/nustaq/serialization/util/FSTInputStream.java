@@ -27,7 +27,7 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
-    public int chunk_size = 5000;
+    public int chunk_size = 8000;
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
     public byte buf[];
     public int pos;
@@ -157,7 +157,8 @@ public final class FSTInputStream extends InputStream {
     }
 
     public void close() throws IOException {
-        in.close();
+        if ( in != null )
+            in.close();
     }
 
     public void ensureReadAhead(int bytes) {

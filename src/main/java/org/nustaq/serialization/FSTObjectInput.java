@@ -285,7 +285,7 @@ public class FSTObjectInput implements ObjectInput {
             try {
                 callbackEntry.cb.validateObject();
             } catch (Exception ex) {
-                throw FSTUtil.rethrow(ex);
+                FSTUtil.<RuntimeException>rethrow(ex);
             }
         }
     }
@@ -306,10 +306,11 @@ public class FSTObjectInput implements ObjectInput {
             processValidation();
             return res;
         } catch (Throwable th) {
-            throw FSTUtil.rethrow(th);
+            FSTUtil.<RuntimeException>rethrow(th);
         } finally {
             curDepth--;
         }
+        return null;
     }
 
     FSTClazzInfo.FSTFieldInfo infoCache;
@@ -325,8 +326,9 @@ public class FSTObjectInput implements ObjectInput {
             infoCache = info;
             return res;
         } catch (Throwable t) {
-            throw FSTUtil.rethrow(t);
+            FSTUtil.<RuntimeException>rethrow(t);
         }
+        return null;
     }
 
     public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
@@ -362,8 +364,9 @@ public class FSTObjectInput implements ObjectInput {
                 return res;
             }
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
+        return null;
     }
 
     private Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws Exception {
@@ -385,32 +388,7 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec().readFByte()]; }
                 case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.DIRECT_ARRAY_OBJECT: {
-                    List directObject = (List) getCodec().getDirectObject();
-                    if ( referencee.isIntegral() ) {
-                        Class arrT = referencee.getType().getComponentType();
-                        Object newObj = Array.newInstance(arrT, directObject.size());
-                        for (int i = 0; i < directObject.size(); i++) {
-                            Number n = (Number) directObject.get(i);
-                            if (arrT == boolean.class )
-                                Array.setBoolean(newObj, i, n.intValue() != 0);
-                            else if (arrT == byte.class )
-                                Array.setByte(newObj, i, n.byteValue());
-                            else if (arrT == char.class )
-                                Array.setChar(newObj, i, (char) n.intValue());
-                            else if (arrT == short.class )
-                                Array.setShort(newObj, i, n.shortValue());
-                            else if (arrT == int.class )
-                                Array.setInt(newObj, i, n.intValue());
-                            else if (arrT == long.class )
-                                Array.setLong(newObj, i, n.longValue());
-                            else if (arrT == float.class )
-                                Array.setFloat(newObj, i, n.floatValue());
-                            else if (arrT == float.class )
-                                Array.setDouble(newObj, i, n.doubleValue());
-                        }
-                        return newObj;
-                    }
-                    return null;
+                    return getCodec().getDirectObject();
                 }
                 case FSTObjectOutput.DIRECT_OBJECT: {
                     Object directObject = getCodec().getDirectObject();
@@ -470,7 +448,6 @@ public class FSTObjectInput implements ObjectInput {
         if ( ! referencee.isFlat() ) {
             objects.registerObjectForRead(res, readPos);
         }
-        getCodec().readArrayEnd();
         return res;
     }
 
@@ -576,7 +553,7 @@ public class FSTObjectInput implements ObjectInput {
         try {
             rep = serializationInfo.getReadResolveMethod().invoke(newObj);
         } catch (InvocationTargetException e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         newObj = rep;//FIXME: support this in call
         return newObj;
@@ -601,7 +578,7 @@ public class FSTObjectInput implements ObjectInput {
                 fstCompatibilityInfo.getReadMethod().invoke(toRead, objectInputStream);
                 fakeWrapper.pop();
             } catch (Exception e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
         } else {
             if (fstCompatibilityInfo != null) {
@@ -634,7 +611,7 @@ public class FSTObjectInput implements ObjectInput {
         try {
             readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj,0,0);
         } catch (Exception e) {
-            throw FSTUtil.rethrow(e);
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -851,10 +828,14 @@ public class FSTObjectInput implements ObjectInput {
 
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
         int pos = getCodec().getInputPos();
-        Class arrCl = getCodec().readArrayHeader();
-        if ( arrCl == null )
+        Object classOrArray = getCodec().readArrayHeader();
+        if ( classOrArray instanceof Class == false )
+            return classOrArray;
+        if ( classOrArray == null )
             return null;
-        return readArrayNoHeader(referencee, pos, arrCl);
+        Object o = readArrayNoHeader(referencee, pos, (Class) classOrArray);
+        getCodec().readArrayEnd();
+        return o;
     }
 
     private Object readArrayNoHeader(FSTClazzInfo.FSTFieldInfo referencee, int pos, Class arrCl) throws Exception {
@@ -1064,7 +1045,7 @@ public class FSTObjectInput implements ObjectInput {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }
                 } catch (Exception e) {
-                    throw FSTUtil.rethrow(e);
+                    FSTUtil.<RuntimeException>rethrow(e);
                 }
                 return new GetField() {
                     @Override

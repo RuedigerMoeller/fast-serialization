@@ -477,7 +477,7 @@ public class FSTStruct implements Serializable {
                 address.setLong(bb, base.getBaseAdress() + getOffset());
                 capacity.setInt( bb, getByteSize());
             } catch (IllegalAccessException e) {
-                throw FSTUtil.rethrow(e);
+                FSTUtil.<RuntimeException>rethrow(e);
             }
             bb.limit((int) (getOffset() + getByteSize()));
             bb.position((int) getOffset());
