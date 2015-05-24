@@ -1,6 +1,7 @@
 package org.nustaq.serialization.coders;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.nustaq.serialization.*;
@@ -34,24 +35,12 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public String readStringUTF() throws IOException {
-        String res = input.nextFieldName();
-        if ( res == null )
-            return input.getText();
-        return res;
-//        return input.nextTextValue();
-//        Object read = input.readObject();
-//        if (read instanceof String)
-//            return (String) read;
-//        // in case preceding atom has been consumed b[] => str 8 char[] => str 16;
-//        if (read instanceof byte[]) {
-//            return new String((byte[]) read, 0, 0, ((byte[]) read).length);
-//        } else if (read instanceof char[]) {
-//            return new String((char[]) read, 0, ((char[]) read).length);
-//        } else if (MinBin.END_MARKER == read) {
-//            return null;
-//        } else if ( read == null )
-//            return null;
-//        throw new RuntimeException("Expected String, byte[], char[] or tupel end");
+        JsonToken jsonToken = input.nextToken();
+        if ( jsonToken == JsonToken.VALUE_NULL )
+            return null;
+        if ( jsonToken == JsonToken.FIELD_NAME )
+            return input.getCurrentName();
+        return input.getText();
     }
 
     @Override
@@ -203,7 +192,11 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public int getInputPos() {
-        return (int) input.getCurrentLocation().getByteOffset();
+        JsonLocation currentLocation = input.getCurrentLocation();
+        long byteOffset = currentLocation.getByteOffset();
+        if ( input.getCurrentToken() == JsonToken.FIELD_NAME )
+            byteOffset-=2; // eager parsing of jackson ':' + '['/'{'
+        return (int) byteOffset;
     }
 
     @Override
@@ -221,7 +214,7 @@ public class FSTJsonDecoder implements FSTDecoder {
             if ( in != FSTObjectInput.emptyStream )
                 input = fac.createParser(fstInput);
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -246,7 +239,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         try {
             input = fac.createParser(fstInput);
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -256,7 +249,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         try {
             input = fac.createParser(fstInput);
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -320,7 +313,7 @@ public class FSTJsonDecoder implements FSTDecoder {
             try {
                 lastDirectClass = classForName(conf.getClassForCPName(type));
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.OBJECT;
         } else if ( typeTag.equals("seqType") ) {
@@ -336,7 +329,7 @@ public class FSTJsonDecoder implements FSTDecoder {
                     throw new RuntimeException("expected array start");
                 }
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.ARRAY;
         } else if ( typeTag.equals("ref") ) {
@@ -353,7 +346,7 @@ public class FSTJsonDecoder implements FSTDecoder {
                 lastReadDirectObject = Enum.valueOf(aClass,enumString);
                 input.nextToken(); // object end
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.DIRECT_OBJECT;
         }
@@ -410,6 +403,8 @@ public class FSTJsonDecoder implements FSTDecoder {
                 arrayTokens.add(true);
             } else if ( elem == JsonToken.VALUE_FALSE ) {
                 arrayTokens.add(false);
+            } else if ( elem == JsonToken.VALUE_NULL ) {
+                arrayTokens.add(null);
             } else {
                 arrayTokens.add(input.getText());
             }
@@ -477,7 +472,7 @@ public class FSTJsonDecoder implements FSTDecoder {
                 b[i+off] = input.getByteValue();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -489,11 +484,11 @@ public class FSTJsonDecoder implements FSTDecoder {
     public void consumeEndMarker() { // empty as flawed in minbin impl
     }
 
-    Class prevArrayClass;
     @Override
     public Object readArrayHeader() throws Exception {
         if ( lastDirectClass == null ) {
             JsonToken jsonToken = input.nextToken();
+            String type = null;
             if ( jsonToken == JsonToken.START_ARRAY ) {
                 // direct primitive array [1,2, ..]
                 return createPrimitiveArrayFrom(readJSonArr2List());
@@ -501,44 +496,37 @@ public class FSTJsonDecoder implements FSTDecoder {
                 return null;
             } else {
                 jsonToken = input.nextToken(); // seqType
+                if ( "type".equals(input.getText())) {
+                    // object
+                    type = input.nextTextValue();
+                    String valueTag = input.nextFieldName();
+                    if ( ! "obj".equals(valueTag) ) {
+                        throw new RuntimeException("expected value attribute for object of type:"+type);
+                    }
+                    return classForName(conf.getClassForCPName(type));
+                }
+                if ( ! "seqType".equals(input.getText()) ) {
+                    System.out.println(">" + input.getCurrentToken()+" "+input.getText());
+                    input.nextToken();
+                    System.out.println(">" + input.getCurrentToken()+" "+input.getText());
+                    input.nextToken();
+                    System.out.println(">" + input.getCurrentToken()+" "+input.getText());
+                    input.nextToken();
+                    System.out.println(">" + input.getCurrentToken()+" "+input.getText());
+                    throw new RuntimeException("expected seqType");
+                }
                 jsonToken = input.nextToken(); // seqType : ""
+                type = input.getText();
                 jsonToken = input.nextToken(); // seq
                 jsonToken = input.nextToken(); // seq : [
             }
 //                throw new RuntimeException("expected array start of nested array");
 //                lastReadDirectObject = readJSonArr2List();
-            return prevArrayClass.getComponentType();
+            return classForName(conf.getClassForCPName(type));
         }
         Class ldc = this.lastDirectClass;
         this.lastDirectClass = null; // marker, only valid once
-        prevArrayClass = ldc;
         return ldc;
-//        byte tag = input.peekIn(); // need to be able to consume MinBin Sequence tag silently
-//        if ( MinBin.getTagId(tag) == MinBin.NULL ) {
-//            input.readIn();
-//            lastDirectClass = null;
-//            return null;
-//        }
-//        if ( lastDirectClass != null )
-//            return readClass().getClazz();
-//        if ( MinBin.getTagId(tag) == MinBin.SEQUENCE ) {
-//            input.readIn(); // consume (multidim array)
-//        } else if ( MinBin.isPrimitive(tag) ) {
-//            input.readIn(); // consume tag
-//            switch (MinBin.getBaseType(tag)) {
-//                case MinBin.INT_8:
-//                    return byte[].class;
-//                case MinBin.INT_16:
-//                    if (MinBin.isSigned(tag) )
-//                        return short[].class;
-//                    return char[].class;
-//                case MinBin.INT_32:
-//                    return int[].class;
-//                case MinBin.INT_64:
-//                    return long[].class;
-//            }
-//        }
-//        return readClass().getClazz();
     }
 
     @Override
@@ -566,22 +554,50 @@ public class FSTJsonDecoder implements FSTDecoder {
         try {
             JsonToken jsonToken = input.nextToken();
             if ( ! jsonToken.isStructEnd() ) {
-                throw new RuntimeException("end of structure expected");
+                throw new RuntimeException("end of structure expected "+jsonToken);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
     @Override
     public void readArrayEnd() {
-        consumeEnd();
-        consumeEnd();
+        try {
+            JsonToken jsonToken = input.nextToken(); // ]
+            if ( jsonToken == JsonToken.END_ARRAY )
+                jsonToken = input.nextToken();    // }
+        } catch (IOException e) {
+            FSTUtil.<RuntimeException>rethrow(e);
+        }
     }
 
     @Override
     public void readObjectEnd() {
         consumeEnd();
+    }
+
+    @Override
+    public Object coerceArrayElement(Class arrType, Object value) {
+        if ( value instanceof Number ) {
+            Number n = (Number) value;
+            if ( arrType == Byte.class ) {
+                return new Byte(n.byteValue());
+            } else if ( arrType == Short.class ) {
+                return new Short(n.shortValue());
+            } else if ( arrType == Integer.class ) {
+                return new Integer(n.intValue());
+            } else if ( arrType == Long.class ) {
+                return new Long(n.longValue());
+            } else if ( arrType == Double.class ) {
+                return new Double(n.doubleValue());
+            } else if ( arrType == Float.class ) {
+                return new Float(n.floatValue());
+            } else if ( arrType == Character.class ) {
+                return new Character((char) n.intValue());
+            }
+        }
+        return value;
     }
 
 

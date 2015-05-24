@@ -538,6 +538,11 @@ public class FSTStreamDecoder implements FSTDecoder {
     public void readObjectEnd() {
     }
 
+    @Override
+    public Object coerceArrayElement(Class arrType, Object value) {
+        return value;
+    }
+
 
 }
 

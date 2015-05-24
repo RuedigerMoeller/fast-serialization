@@ -430,4 +430,9 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     }
 
+    @Override
+    public Object coerceArrayElement(Class arrType, Object value) {
+        return value;
+    }
+
 }

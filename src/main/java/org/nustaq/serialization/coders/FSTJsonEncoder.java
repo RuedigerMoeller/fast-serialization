@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
+import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 
 /**
  * Created by ruedi on 20/05/15.
@@ -106,7 +108,7 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             gen.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
         return out.pos-out.getOff();
     }
@@ -153,7 +155,7 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             gen = fac.createGenerator(out);//.setPrettyPrinter(new DefaultPrettyPrinter());
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -197,6 +199,10 @@ public class FSTJsonEncoder implements FSTEncoder {
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
                 FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
+                if (clzInfo.useCompatibleMode() && clzInfo.getSer() == null ) {
+                    throw new RuntimeException("Unsupported backward compatibility mode for class '"+clzInfo.getClazz().getName()+"'. Pls register a Custom Serializer to fix");
+                }
+
                 if (clzInfo.getClazz() == String.class )
                     break;
                 if (clzInfo.getClazz() == Double.class )
@@ -288,7 +294,7 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             gen.writeString(classToString(clz));
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -301,19 +307,27 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             gen.writeFieldName(subInfo.getName());
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
     @Override
     public void externalEnd(FSTClazzInfo clz) {
         try {
-            if ( Number.class.isAssignableFrom(clz.getClazz()) ) // special for bignums
+            Class clazz = clz.getClazz();
+            if ( clazz == Byte.class ||
+                 clazz == Short.class ||
+                 clazz == Integer.class ||
+                 clazz == Long.class ||
+                 clazz == Float.class ||
+                 clazz == Double.class ||
+                 clazz == Character.class ||
+                 clazz == Boolean.class )
                 return;
             gen.writeEndArray();
             gen.writeEndObject();
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 
@@ -335,15 +349,6 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeVersionTag(int version) throws IOException {
         // versioning not supported for minbin
-        // use as endobject trigger
-        if ( version == 0 ) {
-            if ( gen.getOutputContext().inObject() ) {
-                gen.writeEndObject();
-            } else {
-                gen.writeEndArray();
-            }
-            gen.writeEndObject();
-        }
     }
 
     @Override
@@ -354,10 +359,26 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeArrayEnd() {
         try {
-            gen.writeEndArray();
+            if ( gen.getOutputContext().inArray() )
+                gen.writeEndArray();
+            if ( gen.getOutputContext().inObject() )
+                gen.writeEndObject();
+        } catch (IOException e) {
+            FSTUtil.<RuntimeException>rethrow(e);
+        }
+    }
+
+    @Override
+    public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
+        try {
+            if ( gen.getOutputContext().inObject() ) {
+                    gen.writeEndObject();
+            } else {
+                gen.writeEndArray();
+            }
             gen.writeEndObject();
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 

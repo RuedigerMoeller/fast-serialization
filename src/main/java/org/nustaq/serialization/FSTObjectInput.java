@@ -388,7 +388,9 @@ public class FSTObjectInput implements ObjectInput {
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec().readFByte()]; }
                 case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.DIRECT_ARRAY_OBJECT: {
-                    return getCodec().getDirectObject();
+                    Object directObject = getCodec().getDirectObject();
+                    objects.registerObjectForRead(directObject,readPos);
+                    return directObject;
                 }
                 case FSTObjectOutput.DIRECT_OBJECT: {
                     Object directObject = getCodec().getDirectObject();
@@ -619,6 +621,7 @@ public class FSTObjectInput implements ObjectInput {
         
         if ( getCodec().isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
+            getCodec().readObjectEnd();
             return;
         }
         int booleanMask = 0;
@@ -709,6 +712,7 @@ public class FSTObjectInput implements ObjectInput {
         int count = 0;
         while( count < len ) {
             name= getCodec().readStringUTF();
+            //int debug = getCodec().getInputPos();
             if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) )
                 return;
             count++;
@@ -854,8 +858,10 @@ public class FSTObjectInput implements ObjectInput {
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {
                     Object value = readObjectWithHeader(referencee);
+                    value = getCodec().coerceArrayElement(arrType, value);
                     arr[i] = value;
                 }
+                getCodec().readObjectEnd();
             }
             return array;
         } else { // multidim array

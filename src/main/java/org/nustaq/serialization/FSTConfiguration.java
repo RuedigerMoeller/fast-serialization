@@ -191,6 +191,7 @@ public class FSTConfiguration {
                 {"double[]", "[D"},
                 {"float[]", "[F"}
         });
+        res.registerSerializer( BigDecimal.class, new FSTJSonSerializers.BigDecSerializer(), true );
         return res;
     }
 
@@ -253,6 +254,18 @@ public class FSTConfiguration {
             }
         };
         initDefaultFstConfigurationInternal(conf);
+        if ( isAndroid ) {
+            try {
+                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedTreeMap"), new FSTMapSerializer(), true);
+            } catch (ClassNotFoundException e) {
+                //silent
+            }
+            try {
+                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedHashTreeMap"), new FSTMapSerializer(), true);
+            } catch (ClassNotFoundException e) {
+                //silent
+            }
+        }
         return conf;
     }
 

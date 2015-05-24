@@ -1,36 +1,43 @@
 {
-  "type" : "JSTST",
+  "type" : "ser.UTFStrings$T",
   "obj" : {
-    "d" : 44.5555,
-    "aa" : 33,
-    "i" : 41,
-    "dd" : 555.44,
-    "bi" : 666,
-    "arr" : {
-      "seqType" : "array",
-      "seq" : [ 3, "aA", "aB", {
-        "seqType" : "array",
-        "seq" : [ 1, "POKPOK" ]
-      } ]
-    },
-    "arr1" : {
-      "seqType" : "array",
-      "seq" : [ 2, "aaA", "aaB" ]
-    },
-    "arr2" : {
-      "seqType" : "array",
+    "dim" : {
+      "seqType" : "[[Ljava.awt.Dimension;",
       "seq" : [ 2, {
-        "ref" : 345
+        "seqType" : "[Ljava.awt.Dimension;",
+        "seq" : [ 2, {
+          "type" : "java.awt.Dimension",
+          "obj" : {
+            "height" : 2,
+            "width" : 1
+          }
+        }, {
+          "type" : "java.awt.Dimension",
+          "obj" : {
+            "height" : 4,
+            "width" : 3
+          }
+        } ]
       }, {
-        "ref" : 352
+        "seqType" : "[Ljava.awt.Dimension;",
+        "seq" : [ 2, {
+          "type" : "java.awt.Dimension",
+          "obj" : {
+            "height" : 6,
+            "width" : 5
+          }
+        }, {
+          "type" : "java.awt.Dimension",
+          "obj" : {
+            "height" : 8,
+            "width" : 7
+          }
+        } ]
       } ]
-    },
-    "test" : "psodkf",
-    "st" : {
-      "seqType" : "String[]",
-      "seq" : [ 2, "A", "B" ]
-    },
-    "arri" : [ 1, 2, 3, 4 ],
-    "ii" : [ 1, 2, 3, 4 ]
+    }
   }
 }
+>START_OBJECT {
+>FIELD_NAME seqType
+>VALUE_STRING [Ljava.awt.Dimension;
+>FIELD_NAME seq

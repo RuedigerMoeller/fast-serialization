@@ -29,6 +29,8 @@ import org.nustaq.serialization.util.FSTUtil;
 public final class FSTObjectRegistry {
 
     public static final int OBJ_DIVISOR = 16;
+    public static int POS_MAP_SIZE = 4000; // reduce for testing
+
     boolean disabled = false;
     FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
     FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
@@ -120,7 +122,7 @@ public final class FSTObjectRegistry {
         if (disabled /*|| streamPosition <= lastRegisteredReadPos*/) {
             return;
         }
-//        System.out.println("POK REGISTER:"+o+":"+streamPosition);
+//        System.out.println("POK REGISTER AT READ:"+streamPosition+" : "+o);
         int pos = streamPosition / OBJ_DIVISOR;
         Object[] reuseMap = this.reuseMap;
         if ( pos < reuseMap.length ) {
@@ -146,7 +148,7 @@ public final class FSTObjectRegistry {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
-//        System.out.println("REGISTER FOR WRITE:"+streamPosition+" "+o);
+//        System.out.println("REGISTER AT WRITE:"+streamPosition+" "+o.getClass().getSimpleName());
 //        final Class clazz = o.getClass();
         if ( clzInfo == null ) { // array oder enum oder primitive
             // unused ?

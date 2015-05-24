@@ -222,6 +222,9 @@ public class FSTMinBinEncoder implements FSTEncoder {
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
                 FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
+                if (clzInfo.useCompatibleMode() && clzInfo.getSer() == null ) {
+                    throw new RuntimeException("Unsupported backward compatibility mode for class '"+clzInfo.getClazz().getName()+"'. Pls register a Custom Serializer to fix");
+                }
                 if (clzInfo.getClazz() == String.class )
                     break;
                 if (clzInfo.getClazz() == Double.class )
@@ -380,6 +383,11 @@ public class FSTMinBinEncoder implements FSTEncoder {
 
     @Override
     public void writeArrayEnd() {
+
+    }
+
+    @Override
+    public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
 
     }
 

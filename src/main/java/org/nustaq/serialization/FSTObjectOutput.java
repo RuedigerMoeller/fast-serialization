@@ -551,7 +551,7 @@ public class FSTObjectOutput implements ObjectOutput {
         } else {
             if ( fstCompatibilityInfo != null ) {
                 writeByte(66); // tag this is written from here no writeMethod
-                writeObjectFields(toWrite, serializationInfo, fstCompatibilityInfo.getFieldArray(), 0, 0);
+                writeObjectFields(toWrite, serializationInfo, fstCompatibilityInfo.getFieldArray(), 0, 0 );
             }
         }
     }
@@ -591,7 +591,7 @@ public class FSTObjectOutput implements ObjectOutput {
             for (int i = j; i < length; i++)
             {
                 final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
-                if (subInfo.getVersion() != version) {
+                if (subInfo.getVersion() != version ) {
                     getCodec().writeVersionTag(subInfo.getVersion());
                     writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
@@ -642,6 +642,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
             getCodec().writeVersionTag((byte) 0);
+            getCodec().writeFieldsEnd(serializationInfo);
         } catch (IllegalAccessException ex) {
             FSTUtil.<RuntimeException>rethrow(ex);
         }
@@ -798,7 +799,6 @@ public class FSTObjectOutput implements ObjectOutput {
             }
         }
     }
-
 
     public void writeStringUTF(String str) throws IOException {
         getCodec().writeStringUTF(str);

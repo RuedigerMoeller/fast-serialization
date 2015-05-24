@@ -51,7 +51,7 @@ public class FSTDateSerializer extends FSTBasicObjectSerializer {
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         long l = in.readLong();
         Object res = new Date(l);
-        in.registerObject(res,streamPositioin,serializationInfo, referencee);
+//        in.registerObject(res,streamPositioin,serializationInfo, referencee); can skip as alwaysCopy is true
         return res;
     }
 

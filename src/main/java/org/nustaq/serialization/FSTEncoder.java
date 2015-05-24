@@ -98,4 +98,6 @@ public interface FSTEncoder {
     boolean isByteArrayBased();
 
     void writeArrayEnd();
+
+    void writeFieldsEnd(FSTClazzInfo serializationInfo);
 }

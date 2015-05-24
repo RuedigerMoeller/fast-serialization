@@ -640,5 +640,9 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     }
 
+    @Override
+    public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
+    }
+
 }
 

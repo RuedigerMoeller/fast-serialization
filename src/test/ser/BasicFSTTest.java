@@ -1,11 +1,11 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
-import org.junit.Ignore;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
 import org.junit.Test;
+import org.nustaq.serialization.FSTObjectRegistry;
 import org.nustaq.serialization.annotations.Version;
 
 import java.io.*;
@@ -44,8 +44,9 @@ public class BasicFSTTest {
     
     @org.junit.Before
     public void setUp() throws Exception {
-        out = new FSTObjectOutput();
-        in = new FSTObjectInput();
+        FSTObjectRegistry.POS_MAP_SIZE = 1;
+        out = new FSTObjectOutput(getTestConfiguration());
+        in = new FSTObjectInput(getTestConfiguration());
     }
 
     public static class Primitives implements Serializable {
@@ -98,7 +99,7 @@ public class BasicFSTTest {
         double aDouble[] = { -35435345.34534f,3948573945.34534f,3.34534f,4.34534f,-66.34534f,-127.34534f,-128.34534f };
         Object aRef = aLong0;
 
-//        Object _aBoolean = new boolean[]{true,false};
+        Object _aBoolean = new boolean[]{true,false};
         Object _aByte = new byte[]{ -13,34, 127,3,23,5,0,11 };
         Object _aShort0 = new short[]{ -13345,345,25645,23,-424};
         Object _aChar0 = new char[]{ 35345,2,3,345,345,345,34566};
@@ -163,13 +164,17 @@ public class BasicFSTTest {
         Object _aDouble1 = Double.MIN_VALUE;
         Double _aDouble2 = Double.MAX_VALUE;
         Double _aDouble2a[] = {-88.0,Double.MAX_VALUE};
+        Empty empty = new Empty();
+    }
+
+    static class Empty implements Serializable {
     }
 
     static class Bl implements Serializable {
         boolean b1,b2,b3;
     }
     
-    static class Strings implements Serializable {
+    public static class Strings implements Serializable {
         String empty = "";
         String nil = null;
         String asc = "qpowerijdsfjgkdfg3409589275458965412354doigfoi-.,#+";
@@ -354,7 +359,7 @@ public class BasicFSTTest {
 
     @Test
     public void testUTFString() throws Exception {
-        UTFStrings obj = new UTFStrings();
+        Play obj = new Play();
         out.writeObject(obj);
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();
@@ -402,9 +407,17 @@ public class BasicFSTTest {
         out.writeObject(obj);
         in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
         out.flush();
-        Object res = in.readObject();
-        // note: false alarm with 1.7_71 + newer 1.8
-        assertTrue(DeepEquals.deepEquals(obj,res));
+        Basics res = (Basics) in.readObject();
+
+        // note: fix false alarm with 1.7_71 + newer 1.8. (because stacktrace not serialized ofc)
+        Object[] exceptions1 = res.exceptions;
+        Object[] exceptions2 = obj.exceptions;
+        res.exceptions = obj.exceptions = null;
+
+        for (int i = 1; i < exceptions1.length; i++) {
+            assertTrue( exceptions1[i].getClass() == exceptions2[i].getClass() );
+        }
+        assertTrue(DeepEquals.deepEquals(obj, res));
     }
 
     protected byte[] lastBinary;

@@ -402,5 +402,10 @@ public class FSTBytezEncoder implements FSTEncoder {
 
     }
 
+    @Override
+    public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
+
+    }
+
 }
 
