@@ -131,11 +131,6 @@ public class FSTJsonEncoder implements FSTEncoder {
         } else {
             out.reset(outbytes);
         }
-//        try {
-//            gen = fac.createGenerator(out);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -153,10 +148,16 @@ public class FSTJsonEncoder implements FSTEncoder {
     public void setOutstream(OutputStream outstream) {
         out = new FSTOutputStream(outstream);
         try {
-            gen = fac.createGenerator(out);//.setPrettyPrinter(new DefaultPrettyPrinter());
+            createGenerator();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
+    }
+
+    public void createGenerator() throws IOException {
+        if ( gen != null )
+            gen.close();
+        gen = fac.createGenerator(out);//.setPrettyPrinter(new DefaultPrettyPrinter());
     }
 
     @Override

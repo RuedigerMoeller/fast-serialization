@@ -212,7 +212,7 @@ public class FSTJsonDecoder implements FSTDecoder {
             else
                 fstInput = new FSTInputStream(in);
             if ( in != FSTObjectInput.emptyStream )
-                input = fac.createParser(fstInput);
+                createParser();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -237,17 +237,23 @@ public class FSTJsonDecoder implements FSTDecoder {
         System.arraycopy(bytes,off,b,0,len);
         fstInput = new FSTInputStream(b);
         try {
-            input = fac.createParser(fstInput);
+            createParser();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
+    }
+
+    public void createParser() throws IOException {
+        if ( input != null )
+            input.close();
+        input = fac.createParser(fstInput);
     }
 
     @Override
     public void resetWith(byte[] bytes, int len) {
         fstInput = new FSTInputStream(bytes,0,len);
         try {
-            input = fac.createParser(fstInput);
+            createParser();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -267,33 +273,35 @@ public class FSTJsonDecoder implements FSTDecoder {
         JsonToken jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.END_OBJECT )
             jsonToken = input.nextToken();
-        if ( jsonToken == JsonToken.VALUE_STRING ) {
-            lastReadDirectObject = input.getValueAsString();
-            return FSTObjectOutput.DIRECT_OBJECT;
-        }
-        if ( jsonToken == JsonToken.VALUE_TRUE ) {
-            lastReadDirectObject = Boolean.TRUE;
-            return FSTObjectOutput.DIRECT_OBJECT;
-        } else
-        if ( jsonToken == JsonToken.VALUE_FALSE ) {
-            lastReadDirectObject = Boolean.FALSE;
-            return FSTObjectOutput.DIRECT_OBJECT;
-        } else
-        if ( jsonToken == JsonToken.VALUE_NUMBER_INT ) {
-            lastReadDirectObject = input.getNumberValue();
-            return FSTObjectOutput.DIRECT_OBJECT;
-        } else
-        if ( jsonToken == JsonToken.VALUE_NUMBER_FLOAT ) {
-            lastReadDirectObject = input.getDoubleValue();
-            return FSTObjectOutput.DIRECT_OBJECT;
-        } else
-        if ( jsonToken == JsonToken.START_ARRAY ) {
-            lastReadDirectObject = createPrimitiveArrayFrom(readJSonArr2List());
-            return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
-        }
-        if ( jsonToken == JsonToken.VALUE_NULL ) {
-            lastReadDirectObject = null;
-            return FSTObjectOutput.NULL;
+        switch (jsonToken) {
+            case VALUE_STRING: {
+                lastReadDirectObject = input.getValueAsString();
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
+            case VALUE_TRUE: {
+                lastReadDirectObject = Boolean.TRUE;
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
+            case VALUE_FALSE: {
+                lastReadDirectObject = Boolean.FALSE;
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
+            case VALUE_NUMBER_INT: {
+                lastReadDirectObject = input.getNumberValue();
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
+            case VALUE_NUMBER_FLOAT: {
+                lastReadDirectObject = input.getDoubleValue();
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
+            case START_ARRAY: {
+                lastReadDirectObject = createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
+                return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
+            }
+            case VALUE_NULL: {
+                lastReadDirectObject = null;
+                return FSTObjectOutput.NULL;
+            }
         }
         if ( jsonToken != JsonToken.START_OBJECT ) {
             throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");
@@ -353,6 +361,16 @@ public class FSTJsonDecoder implements FSTDecoder {
         throw new RuntimeException("expected object header");
     }
 
+    List tmpList;
+    private List getTmpList() {
+        if ( tmpList == null ) {
+            tmpList = new ArrayList(32);
+        } else {
+            tmpList.clear();
+        }
+        return tmpList;
+    }
+
     private Object createPrimitiveArrayFrom( List directObject ) {
         if ( directObject.size() == 0 || directObject.get(0) instanceof String == false ) {
             directObject.add(0,"int");
@@ -391,8 +409,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         return newObj;
     }
 
-    public List readJSonArr2List() throws IOException {
-        List arrayTokens = new ArrayList();
+    public List readJSonArr2List(List arrayTokens) throws IOException {
         JsonToken elem = input.nextToken();
         while ( ! elem.isStructEnd() ) {
             if ( elem == JsonToken.VALUE_NUMBER_INT ) {
@@ -428,10 +445,6 @@ public class FSTJsonDecoder implements FSTDecoder {
             lastDirectClass = null;
             return clInfo;
         }
-//        Object read = input.readObject();
-//        String name = (String) read;
-//        String clzName = conf.getClassForCPName(name);
-//        return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
         return null;
     }
 
@@ -491,7 +504,7 @@ public class FSTJsonDecoder implements FSTDecoder {
             String type = null;
             if ( jsonToken == JsonToken.START_ARRAY ) {
                 // direct primitive array [1,2, ..]
-                return createPrimitiveArrayFrom(readJSonArr2List());
+                return createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
             } else if ( jsonToken == JsonToken.VALUE_NULL ) {
                 return null;
             } else {
@@ -520,8 +533,6 @@ public class FSTJsonDecoder implements FSTDecoder {
                 jsonToken = input.nextToken(); // seq
                 jsonToken = input.nextToken(); // seq : [
             }
-//                throw new RuntimeException("expected array start of nested array");
-//                lastReadDirectObject = readJSonArr2List();
             return classForName(conf.getClassForCPName(type));
         }
         Class ldc = this.lastDirectClass;

@@ -432,6 +432,24 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     @Override
     public Object coerceArrayElement(Class arrType, Object value) {
+        if ( value instanceof Number ) {
+            Number n = (Number) value;
+            if ( arrType == Byte.class ) {
+                return new Byte(n.byteValue());
+            } else if ( arrType == Short.class ) {
+                return new Short(n.shortValue());
+            } else if ( arrType == Integer.class ) {
+                return new Integer(n.intValue());
+            } else if ( arrType == Long.class ) {
+                return new Long(n.longValue());
+            } else if ( arrType == Double.class ) {
+                return new Double(n.doubleValue());
+            } else if ( arrType == Float.class ) {
+                return new Float(n.floatValue());
+            } else if ( arrType == Character.class ) {
+                return new Character((char) n.intValue());
+            }
+        }
         return value;
     }
 

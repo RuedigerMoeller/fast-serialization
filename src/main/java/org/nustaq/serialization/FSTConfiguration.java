@@ -200,6 +200,9 @@ public class FSTConfiguration {
     }
 
     public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
+        if ( prettyPrint && shareReferences ) {
+            throw new RuntimeException("cannot use prettyPrint with shared refs to 'true'. Set shareRefs to false.");
+        }
         final FSTConfiguration conf = createMinBinConfiguration();
         JsonFactory fac;
         if ( prettyPrint ) {
@@ -209,10 +212,14 @@ public class FSTConfiguration {
                 public JsonGenerator createGenerator(OutputStream out) throws IOException {
                     return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
                 }
-            }.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+            }
+            .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
+            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         } else {
-            fac = new JsonFactory().disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+            fac = new JsonFactory()
+                .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
+                .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         conf.setCoderSpecific(fac);
         conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
