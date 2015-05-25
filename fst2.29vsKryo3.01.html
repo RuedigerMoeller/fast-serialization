@@ -4,7 +4,7 @@ JVM:Oracle Corporation 1.8.0_40<br>
 CPU:null os-arch:null<br>
 Cores (incl HT):20<br>
 <i>1.8.0_40-b26,Java HotSpot(TM) 64-Bit Server VM,Linux</i><br>
-<br><h4>Test Class: FrequentPrimitives[]</h4>
+<br><h4>Test Class: FrequentPrimitives[10]</h4>
 A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.<br>
 <br>
 <b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:4262,4117|3127,3705&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,7822&chxr=1,0,7822&chxt=y,x&chxl=0:|Kryo+3.01%7CFST+2'/><br>
@@ -13,7 +13,7 @@ A array[10] of objects with a typical distribution of primitve fields: 2 short S
 FST 2                                        4262           3127           7389            846
 Kryo 3.01                                    4117           3705           7822            708
 </pre><br><br>
-<br><h4>Test Class: FrequentPrimitivesExternalizable[]</h4>
+<br><h4>Test Class: FrequentPrimitivesExternalizable[10]</h4>
 A class with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double. But implementing Externalizable<br>
 <br>
 <b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x56&chd=t:3291,4405|2317,3841&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8246&chxr=1,0,8246&chxt=y,x&chxl=0:|Kryo+3.01%7CFST+2'/><br>
