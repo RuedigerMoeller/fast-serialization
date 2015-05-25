@@ -4,11 +4,10 @@ import com.cedarsoftware.util.DeepEquals;
 import org.nustaq.serialization.*;
 
 import java.awt.*;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.File;
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created by ruedi on 23/05/15.
@@ -20,61 +19,22 @@ public class Play implements Serializable {
 
     String str[];
 
-    static class T implements Serializable {
+    public static class SimpleClass implements Serializable {
+        String name = "You";
+        double aDouble = 13.3456;
+        int integers[] = { 1,2,3,4,5 };
+        short shorts[] = { 1,2,3,4,5 };
 
-        String s;
-        int i;
-        T1 t1;
-
-        public T() {}
-
-        public T(int dummy) {
-            s = "pok";
-            i = 100;
-            t1 = new T1();
-        }
-
+        Object objects[] = { 1,2,"Bla", new Point(1,2) };
     }
 
-    static class T1 implements Serializable {
+    public static class SampleClass implements Serializable {
+        String name = "You";
+        List myList = new ArrayList(Arrays.asList( 1, 2, "Hello", new Date()));
+        Map<Integer,String> myMap = new HashMap<>();
 
-        String s;
-        int i;
-
-        public T1() {}
-
-        public T1(int dummy) {
-            s = "pok1";
-            i = 101;
-        }
-
-    }
-
-    public static class TSer extends FSTBasicObjectSerializer {
-        @Override
-        public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.defaultWriteObject(toWrite,clzInfo);
-        }
-
-        @Override
-        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            T t = new T();
-            in.defaultReadObject(referencee,serializationInfo,t);
-            return t;
-        }
-    }
-
-    public static class T1Ser extends FSTBasicObjectSerializer {
-        @Override
-        public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.defaultWriteObject(toWrite, clzInfo);
-        }
-
-        @Override
-        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-            T1 t = new T1();
-            in.defaultReadObject(referencee,serializationInfo,t);
-            return t;
+        {
+            myMap.put(1,"Some String");
         }
     }
 
@@ -82,12 +42,7 @@ public class Play implements Serializable {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
 
-        conf.registerSerializer( T.class,new TSer(), true );
-        conf.registerSerializer( T1.class,new T1Ser(), true );
-
-        Object p = new T(1);
-//        Object p = new BigDecimal(123);
-//        Object p = new Object[] {"A", new BasicFSTTest.SubClassedAList().$("A").$("B").$("C"), "Ensure stream not corrupted" };
+        Object p = new SimpleClass();
         System.out.println(conf.asJsonString(p));
         byte[] bytes = conf.asByteArray(p);
         Object deser = conf.asObject(bytes);

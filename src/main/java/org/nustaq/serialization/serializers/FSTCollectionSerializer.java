@@ -15,13 +15,12 @@
  */
 package org.nustaq.serialization.serializers;
 
+import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTUtil;
-import org.nustaq.serialization.FSTBasicObjectSerializer;
-import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTObjectInput;
-import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
@@ -79,7 +78,8 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
             if ( objectClass == LinkedList.class ) {
                 res = new LinkedList();
             } else {
-                res = objectClass.newInstance();
+                // some collections produced by JDK are not properly instantiable (e.g. Arrays.ArrayList), fall back to arraylist then
+                res = new ArrayList<>();
             }
             in.registerObject(res, streamPositioin,serializationInfo, referencee);
             Collection col = (Collection)res;

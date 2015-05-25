@@ -1,19 +1,38 @@
 {
-  "type": "ser.Play$T",
-  "obj": [
-    "i",
-    100,
-    "s",
-    "pok",
-    "t1",
-    {
-      "type": "ser.Play$T1",
-      "obj": [
-        "i",
-        0,
-        "s",
-        null
+  "type": "ser.Play$SimpleClass",
+  "obj": {
+    "aDouble": 13.3456,
+    "objects": {
+      "seqType": "array",
+      "seq": [
+        4,
+        1,
+        2,
+        "Bla",
+        {
+          "type": "java.awt.Point",
+          "obj": {
+            "x": 1,
+            "y": 2
+          }
+        }
       ]
-    }
-  ]
+    },
+    "name": "You",
+    "integers": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "shorts": [
+      "short",
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
 }
