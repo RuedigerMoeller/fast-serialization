@@ -1,38 +1,18 @@
 {
-  "type": "ser.Play$SimpleClass",
+  "type": "ser.Play$SampleClass",
   "obj": {
-    "aDouble": 13.3456,
-    "objects": {
-      "seqType": "array",
-      "seq": [
-        4,
-        1,
-        2,
-        "Bla",
-        {
-          "type": "java.awt.Point",
-          "obj": {
-            "x": 1,
-            "y": 2
-          }
-        }
+    "myList": {
+      "type": "list",
+      "obj": [ 3,
+        1, 2, "Hello"
       ]
     },
-    "name": "You",
-    "integers": [
-      1,
-      2,
-      3,
-      4,
-      5
-    ],
-    "shorts": [
-      "short",
-      1,
-      2,
-      3,
-      4,
-      5
-    ]
+    "myMap": {
+      "type": "map",
+      "obj": [
+        1,
+        1, "Some String"
+      ]
+    }
   }
 }
