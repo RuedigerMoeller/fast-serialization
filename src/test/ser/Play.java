@@ -30,7 +30,7 @@ public class Play implements Serializable {
 
     public static class SampleClass implements Serializable {
         String name = "You";
-        List myList = new ArrayList(Arrays.asList( 1, 2, "Hello", new Date()));
+        List myList = Arrays.asList( 1, 2, "Hello", new Date());
         Map<Integer,String> myMap = new HashMap<>();
 
         {
@@ -42,7 +42,8 @@ public class Play implements Serializable {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
 
-        Object p = new SimpleClass();
+//        Object p = new SimpleClass();
+        Object p = new SampleClass();
         System.out.println(conf.asJsonString(p));
         byte[] bytes = conf.asByteArray(p);
         Object deser = conf.asObject(bytes);

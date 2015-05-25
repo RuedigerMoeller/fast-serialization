@@ -1022,6 +1022,13 @@ public class FSTConfiguration {
         return null;
     }
 
+    /**
+     * utility/debug method. Use "asByteArray" for programmatic use as the
+     * byte array will already by UTF-8 and ready to be sent on network.
+     *
+     * @param o
+     * @return
+     */
     public String asJsonString(Object o) {
         if ( getCoderSpecific() instanceof JsonFactory == false ) {
             return "can be called on JsonConfiguration only";
