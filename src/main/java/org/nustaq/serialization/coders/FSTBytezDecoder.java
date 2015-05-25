@@ -16,11 +16,8 @@
 package org.nustaq.serialization.coders;
 
 import org.nustaq.offheap.bytez.BasicBytez;
-import org.nustaq.offheap.bytez.Bytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
-import org.nustaq.serialization.simpleapi.FSTBufferTooSmallException;
-import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.ByteArrayInputStream;
@@ -449,7 +446,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
     }
 
     @Override
-    public void readArrayEnd() {}
+    public void readArrayEnd(FSTClazzInfo clzSerInfo) {}
 
     @Override
     public void readObjectEnd() {}

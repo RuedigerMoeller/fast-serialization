@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -203,6 +204,10 @@ public class FSTConfiguration {
         if ( prettyPrint && shareReferences ) {
             throw new RuntimeException("cannot use prettyPrint with shared refs to 'true'. Set shareRefs to false.");
         }
+        return constructJsonConf(prettyPrint, shareReferences);
+    }
+
+    private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences) {
         final FSTConfiguration conf = createMinBinConfiguration();
         JsonFactory fac;
         if ( prettyPrint ) {
@@ -222,7 +227,7 @@ public class FSTConfiguration {
                 .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         conf.setCoderSpecific(fac);
-        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
+        conf.setStreamCoderFactory(new StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 return new FSTJsonEncoder(conf);
@@ -237,12 +242,12 @@ public class FSTConfiguration {
     }
 
     /**
-     * debug only, very slow (creates config with each call)
+     * debug only, very slow (creates config with each call). Creates new conf so custom serializers are ignored.
      *
      * @param o
      */
     public static void prettyPrintJson(Object o) {
-        FSTConfiguration conf = createJsonConfiguration(true,true);
+        FSTConfiguration conf = constructJsonConf(true, true);
         System.out.println(conf.asJsonString(o));
     }
     /**
@@ -971,13 +976,14 @@ public class FSTConfiguration {
         try {
             return getObjectInput(b).readObject();
         } catch (Exception e) {
+            System.out.println(new String(b,0) );
             FSTUtil.<RuntimeException>rethrow(e);
         }
         return null;
     }
 
     /**
-     * convenience. (object must be serialiable unless fstconfiguration with appropriate settings is used)
+     * convenience. (object must be serializable)
      */
     public byte[] asByteArray( Object object ) {
         FSTObjectOutput objectOutput = getObjectOutput();
@@ -985,6 +991,11 @@ public class FSTConfiguration {
             objectOutput.writeObject(object);
             return objectOutput.getCopyOfWrittenBuffer();
         } catch (IOException e) {
+            try {
+                FSTConfiguration.prettyPrintJson(object);
+            } catch (Exception ee) {
+                //
+            }
             FSTUtil.<RuntimeException>rethrow(e);
         }
         return null;

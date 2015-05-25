@@ -95,7 +95,8 @@ public class Basics extends PrivatePrimitive implements Serializable {
 
     SampleEnum en1 = SampleEnum.Predesignated_GiveUp_Allowed;
     EnumSet<SampleEnum> enSet = EnumSet.of(SampleEnum.Predesignated,SampleEnum.Complete);
-    BigDecimal dec = new BigDecimal(13.0);
+    BigDecimal bd = new BigDecimal(13.0);
+    Date dec = new Date(13);
 
     String st;
 

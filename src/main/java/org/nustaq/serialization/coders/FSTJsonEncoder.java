@@ -2,6 +2,7 @@ package org.nustaq.serialization.coders;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonStreamContext;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -306,7 +307,10 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
         try {
-            gen.writeFieldName(subInfo.getName());
+            if ( gen.getOutputContext().inArray() )
+                gen.writeString(subInfo.getName());
+            else
+                gen.writeFieldName(subInfo.getName());
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -325,8 +329,10 @@ public class FSTJsonEncoder implements FSTEncoder {
                  clazz == Character.class ||
                  clazz == Boolean.class )
                 return;
-            gen.writeEndArray();
-            gen.writeEndObject();
+            if ( gen.getOutputContext().inArray() )
+                gen.writeEndArray();
+            if ( gen.getOutputContext().inObject() )
+                gen.writeEndObject();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -372,14 +378,22 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
         try {
-            if ( gen.getOutputContext().inObject() ) {
-                    gen.writeEndObject();
+            JsonStreamContext outputContext = gen.getOutputContext();
+            if ( outputContext.inObject() ) {
+                gen.writeEndObject();
             } else {
                 gen.writeEndArray();
             }
-            gen.writeEndObject();
+            if ( outputContext.inObject() )
+                gen.writeEndObject();
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
+            try {
+                gen.flush();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            System.out.println( new String(out.buf,0,out.pos) );
         }
     }
 

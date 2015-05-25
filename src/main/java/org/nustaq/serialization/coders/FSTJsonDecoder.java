@@ -565,7 +565,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         try {
             JsonToken jsonToken = input.nextToken();
             if ( ! jsonToken.isStructEnd() ) {
-                throw new RuntimeException("end of structure expected "+jsonToken);
+                throw new RuntimeException("end of structure expected found:"+jsonToken+" : value:"+input.getValueAsString()+" fname:'"+input.getCurrentName()+"'");
             }
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
@@ -573,11 +573,15 @@ public class FSTJsonDecoder implements FSTDecoder {
     }
 
     @Override
-    public void readArrayEnd() {
+    public void readArrayEnd(FSTClazzInfo clzSerInfo) {
         try {
             JsonToken jsonToken = input.nextToken(); // ]
-            if ( jsonToken == JsonToken.END_ARRAY )
+            if ( jsonToken == JsonToken.END_ARRAY ) { //&& (clzSerInfo == null || clzSerInfo.getSer() == null) ) { // need to read only 1 in case of custom ser
                 jsonToken = input.nextToken();    // }
+            } else {
+                //System.out.println("debug "+clzSerInfo);
+            }
+            Object dummyDebug = jsonToken;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }

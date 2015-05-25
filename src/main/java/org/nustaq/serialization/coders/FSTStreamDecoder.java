@@ -531,7 +531,7 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     @Override
-    public void readArrayEnd() {
+    public void readArrayEnd(FSTClazzInfo clzSerInfo) {
     }
 
     @Override

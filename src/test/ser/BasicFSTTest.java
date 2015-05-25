@@ -1,11 +1,8 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTObjectInput;
-import org.nustaq.serialization.FSTObjectOutput;
+import org.nustaq.serialization.*;
 import org.junit.Test;
-import org.nustaq.serialization.FSTObjectRegistry;
 import org.nustaq.serialization.annotations.Version;
 
 import java.io.*;
@@ -589,6 +586,57 @@ public class BasicFSTTest {
         assertTrue(res.bytes1[547] == 1 && res.bytes2[347] == 2);
 
 
+    }
+
+    static class T implements Serializable {
+        String s;  int i;  T1 t1;
+        public T() {}
+        public T(int dummy) { s = "pok"; i = 100; t1 = new T1(); }
+    }
+
+    static class T1 implements Serializable {
+        String s;  int i;
+        public T1() {}
+        public T1(int dummy) { s = "pok1"; i = 101; }
+    }
+
+    public static class TSer extends FSTBasicObjectSerializer {
+        @Override
+        public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
+            out.defaultWriteObject(toWrite,clzInfo);
+        }
+
+        @Override
+        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+            T t = new T();
+            in.defaultReadObject(referencee,serializationInfo,t);
+            return t;
+        }
+    }
+
+    public static class T1Ser extends FSTBasicObjectSerializer {
+        @Override
+        public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
+            out.defaultWriteObject(toWrite, clzInfo);
+        }
+
+        @Override
+        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+            T1 t = new T1();
+            in.defaultReadObject(referencee,serializationInfo,t);
+            return t;
+        }
+    }
+
+    @Test
+    public void testNestedSerializers() {
+        FSTConfiguration conf = getTestConfiguration();
+        conf.registerSerializer(T.class, new TSer(), true);
+        conf.registerSerializer(T1.class, new T1Ser(), true);
+        Object p = new T(1);
+        byte[] bytes = conf.asByteArray(p);
+        Object deser = conf.asObject(bytes);
+        assertTrue(DeepEquals.deepEquals(p,deser));
     }
 
     @org.junit.After

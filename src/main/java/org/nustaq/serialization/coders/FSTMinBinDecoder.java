@@ -421,7 +421,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
-    public void readArrayEnd() {
+    public void readArrayEnd(FSTClazzInfo clzSerInfo) {
 
     }
 

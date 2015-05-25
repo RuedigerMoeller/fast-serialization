@@ -79,7 +79,8 @@ public interface FSTDecoder {
     void pushBack(int bytes);
 
     // clashes with read end marker, however avoid breaking minbin, so new methods for JSONDe/Encoding
-    void readArrayEnd();
+    // clzSerInfo can be null
+    void readArrayEnd(FSTClazzInfo clzSerInfo);
 
     void readObjectEnd();
 

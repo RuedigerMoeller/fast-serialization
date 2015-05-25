@@ -357,7 +357,7 @@ public class FSTObjectInput implements ObjectInput {
             FSTObjectSerializer ser = clzSerInfo.getSer();
             if (ser != null) {
                 Object res = instantiateAndReadWithSer(c, ser, clzSerInfo, referencee, readPos);
-                getCodec().readArrayEnd();
+                getCodec().readArrayEnd(clzSerInfo);
                 return res;
             } else {
                 Object res = instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);
@@ -611,7 +611,7 @@ public class FSTObjectInput implements ObjectInput {
     public void defaultReadObject(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj)
     {
         try {
-            readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj,0,0);
+            readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj,0,-1); // -1 flag to indicate no object end should be called
         } catch (Exception e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -621,9 +621,12 @@ public class FSTObjectInput implements ObjectInput {
         
         if ( getCodec().isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
-            getCodec().readObjectEnd();
+            if ( version >= 0 )
+                getCodec().readObjectEnd();
             return;
         }
+        if ( version < 0 )
+            version = 0;
         int booleanMask = 0;
         int boolcount = 8;
         final int length = fieldInfo.length;
@@ -838,7 +841,7 @@ public class FSTObjectInput implements ObjectInput {
         if ( classOrArray == null )
             return null;
         Object o = readArrayNoHeader(referencee, pos, (Class) classOrArray);
-        getCodec().readArrayEnd();
+        getCodec().readArrayEnd(null);
         return o;
     }
 

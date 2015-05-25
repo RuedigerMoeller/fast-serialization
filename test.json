@@ -1,43 +1,19 @@
 {
-  "type" : "ser.UTFStrings$T",
-  "obj" : {
-    "dim" : {
-      "seqType" : "[[Ljava.awt.Dimension;",
-      "seq" : [ 2, {
-        "seqType" : "[Ljava.awt.Dimension;",
-        "seq" : [ 2, {
-          "type" : "java.awt.Dimension",
-          "obj" : {
-            "height" : 2,
-            "width" : 1
-          }
-        }, {
-          "type" : "java.awt.Dimension",
-          "obj" : {
-            "height" : 4,
-            "width" : 3
-          }
-        } ]
-      }, {
-        "seqType" : "[Ljava.awt.Dimension;",
-        "seq" : [ 2, {
-          "type" : "java.awt.Dimension",
-          "obj" : {
-            "height" : 6,
-            "width" : 5
-          }
-        }, {
-          "type" : "java.awt.Dimension",
-          "obj" : {
-            "height" : 8,
-            "width" : 7
-          }
-        } ]
-      } ]
+  "type": "ser.Play$T",
+  "obj": [
+    "i",
+    100,
+    "s",
+    "pok",
+    "t1",
+    {
+      "type": "ser.Play$T1",
+      "obj": [
+        "i",
+        0,
+        "s",
+        null
+      ]
     }
-  }
+  ]
 }
->START_OBJECT {
->FIELD_NAME seqType
->VALUE_STRING [Ljava.awt.Dimension;
->FIELD_NAME seq
