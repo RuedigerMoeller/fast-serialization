@@ -29,13 +29,8 @@ public class Play implements Serializable {
     }
 
     public static class SampleClass implements Serializable {
-        String name = "You";
-        List myList = Arrays.asList( 1, 2, "Hello", new Date());
-        Map<Integer,String> myMap = new HashMap<>();
-
-        {
-            myMap.put(1,"Some String");
-        }
+        String a = "bla bla bla bla bla bla bla bla bla bla bla bla bla ";
+        Object b = a;
     }
 
     public static class EmptyClass implements Serializable {
@@ -46,7 +41,13 @@ public class Play implements Serializable {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
 
-        conf.registerCrossPlatformClassMappingUseSimpleName(EmptyClass.class);
+        conf.registerCrossPlatformClassMappingUseSimpleName(
+                SampleClass.class,
+                Object[].class,
+                Object[][].class,
+                int[][].class,
+                int[][][].class
+        );
 
 
 //        Object p = new SimpleClass();
@@ -55,8 +56,8 @@ public class Play implements Serializable {
         byte[] bytes = conf.asByteArray(p);
         Object deser = conf.asObject(bytes);
         System.out.println(DeepEquals.deepEquals(p,deser));
-        while( true )
-            sb(conf);
+//        while( true )
+//            sb(conf);
     }
 
     protected static void sb(FSTConfiguration conf) {

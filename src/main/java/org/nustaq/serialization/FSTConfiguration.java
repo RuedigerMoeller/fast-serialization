@@ -982,9 +982,11 @@ public class FSTConfiguration {
             minbinNames.put(clz.getSimpleName(), clz.getName());
             minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
             try {
-                Class ac = Class.forName("[L"+clz.getName()+";");
-                minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
-                minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
+                if (!clz.isArray() ) {
+                    Class ac = Class.forName("[L"+clz.getName()+";");
+                    minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
+                    minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
+                }
             } catch (ClassNotFoundException e) {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
