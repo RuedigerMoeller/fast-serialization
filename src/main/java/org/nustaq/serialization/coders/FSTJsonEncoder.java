@@ -3,6 +3,9 @@ package org.nustaq.serialization.coders;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -106,12 +109,13 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     @Override
     public int getWritten() {
-        try {
-            gen.flush();
-        } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
-        }
-        return out.pos-out.getOff();
+//        try {
+//            gen.flush();
+//        } catch (IOException e) {
+//            FSTUtil.<RuntimeException>rethrow(e);
+//        }
+//        System.out.println(pos+" "+out.pos);
+        return out.pos-out.getOff() + ((FSTConfiguration.JacksonAccessWorkaround)gen).getOutputTail();
     }
 
     @Override
@@ -158,7 +162,7 @@ public class FSTJsonEncoder implements FSTEncoder {
     public void createGenerator() throws IOException {
         if ( gen != null )
             gen.close();
-        gen = fac.createGenerator(out);//.setPrettyPrinter(new DefaultPrettyPrinter());
+        gen = fac.createGenerator(out);
     }
 
     @Override
@@ -168,6 +172,11 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     @Override
     public byte[] getBuffer() {
+        try {
+            gen.flush();
+        } catch (IOException e) {
+            FSTUtil.<RuntimeException>rethrow(e);
+        }
         return out.getBuf();
     }
 

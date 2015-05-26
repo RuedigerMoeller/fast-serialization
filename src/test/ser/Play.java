@@ -38,9 +38,16 @@ public class Play implements Serializable {
         }
     }
 
+    public static class EmptyClass implements Serializable {
+        int x = 123123;
+    }
+
     public static void main(String[] args) {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+
+        conf.registerCrossPlatformClassMappingUseSimpleName(EmptyClass.class);
+
 
 //        Object p = new SimpleClass();
         Object p = new SampleClass();
@@ -48,5 +55,21 @@ public class Play implements Serializable {
         byte[] bytes = conf.asByteArray(p);
         Object deser = conf.asObject(bytes);
         System.out.println(DeepEquals.deepEquals(p,deser));
+        while( true )
+            sb(conf);
+    }
+
+    protected static void sb(FSTConfiguration conf) {
+        long tim = System.currentTimeMillis();
+        EmptyClass ec = new EmptyClass();
+        for ( int i = 0; i < 1_000_000; i++ ) {
+            byte[] bytes = conf.asByteArray(ec);
+            Object deser = conf.asObject(bytes);
+            if ( deser == null ) {
+                System.out.println("POK");
+            }
+        }
+        long dur = System.currentTimeMillis()-tim;
+        System.out.println("dur:"+dur);
     }
 }
