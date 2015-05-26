@@ -762,6 +762,7 @@ public class FSTObjectInput implements ObjectInput {
     //                    fieldInfo.setObjectValue(newObj,arr); // fixme: ref lookup
                     } else {
                         Object toSet = readObjectWithHeader(fieldInfo);
+                        toSet = getCodec().coerceElement(fieldInfo.getType(), toSet);
                         fieldInfo.setObjectValue(newObj, toSet);
                     }
                 }
@@ -861,7 +862,7 @@ public class FSTObjectInput implements ObjectInput {
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {
                     Object value = readObjectWithHeader(referencee);
-                    value = getCodec().coerceArrayElement(arrType, value);
+                    value = getCodec().coerceElement(arrType, value);
                     arr[i] = value;
                 }
                 getCodec().readObjectEnd();
