@@ -111,7 +111,7 @@
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
-          <version>2.5.1</version>
+          <version>2.5.3</version>
         </dependency>
 
         <!-- only required if structs are used -->
