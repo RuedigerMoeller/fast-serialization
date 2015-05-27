@@ -1,38 +1,9 @@
 {
-  "type": "ser.Play$SimpleClass",
+  "type": "SampleClass",
   "obj": {
-    "aDouble": 13.3456,
-    "objects": {
-      "seqType": "array",
-      "seq": [
-        4,
-        1,
-        2,
-        "Bla",
-        {
-          "type": "java.awt.Point",
-          "obj": {
-            "x": 1,
-            "y": 2
-          }
-        }
-      ]
-    },
-    "name": "You",
-    "integers": [
-      1,
-      2,
-      3,
-      4,
-      5
-    ],
-    "shorts": [
-      "short",
-      1,
-      2,
-      3,
-      4,
-      5
-    ]
+    "b": "bla bla bla bla bla bla bla bla bla bla bla bla bla ",
+    "a": {
+      "ref": 32
+    }
   }
 }
