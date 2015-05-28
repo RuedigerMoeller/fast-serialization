@@ -344,7 +344,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
         {
             input = (HeapBytez) input.newInstance(len);
         }
-        input.set(0,bytes,off,len);
+        input.set(0, bytes, off, len);
         pos = 0;
         clnames.clear();
     }
@@ -454,6 +454,11 @@ public class FSTBytezDecoder  implements FSTDecoder {
     @Override
     public Object coerceElement(Class arrType, Object value) {
         return value;
+    }
+
+    @Override
+    public int available() {
+        return (int) (input.length()-pos);
     }
 
 }

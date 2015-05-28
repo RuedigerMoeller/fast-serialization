@@ -544,5 +544,12 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
 
+    @Override
+    public int available() {
+        input.ensureReadAhead(1);
+        return input.available();
+    }
+
+
 }
 

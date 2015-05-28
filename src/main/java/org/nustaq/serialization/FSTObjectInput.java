@@ -267,7 +267,7 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public int available() throws IOException {
-        return 0;
+        return getCodec().available();
     }
 
     void processValidation() throws InvalidObjectException {

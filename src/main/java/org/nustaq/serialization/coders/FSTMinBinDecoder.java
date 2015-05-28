@@ -453,4 +453,9 @@ public class FSTMinBinDecoder implements FSTDecoder {
         return value;
     }
 
+    @Override
+    public int available() {
+        return input.getCount() - input.getPos();
+    }
+
 }

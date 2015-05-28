@@ -615,5 +615,10 @@ public class FSTJsonDecoder implements FSTDecoder {
         return value;
     }
 
+    @Override
+    public int available() {
+        fstInput.ensureReadAhead(1);
+        return fstInput.available();
+    }
 
 }

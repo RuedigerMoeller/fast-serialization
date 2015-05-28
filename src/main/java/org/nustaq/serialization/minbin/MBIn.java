@@ -204,4 +204,8 @@ public class MBIn {
     public void reset() {
         setBuffer(bytez,count);
     }
+
+    public int getCount() {
+        return count;
+    }
 }
