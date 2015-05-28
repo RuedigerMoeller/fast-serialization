@@ -431,7 +431,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
-    public Object coerceArrayElement(Class arrType, Object value) {
+    public Object coerceElement(Class arrType, Object value) {
         if ( value instanceof Number ) {
             Number n = (Number) value;
             if ( arrType == Byte.class ) {
@@ -451,6 +451,11 @@ public class FSTMinBinDecoder implements FSTDecoder {
             }
         }
         return value;
+    }
+
+    @Override
+    public int available() {
+        return input.getCount() - input.getPos();
     }
 
 }

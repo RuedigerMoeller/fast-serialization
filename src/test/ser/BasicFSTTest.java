@@ -354,15 +354,15 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 
-    @Test
-    public void testUTFString() throws Exception {
-        Play obj = new Play();
-        out.writeObject(obj);
-        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
-        out.flush();
-        Object res = in.readObject();
-        assertTrue(DeepEquals.deepEquals(obj,res));
-    }
+//    @Test
+//    public void testUTFString() throws Exception {
+//        Play obj = new Play();
+//        out.writeObject(obj);
+//        in.resetForReuseUseArray(out.getCopyOfWrittenBuffer());
+//        out.flush();
+//        Object res = in.readObject();
+//        assertTrue(DeepEquals.deepEquals(obj,res));
+//    }
 
 
     @Test

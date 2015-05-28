@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
     compile fileTree("src/test/lib")
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.5.3'
     compile group: 'org.javassist', name: 'javassist', version: '3.19.0-GA'
     compile 'org.objenesis:objenesis:2.1'
 }
@@ -59,6 +60,7 @@ task release(type: Jar, dependsOn:allJar) {
         from 'src/main/java'
     }
     into ('lib') {
+        from 'lib/jackson-core-2.5.3.jar'
         from 'lib/objenesis-2.1.jar'
         from 'lib/javassist-3.19.0-GA.jar'
         from 'build/libs/fst-'+version+'.jar'

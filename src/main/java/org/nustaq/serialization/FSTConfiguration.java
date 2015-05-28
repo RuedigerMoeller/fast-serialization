@@ -17,6 +17,10 @@ package org.nustaq.serialization;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.FSTStruct;
@@ -197,7 +201,7 @@ public class FSTConfiguration {
     }
 
     public static FSTConfiguration createJsonConfiguration() {
-        return createJsonConfiguration(false,true);
+        return createJsonConfiguration(false, true);
     }
 
     public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
@@ -207,12 +211,38 @@ public class FSTConfiguration {
         return constructJsonConf(prettyPrint, shareReferences);
     }
 
+    public static class JacksonAccessWorkaround extends UTF8JsonGenerator {
+        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out) {
+            super(ctxt, features, codec, out);
+        }
+
+        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out, byte[] outputBuffer, int outputOffset, boolean bufferRecyclable) {
+            super(ctxt, features, codec, out, outputBuffer, outputOffset, bufferRecyclable);
+        }
+
+        public int getOutputTail() {
+            return _outputTail;
+        }
+    }
+
     private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences) {
         final FSTConfiguration conf = createMinBinConfiguration();
         JsonFactory fac;
         if ( prettyPrint ) {
         {
             fac = new JsonFactory() {
+                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
+                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
+                            _generatorFeatures, _objectCodec, out);
+                    if (_characterEscapes != null) {
+                        gen.setCharacterEscapes(_characterEscapes);
+                    }
+                    SerializableString rootSep = _rootValueSeparator;
+                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
+                        gen.setRootValueSeparator(rootSep);
+                    }
+                    return gen;
+                }
                 @Override
                 public JsonGenerator createGenerator(OutputStream out) throws IOException {
                     return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
@@ -222,9 +252,22 @@ public class FSTConfiguration {
             .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         } else {
-            fac = new JsonFactory()
-                .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
-                .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+            fac = new JsonFactory() {
+                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
+                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
+                            _generatorFeatures, _objectCodec, out);
+                    if (_characterEscapes != null) {
+                        gen.setCharacterEscapes(_characterEscapes);
+                    }
+                    SerializableString rootSep = _rootValueSeparator;
+                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
+                        gen.setRootValueSeparator(rootSep);
+                    }
+                    return gen;
+                }
+            };
+            fac.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
+               .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         conf.setCoderSpecific(fac);
         conf.setStreamCoderFactory(new StreamCoderFactory() {
@@ -354,11 +397,12 @@ public class FSTConfiguration {
             throw new RuntimeException("not supported under android platform, use default configuration");
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.type = ConfType.UNSAFE;
-        conf.setStreamCoderFactory( new FSTConfiguration.StreamCoderFactory() {
+        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
             @Override
             public FSTEncoder createStreamEncoder() {
                 return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
             }
+
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTBytezDecoder(conf);
@@ -938,9 +982,11 @@ public class FSTConfiguration {
             minbinNames.put(clz.getSimpleName(), clz.getName());
             minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
             try {
-                Class ac = Class.forName("[L"+clz.getName()+";");
-                minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
-                minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
+                if (!clz.isArray() ) {
+                    Class ac = Class.forName("[L"+clz.getName()+";");
+                    minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
+                    minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
+                }
             } catch (ClassNotFoundException e) {
                 FSTUtil.<RuntimeException>rethrow(e);
             }

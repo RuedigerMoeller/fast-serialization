@@ -78,8 +78,12 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
             if ( objectClass == LinkedList.class ) {
                 res = new LinkedList();
             } else {
-                // some collections produced by JDK are not properly instantiable (e.g. Arrays.ArrayList), fall back to arraylist then
-                res = new ArrayList<>();
+                if ( AbstractList.class.isAssignableFrom(objectClass) && objectClass.getName().startsWith( "java.util.Arrays" ) ) {
+                    // some collections produced by JDK are not properly instantiable (e.g. Arrays.ArrayList), fall back to arraylist then
+                    res = new ArrayList<>();
+                } else {
+                    res = objectClass.newInstance();
+                }
             }
             in.registerObject(res, streamPositioin,serializationInfo, referencee);
             Collection col = (Collection)res;

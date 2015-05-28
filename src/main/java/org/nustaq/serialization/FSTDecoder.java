@@ -84,5 +84,11 @@ public interface FSTDecoder {
 
     void readObjectEnd();
 
-    Object coerceArrayElement(Class arrType, Object value);
+    Object coerceElement(Class arrType, Object value);
+
+    /**
+     * @return a value > 0 if more bytes are available
+     */
+    int available();
+
 }
