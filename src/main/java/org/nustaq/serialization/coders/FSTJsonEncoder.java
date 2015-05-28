@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
@@ -35,7 +36,7 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     @Override
     public void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException {
-        gen.writeBinary(bufferedName,off,length);
+        gen.writeBinary(bufferedName, off, length);
     }
 
     @Override
@@ -235,14 +236,14 @@ public class FSTJsonEncoder implements FSTEncoder {
                 if ( clzInfo.getSer()!=null || clzInfo.isExternalizable() ) {
                     gen.writeStartObject();
                     gen.writeFieldName("type");
-                    writeSymbolicClazz(clzInfo.getClazz());
+                    writeSymbolicClazz(clzInfo);
                     gen.writeFieldName("obj");
                     gen.writeStartArray();
                 } else
                 {
                     gen.writeStartObject();
                     gen.writeFieldName("type");
-                    writeSymbolicClazz(clzInfo.getClazz());
+                    writeSymbolicClazz(clzInfo);
                     gen.writeFieldName("obj");
                     gen.writeStartObject();
                 }
@@ -271,7 +272,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 } else {
                     gen.writeStartObject();
                     gen.writeFieldName("seqType");
-                    writeSymbolicClazz(clz);
+                    gen.writeString(classToString(clz));
                     gen.writeFieldName("seq");
                     gen.writeStartArray();
                 }
@@ -290,7 +291,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 }
                 gen.writeStartObject();
                 gen.writeFieldName("enum");
-                writeSymbolicClazz(c);
+                gen.writeString(classToString(c));
                 gen.writeFieldName("val");
                 gen.writeString(toWrite.toString());
                 gen.writeEndObject();
@@ -301,9 +302,14 @@ public class FSTJsonEncoder implements FSTEncoder {
         return false;
     }
 
-    private void writeSymbolicClazz(Class<?> clz) {
+    private void writeSymbolicClazz(FSTClazzInfo clz) {
         try {
-            gen.writeString(classToString(clz));
+            SerializedString decoderAttachment = (SerializedString) clz.getDecoderAttachment();
+            if ( decoderAttachment == null ) {
+                decoderAttachment = new SerializedString(classToString(clz.getClazz()));
+                clz.setDecoderAttachment(decoderAttachment);
+            }
+            gen.writeString(decoderAttachment);
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -318,8 +324,14 @@ public class FSTJsonEncoder implements FSTEncoder {
         try {
             if ( gen.getOutputContext().inArray() )
                 gen.writeString(subInfo.getName());
-            else
-                gen.writeFieldName(subInfo.getName());
+            else {
+                SerializableString bn = (SerializableString) subInfo.getBufferedName();
+                if ( bn == null ) {
+                    bn = new SerializedString(subInfo.getName());
+                    subInfo.setBufferedName(bn);
+                }
+                gen.writeFieldName(bn);
+            }
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -354,7 +366,7 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     @Override
     public boolean isPrimitiveArray(Object array, Class<?> componentType) {
-        return componentType.isPrimitive() && array instanceof double[] == false && array instanceof float[] == false;
+        return componentType.isPrimitive();// && array instanceof double[] == false && array instanceof float[] == false;
     }
 
     @Override

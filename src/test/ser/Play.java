@@ -56,8 +56,8 @@ public class Play implements Serializable {
         byte[] bytes = conf.asByteArray(p);
         Object deser = conf.asObject(bytes);
         System.out.println(DeepEquals.deepEquals(p,deser));
-//        while( true )
-//            sb(conf);
+        while( true )
+            sb(conf);
     }
 
     protected static void sb(FSTConfiguration conf) {

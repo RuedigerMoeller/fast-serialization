@@ -90,6 +90,8 @@ public final class FSTClazzInfo {
     int clzId = -1;
     int structSize = 0;
 
+    Object decoderAttachment;
+
 
     FSTClazzInfoRegistry reg;
     FSTConfiguration conf;
@@ -154,6 +156,14 @@ public final class FSTClazzInfo {
     }
 
     byte[] bufferedName;
+
+    public void setDecoderAttachment(Object decoderAttachment) {
+        this.decoderAttachment = decoderAttachment;
+    }
+
+    public Object getDecoderAttachment() {
+        return decoderAttachment;
+    }
 
     public byte[] getBufferedName() {
         if (bufferedName == null) {
@@ -480,7 +490,7 @@ public final class FSTClazzInfo {
         int indexId; // position in serializable fields array
         int align = 0;
         int alignPad = 0;
-        byte[] bufferedName; // cache byte rep of field name (used for cross platform)
+        Object bufferedName; // cache byte rep of field name (used for cross platform)
 
         // hacke required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
@@ -532,11 +542,15 @@ public final class FSTClazzInfo {
             return version;
         }
 
-        public byte[] getBufferedName() {
+        public byte[] getBufferedNameAsByteArr() {
+            return (byte[]) bufferedName;
+        }
+
+        public Object getBufferedName() {
             return bufferedName;
         }
 
-        public void setBufferedName(byte[] bufferedName) {
+        public void setBufferedName(Object bufferedName) {
             this.bufferedName = bufferedName;
         }
 
