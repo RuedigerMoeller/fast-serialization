@@ -193,7 +193,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
 
     @Override
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
-        byte[] bufferedName = subInfo.getBufferedName();
+        byte[] bufferedName = (byte[]) subInfo.getBufferedName();
         if ( bufferedName != null ) {
             out.writeRaw(bufferedName,0,bufferedName.length);
         } else {

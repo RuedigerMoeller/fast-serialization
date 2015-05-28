@@ -969,6 +969,16 @@ public class FSTConfiguration {
     }
 
     /**
+     * shorthand for registerCrossPlatformClassMapping(_,_)
+     * @param shortName - class name in json type field
+     * @param clz - class
+     * @return
+     */
+    public FSTConfiguration cpMap(String shortName, Class clz) {
+        return registerCrossPlatformClassMapping(shortName,clz.getName());
+    }
+
+    /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
     public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {

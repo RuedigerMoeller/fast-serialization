@@ -54,27 +54,34 @@ public class FSTJsonDecoder implements FSTDecoder {
      */
     public Object readFPrimitiveArray(Object array, Class componentType, int len) {
         try {
-            if (componentType == double.class) {
+            if (componentType == int.class) {
+                int[] da = (int[]) array;
+                for (int i = 0; i < da.length; i++) {
+                    input.nextToken(); da[i] = (int) input.getIntValue();
+                }
+                return da;
+            }
+            else if (componentType == long.class) {
+                long[] da = (long[]) array;
+                for (int i = 0; i < da.length; i++) {
+                    input.nextToken(); da[i] = input.getLongValue();
+                }
+                return da;
+            } else if (componentType == double.class) {
                 double[] da = (double[]) array;
                 for (int i = 0; i < da.length; i++) {
                     input.nextToken();
                     da[i] = input.getDoubleValue();
                 }
                 return da;
-            }
-            if (componentType == float.class) {
+            } else if (componentType == float.class) {
                 float[] da = (float[]) array;
                 for (int i = 0; i < da.length; i++) {
                     input.nextToken();
                     da[i] = input.getFloatValue();
                 }
                 return da;
-            }
-            Object arr = array;
-            int length = Array.getLength(arr);
-            if (len != -1 && len != length)
-                throw new RuntimeException("unexpected arrays size");
-            if (componentType == boolean.class) {
+            } else if (componentType == boolean.class) {
                 boolean[] da = (boolean[]) array;
                 for (int i = 0; i < da.length; i++) {
                     input.nextToken(); da[i] = input.getBooleanValue();
@@ -99,20 +106,6 @@ public class FSTJsonDecoder implements FSTDecoder {
                 char[] da = (char[]) array;
                 for (int i = 0; i < da.length; i++) {
                     input.nextToken(); da[i] = (char) input.getIntValue();
-                }
-                return da;
-            }
-            else if (componentType == int.class) {
-                int[] da = (int[]) array;
-                for (int i = 0; i < da.length; i++) {
-                    input.nextToken(); da[i] = (int) input.getIntValue();
-                }
-                return da;
-            }
-            else if (componentType == long.class) {
-                long[] da = (long[]) array;
-                for (int i = 0; i < da.length; i++) {
-                    input.nextToken(); da[i] = input.getLongValue();
                 }
                 return da;
             }
@@ -308,11 +301,11 @@ public class FSTJsonDecoder implements FSTDecoder {
         }
 
         String typeTag = input.nextFieldName();
-        if ( typeTag.equals("type") ) {
+        if ( typeTag.equals(FSTJsonEncoder.TYPE) ) {
             // object
             String type = input.nextTextValue();
             String valueTag = input.nextFieldName();
-            if ( ! "obj".equals(valueTag) ) {
+            if ( ! FSTJsonEncoder.OBJ.equals(valueTag) ) {
                 throw new RuntimeException("expected value attribute for object of type:"+type);
             }
             if ( ! input.nextToken().isStructStart() ) {
@@ -324,13 +317,13 @@ public class FSTJsonDecoder implements FSTDecoder {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.OBJECT;
-        } else if ( typeTag.equals("seqType") ) {
+        } else if ( typeTag.equals(FSTJsonEncoder.SEQ_TYPE) ) {
             // sequence
             String type = input.nextTextValue();
             try {
                 lastDirectClass = classForName(conf.getClassForCPName(type));
                 String valueTag = input.nextFieldName();
-                if ( ! "seq".equals(valueTag) ) {
+                if ( ! FSTJsonEncoder.SEQ.equals(valueTag) ) {
                     throw new RuntimeException("expected value attribute for object of type:"+type);
                 }
                 if ( ! input.nextToken().isStructStart() ) {
@@ -340,14 +333,14 @@ public class FSTJsonDecoder implements FSTDecoder {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.ARRAY;
-        } else if ( typeTag.equals("ref") ) {
+        } else if ( typeTag.equals(FSTJsonEncoder.REF) ) {
             return FSTObjectOutput.HANDLE;
-        } else if ( typeTag.equals("enum") ) {
+        } else if ( typeTag.equals(FSTJsonEncoder.ENUM) ) {
             try {
                 String clName = input.nextTextValue();
                 Class aClass = classForName(conf.getClassForCPName(clName));
                 String valueTag = input.nextFieldName();
-                if ( ! "val".equals(valueTag) ) {
+                if ( ! FSTJsonEncoder.VAL.equals(valueTag) ) {
                     throw new RuntimeException("expected value attribute for enum of type:"+clName);
                 }
                 String enumString = input.nextTextValue();
@@ -448,11 +441,9 @@ public class FSTJsonDecoder implements FSTDecoder {
         return null;
     }
 
-    HashMap<String,Class> clzCache = new HashMap<>();
+    HashMap<String,Class> clzCache = new HashMap<>(31);
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
-        if ("Object".equals(name))
-            return MBObject.class;
         Class aClass = clzCache.get(name);
         if (aClass!=null)
             return aClass;
@@ -463,13 +454,13 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public void registerClass(Class possible) {
-        throw new RuntimeException("not implemented");
+//        throw new RuntimeException("not implemented");
     }
 
     @Override
     public void close() {
-        //TODO
-        throw new RuntimeException("not implemented");
+        //nothing to do (?)
+//        throw new RuntimeException("not implemented");
     }
 
     @Override
@@ -509,16 +500,16 @@ public class FSTJsonDecoder implements FSTDecoder {
                 return null;
             } else {
                 jsonToken = input.nextToken(); // seqType
-                if ( "type".equals(input.getText())) {
+                if ( FSTJsonEncoder.TYPE.equals(input.getText())) {
                     // object
                     type = input.nextTextValue();
                     String valueTag = input.nextFieldName();
-                    if ( ! "obj".equals(valueTag) ) {
+                    if ( !FSTJsonEncoder.OBJ.equals(valueTag) ) {
                         throw new RuntimeException("expected value attribute for object of type:"+type);
                     }
                     return classForName(conf.getClassForCPName(type));
                 }
-                if ( ! "seqType".equals(input.getText()) ) {
+                if (!FSTJsonEncoder.SEQ_TYPE.equals(input.getText()) ) {
                     System.out.println(">" + input.getCurrentToken()+" "+input.getText());
                     input.nextToken();
                     System.out.println(">" + input.getCurrentToken()+" "+input.getText());

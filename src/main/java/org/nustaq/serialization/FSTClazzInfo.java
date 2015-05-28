@@ -75,6 +75,16 @@ public final class FSTClazzInfo {
     Method writeReplaceMethod, readResolveMethod;
     HashMap<Class, FSTCompatibilityInfo> compInfo = new HashMap<Class, FSTCompatibilityInfo>(7);
 
+    Object decoderAttached; // for decoders
+
+    public Object getDecoderAttached() {
+        return decoderAttached;
+    }
+
+    public void setDecoderAttached(Object decoderAttached) {
+        this.decoderAttached = decoderAttached;
+    }
+
     boolean requiresCompatibleMode;
     boolean externalizable;
     boolean flat; // never share instances of this class
@@ -480,7 +490,7 @@ public final class FSTClazzInfo {
         int indexId; // position in serializable fields array
         int align = 0;
         int alignPad = 0;
-        byte[] bufferedName; // cache byte rep of field name (used for cross platform)
+        Object bufferedName; // cache byte rep of field name (used for cross platform)
 
         // hacke required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
@@ -532,11 +542,11 @@ public final class FSTClazzInfo {
             return version;
         }
 
-        public byte[] getBufferedName() {
+        public Object getBufferedName() {
             return bufferedName;
         }
 
-        public void setBufferedName(byte[] bufferedName) {
+        public void setBufferedName(Object bufferedName) {
             this.bufferedName = bufferedName;
         }
 
