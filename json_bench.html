@@ -1,0 +1,125 @@
+
+<html>
+OS:Linux<br>
+JVM:Oracle Corporation 1.8.0_40<br>
+CPU:Intel Haswell Dual Socket<br>
+Cores (incl HT):20<br>
+<i>1.8.0_40-b26,Java HotSpot(TM) 64-Bit Server VM,Linux</i><br>
+
+<p>
+Note: FAIL means test threw exception, ERR means deep equals test of serialized vs deserialized object returned false (either type changes or real error).
+</p>
+
+<br><h4>Test Class: FrequentPrimitives[]</h4>
+A array[10] of objects with a typical distribution of primitve fields: 2 short Strings, 3 boolean, 6 ints, 2 long, one double.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,3895,15164,19811,22862,31484,149783|0,2400,10955,7794,16987,75027,35514&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,185297&chxr=1,0,185297&chxt=y,x&chxl=0:|JSON+IO%7CGson%7CFST+2.29+Json+over+Jackson%7CJDK+1.8+Serialization%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CBOON+.33+JSon+FAIL+'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,846,2001,1143,2219,2001,2100|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,2219&chxr=1,0,2219&chxt=y,x&chxl=0:|JSON+IO%7CGson%7CFST+2.29+Json+over+Jackson%7CJDK+1.8+Serialization%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CBOON+.33+JSon+FAIL+'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+BOON .33 JSon FAIL                              0              0              0              0
+FST Serialization 2.29 unshared              3895           2400           6295            846
+Jackson 2.53                                15164          10955          26119           2001
+JDK 1.8 Serialization                       19811           7794          27605           1143
+FST 2.29 Json over Jackson                  22862          16987          39849           2219
+Gson                                        31484          75027         106511           2001
+JSON IO                                    149783          35514         185297           2100
+</pre><br><br>
+<br><h4>Test Class: LargeNativeIntArrays</h4>
+measures performance serializing a large int array, a large long array and a large double array filled with random values. Note that random values destroy any value compression.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:39037,42339,1286921,1656462,1346209,1901277,5467583|23509,33081,3101238,3160617,4569244,4842333,3284497&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,8752080&chxr=1,0,8752080&chxt=y,x&chxl=0:|JSON+IO%7CGson%7CBOON+.33+JSon%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CJDK+1.8+Serialization%7CFST+Serialization+2.29+unshared'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:31220,31406,83126,83235,83320,83126,83213|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,83320&chxr=1,0,83320&chxt=y,x&chxl=0:|JSON+IO%7CGson%7CBOON+.33+JSon%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CJDK+1.8+Serialization%7CFST+Serialization+2.29+unshared'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST Serialization 2.29 unshared             39037          23509          62546          31220
+JDK 1.8 Serialization                       42339          33081          75420          31406
+Jackson 2.53                              1286921        3101238        4388159          83126
+FST 2.29 Json over Jackson                1656462        3160617        4817079          83235
+BOON .33 JSon                             1346209        4569244        5915453          83320
+Gson                                      1901277        4842333        6743610          83126
+JSON IO                                   5467583        3284497        8752080          83213
+</pre><br><br>
+<br><h4>Test Class: Primitives</h4>
+Enums, EnumSets, Date, String, byte, short, int, .. Byte, Character; Short, Integer, .. <br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,1947,5880,13533,32389,34273,63729|0,1801,2997,9871,14003,20797,11102&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,74831&chxr=1,0,74831&chxt=y,x&chxl=0:|JDK+1.8+Serialization%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CJSON+IO+FAIL+'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,296,529,801,852,456,1548|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,1548&chxr=1,0,1548&chxt=y,x&chxl=0:|JDK+1.8+Serialization%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CJSON+IO+FAIL+'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+JSON IO FAIL                                    0              0              0              0
+FST Serialization 2.29 unshared              1947           1801           3748            296
+Jackson 2.53                                 5880           2997           8877            529
+FST 2.29 Json over Jackson                  13533           9871          23404            801
+BOON .33 JSon(ERR)                          32389          14003          46392            852
+Gson(ERR)                                   34273          20797          55070            456
+JDK 1.8 Serialization                       63729          11102          74831           1548
+</pre><br><br>
+<br><h4>Test Class: Trader</h4>
+Measures serialization of a typical 'Enterprise-Object' using Value-Classes instead of primitive tpyes.<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:76138,256897,262490,479230,550429,1268854,6232836|59362,124584,237440,226748,422649,909304,827333&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,7060169&chxr=1,0,7060169&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJDK+1.8+Serialization%7CJackson+2.53%7CFST+Serialization+2.29+unshared'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:10569,41721,11075,54284,53235,42072,47378|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,54284&chxr=1,0,54284&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJDK+1.8+Serialization%7CJackson+2.53%7CFST+Serialization+2.29+unshared'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST Serialization 2.29 unshared             76138          59362         135500          10569
+Jackson 2.53                               256897         124584         381481          41721
+JDK 1.8 Serialization                      262490         237440         499930          11075
+FST 2.29 Json over Jackson                 479230         226748         705978          54284
+BOON .33 JSon(ERR)                         550429         422649         973078          53235
+Gson(ERR)                                 1268854         909304        2178158          42072
+JSON IO(ERR)                              6232836         827333        7060169          47378
+</pre><br><br>
+<br><h4>Test Class: MediaContent</h4>
+measures serializing the cyclefree object structure used by one of the most known encoding/decoding tests<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:1858,3670,9937,7843,16321,37173,76526|1392,1874,8226,14295,9356,7018,18092&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,94618&chxr=1,0,94618&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CBOON+.33+JSon%28ERR%29%7CGson%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CFST+Serialization+2.29+unshared'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:318,503,741,486,608,889,736|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,889&chxr=1,0,889&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CBOON+.33+JSon%28ERR%29%7CGson%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%7CFST+Serialization+2.29+unshared'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST Serialization 2.29 unshared              1858           1392           3250            318
+Jackson 2.53                                 3670           1874           5544            503
+FST 2.29 Json over Jackson                   9937           8226          18163            741
+Gson(ERR)                                    7843          14295          22138            486
+BOON .33 JSon(ERR)                          16321           9356          25677            608
+JDK 1.8 Serialization                       37173           7018          44191            889
+JSON IO(ERR)                                76526          18092          94618            736
+</pre><br><br>
+<br><h4>Test Class: LargeFPArrays</h4>
+measures performance serializing a large flaot and a large double array filled with random values. <br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:29655,42280,2131624,2274711,2597405,2827170,6721337|24798,17093,4755429,5761188,6018496,6528413,6100568&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,12821905&chxr=1,0,12821905&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CFST+2.29+Json+over+Jackson%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CJDK+1.8+Serialization'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:20965,20812,63671,63787,63671,86541,86509|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,86541&chxr=1,0,86541&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CFST+2.29+Json+over+Jackson%7CGson%28ERR%29%7CBOON+.33+JSon%28ERR%29%7CJackson+2.53%7CFST+Serialization+2.29+unshared%7CJDK+1.8+Serialization'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+JDK 1.8 Serialization                       29655          24798          54453          20965
+FST Serialization 2.29 unshared             42280          17093          59373          20812
+Jackson 2.53                              2131624        4755429        6887053          63671
+BOON .33 JSon(ERR)                        2274711        5761188        8035899          63787
+Gson(ERR)                                 2597405        6018496        8615901          63671
+FST 2.29 Json over Jackson                2827170        6528413        9355583          86541
+JSON IO(ERR)                              6721337        6100568       12821905          86509
+</pre><br><br>
+<br><h4>Test Class: JSonCollection</h4>
+a map of String=>int and a list holding a pojo, some numbers and a string<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,1637,3597,8573,6987,34323,64323|0,1459,2117,8096,13018,8715,20306&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,84629&chxr=1,0,84629&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CGson%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%28ERR%29%7CFST+Serialization+2.29+unshared%7CBOON+.33+JSon+FAIL+'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:0,200,278,422,278,760,713|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,760&chxr=1,0,760&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CGson%28ERR%29%7CFST+2.29+Json+over+Jackson%7CJackson+2.53%28ERR%29%7CFST+Serialization+2.29+unshared%7CBOON+.33+JSon+FAIL+'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+BOON .33 JSon FAIL                              0              0              0              0
+FST Serialization 2.29 unshared              1637           1459           3096            200
+Jackson 2.53(ERR)                            3597           2117           5714            278
+FST 2.29 Json over Jackson                   8573           8096          16669            422
+Gson(ERR)                                    6987          13018          20005            278
+JDK 1.8 Serialization                       34323           8715          43038            760
+JSON IO(ERR)                                64323          20306          84629            713
+</pre><br><br>
+<br><h4>Test Class: ShortRemoteCall</h4>
+measures overhead of stream initialization+classname decoding. Only one very short object is serialized<br>
+<br>
+<b>speed read+write (ns)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:344,984,3327,4577,10341,15401,19323|291,471,3989,5620,4711,2170,7990&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,27313&chxr=1,0,27313&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CGson%28ERR%29%7CJackson+2.53%28ERR%29%7CFST+Serialization+2.29+unshared'/><br>
+<b>size (bytes)</b><br><img src='https://chart.googleapis.com/chart?cht=bhs&chs=600x156&chd=t:25,89,89,200,209,305,193|0,0,0,0,0,0,0&chco=5d99f9,4d89f9&chdlp=t&chbh=15&chds=0,305&chxr=1,0,305&chxt=y,x&chxl=0:|JSON+IO%28ERR%29%7CJDK+1.8+Serialization%7CBOON+.33+JSon%28ERR%29%7CFST+2.29+Json+over+Jackson%7CGson%28ERR%29%7CJackson+2.53%28ERR%29%7CFST+Serialization+2.29+unshared'/><br>
+<br><pre style='background-color:#ccc;'>lib                                     read (ns)     write (ns)     total (ns)   size (bytes)
+FST Serialization 2.29 unshared               344            291            635             25
+Jackson 2.53(ERR)                             984            471           1455             89
+Gson(ERR)                                    3327           3989           7316             89
+FST 2.29 Json over Jackson                   4577           5620          10197            200
+BOON .33 JSon(ERR)                          10341           4711          15052            209
+JDK 1.8 Serialization                       15401           2170          17571            305
+JSON IO(ERR)                                19323           7990          27313            193
+</pre><br><br>
+</html>
