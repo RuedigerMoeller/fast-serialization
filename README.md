@@ -6,7 +6,7 @@ fast-serialization
 * FSTStructs is very similar to IBM's packed objects. Difference is: You can run it with Oracle JDK today.
 * should be Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
 * Apache 2.0 license since 2.17
-* optionally serialize any Serializable object graph to JSON and vice versa (incl. shared references) (since 2.29)
+* optionally serialize any Serializable object graph to **JSON** and vice versa (incl. shared references) (since 2.29)
 
 ###Docs:
 [For serialization (Read at least first chapter)](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
