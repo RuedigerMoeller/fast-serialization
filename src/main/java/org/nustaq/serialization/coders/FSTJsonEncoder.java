@@ -354,14 +354,15 @@ public class FSTJsonEncoder implements FSTEncoder {
     @Override
     public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
         try {
-            if ( gen.getOutputContext().inArray() )
-                gen.writeString(subInfo.getName());
+            SerializedString bufferedName = (SerializedString) subInfo.getBufferedName();
+            if ( bufferedName == null ) {
+                bufferedName = new SerializedString(subInfo.getName());
+                subInfo.setBufferedName(bufferedName);
+            }
+            if ( gen.getOutputContext().inArray() ) {
+                gen.writeString(bufferedName);
+            }
             else {
-                SerializedString bufferedName = (SerializedString) subInfo.getBufferedName();
-                if ( bufferedName == null ) {
-                    bufferedName = new SerializedString(subInfo.getName());
-                    subInfo.setBufferedName(bufferedName);
-                }
                 gen.writeFieldName(bufferedName);
             }
         } catch (IOException e) {

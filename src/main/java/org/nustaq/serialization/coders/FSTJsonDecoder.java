@@ -228,7 +228,10 @@ public class FSTJsonDecoder implements FSTDecoder {
             throw new RuntimeException("not supported");
         byte b[] = new byte[len];
         System.arraycopy(bytes,off,b,0,len);
-        fstInput = new FSTInputStream(b);
+        if ( fstInput == null )
+            fstInput = new FSTInputStream(b);
+        else
+            fstInput.resetForReuse(bytes,len);
         try {
             createParser();
         } catch (IOException e) {
@@ -244,7 +247,12 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public void resetWith(byte[] bytes, int len) {
-        fstInput = new FSTInputStream(bytes,0,len);
+        if ( fstInput == null ) {
+            fstInput = new FSTInputStream(bytes,0,len);
+        }
+        else {
+            fstInput.resetForReuse(bytes,len);
+        }
         try {
             createParser();
         } catch (IOException e) {
