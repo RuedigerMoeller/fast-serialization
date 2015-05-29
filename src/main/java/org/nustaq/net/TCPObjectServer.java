@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ruedi on 22.08.14.
  *
  * As socket allowing to send/receive serializable objects
- * see ./test/net for an example
+ * see ./test/net for an example.
+ *
+ * Note that by providing a Json configuration, it can be used cross language
  *
  */
 public class TCPObjectServer {
