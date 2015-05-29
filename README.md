@@ -9,9 +9,18 @@ fast-serialization
 * optionally serialize any Serializable object graph to **JSON** and vice versa (incl. shared references) (since 2.29)
 
 ###Docs:
-[For serialization (Read at least first chapter)](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
-[Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
+[Fast JDK-compatible Serialization](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
+
+[Json Serialization](https://github.com/RuedigerMoeller/fast-serialization/wiki/JSON-serialization)
+
+[OffHeap + Persistent Maps](https://github.com/RuedigerMoeller/fast-serialization/wiki/Off-Heap-Maps,-Persistent-Maps)
+
+[MinBin cross platform binary format](https://github.com/RuedigerMoeller/fast-serialization/wiki/MinBin)
+
+[Kson: a JSon extension](https://github.com/RuedigerMoeller/fast-serialization/wiki/KSon)
+
+[Struct Emulation](https://github.com/RuedigerMoeller/fast-serialization/wiki/Structs) (currently not covered by tests)
 
 ###mvn
 
