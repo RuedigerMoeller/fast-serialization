@@ -17,8 +17,6 @@ fast-serialization
 
 **note:** maven.org might lag 1 day behind after releasing.
 
-**2.26** is a broken build, don't use (bad habit, run testsuite *after* starting upload ;-) )
-
 2.0 version
 ```.xml
 <dependency>
@@ -28,7 +26,7 @@ fast-serialization
 </dependency>
 ```
 
-Older version (slightly faster, different package name, 1.6 compatible ..). Fixes are not backported anymore, however marked as "needs backport" in issue tracker
+Older version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
