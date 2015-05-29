@@ -455,7 +455,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         Class aClass = clzCache.get(name);
         if (aClass!=null)
             return aClass;
-        aClass = Class.forName(name);
+        aClass = conf.getClassRegistry().classForName(name);
         clzCache.put(name,aClass);
         return aClass;
     }
