@@ -6,28 +6,36 @@ fast-serialization
 * FSTStructs is very similar to IBM's packed objects. Difference is: You can run it with Oracle JDK today.
 * should be Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
 * Apache 2.0 license since 2.17
+* optionally serialize any Serializable object graph to **JSON** and vice versa (incl. shared references) (since 2.29)
 
 ###Docs:
-[For serialization (Read at least first chapter)](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
-[Full Documentation](https://github.com/RuedigerMoeller/fast-serialization/wiki)
+[Fast JDK-compatible Serialization](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
+
+[Json Serialization](https://github.com/RuedigerMoeller/fast-serialization/wiki/JSON-serialization)
+
+[OffHeap + Persistent Maps](https://github.com/RuedigerMoeller/fast-serialization/wiki/Off-Heap-Maps,-Persistent-Maps)
+
+[MinBin cross platform binary format](https://github.com/RuedigerMoeller/fast-serialization/wiki/MinBin)
+
+[Kson: a JSon extension](https://github.com/RuedigerMoeller/fast-serialization/wiki/KSon)
+
+[Struct Emulation](https://github.com/RuedigerMoeller/fast-serialization/wiki/Structs) (currently not covered by tests)
 
 ###mvn
 
 **note:** maven.org might lag 1 day behind after releasing.
-
-**2.26** is a broken build, don't use (bad habit, run testsuite *after* starting upload ;-) )
 
 2.0 version
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.28</version>
+    <version>2.29</version>
 </dependency>
 ```
 
-Older version (slightly faster, different package name, 1.6 compatible ..). Fixes are not backported anymore, however marked as "needs backport" in issue tracker
+Older version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
@@ -39,7 +47,7 @@ Older version (slightly faster, different package name, 1.6 compatible ..). Fixe
 ###how to build 
 
 * master contains dev branch/trunk.
-* 1.x contains old version (still maintained)
+* 1.x contains old version
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
