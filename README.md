@@ -38,7 +38,7 @@ Older version (different package name, 1.6 compatible ..). Fixes are not backpor
 ###how to build 
 
 * master contains dev branch/trunk.
-* 1.x contains old version (still maintained)
+* 1.x contains old version
 * The maven build should work out of the box and reproduces the artifact hosted on maven.org
 * To use the gradle build, you need to configure the proxy server in settings.properties (or just set empty if you do not sit behind a proxy).
 
