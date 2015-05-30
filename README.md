@@ -1,12 +1,12 @@
 fast-serialization
 ==================
 
-* 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..).
-* optionally serialize any Serializable object graph to **JSON** and vice versa (incl. shared references) (since 2.29)
-* should be Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
-* Apache 2.0 license since 2.17
+* 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..) up to 10 times faster than JDK
+* optionally en/decode any Serializable object graph to JSON and vice versa (incl. shared references) (since 2.29)
+* Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
 * OffHeap Maps, Persistent OffHeap maps
 * FSTStructs is very similar to IBM's packed objects. Difference is: You can run it with Oracle JDK today.
+* Apache 2.0 license since 2.17
 
 ###Docs:
 
