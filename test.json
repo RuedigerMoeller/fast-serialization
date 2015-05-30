@@ -1,17 +1,21 @@
 {
-  "type": "ser.Play$SampleClass",
+  "typ": "call",
   "obj": {
-    "myList": {
-      "type": "list",
-      "obj": [ 3,
-        1, 2, "Hello"
-      ]
-    },
-    "myMap": {
-      "type": "map",
-      "obj": [
-        1,
-        1, "Some String"
+    "futureKey": 1,
+    "queue": 0,
+    "receiverKey": 1,
+    "args": {
+      "styp": "array",
+      "seq": [
+        2,
+        {
+          "styp": "array",
+          "seq": [
+            3,
+            "user",
+            "pwd"
+          ]
+        }
       ]
     }
   }
