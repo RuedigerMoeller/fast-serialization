@@ -40,13 +40,15 @@ public class Play implements Serializable {
     public static void main(String[] args) {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        System.out.println(conf.asObject(conf.asByteArray("∂ √ ∞ ∑ ≈ ≠ ≡ ≤ ≥ ∆ ∏ ∩ ⌠ ⌡ │ ∫ Ω ⅓ ⅔ ⅛ ⅜ ⅝ ⅞ ♭ ♮ ♯ ♩ ♪ © ® ™")));
+
 
         conf.registerCrossPlatformClassMappingUseSimpleName(
-                SampleClass.class,
-                Object[].class,
-                Object[][].class,
-                int[][].class,
-                int[][][].class
+           SampleClass.class,
+           Object[].class,
+           Object[][].class,
+           int[][].class,
+           int[][][].class
         );
 
 

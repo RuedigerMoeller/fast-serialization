@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * As socket allowing to send/receive serializable objects
  * see ./test/net for an example
  *
+ * Note that by providing a Json configuration, it can be used cross language
+ *
  */
 public class TCPObjectSocket {
 

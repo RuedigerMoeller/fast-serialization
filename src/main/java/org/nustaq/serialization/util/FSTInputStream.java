@@ -33,11 +33,20 @@ public final class FSTInputStream extends InputStream {
     public int pos;
     public int count; // avaiable valid read bytes
     InputStream in;
-    boolean fullyRead = false;
+    boolean fullyRead = false; // true if input source has been read til end
     public boolean byteBacked = false;
 
     public FSTInputStream(InputStream in) {
         initFromStream(in);
+    }
+
+    public void resetForReuse( byte b[], int length ) {
+        reset();
+        count = length;
+        buf = b;
+        pos = 0;
+        byteBacked = true;
+        fullyRead = true;
     }
 
     public void initFromStream(InputStream in) {
@@ -77,7 +86,7 @@ public final class FSTInputStream extends InputStream {
     }
 
     public void ensureCapacity(int siz) {
-        if (buf.length < siz) {
+        if (buf.length < siz && ! fullyRead) {
             byte newBuf[] = new byte[siz];
             System.arraycopy(buf, 0, newBuf, 0, buf.length);
             buf = newBuf;
@@ -110,12 +119,10 @@ public final class FSTInputStream extends InputStream {
     }
 
     public int read(byte b[], int off, int len) {
-        if (fullyRead)
+        if (isFullyRead())
             return -1;
-        while (pos + len >= count) {
+        while (! fullyRead && pos + len >= count) {
             readNextChunk(in);
-            if (fullyRead)
-                break;
         }
         int avail = count - pos;
         if (len > avail) {

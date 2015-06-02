@@ -41,6 +41,7 @@ task testJar(type: Jar, dependsOn:classes) {
 task allJar(type: Jar, dependsOn:jar) {
     archiveName = 'fst-'+version+"-onejar.jar"
     from zipTree('lib/objenesis-2.1.jar').matching { true }
+    from zipTree('lib/jackson-core-2.5.3.jar').matching { true }
     from zipTree('lib/javassist-3.19.0-GA.jar').matching { true }
     from zipTree('build/libs/fst-'+version+'.jar').matching { true }
 }

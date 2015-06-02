@@ -448,11 +448,12 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void resetWith(byte[] bytes, int len) {
         clnames.clear();
-        input.reset();
-        input.count = len;
-        input.buf = bytes;
-        input.pos = 0;
-        input.byteBacked = true;
+        input.resetForReuse(bytes,len);
+//        input.reset();
+//        input.count = len;
+//        input.buf = bytes;
+//        input.pos = 0;
+//        input.byteBacked = true;
     }
 
     @Override

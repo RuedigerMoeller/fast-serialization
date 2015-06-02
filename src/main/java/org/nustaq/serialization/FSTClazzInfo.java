@@ -75,6 +75,16 @@ public final class FSTClazzInfo {
     Method writeReplaceMethod, readResolveMethod;
     HashMap<Class, FSTCompatibilityInfo> compInfo = new HashMap<Class, FSTCompatibilityInfo>(7);
 
+    Object decoderAttached; // for decoders
+
+    public Object getDecoderAttached() {
+        return decoderAttached;
+    }
+
+    public void setDecoderAttached(Object decoderAttached) {
+        this.decoderAttached = decoderAttached;
+    }
+
     boolean requiresCompatibleMode;
     boolean externalizable;
     boolean flat; // never share instances of this class
@@ -89,8 +99,6 @@ public final class FSTClazzInfo {
     Constructor cons;
     int clzId = -1;
     int structSize = 0;
-
-    Object decoderAttachment;
 
 
     FSTClazzInfoRegistry reg;
@@ -156,14 +164,6 @@ public final class FSTClazzInfo {
     }
 
     byte[] bufferedName;
-
-    public void setDecoderAttachment(Object decoderAttachment) {
-        this.decoderAttachment = decoderAttachment;
-    }
-
-    public Object getDecoderAttachment() {
-        return decoderAttachment;
-    }
 
     public byte[] getBufferedName() {
         if (bufferedName == null) {
@@ -540,10 +540,6 @@ public final class FSTClazzInfo {
 
         public byte getVersion() {
             return version;
-        }
-
-        public byte[] getBufferedNameAsByteArr() {
-            return (byte[]) bufferedName;
         }
 
         public Object getBufferedName() {

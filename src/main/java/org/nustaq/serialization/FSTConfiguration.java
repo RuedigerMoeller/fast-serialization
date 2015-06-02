@@ -969,6 +969,16 @@ public class FSTConfiguration {
     }
 
     /**
+     * shorthand for registerCrossPlatformClassMapping(_,_)
+     * @param shortName - class name in json type field
+     * @param clz - class
+     * @return
+     */
+    public FSTConfiguration cpMap(String shortName, Class clz) {
+        return registerCrossPlatformClassMapping(shortName,clz.getName());
+    }
+
+    /**
      * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
      */
     public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
@@ -1022,7 +1032,7 @@ public class FSTConfiguration {
         try {
             return getObjectInput(b).readObject();
         } catch (Exception e) {
-            System.out.println(new String(b,0) );
+            System.out.println("unable to decode:" +new String(b,0) );
             FSTUtil.<RuntimeException>rethrow(e);
         }
         return null;
