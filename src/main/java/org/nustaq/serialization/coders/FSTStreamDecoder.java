@@ -551,6 +551,11 @@ public class FSTStreamDecoder implements FSTDecoder {
         return input.available();
     }
 
+    @Override
+    public boolean inArray() {
+        return false;
+    }
+
 
 }
 

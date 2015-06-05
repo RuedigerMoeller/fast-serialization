@@ -461,4 +461,9 @@ public class FSTBytezDecoder  implements FSTDecoder {
         return (int) (input.length()-pos);
     }
 
+    @Override
+    public boolean inArray() {
+        return false;
+    }
+
 }

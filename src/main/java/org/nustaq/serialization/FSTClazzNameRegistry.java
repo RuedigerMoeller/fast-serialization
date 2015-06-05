@@ -203,12 +203,28 @@ public class FSTClazzNameRegistry {
                     } else if ( clName.endsWith("_ActorProxy") ) {
                         // same as above for actors. As there is a custom serializer defined for actors, just instantiate
                         // actor clazz
+                        String clName0 = clName;
                         clName = clName.substring(0, clName.length() - "_ActorProxy".length());
                         Class actorClz = classCache.get(clName);
-                        if (actorClz == null)
-                            actorClz = Class.forName(clName, false, conf.getClassLoader());
+                        if (actorClz == null) {
+                            try {
+                                actorClz = Class.forName(clName, false, conf.getClassLoader());
+                            } catch (ClassNotFoundException clf) {
+                                if ( conf.getLastResortResolver() != null ) {
+                                    Class aClass = conf.getLastResortResolver().getClass(clName0);
+                                    if ( aClass != null )
+                                        return aClass;
+                                }
+                                FSTUtil.<RuntimeException>rethrow(clf);
+                            }
+                        }
                         return actorClz;
                     } else {
+                        if ( conf.getLastResortResolver() != null ) {
+                            Class aClass = conf.getLastResortResolver().getClass(clName);
+                            if ( aClass != null )
+                                return aClass;
+                        }
                         throw new RuntimeException("class not found CLASSNAME:" + clName + " loader:"+conf.getClassLoader(), th);
                     }
                 }

@@ -305,6 +305,10 @@ public class FSTJsonDecoder implements FSTDecoder {
             }
         }
         if ( jsonToken != JsonToken.START_OBJECT ) {
+            if ( jsonToken == JsonToken.END_ARRAY ) { // tweak to get end marker when reading json array with readObject
+                lastReadDirectObject = "]";
+                return FSTObjectOutput.DIRECT_OBJECT;
+            }
             throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");
         }
 
@@ -618,6 +622,11 @@ public class FSTJsonDecoder implements FSTDecoder {
     public int available() {
         fstInput.ensureReadAhead(1);
         return fstInput.available();
+    }
+
+    @Override
+    public boolean inArray() {
+        return input.getParsingContext().inArray();
     }
 
 }

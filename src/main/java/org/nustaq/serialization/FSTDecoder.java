@@ -91,4 +91,10 @@ public interface FSTDecoder {
      */
     int available();
 
+    /**
+     * return wether current stream is reading an object or sequence currently
+     * makes sense for MinBin and JSon only, only Json serializer actually has implemented it
+     * @return
+     */
+    boolean inArray();
 }

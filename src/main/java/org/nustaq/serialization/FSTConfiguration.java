@@ -58,6 +58,15 @@ public class FSTConfiguration {
     static enum ConfType {
         DEFAULT, UNSAFE, MINBIN, JSON
     }
+
+    /**
+     * if all attempts fail to find a class this guy is asked.
+     * Can be used in case e.g. dynamic classes need get generated.
+     */
+    public static interface LastResortClassRessolver {
+        public Class getClass( String clName );
+    }
+
     StreamCoderFactory streamCoderFactory = new StreamCoderFactory() {
         @Override
         public FSTEncoder createStreamEncoder() {
@@ -81,30 +90,7 @@ public class FSTConfiguration {
     FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
     Object coderSpecific;
-
-    public boolean isForceClzInit() {
-        return forceClzInit;
-    }
-
-    /**
-     * always execute default fields init, even if no transients (so would get overwritten anyway)
-     * required for lossy codecs (kson)
-     *
-     * @param forceClzInit
-     * @return
-     */
-    public FSTConfiguration setForceClzInit(boolean forceClzInit) {
-        this.forceClzInit = forceClzInit;
-        return this;
-    }
-
-    public FSTClassInstantiator getInstantiator(Class clazz) {
-        return instantiator;
-    }
-
-    public void setInstantiator(FSTClassInstantiator instantiator) {
-        this.instantiator = instantiator;
-    }
+    LastResortClassRessolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
 
@@ -200,7 +186,8 @@ public class FSTConfiguration {
         return res;
     }
 
-    public static FSTConfiguration createJsonConfiguration() {
+    public static FSTConfiguration
+    createJsonConfiguration() {
         return createJsonConfiguration(false, true);
     }
 
@@ -281,6 +268,12 @@ public class FSTConfiguration {
             }
         });
         conf.setShareReferences(shareReferences);
+        conf.setLastResortResolver(new LastResortClassRessolver() {
+            @Override
+            public Class getClass(String clName) {
+                return Unknown.class;
+            }
+        });
         return conf;
     }
 
@@ -422,6 +415,38 @@ public class FSTConfiguration {
      */
     public void registerSerializer(Class clazz, FSTObjectSerializer ser, boolean alsoForAllSubclasses ) {
         serializationInfoRegistry.serializerRegistry.putSerializer(clazz, ser, alsoForAllSubclasses);
+    }
+
+    public boolean isForceClzInit() {
+        return forceClzInit;
+    }
+
+    public LastResortClassRessolver getLastResortResolver() {
+        return lastResortResolver;
+    }
+
+    public void setLastResortResolver(LastResortClassRessolver lastResortResolver) {
+        this.lastResortResolver = lastResortResolver;
+    }
+
+    /**
+     * always execute default fields init, even if no transients (so would get overwritten anyway)
+     * required for lossy codecs (kson)
+     *
+     * @param forceClzInit
+     * @return
+     */
+    public FSTConfiguration setForceClzInit(boolean forceClzInit) {
+        this.forceClzInit = forceClzInit;
+        return this;
+    }
+
+    public FSTClassInstantiator getInstantiator(Class clazz) {
+        return instantiator;
+    }
+
+    public void setInstantiator(FSTClassInstantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     public <T> T getCoderSpecific() {

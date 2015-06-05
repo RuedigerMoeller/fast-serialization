@@ -15,6 +15,7 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.serialization.coders.Unknown;
 import org.nustaq.serialization.minbin.MBObject;
 import org.nustaq.serialization.util.FSTUtil;
 import java.io.*;
@@ -508,7 +509,7 @@ public class FSTObjectInput implements ObjectInput {
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
-        final boolean needsRefLookup = !referencee.isFlat() && !clzSerInfo.isFlat();
+        final boolean needsRefLookup = conf.shareReferences && !referencee.isFlat() && !clzSerInfo.isFlat();
         if (needsRefLookup) {
             objects.registerObjectForRead(newObj, readPos);
         }
@@ -708,17 +709,32 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
-        String name; 
-        int len = getCodec().getObjectHeaderLen();
+        String name;
+        int len = getCodec().getObjectHeaderLen(); // check if len is known in advance
         if ( len < 0 )
             len = Integer.MAX_VALUE;
         int count = 0;
+        boolean isUnknown = newObj.getClass() == Unknown.class; // json
+        boolean inArray = isUnknown && getCodec().inArray();    // json
+        // fixme: break up this loop into separate impls.
         while( count < len ) {
+            if ( inArray ) {
+                // unknwon json object written by externalize or custom serializer
+                Object o = readObjectWithHeader(null);
+                if ( o != null && getCodec().isEndMarker(o.toString()) )
+                    return;
+                ((Unknown)newObj).addItem(o);
+                continue;
+            }
             name= getCodec().readStringUTF();
             //int debug = getCodec().getInputPos();
             if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) )
                 return;
             count++;
+            if (isUnknown) {
+                Object toSet = readObjectWithHeader(null);
+                ((Unknown)newObj).setFieldValue(name, toSet);
+            }
             if ( newObj.getClass() == MBObject.class ) {
                 Object toSet = readObjectWithHeader(null);
                 ((MBObject)newObj).put(name,toSet);
