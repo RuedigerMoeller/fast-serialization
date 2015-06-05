@@ -19,8 +19,6 @@ package org.nustaq.serialization.serializers;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTObjectInput;
 
-import java.io.IOException;
-
 /**
  * Created with IntelliJ IDEA.
  * User: ruedi
@@ -30,7 +28,7 @@ import java.io.IOException;
  */
 public class FSTStringBuilderSerializer extends FSTStringBufferSerializer {
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
         String s = in.readStringUTF();
         StringBuilder stringBuilder = new StringBuilder(s);
         in.registerObject(stringBuilder, streamPositioin,serializationInfo, referencee);

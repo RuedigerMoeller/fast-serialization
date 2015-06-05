@@ -35,7 +35,7 @@ public class FSTCPThrowableSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
         String msg = in.readStringUTF();
         try {
             Constructor constructor = objectClass.getConstructor(String.class);

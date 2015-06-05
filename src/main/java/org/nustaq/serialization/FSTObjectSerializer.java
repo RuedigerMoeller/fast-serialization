@@ -39,7 +39,7 @@ public interface FSTObjectSerializer {
      * read the content to an already instantiated object
      */
     public void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy)
-            throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException;
+        throws Exception;
 
     /**
      * useful if you register for a class and its subclasses, but want to exclude a specific subclass
@@ -58,5 +58,5 @@ public interface FSTObjectSerializer {
      * and handle instantiation and reading the object here. You must call registerObjectForWrite immediately after creating it on the FSTObjectInput
      */
     public Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin)
-            throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException;
+        throws Exception;
 }

@@ -47,7 +47,7 @@ public class FSTStringBufferSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
         String s = in.readStringUTF();
         StringBuffer stringBuffer = new StringBuffer(s);
         in.registerObject(stringBuffer, streamPositioin, serializationInfo, referencee);

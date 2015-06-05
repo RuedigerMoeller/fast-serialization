@@ -7,7 +7,6 @@ import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * Created by ruedi on 24/05/15.
@@ -26,7 +25,7 @@ public class FSTJSonSerializers {
         }
 
         @Override
-        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
             return new BigDecimal(in.readStringUTF());
         }
     }

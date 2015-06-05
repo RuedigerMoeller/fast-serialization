@@ -19,8 +19,6 @@ import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
@@ -62,7 +60,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
         try {
             Object res = null;
             int len = in.readInt();

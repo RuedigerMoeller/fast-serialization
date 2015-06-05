@@ -476,7 +476,7 @@ public class FSTObjectInput implements ObjectInput {
         return Integer.valueOf(val);
     }
 
-    private Object instantiateAndReadWithSer(Class c, FSTObjectSerializer ser, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    private Object instantiateAndReadWithSer(Class c, FSTObjectSerializer ser, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
         boolean serInstance = false;
         Object newObj = ser.instantiate(c, this, clzSerInfo, referencee, readPos);
         if (newObj == null) {
@@ -897,7 +897,7 @@ public class FSTObjectInput implements ObjectInput {
             reset();
             objects.clearForRead();
         } catch (IOException e) {
-            e.printStackTrace();
+            FSTUtil.<RuntimeException>rethrow(e);
         }
     }
 

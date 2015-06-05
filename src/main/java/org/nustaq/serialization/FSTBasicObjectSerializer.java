@@ -15,8 +15,6 @@
  */
 package org.nustaq.serialization;
 
-import java.io.IOException;
-
 /**
  * Created with IntelliJ IDEA.
  * User: ruedi
@@ -35,7 +33,7 @@ public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerial
     }
 
     @Override
-    public void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy) throws Exception {
     }
 
     /**
@@ -49,7 +47,7 @@ public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerial
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
         return null;
     }
 
