@@ -59,7 +59,7 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         Object res = null;
         int len = in.readInt();
         if ( objectClass == HashMap.class ) {
@@ -71,7 +71,7 @@ public class FSTMapSerializer extends FSTBasicObjectSerializer {
         {
             res = objectClass.newInstance();
         }
-        in.registerObject(res, streamPositioin,serializationInfo, referencee);
+        in.registerObject(res, streamPosition,serializationInfo, referencee);
         Map col = (Map)res;
         for ( int i = 0; i < len; i++ ) {
             Object key = in.readObjectInternal(null);

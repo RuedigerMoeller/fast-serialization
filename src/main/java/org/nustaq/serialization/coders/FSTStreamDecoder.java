@@ -556,6 +556,11 @@ public class FSTStreamDecoder implements FSTDecoder {
         return false;
     }
 
+    @Override
+    public void startFieldReading(Object newObj) {
+
+    }
+
 
 }
 

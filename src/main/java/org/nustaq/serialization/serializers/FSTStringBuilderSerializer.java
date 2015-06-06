@@ -28,10 +28,10 @@ import org.nustaq.serialization.FSTObjectInput;
  */
 public class FSTStringBuilderSerializer extends FSTStringBufferSerializer {
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         String s = in.readStringUTF();
         StringBuilder stringBuilder = new StringBuilder(s);
-        in.registerObject(stringBuilder, streamPositioin,serializationInfo, referencee);
+        in.registerObject(stringBuilder, streamPosition,serializationInfo, referencee);
         return stringBuilder;
     }
 }

@@ -60,7 +60,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         try {
             Object res = null;
             int len = in.readInt();
@@ -83,7 +83,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
                     res = objectClass.newInstance();
                 }
             }
-            in.registerObject(res, streamPositioin,serializationInfo, referencee);
+            in.registerObject(res, streamPosition,serializationInfo, referencee);
             Collection col = (Collection)res;
             if ( col instanceof ArrayList ) {
                 ((ArrayList)col).ensureCapacity(len);

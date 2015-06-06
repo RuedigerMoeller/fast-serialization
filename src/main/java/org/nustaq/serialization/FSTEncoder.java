@@ -80,8 +80,8 @@ public interface FSTEncoder {
     void writeClass(Class cl);
     void writeClass(FSTClazzInfo clInf);
 
-    // write a meta byte item. return true if encoder wrote array as a primitive object
-    boolean writeTag(byte tag, Object info, long somValue, Object toWrite) throws IOException;
+    // write a meta byte item. return true if encoder wrote full object (e.g. literal, primitive)
+    boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException;
 
     void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
 

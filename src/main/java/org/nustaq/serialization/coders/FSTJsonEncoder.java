@@ -11,6 +11,7 @@ import org.nustaq.serialization.util.FSTUtil;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.util.Map;
 
 /**
  * Created by ruedi on 20/05/15.
@@ -225,7 +226,7 @@ public class FSTJsonEncoder implements FSTEncoder {
     }
 
     @Override
-    public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite) throws IOException {
+    public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {
         switch (tag) {
             case FSTObjectOutput.HANDLE:
                 gen.writeStartObject();
@@ -238,6 +239,12 @@ public class FSTJsonEncoder implements FSTEncoder {
                 return true;
             case FSTObjectOutput.TYPED:
             case FSTObjectOutput.OBJECT:
+
+                if ( toWrite instanceof Unknown ) {
+                    writeUnkown((Unknown) toWrite,oout);
+                    return true;
+                }
+
                 FSTClazzInfo clzInfo = (FSTClazzInfo) infoOrObject;
                 if (clzInfo.useCompatibleMode() && clzInfo.getSer() == null ) {
                     throw new RuntimeException("Unsupported backward compatibility mode for class '"+clzInfo.getClazz().getName()+"'. Pls register a Custom Serializer to fix");
@@ -328,6 +335,27 @@ public class FSTJsonEncoder implements FSTEncoder {
                 throw new RuntimeException("unexpected tag "+tag);
         }
         return false;
+    }
+
+    private void writeUnkown(Unknown toWrite, FSTObjectOutput oout) throws IOException {
+        gen.writeStartObject();
+        gen.writeFieldName(TYPE_S);
+        gen.writeString(toWrite.getType());
+        gen.writeFieldName(OBJ_S);
+        if ( toWrite.isSequence() ) {
+            gen.writeStartObject();
+            for (Map.Entry<String, Object> stringObjectEntry : toWrite.getFields().entrySet()) {
+                gen.writeFieldName(stringObjectEntry.getKey());
+                oout.writeObject(stringObjectEntry.getValue());
+            }
+            gen.writeEndObject();
+        } else {
+            gen.writeStartObject();
+            for (Object o : toWrite.getItems()) {
+                oout.writeObject(o);
+            }
+            gen.writeEndArray();
+        }
     }
 
     private void writeSymbolicClazz(FSTClazzInfo clzInfo, Class<?> clz) {

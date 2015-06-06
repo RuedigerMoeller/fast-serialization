@@ -166,6 +166,7 @@ public class FSTConfiguration {
         res.registerCrossPlatformClassMapping(new String[][]{
                 {"map", HashMap.class.getName()},
                 {"list", ArrayList.class.getName()},
+                {"set", HashSet.class.getName()},
                 {"long", Long.class.getName()},
                 {"integer", Integer.class.getName()},
                 {"short", Short.class.getName()},
@@ -1037,6 +1038,9 @@ public class FSTConfiguration {
     public String getCPNameForClass( Class cl ) {
         String res = minbinNamesReverse.get(cl.getName());
         if (res == null) {
+            if (cl.isAnonymousClass()) {
+                return getCPNameForClass(cl.getSuperclass());
+            }
             return cl.getName();
         }
         return res;

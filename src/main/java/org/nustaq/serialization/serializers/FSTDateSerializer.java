@@ -48,10 +48,10 @@ public class FSTDateSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         long l = in.readLong();
         Object res = new Date(l);
-//        in.registerObject(res,streamPositioin,serializationInfo, referencee); can skip as alwaysCopy is true
+//        in.registerObject(res,streamPosition,serializationInfo, referencee); can skip as alwaysCopy is true
         return res;
     }
 

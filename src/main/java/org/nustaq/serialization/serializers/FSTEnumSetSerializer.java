@@ -64,11 +64,11 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         int len = in.readInt();
         Class elemCl = in.readClass().getClazz();
         EnumSet enSet = EnumSet.noneOf(elemCl);
-        in.registerObject(enSet,streamPositioin,serializationInfo, referencee); // IMPORTANT, else tracking double objects will fail
+        in.registerObject(enSet,streamPosition,serializationInfo, referencee); // IMPORTANT, else tracking double objects will fail
         for (int i = 0; i < len; i++)
             enSet.add(in.readObjectInternal(Enum.class));
         return enSet;

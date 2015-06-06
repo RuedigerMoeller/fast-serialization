@@ -89,7 +89,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
 
         try {
             if ( toWrite == null ) {
-                getCodec().writeTag(NULL, null, 0, toWrite);
+                getCodec().writeTag(NULL, null, 0, toWrite, this);
                 return null;
             }
             final Class clazz = toWrite.getClass();
@@ -99,27 +99,27 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                     for (int i = 0; i < oneOf.length; i++) {
                         String s = oneOf[i];
                         if ( s.equals(toWrite) ) {
-                            getCodec().writeTag(ONE_OF, oneOf, i, toWrite);
+                            getCodec().writeTag(ONE_OF, oneOf, i, toWrite, this);
                             getCodec().writeFByte(i);
                             return null;
                         }
                     }
                 }
                 if (dontShare) {
-                    getCodec().writeTag(STRING, toWrite, 0, toWrite);
+                    getCodec().writeTag(STRING, toWrite, 0, toWrite, this);
                     getCodec().writeStringUTF((String) toWrite);
                     return null;
                 }
             } else if ( clazz == Integer.class ) {
-                getCodec().writeTag(BIG_INT, null, 0, toWrite);
+                getCodec().writeTag(BIG_INT, null, 0, toWrite, this);
                 getCodec().writeFInt(((Integer) toWrite).intValue()); return null;
             } else if ( clazz == Long.class ) {
-                getCodec().writeTag(BIG_LONG, null, 0, toWrite);
+                getCodec().writeTag(BIG_LONG, null, 0, toWrite, this);
                 getCodec().writeFLong(((Long) toWrite).longValue()); return null;
             } else if ( clazz == Boolean.class ) {
-                getCodec().writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite); return null;
+                getCodec().writeTag(((Boolean) toWrite).booleanValue() ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite, this); return null;
             } else if ( (referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum ) {
-                if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite) ) {
+                if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite, this) ) {
                     boolean isEnumClass = toWrite.getClass().isEnum();
                     if (!isEnumClass) {
                         // weird stuff ..
@@ -143,7 +143,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
             // check for identical / equal objects
             FSTObjectSerializer ser = serializationInfo.getSer();
             if (clazz.isArray()) {
-                if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite))
+                if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite, this))
                     return null; // some codecs handle primitive arrays like an primitive type
                 writeArray(referencee, toWrite);
             } else if ( ser == null ) {

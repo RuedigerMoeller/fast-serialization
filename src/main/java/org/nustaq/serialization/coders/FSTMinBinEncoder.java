@@ -17,13 +17,10 @@ package org.nustaq.serialization.coders;
 
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.minbin.MBOut;
-import org.nustaq.serialization.minbin.MBPrinter;
 import org.nustaq.serialization.minbin.MinBin;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Date: 30.03.2014
@@ -210,7 +207,7 @@ public class FSTMinBinEncoder implements FSTEncoder {
     }
     
     @Override
-    public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite) throws IOException {
+    public boolean writeTag(byte tag, Object infoOrObject, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {
         switch (tag) {
             case FSTObjectOutput.HANDLE:
                 out.writeTagHeader(MinBin.HANDLE);

@@ -17,10 +17,7 @@ package org.nustaq.serialization.coders;
 
 import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTClazzNameRegistry;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTEncoder;
+import org.nustaq.serialization.*;
 import org.nustaq.serialization.simpleapi.FSTBufferTooSmallException;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -181,7 +178,7 @@ public class FSTBytezEncoder implements FSTEncoder {
 
     }
 
-    public boolean writeTag(byte tag, Object info, long somValue, Object toWrite) throws IOException {
+    public boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {
         writeFByte(tag);
         return false;
     }

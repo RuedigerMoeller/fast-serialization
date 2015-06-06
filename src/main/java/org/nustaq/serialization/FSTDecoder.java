@@ -97,4 +97,11 @@ public interface FSTDecoder {
      * @return
      */
     boolean inArray();
+
+    /**
+     * quirks for json unknown decoding. Need a hook to set original classname
+     *
+     * @param newObj
+     */
+    void startFieldReading(Object newObj);
 }

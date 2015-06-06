@@ -57,6 +57,6 @@ public interface FSTObjectSerializer {
      * return null to delegate object instantiation to FST. If you want to implement object instantiation yourself, usually you leave the readObject method empty
      * and handle instantiation and reading the object here. You must call registerObjectForWrite immediately after creating it on the FSTObjectInput
      */
-    public Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin)
+    public Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition)
         throws Exception;
 }

@@ -39,9 +39,9 @@ public class FSTStringSerializer extends FSTBasicObjectSerializer {
     }
 
     @Override
-    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPositioin) throws Exception {
+    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         String s = in.readStringUTF();
-        in.registerObject(s, streamPositioin, serializationInfo, referencee);
+        in.registerObject(s, streamPosition, serializationInfo, referencee);
         return s;
     }
 

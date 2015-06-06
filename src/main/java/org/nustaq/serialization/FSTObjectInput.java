@@ -509,7 +509,12 @@ public class FSTObjectInput implements ObjectInput {
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
         }
+        //fixme: code below improves unshared decoding perf, however disables to run mixed mode (clients can decide)
+        //actually would need 2 flags for encode/decode
+        //tested with json mixed mode does not work anyway ...
         final boolean needsRefLookup = conf.shareReferences && !referencee.isFlat() && !clzSerInfo.isFlat();
+        // previously :
+//        final boolean needsRefLookup = !referencee.isFlat() && !clzSerInfo.isFlat();
         if (needsRefLookup) {
             objects.registerObjectForRead(newObj, readPos);
         }
@@ -715,7 +720,8 @@ public class FSTObjectInput implements ObjectInput {
             len = Integer.MAX_VALUE;
         int count = 0;
         boolean isUnknown = newObj.getClass() == Unknown.class; // json
-        boolean inArray = isUnknown && getCodec().inArray();    // json
+        boolean inArray = isUnknown && getCodec().inArray();    // json externalized/custom serialized
+        getCodec().startFieldReading(newObj);
         // fixme: break up this loop into separate impls.
         while( count < len ) {
             if ( inArray ) {
@@ -723,7 +729,7 @@ public class FSTObjectInput implements ObjectInput {
                 Object o = readObjectWithHeader(null);
                 if ( o != null && getCodec().isEndMarker(o.toString()) )
                     return;
-                ((Unknown)newObj).addItem(o);
+                ((Unknown)newObj).add(o);
                 continue;
             }
             name= getCodec().readStringUTF();
@@ -732,9 +738,11 @@ public class FSTObjectInput implements ObjectInput {
                 return;
             count++;
             if (isUnknown) {
-                Object toSet = readObjectWithHeader(null);
-                ((Unknown)newObj).setFieldValue(name, toSet);
-            }
+                FSTClazzInfo.FSTFieldInfo fakeField = new FSTClazzInfo.FSTFieldInfo(null, null, true);
+                fakeField.fakeName = name;
+                Object toSet = readObjectWithHeader(fakeField);
+                ((Unknown)newObj).set(name, toSet);
+            } else
             if ( newObj.getClass() == MBObject.class ) {
                 Object toSet = readObjectWithHeader(null);
                 ((MBObject)newObj).put(name,toSet);
@@ -773,9 +781,6 @@ public class FSTObjectInput implements ObjectInput {
                             default:
                                 throw new RuntimeException("unkown primitive type " + fieldInfo);
                         }
-    //                } else if ( fieldInfo.isArray() && fieldInfo.getType().getComponentType().isPrimitive() ) {
-    //                    Object arr = codec.readFPrimitiveArray(null, fieldInfo.getType().getComponentType(), -1);
-    //                    fieldInfo.setObjectValue(newObj,arr); // fixme: ref lookup
                     } else {
                         Object toSet = readObjectWithHeader(fieldInfo);
                         toSet = getCodec().coerceElement(fieldInfo.getType(), toSet);

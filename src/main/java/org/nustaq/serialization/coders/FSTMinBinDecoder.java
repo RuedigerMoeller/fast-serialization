@@ -422,12 +422,10 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     @Override
     public void readArrayEnd(FSTClazzInfo clzSerInfo) {
-
     }
 
     @Override
     public void readObjectEnd() {
-
     }
 
     @Override
@@ -461,6 +459,11 @@ public class FSTMinBinDecoder implements FSTDecoder {
     @Override
     public boolean inArray() {
         return false;
+    }
+
+    @Override
+    public void startFieldReading(Object newObj) {
+
     }
 
 }

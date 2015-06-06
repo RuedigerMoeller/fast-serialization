@@ -466,4 +466,9 @@ public class FSTBytezDecoder  implements FSTDecoder {
         return false;
     }
 
+    @Override
+    public void startFieldReading(Object newObj) {
+
+    }
+
 }

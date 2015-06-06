@@ -454,12 +454,17 @@ public class FSTJsonDecoder implements FSTDecoder {
     }
 
     HashMap<String,Class> clzCache = new HashMap<>(31);
+    String lastUnknown;
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
         Class aClass = clzCache.get(name);
+        if ( aClass == Unknown.class )
+            lastUnknown = name;
         if (aClass!=null)
             return aClass;
         aClass = conf.getClassRegistry().classForName(name);
+        if ( aClass == Unknown.class )
+            lastUnknown = name;
         clzCache.put(name,aClass);
         return aClass;
     }
@@ -627,6 +632,14 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public boolean inArray() {
         return input.getParsingContext().inArray();
+    }
+
+    @Override
+    public void startFieldReading(Object newObj) {
+        if ( newObj instanceof Unknown ) {
+            ((Unknown) newObj).setType(lastUnknown);
+            lastUnknown = null;
+        }
     }
 
 }

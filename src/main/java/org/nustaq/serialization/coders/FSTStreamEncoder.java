@@ -15,19 +15,12 @@
  */
 package org.nustaq.serialization.coders;
 
-import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTClazzNameRegistry;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTEncoder;
+import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * Default Coder used for serialization. Serializes into a binary stream
@@ -349,7 +342,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         
     }
     
-    public boolean writeTag(byte tag, Object info, long somValue, Object toWrite) throws IOException {
+    public boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {
         writeFByte(tag);
         return false;
     }
