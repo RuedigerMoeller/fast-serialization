@@ -1077,7 +1077,7 @@ public class FSTConfiguration {
             return objectOutput.getCopyOfWrittenBuffer();
         } catch (IOException e) {
             try {
-                FSTConfiguration.prettyPrintJson(object);
+//                FSTConfiguration.prettyPrintJson(object); endless cycle !
             } catch (Exception ee) {
                 //
             }

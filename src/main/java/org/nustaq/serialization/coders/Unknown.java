@@ -28,11 +28,12 @@ public class Unknown implements Serializable {
         this.type = type;
     }
 
-    public void set(String name, Object value) {
+    public Unknown set(String name, Object value) {
         if ( fields == null ) {
             fields = new HashMap();
         }
         fields.put(name, value);
+        return this;
     }
 
     public Unknown add(Object item) {

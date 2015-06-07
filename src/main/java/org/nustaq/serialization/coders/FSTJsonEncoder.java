@@ -343,19 +343,20 @@ public class FSTJsonEncoder implements FSTEncoder {
         gen.writeString(toWrite.getType());
         gen.writeFieldName(OBJ_S);
         if ( toWrite.isSequence() ) {
+            gen.writeStartArray();
+            for (Object o : toWrite.getItems()) {
+                oout.writeObject(o);
+            }
+            gen.writeEndArray();
+        } else {
             gen.writeStartObject();
             for (Map.Entry<String, Object> stringObjectEntry : toWrite.getFields().entrySet()) {
                 gen.writeFieldName(stringObjectEntry.getKey());
                 oout.writeObject(stringObjectEntry.getValue());
             }
             gen.writeEndObject();
-        } else {
-            gen.writeStartObject();
-            for (Object o : toWrite.getItems()) {
-                oout.writeObject(o);
-            }
-            gen.writeEndArray();
         }
+        gen.writeEndObject();
     }
 
     private void writeSymbolicClazz(FSTClazzInfo clzInfo, Class<?> clz) {
