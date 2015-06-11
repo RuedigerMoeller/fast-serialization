@@ -125,7 +125,7 @@ public class FSTObjectOutputNoShared extends FSTObjectOutput {
                         // weird stuff ..
                         Class c = toWrite.getClass();
                         while (c != null && !c.isEnum()) {
-                            c = toWrite.getClass().getEnclosingClass();
+                            c = toWrite.getClass().getSuperclass();
                         }
                         if (c == null) {
                             throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());

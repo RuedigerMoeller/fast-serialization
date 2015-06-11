@@ -467,11 +467,9 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite, this) ) {
             boolean isEnumClass = toWrite.getClass().isEnum();
             if (!isEnumClass) {
-                // weird stuff ..
+                // anonymous enum subclass
                 Class c = toWrite.getClass();
-                while (c != null && !c.isEnum()) {
-                    c = toWrite.getClass().getEnclosingClass();
-                }
+                c = toWrite.getClass().getSuperclass();
                 if (c == null) {
                     throw new RuntimeException("Can't handle this enum: " + toWrite.getClass());
                 }
