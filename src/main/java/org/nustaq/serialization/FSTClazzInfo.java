@@ -22,6 +22,7 @@ import org.nustaq.serialization.util.FSTUtil;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,6 +32,59 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 public final class FSTClazzInfo {
+
+    public static class FieldEntry {
+
+        protected final Class clz;
+        protected final String name;
+
+        public FieldEntry(Class clz, String name) {
+            this.clz = clz;
+            this.name = name;
+        }
+
+        public Class getClz() {
+            return clz;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof FieldEntry)) return false;
+
+            FieldEntry that = (FieldEntry) o;
+
+            if (!clz.equals(that.clz)) return false;
+            return name.equals(that.name);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = clz.hashCode();
+            result = 31 * result + name.hashCode();
+            return result;
+        }
+    }
+
+    /**
+     * to avoid issues with permspace, clazzinfos contained in map
+     * below are shared across all FSTConfigurations.
+     *
+     * Its possible to add additional classes into this at applications startup.
+     * Beware this might be an issue with class loaders
+     *
+     */
+    public static ConcurrentHashMap<FieldEntry,Field> sharedReflection;
+
+    /**
+     * cache + share j.reflect.Field. This can be cleared in case it gets too fat.
+     */
+    public static ConcurrentHashMap<Class,List<Field>> sharedFieldSets = new ConcurrentHashMap<>();
 
     public static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
         @Override
@@ -226,6 +280,17 @@ public final class FSTClazzInfo {
      * @return
      */
     public final List<Field> getAllFields(Class c, List<Field> res) {
+        List<Field> fields = null;
+        if ( c != null )
+            fields = sharedFieldSets.get(c);
+        if ( fields != null )
+        {
+            if ( res != null ) {
+                res.addAll(fields);
+                return res;
+            }
+            return new ArrayList<>(fields);
+        }
         if (res == null) {
             res = new ArrayList<Field>();
         }
@@ -248,7 +313,9 @@ public final class FSTClazzInfo {
                 i--;
             }
         }
-        return getAllFields(c.getSuperclass(), res);
+        List<Field> allFields = getAllFields(c.getSuperclass(), res);
+        sharedFieldSets.put( c, allFields );
+        return allFields;
     }
 
     private boolean isTransient(Class c, Field field) {
@@ -492,7 +559,7 @@ public final class FSTClazzInfo {
         int alignPad = 0;
         Object bufferedName; // cache byte rep of field name (used for cross platform)
 
-        // hacke required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
+        // hack required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
         // in this case only these to fields of a fieldinfo are set
         public String fakeName;

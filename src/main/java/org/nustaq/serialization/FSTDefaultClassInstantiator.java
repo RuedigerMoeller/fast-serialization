@@ -21,6 +21,7 @@ import sun.reflect.ReflectionFactory;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by ruedi on 12.12.14.
@@ -29,6 +30,11 @@ import java.lang.reflect.Modifier;
  *
  */
 public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
+
+    /**
+     * reduce number of generated classes. Can be cleared riskless in case.
+     */
+    public static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
 
     @Override
     public Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort) {
@@ -73,10 +79,14 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
         }
     }
 
-    public Constructor findConstructorForSerializable(Class clazz) {
+    public Constructor findConstructorForSerializable(final Class clazz) {
         if (!Serializable.class.isAssignableFrom(clazz)) {
             // in case forceSerializable flag is present, just look for no-arg constructor
             return findConstructorForExternalize(clazz);
+        }
+        Constructor constructor = constructorMap.get(clazz);
+        if (constructor != null) {
+            return constructor;
         }
         Class curCl = clazz;
         while (Serializable.class.isAssignableFrom(curCl)) {
@@ -94,6 +104,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
             c.setAccessible(true);
+            constructorMap.put(clazz,c);
             return c;
         } catch (NoClassDefFoundError cle) {
             return null;
