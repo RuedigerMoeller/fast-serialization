@@ -84,9 +84,11 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             // in case forceSerializable flag is present, just look for no-arg constructor
             return findConstructorForExternalize(clazz);
         }
-        Constructor constructor = constructorMap.get(clazz);
-        if (constructor != null) {
-            return constructor;
+        if ( FSTClazzInfo.BufferConstructorMeta) {
+            Constructor constructor = constructorMap.get(clazz);
+            if (constructor != null) {
+                return constructor;
+            }
         }
         Class curCl = clazz;
         while (Serializable.class.isAssignableFrom(curCl)) {
@@ -104,7 +106,8 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
             c.setAccessible(true);
-            constructorMap.put(clazz,c);
+            if ( FSTClazzInfo.BufferConstructorMeta)
+                constructorMap.put(clazz,c);
             return c;
         } catch (NoClassDefFoundError cle) {
             return null;

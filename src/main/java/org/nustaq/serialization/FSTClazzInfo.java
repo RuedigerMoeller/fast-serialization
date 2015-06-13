@@ -33,58 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FSTClazzInfo {
 
-    public static class FieldEntry {
-
-        protected final Class clz;
-        protected final String name;
-
-        public FieldEntry(Class clz, String name) {
-            this.clz = clz;
-            this.name = name;
-        }
-
-        public Class getClz() {
-            return clz;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof FieldEntry)) return false;
-
-            FieldEntry that = (FieldEntry) o;
-
-            if (!clz.equals(that.clz)) return false;
-            return name.equals(that.name);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = clz.hashCode();
-            result = 31 * result + name.hashCode();
-            return result;
-        }
-    }
-
-    /**
-     * to avoid issues with permspace, clazzinfos contained in map
-     * below are shared across all FSTConfigurations.
-     *
-     * Its possible to add additional classes into this at applications startup.
-     * Beware this might be an issue with class loaders
-     *
-     */
-    public static ConcurrentHashMap<FieldEntry,Field> sharedReflection;
+    public static boolean BufferConstructorMeta = true;
+    public static boolean BufferFieldMeta = false; // leads to concurrency errors if true (unknown reasons, needs investigation ..)
 
     /**
      * cache + share j.reflect.Field. This can be cleared in case it gets too fat.
      */
-    public static ConcurrentHashMap<Class,List<Field>> sharedFieldSets = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
 
     public static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
         @Override
@@ -280,24 +235,19 @@ public final class FSTClazzInfo {
      * @return
      */
     public final List<Field> getAllFields(Class c, List<Field> res) {
-        List<Field> fields = null;
-        if ( c != null )
-            fields = sharedFieldSets.get(c);
-        if ( fields != null )
-        {
-            if ( res != null ) {
-                res.addAll(fields);
-                return res;
-            }
-            return new ArrayList<>(fields);
-        }
         if (res == null) {
             res = new ArrayList<Field>();
         }
         if (c == null) {
             return res;
         }
-        List<Field> c1 = Arrays.asList(c.getDeclaredFields());
+        Field[] declaredFields = BufferFieldMeta ? sharedFieldSets.get(c) : null ;
+        if ( declaredFields == null ) {
+            declaredFields = c.getDeclaredFields();
+            if (BufferFieldMeta)
+                sharedFieldSets.put(c,declaredFields);
+        }
+        List<Field> c1 = Arrays.asList(declaredFields);
         Collections.reverse(c1);
         for (int i = 0; i < c1.size(); i++) {
             Field field = c1.get(i);
@@ -314,8 +264,7 @@ public final class FSTClazzInfo {
             }
         }
         List<Field> allFields = getAllFields(c.getSuperclass(), res);
-        sharedFieldSets.put( c, allFields );
-        return allFields;
+        return new ArrayList<>(allFields);
     }
 
     private boolean isTransient(Class c, Field field) {
