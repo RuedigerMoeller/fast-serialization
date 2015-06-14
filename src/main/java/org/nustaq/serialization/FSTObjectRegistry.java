@@ -29,7 +29,7 @@ import org.nustaq.serialization.util.FSTUtil;
 public final class FSTObjectRegistry {
 
     public static final int OBJ_DIVISOR = 16;
-    public static int POS_MAP_SIZE = 4000; // reduce for testing
+    public static int POS_MAP_SIZE = 1000; // reduce this for testing
 
     boolean disabled = false;
     FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
@@ -37,7 +37,7 @@ public final class FSTObjectRegistry {
 
     FSTConfiguration conf;
     FSTClazzInfoRegistry reg;
-    Object reuseMap[] = new Object[4000];
+    Object reuseMap[] = new Object[POS_MAP_SIZE];
     private int highestPos;
 
     public FSTObjectRegistry(FSTConfiguration conf) {
