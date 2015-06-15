@@ -30,7 +30,6 @@ import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
-import sun.reflect.FieldInfo;
 
 import java.io.*;
 import java.lang.ref.SoftReference;
@@ -41,7 +40,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -54,10 +52,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
  *
  */
-public class FSTConfiguration implements Cloneable {
+public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, UNSAFE, MINBIN, JSON
+        DEFAULT, UNSAFE, MINBIN, JSON, JSONPRETTY
     }
 
     /**
@@ -79,6 +77,8 @@ public class FSTConfiguration implements Cloneable {
             return new FSTStreamDecoder(FSTConfiguration.this);
         }
     };
+
+    String name;
 
     ConfType type = ConfType.DEFAULT;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry(this);
@@ -126,7 +126,22 @@ public class FSTConfiguration implements Cloneable {
     }
     ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> fieldInfoCache;
 
-    /////////////////////////////////////
+    /**
+     * debug helper
+     * @return
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * debug helper
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+/////////////////////////////////////
     // cross platform stuff only
 
     int cpAttrIdCount = 0;
@@ -171,7 +186,11 @@ public class FSTConfiguration implements Cloneable {
      * @return a configuration to encode MinBin format.
      */
     public static FSTConfiguration createMinBinConfiguration() {
-        final FSTConfiguration res = createDefaultConfiguration();
+        return createMinBinConfiguration(null);
+    }
+
+    protected static FSTConfiguration createMinBinConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
+        final FSTConfiguration res = createDefaultConfiguration(shared);
         res.setCrossPlatform(true);
         res.type = ConfType.MINBIN;
         res.setStreamCoderFactory(new StreamCoderFactory() {
@@ -187,7 +206,7 @@ public class FSTConfiguration implements Cloneable {
         });
 
         // override some serializers
-        FSTSerializerRegistry reg = res.serializationInfoRegistry.serializerRegistry;
+        FSTSerializerRegistry reg = res.serializationInfoRegistry.getSerializerRegistry();
         reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
         reg.putSerializer(Throwable.class, new FSTCPThrowableSerializer(), true);
 
@@ -224,11 +243,16 @@ public class FSTConfiguration implements Cloneable {
         return createJsonConfiguration(false, true);
     }
 
+
     public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
+        return createJsonConfiguration(prettyPrint,shareReferences,null);
+    }
+
+    protected static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared ) {
         if ( prettyPrint && shareReferences ) {
             throw new RuntimeException("cannot use prettyPrint with shared refs to 'true'. Set shareRefs to false.");
         }
-        return constructJsonConf(prettyPrint, shareReferences);
+        return constructJsonConf(prettyPrint, shareReferences, shared);
     }
 
     public static class JacksonAccessWorkaround extends UTF8JsonGenerator {
@@ -245,9 +269,9 @@ public class FSTConfiguration implements Cloneable {
         }
     }
 
-    private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences) {
-        final FSTConfiguration conf = createMinBinConfiguration();
-        conf.type = ConfType.JSON;
+    private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
+        final FSTConfiguration conf = createMinBinConfiguration(shared);
+        conf.type = prettyPrint ? ConfType.JSONPRETTY : ConfType.JSON;
         JsonFactory fac;
         if ( prettyPrint ) {
         {
@@ -317,7 +341,7 @@ public class FSTConfiguration implements Cloneable {
      * @param o
      */
     public static void prettyPrintJson(Object o) {
-        FSTConfiguration conf = constructJsonConf(true, true);
+        FSTConfiguration conf = constructJsonConf(true, true, null);
         System.out.println(conf.asJsonString(o));
     }
     /**
@@ -327,9 +351,13 @@ public class FSTConfiguration implements Cloneable {
      *
      * @return
      */
-    public static FSTConfiguration createAndroidDefaultConfiguration() {
+     public static FSTConfiguration createAndroidDefaultConfiguration() {
+        return createAndroidDefaultConfiguration(null);
+     }
+
+     protected static FSTConfiguration createAndroidDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
         final Objenesis genesis = new ObjenesisStd();
-        FSTConfiguration conf = new FSTConfiguration() {
+        FSTConfiguration conf = new FSTConfiguration(shared) {
             @Override
             public FSTClassInstantiator getInstantiator(Class clazz) {
                 return new FSTObjenesisInstantiator(genesis,clazz);
@@ -352,19 +380,26 @@ public class FSTConfiguration implements Cloneable {
     }
 
     public static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs) {
+        return createConfiguration(ct,shareRefs);
+    }
+
+    protected static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs,ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared ) {
         FSTConfiguration res;
         switch (ct) {
             case DEFAULT:
-                res = createDefaultConfiguration();
+                res = createDefaultConfiguration(shared);
                 break;
             case MINBIN:
-                res = createMinBinConfiguration();
+                res = createMinBinConfiguration(shared);
                 break;
             case UNSAFE:
-                res = createFastBinaryConfiguration();
+                res = createFastBinaryConfiguration(shared);
                 break;
             case JSON:
-                res = createJsonConfiguration(false,shareRefs);
+                res = createJsonConfiguration( false, shareRefs, shared);
+                break;
+            case JSONPRETTY:
+                res = createJsonConfiguration( true, shareRefs, shared);
                 break;
             default:
                 throw new RuntimeException("unsupported conftype for factory method");
@@ -386,17 +421,21 @@ public class FSTConfiguration implements Cloneable {
      * @return
      */
     public static FSTConfiguration createDefaultConfiguration() {
+        return createDefaultConfiguration(null);
+    }
+
+    protected static FSTConfiguration createDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
         if (isAndroid) {
-            return createAndroidDefaultConfiguration();
+            return createAndroidDefaultConfiguration(shared);
         }
-        FSTConfiguration conf = new FSTConfiguration();
+        FSTConfiguration conf = new FSTConfiguration(shared);
         return initDefaultFstConfigurationInternal(conf);
     }
 
     protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
         conf.addDefaultClazzes();
         // serializers
-        FSTSerializerRegistry reg = conf.serializationInfoRegistry.serializerRegistry;
+        FSTSerializerRegistry reg = conf.getCLInfoRegistry().getSerializerRegistry();
         reg.putSerializer(Class.class, new FSTClassSerializer(), false);
         reg.putSerializer(String.class, new FSTStringSerializer(), false);
         reg.putSerializer(Byte.class, new FSTBigNumberSerializers.FSTByteSerializer(), false);
@@ -441,9 +480,13 @@ public class FSTConfiguration implements Cloneable {
      *
      */
     public static FSTConfiguration createFastBinaryConfiguration() {
+        return createFastBinaryConfiguration(null);
+    }
+
+    protected static FSTConfiguration createFastBinaryConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
         if ( isAndroid )
             throw new RuntimeException("not supported under android platform, use default configuration");
-        final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration(shared);
         conf.type = ConfType.UNSAFE;
         conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
             @Override
@@ -469,7 +512,7 @@ public class FSTConfiguration implements Cloneable {
      * @param alsoForAllSubclasses
      */
     public void registerSerializer(Class clazz, FSTObjectSerializer ser, boolean alsoForAllSubclasses ) {
-        serializationInfoRegistry.serializerRegistry.putSerializer(clazz, ser, alsoForAllSubclasses);
+        serializationInfoRegistry.getSerializerRegistry().putSerializer(clazz, ser, alsoForAllSubclasses);
     }
 
     public boolean isForceClzInit() {
@@ -521,13 +564,13 @@ public class FSTConfiguration implements Cloneable {
      * @return
      */
     public static FSTConfiguration createStructConfiguration() {
-        FSTConfiguration conf = new FSTConfiguration();
+        FSTConfiguration conf = new FSTConfiguration(null);
         conf.setStructMode(true);
         return conf;
     }
 
-    protected FSTConfiguration() {
-
+    protected FSTConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> sharedFieldInfos) {
+        this.fieldInfoCache = sharedFieldInfos;
     }
 
     public StreamCoderFactory getStreamCoderFactory() {
@@ -824,34 +867,34 @@ public class FSTConfiguration implements Cloneable {
     ThreadLocal<FSTObjectOutput> output = new ThreadLocal<FSTObjectOutput>() {
         @Override
         protected FSTObjectOutput initialValue() {
-            if (type == ConfType.DEFAULT) {
-                return new FSTObjectOutput(FSTConfiguration.this) {
-                    FSTStreamEncoder st;
-
-                    @Override
-                    protected void setCodec(FSTEncoder codec) {
-                        st = (FSTStreamEncoder) codec;
-                    }
-                    @Override
-                    public FSTStreamEncoder getCodec() {
-                        return st; // try to avoid megamorph calls
-                    }
-                };
-            } else if ( type == ConfType.UNSAFE ) {
-                return new FSTObjectOutput(FSTConfiguration.this) {
-                    FSTBytezEncoder st;
-
-                    @Override
-                    protected void setCodec(FSTEncoder codec) {
-                        st = (FSTBytezEncoder) codec;
-                    }
-                    @Override
-                    public FSTBytezEncoder getCodec() {
-                        return st; // try to avoid megamorph calls
-                    }
-                };
-            } else
-                return new FSTObjectOutput(FSTConfiguration.this);
+//            if (type == ConfType.DEFAULT) {
+//                return new FSTObjectOutput(FSTConfiguration.this) {
+//                    FSTStreamEncoder st;
+//
+//                    @Override
+//                    protected void setCodec(FSTEncoder codec) {
+//                        st = (FSTStreamEncoder) codec;
+//                    }
+//                    @Override
+//                    public FSTStreamEncoder getCodec() {
+//                        return st; // try to avoid megamorph calls
+//                    }
+//                };
+//            } else if ( type == ConfType.UNSAFE ) {
+//                return new FSTObjectOutput(FSTConfiguration.this) {
+//                    FSTBytezEncoder st;
+//
+//                    @Override
+//                    protected void setCodec(FSTEncoder codec) {
+//                        st = (FSTBytezEncoder) codec;
+//                    }
+//                    @Override
+//                    public FSTBytezEncoder getCodec() {
+//                        return st; // try to avoid megamorph calls
+//                    }
+//                };
+//            } else
+            return new FSTObjectOutput(FSTConfiguration.this);
         }
     };
 
@@ -859,33 +902,33 @@ public class FSTConfiguration implements Cloneable {
         @Override
         protected FSTObjectInput initialValue() {
             try {
-                if (type == ConfType.DEFAULT) {
-                    return new FSTObjectInput(FSTConfiguration.this){
-                        FSTStreamDecoder st;
-                        @Override
-                        void setCodec(FSTDecoder codec) {
-                            st = (FSTStreamDecoder) codec;
-                        }
-
-                        @Override
-                        public FSTStreamDecoder getCodec() {
-                            return st;
-                        }
-                    };
-                } else if ( type == ConfType.UNSAFE ) {
-                    return new FSTObjectInput(FSTConfiguration.this){
-                        FSTBytezDecoder st;
-                        @Override
-                        void setCodec(FSTDecoder codec) {
-                            st = (FSTBytezDecoder) codec;
-                        }
-
-                        @Override
-                        public FSTBytezDecoder getCodec() {
-                            return st;
-                        }
-                    };
-                } else
+//                if (type == ConfType.DEFAULT) {
+//                    return new FSTObjectInput(FSTConfiguration.this){
+//                        FSTStreamDecoder st;
+//                        @Override
+//                        void setCodec(FSTDecoder codec) {
+//                            st = (FSTStreamDecoder) codec;
+//                        }
+//
+//                        @Override
+//                        public FSTStreamDecoder getCodec() {
+//                            return st;
+//                        }
+//                    };
+//                } else if ( type == ConfType.UNSAFE ) {
+//                    return new FSTObjectInput(FSTConfiguration.this){
+//                        FSTBytezDecoder st;
+//                        @Override
+//                        void setCodec(FSTDecoder codec) {
+//                            st = (FSTBytezDecoder) codec;
+//                        }
+//
+//                        @Override
+//                        public FSTBytezDecoder getCodec() {
+//                            return st;
+//                        }
+//                    };
+//                } else
                     return new FSTObjectInput(FSTConfiguration.this);
             } catch (Exception e) {
                 FSTUtil.<RuntimeException>rethrow(e);
@@ -901,7 +944,7 @@ public class FSTConfiguration implements Cloneable {
      * @return
      */
     public FSTObjectInput getObjectInput( InputStream in ) {
-        FSTObjectInput fstObjectInput = input.get();
+        FSTObjectInput fstObjectInput = getIn();
         try {
             fstObjectInput.resetForReuse(in);
             return fstObjectInput;
@@ -926,16 +969,28 @@ public class FSTConfiguration implements Cloneable {
      * @return
      */
     public FSTObjectInput getObjectInput( byte arr[], int len ) {
-        FSTObjectInput fstObjectInput = input.get();
+        FSTObjectInput fstObjectInput = getIn();
         try {
             fstObjectInput.resetForReuseUseArray(arr,len);
-            fstObjectInput.conf = this;
-            fstObjectInput.getCodec().setConf(this);
             return fstObjectInput;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
         return null;
+    }
+
+    protected FSTObjectInput getIn() {
+        FSTObjectInput fstObjectInput = input.get();
+        fstObjectInput.conf = this;
+        fstObjectInput.getCodec().setConf(this);
+        return fstObjectInput;
+    }
+
+    protected FSTObjectOutput getOut() {
+        FSTObjectOutput fstOut = output.get();
+        fstOut.conf = this;
+        fstOut.getCodec().setConf(this);
+        return fstOut;
     }
 
     /**
@@ -945,10 +1000,8 @@ public class FSTConfiguration implements Cloneable {
      * @return
      */
     public FSTObjectOutput getObjectOutput(OutputStream out) {
-        FSTObjectOutput fstObjectOutput = output.get();
+        FSTObjectOutput fstObjectOutput = getOut();
         fstObjectOutput.resetForReUse(out);
-        fstObjectOutput.conf = this;
-        fstObjectOutput.getCodec().setConf(this);
         return fstObjectOutput;
     }
 
@@ -960,7 +1013,7 @@ public class FSTConfiguration implements Cloneable {
     }
 
     public FSTObjectOutput getObjectOutput(byte[] outByte) {
-        FSTObjectOutput fstObjectOutput = output.get();
+        FSTObjectOutput fstObjectOutput = getOut();
         fstObjectOutput.resetForReUse(outByte);
         return fstObjectOutput;
     }
@@ -1247,19 +1300,15 @@ public class FSTConfiguration implements Cloneable {
         return getObjectInput(buffer).readObject();
     }
 
-    @Override
-    protected FSTConfiguration clone() throws CloneNotSupportedException {
-        return (FSTConfiguration) super.clone();
-    }
-
     public FSTConfiguration deriveConfiguration() {
         if ( fieldInfoCache == null ) {
             fieldInfoCache = new ConcurrentHashMap<>();
         }
-        FSTConfiguration derived = createConfiguration(type, shareReferences);
+        FSTConfiguration derived = createConfiguration(type, shareReferences, fieldInfoCache);
         // try to share as much as possible to save memory
         // note: the creation of those objects in createConfiguration() is unnecessary,
         // would need a specials lean creation method to avoid that (+init overhead)
+        derived.fieldInfoCache = fieldInfoCache;
         derived.output = output;
         derived.input = input;
         derived.streamCoderFactory = streamCoderFactory;
@@ -1272,4 +1321,10 @@ public class FSTConfiguration implements Cloneable {
         return derived;
     }
 
+    @Override
+    public String toString() {
+        return "FSTConfiguration{" +
+                   "name='" + name + '\'' +
+                   '}';
+    }
 }

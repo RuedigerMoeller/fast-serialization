@@ -44,9 +44,16 @@ public class FSTStreamDecoder implements FSTDecoder {
             clnames.clear();
         }
     }
+
     @Override
     public void setConf(FSTConfiguration conf) {
         this.conf = conf;
+        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
+        if (clnames == null) {
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+        } else {
+            clnames.clear();
+        }
     }
 
     public int ensureReadAhead(int bytes) {

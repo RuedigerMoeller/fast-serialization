@@ -95,7 +95,7 @@ public class FSTObjectOutput implements ObjectOutput {
             objects = new FSTObjectRegistry(conf);
             objects.disabled = !conf.isShareReferences();
         } else {
-            objects.clearForWrite();
+            objects.clearForWrite(conf);
         }
         dontShare = objects.disabled;
         stringInfo = getClassInfoRegistry().getCLInfo(String.class);
@@ -804,7 +804,7 @@ public class FSTObjectOutput implements ObjectOutput {
 
     void resetAndClearRefs() {
         getCodec().reset(null);
-        objects.clearForWrite();
+        objects.clearForWrite(conf);
     }
 
     /**
@@ -819,7 +819,7 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( out != null ) {
             getCodec().setOutstream(out);
         }
-        objects.clearForWrite();
+        objects.clearForWrite(conf);
     }
 
     /**
@@ -833,7 +833,7 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         getCodec().reset(out);
-        objects.clearForWrite();
+        objects.clearForWrite(conf);
     }
 
     public FSTClazzInfoRegistry getClassInfoRegistry() {

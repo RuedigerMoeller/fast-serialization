@@ -132,6 +132,10 @@ public class FSTClazzInfoRegistry {
         }
     }
 
+    public FSTSerializerRegistry getSerializerRegistry() {
+        return serializerRegistry;
+    }
+
     public final boolean isIgnoreAnnotations() {
         return ignoreAnnotations;
     }

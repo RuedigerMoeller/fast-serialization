@@ -179,7 +179,7 @@ public class FSTClazzNameRegistry {
         } else {
             FSTClazzInfo aClass = getClazzFromId(c);
             if ( aClass == null ) {
-                throw new RuntimeException("unable to encodeValue class from code "+c);
+                throw new RuntimeException("unable to find class for code "+c);
             }
             return aClass;
         }

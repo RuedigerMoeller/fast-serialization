@@ -23,6 +23,7 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -80,7 +81,7 @@ public final class FSTClazzInfo {
     };
     Class[] predict;
     private boolean ignoreAnn;
-    HashMap<String, FSTFieldInfo> fieldMap = new HashMap<String, FSTFieldInfo>(15); // all fields
+    HashMap<String, FSTFieldInfo> fieldMap;
     Method writeReplaceMethod, readResolveMethod;
     HashMap<Class, FSTCompatibilityInfo> compInfo = new HashMap<Class, FSTCompatibilityInfo>(7);
 
@@ -110,7 +111,6 @@ public final class FSTClazzInfo {
     int structSize = 0;
 
 
-    FSTClazzInfoRegistry reg;
     FSTConfiguration conf;
     protected FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
     boolean crossPlatform;
@@ -120,7 +120,6 @@ public final class FSTClazzInfo {
         crossPlatform = conf.isCrossPlatform();
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
-        reg = infoRegistry;
         ignoreAnn = ignoreAnnotations;
         createFields(clazz);
 
@@ -132,7 +131,7 @@ public final class FSTClazzInfo {
             externalizable = false;
             cons = instantiator.findConstructorForSerializable(clazz);
         } else {
-            if (!reg.isStructMode()) {
+            if (!conf.isStructMode()) {
                 if ( conf.isForceSerializable() || getSer() != null ) {
                     externalizable = false;
                     cons = instantiator.findConstructorForSerializable(clazz);
@@ -319,10 +318,25 @@ public final class FSTClazzInfo {
     }
 
     public final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
+        if ( fieldMap == null )
+            buildFieldMap();
         if (declaringClass == null) {
             return fieldMap.get(name);
         }
         return fieldMap.get(declaringClass.getName() + "#" + name);
+    }
+
+    private void buildFieldMap() {
+        if ( fieldMap == null ) {
+            fieldMap = new HashMap<>(fieldInfo.length);
+            for (int i = 0; i < fieldInfo.length; i++) {
+                Field field = fieldInfo[i].getField();
+                if ( field != null ) {
+                    fieldMap.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
+                    fieldMap.put(field.getName(), fieldInfo[i]);
+                }
+            }
+        }
     }
 
     private void createFields(Class c) {
@@ -334,8 +348,6 @@ public final class FSTClazzInfo {
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
             fieldInfo[i] = createFieldInfo(field);
-            fieldMap.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
-            fieldMap.put(field.getName(), fieldInfo[i]);
         }
 
         // compatibility info sort order
@@ -366,8 +378,24 @@ public final class FSTClazzInfo {
             }
         };
 
+        // check if we actually need to build up compatibility info (memory intensive)
+        Class tmpCls = c;
+        boolean requiresCompatibility = false;
+        if ( ! Externalizable.class.isAssignableFrom(c) || getSer() != null || c.isArray() ) {
+            while( tmpCls != Object.class ) {
+                if ( FSTUtil.findPrivateMethod(tmpCls, "writeObject", new Class<?>[]{ObjectOutputStream.class}, Void.TYPE) != null ||
+                     FSTUtil.findPrivateMethod(tmpCls, "readObject", new Class<?>[]{ObjectInputStream.class},Void.TYPE) != null ||
+                     FSTUtil.findDerivedMethod(tmpCls, "writeReplace", null, Object.class) != null ||
+                     FSTUtil.findDerivedMethod(tmpCls, "readResolve", null, Object.class) != null ) {
+                     requiresCompatibility = true;
+                     break;
+                }
+                tmpCls = tmpCls.getSuperclass();
+            }
+        }
 
-        if (!reg.isStructMode()) {
+        if (!conf.isStructMode() && requiresCompatibility ) {
+            buildFieldMap();
             Class curCl = c;
             fields.clear();
             while (curCl != Object.class) {
@@ -409,7 +437,7 @@ public final class FSTClazzInfo {
 
         // default sort order
         Comparator<FSTFieldInfo> comp = defFieldComparator;
-        if (!reg.isStructMode())
+        if (!conf.isStructMode())
             Arrays.sort(fieldInfo, comp);
         int off = 8; // object header: length + clzId
         for (int i = 0; i < fieldInfo.length; i++) {
@@ -450,12 +478,15 @@ public final class FSTClazzInfo {
     }
 
 
-    private FSTFieldInfo createFieldInfo(Field field) {
+    static AtomicInteger fiCount = new AtomicInteger(0);
+    static AtomicInteger missCount = new AtomicInteger(0);
+    protected FSTFieldInfo createFieldInfo(Field field) {
         FSTConfiguration.FieldKey key = null;
         if ( conf.fieldInfoCache != null ) {
             key = new FSTConfiguration.FieldKey(field.getDeclaringClass(), field.getName());
             FSTFieldInfo res = conf.fieldInfoCache.get(key);
             if ( res != null ) {
+                fiCount.incrementAndGet();
                 return res;
             }
         }
@@ -465,6 +496,7 @@ public final class FSTClazzInfo {
         if ( conf.fieldInfoCache != null && key != null ) {
             conf.fieldInfoCache.put(key,result);
         }
+        missCount.incrementAndGet();
         return result;
     }
 
@@ -926,7 +958,7 @@ public final class FSTClazzInfo {
             if (clazz == null) {
                 return null;
             }
-            ser = reg.serializerRegistry.getSerializer(clazz);
+            ser = conf.getCLInfoRegistry().getSerializerRegistry().getSerializer(clazz);
             if (ser == null) {
                 ser = FSTSerializerRegistry.NULL;
             }

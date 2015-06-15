@@ -207,7 +207,7 @@ public class FSTObjectInput implements ObjectInput {
         if (objects == null) {
             objects = new FSTObjectRegistry(conf);
         } else {
-            objects.clearForRead();
+            objects.clearForRead(conf);
         }
     }
 
@@ -916,7 +916,7 @@ public class FSTObjectInput implements ObjectInput {
     void resetAndClearRefs() {
         try {
             reset();
-            objects.clearForRead();
+            objects.clearForRead(conf);
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -932,7 +932,7 @@ public class FSTObjectInput implements ObjectInput {
         }
         getCodec().reset();
         getCodec().setInputStream(in);
-        objects.clearForRead(); 
+        objects.clearForRead(conf);
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
@@ -940,7 +940,7 @@ public class FSTObjectInput implements ObjectInput {
             throw new RuntimeException("can't reuse closed stream");
         }
         getCodec().reset();
-        objects.clearForRead();
+        objects.clearForRead(conf);
         getCodec().resetToCopyOf(bytes, off, len);
     }
 
@@ -952,7 +952,7 @@ public class FSTObjectInput implements ObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        objects.clearForRead();
+        objects.clearForRead(conf);
         getCodec().resetWith(bytes, len);
     }
 

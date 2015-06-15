@@ -35,25 +35,14 @@ public final class FSTObjectRegistry {
     FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
     FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
 
-    FSTConfiguration conf;
-    FSTClazzInfoRegistry reg;
     Object reuseMap[] = new Object[POS_MAP_SIZE];
     private int highestPos;
 
     public FSTObjectRegistry(FSTConfiguration conf) {
-        this.conf = conf;
         disabled = !conf.isShareReferences();
-        reg = conf.getCLInfoRegistry();
     }
 
-    public void clearFully() {
-        objects.clear();
-        idToObject.clear();
-        disabled = !conf.isShareReferences();
-        FSTUtil.clear(reuseMap);
-    }
-
-    public void clearForRead() {
+    public void clearForRead(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( !disabled ) {
             if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
@@ -68,7 +57,7 @@ public final class FSTObjectRegistry {
         highestPos = 0;
     }
 
-    public void clearForWrite() {
+    public void clearForWrite(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( ! disabled ) {
             if ( objects.size() > 0 && objects.mKeys.length > 6 * objects.size() ) {

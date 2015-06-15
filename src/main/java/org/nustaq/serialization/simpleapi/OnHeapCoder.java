@@ -15,7 +15,6 @@
  */
 package org.nustaq.serialization.simpleapi;
 
-import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.coders.FSTBytezDecoder;
