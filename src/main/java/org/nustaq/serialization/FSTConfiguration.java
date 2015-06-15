@@ -1308,6 +1308,9 @@ public class FSTConfiguration {
         // try to share as much as possible to save memory
         // note: the creation of those objects in createConfiguration() is unnecessary,
         // would need a specials lean creation method to avoid that (+init overhead)
+        //
+        // still no good test coverage. Problematic distribution of state and references all across the
+        // code (to reduce pointer chasing) makes it problematic to implement stuff like this (errors might occur on nasty edge cases)
         derived.fieldInfoCache = fieldInfoCache;
         derived.output = output;
         derived.input = input;
