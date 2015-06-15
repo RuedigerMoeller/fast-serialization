@@ -44,6 +44,10 @@ public class FSTStreamDecoder implements FSTDecoder {
             clnames.clear();
         }
     }
+    @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
 
     public int ensureReadAhead(int bytes) {
         input.ensureReadAhead(bytes);

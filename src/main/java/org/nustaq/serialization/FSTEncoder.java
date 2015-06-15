@@ -23,6 +23,8 @@ import java.io.OutputStream;
  */
 public interface FSTEncoder {
 
+    void setConf(FSTConfiguration conf);
+
     void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException;
     /**
      * does not write class tag and length

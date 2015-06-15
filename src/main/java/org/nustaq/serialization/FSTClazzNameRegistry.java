@@ -30,7 +30,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * User: ruedi
  * Date: 10.11.12
  * Time: 00:34
- * To change this template use File | Settings | File Templates.
+ *
+ * maps classnames => id and vice versa.
+ *
+ * FSTConfiguration holds a parent containing default mappings (e.g. created by
+ * registerClass ). A stream instance then creates a temporary instance to record/id encode
+ * classes dynamically during serialization. This way a class name is only written once per
+ * object graph.
+ *
+ * This class is thread safe,
+ *
  */
 public class FSTClazzNameRegistry {
 

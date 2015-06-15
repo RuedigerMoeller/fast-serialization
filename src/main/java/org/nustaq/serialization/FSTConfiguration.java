@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Reuse this class !!! construction is very expensive. (just keep static instances around or use thread locals)
  *
  */
-public class FSTConfiguration {
+public class FSTConfiguration implements Cloneable {
 
     static enum ConfType {
         DEFAULT, UNSAFE, MINBIN, JSON
@@ -215,6 +215,7 @@ public class FSTConfiguration {
 
     private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences) {
         final FSTConfiguration conf = createMinBinConfiguration();
+        conf.type = ConfType.JSON;
         JsonFactory fac;
         if ( prettyPrint ) {
         {
@@ -318,6 +319,27 @@ public class FSTConfiguration {
         return conf;
     }
 
+    public static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs) {
+        FSTConfiguration res;
+        switch (ct) {
+            case DEFAULT:
+                res = createDefaultConfiguration();
+                break;
+            case MINBIN:
+                res = createMinBinConfiguration();
+                break;
+            case UNSAFE:
+                res = createFastBinaryConfiguration();
+                break;
+            case JSON:
+                res = createJsonConfiguration(false,shareRefs);
+                break;
+            default:
+                throw new RuntimeException("unsupported conftype for factory method");
+        }
+        res.setShareReferences(shareRefs);
+        return res;
+    }
     /**
      * the standard FSTConfiguration.
      * - safe (no unsafe r/w)
@@ -875,6 +897,8 @@ public class FSTConfiguration {
         FSTObjectInput fstObjectInput = input.get();
         try {
             fstObjectInput.resetForReuseUseArray(arr,len);
+            fstObjectInput.conf = this;
+            fstObjectInput.getCodec().setConf(this);
             return fstObjectInput;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
@@ -891,6 +915,8 @@ public class FSTConfiguration {
     public FSTObjectOutput getObjectOutput(OutputStream out) {
         FSTObjectOutput fstObjectOutput = output.get();
         fstObjectOutput.resetForReUse(out);
+        fstObjectOutput.conf = this;
+        fstObjectOutput.getCodec().setConf(this);
         return fstObjectOutput;
     }
 
@@ -1187,6 +1213,28 @@ public class FSTConfiguration {
             len -= in.read(buffer, buffer.length - len, len);
         }
         return getObjectInput(buffer).readObject();
+    }
+
+    @Override
+    protected FSTConfiguration clone() throws CloneNotSupportedException {
+        return (FSTConfiguration) super.clone();
+    }
+
+    public FSTConfiguration deriveConfiguration() {
+        FSTConfiguration derived = createConfiguration(type, shareReferences);
+        // try to share as much as possible to save memory
+        // note: the creation of those objects in createConfiguration() is unnecessary,
+        // would need a specials lean creation method to avoid that (+init overhead)
+        derived.output = output;
+        derived.input = input;
+        derived.streamCoderFactory = streamCoderFactory;
+        derived.instantiator = instantiator;
+        derived.lastResortResolver = lastResortResolver;
+        derived.minbinNames = minbinNames;
+        derived.minBinNamesBytez = minBinNamesBytez;
+        derived.minbinNamesReverse = minbinNamesReverse;
+        derived.classRegistry = classRegistry;
+        return derived;
     }
 
 }

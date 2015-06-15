@@ -33,7 +33,7 @@ import java.io.OutputStream;
  */
 public class FSTBytezEncoder implements FSTEncoder {
 
-    private final FSTConfiguration conf;
+    private FSTConfiguration conf;
 
     private FSTClazzNameRegistry clnames;
     private BasicBytez buffout;
@@ -53,6 +53,11 @@ public class FSTBytezEncoder implements FSTEncoder {
         } else {
             clnames.clear();
         }
+    }
+
+    @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
     }
 
     void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {

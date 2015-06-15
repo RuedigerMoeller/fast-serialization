@@ -47,6 +47,11 @@ public class FSTJsonEncoder implements FSTEncoder {
     }
 
     @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
+    @Override
     public void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException {
         gen.writeBinary(bufferedName,off,length);
     }

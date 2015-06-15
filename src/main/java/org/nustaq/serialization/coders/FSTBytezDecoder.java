@@ -47,6 +47,11 @@ public class FSTBytezDecoder  implements FSTDecoder {
         this.input = input;
     }
 
+    @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
     public FSTBytezDecoder(FSTConfiguration conf) {
         this.conf = conf;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);

@@ -34,10 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FSTClazzInfo {
 
     public static boolean BufferConstructorMeta = true;
-    public static boolean BufferFieldMeta = false; // leads to concurrency errors if true (unknown reasons, needs investigation ..)
+    public static boolean BufferFieldMeta = true; // leads to concurrency errors if true (unknown reasons, needs investigation ..)
 
     /**
-     * cache + share j.reflect.Field. This can be cleared in case it gets too fat.
+     * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem
      */
     public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
 

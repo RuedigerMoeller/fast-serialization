@@ -34,6 +34,11 @@ public class FSTJsonDecoder implements FSTDecoder {
     }
 
     @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
+    @Override
     public String readStringUTF() throws IOException {
         JsonToken jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.VALUE_NULL )

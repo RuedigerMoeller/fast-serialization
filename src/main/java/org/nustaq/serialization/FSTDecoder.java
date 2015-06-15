@@ -23,6 +23,7 @@ import java.io.InputStream;
  */
 public interface FSTDecoder {
 
+    void setConf( FSTConfiguration conf );
     String readStringUTF() throws IOException;
     String readStringAsc() throws IOException;
     Object readFPrimitiveArray(Object array, Class componentType, int len);

@@ -44,6 +44,11 @@ public class FSTMinBinEncoder implements FSTEncoder {
         out.writeArray(bufferedName, off, length);
     }
 
+    @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
+
     /**
      * does not write class tag and length
      *

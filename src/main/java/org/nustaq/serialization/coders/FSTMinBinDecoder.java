@@ -45,6 +45,10 @@ public class FSTMinBinDecoder implements FSTDecoder {
         this.conf = conf;
         input = new MBIn(null,0);
     }
+    @Override
+    public void setConf(FSTConfiguration conf) {
+        this.conf = conf;
+    }
 
     @Override
     public String readStringUTF() throws IOException {
