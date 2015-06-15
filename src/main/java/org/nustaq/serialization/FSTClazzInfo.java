@@ -33,11 +33,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FSTClazzInfo {
 
-    public static boolean BufferConstructorMeta = true;
-    public static boolean BufferFieldMeta = true; // leads to concurrency errors if true (unknown reasons, needs investigation ..)
+    public static boolean BufferConstructorMeta = true; // buffer constructor per class (big saving in permspace)
+    public static boolean BufferFieldMeta = true; // cache and share class.getDeclaredFields amongst all fstconfigs
 
     /**
-     * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem
+     * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem (e.g. class reloading)
      */
     public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
 
@@ -451,9 +451,21 @@ public final class FSTClazzInfo {
 
 
     private FSTFieldInfo createFieldInfo(Field field) {
+        FSTConfiguration.FieldKey key = null;
+        if ( conf.fieldInfoCache != null ) {
+            key = new FSTConfiguration.FieldKey(field.getDeclaringClass(), field.getName());
+            FSTFieldInfo res = conf.fieldInfoCache.get(key);
+            if ( res != null ) {
+                return res;
+            }
+        }
         field.setAccessible(true);
         Predict predict = crossPlatform ? null : field.getAnnotation(Predict.class); // needs to be iognored cross platform
-        return new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
+        FSTFieldInfo result = new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
+        if ( conf.fieldInfoCache != null && key != null ) {
+            conf.fieldInfoCache.put(key,result);
+        }
+        return result;
     }
 
     public final Method getReadResolveMethod() {
@@ -484,7 +496,7 @@ public final class FSTClazzInfo {
         final public static int DOUBLE = 8;
 
         Class possibleClasses[];
-        FSTClazzInfo lastInfo;
+        FSTClazzInfo lastInfo; // cache last class stored (can save a hash lookup)
         String oneOf[] = null;
 
         int arrayDim;
@@ -510,7 +522,7 @@ public final class FSTClazzInfo {
 
         // hack required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
-        // in this case only these to fields of a fieldinfo are set
+        // in this case only these of a fieldinfo are set
         public String fakeName;
 
         public FSTFieldInfo(Class[] possibleClasses, Field fi, boolean ignoreAnnotations) {

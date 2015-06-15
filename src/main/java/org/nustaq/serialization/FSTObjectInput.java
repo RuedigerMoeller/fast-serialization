@@ -428,7 +428,7 @@ public class FSTObjectInput implements ObjectInput {
     private FSTClazzInfo getClazzInfo(Class c, FSTClazzInfo.FSTFieldInfo referencee) {
         FSTClazzInfo clzSerInfo;
         FSTClazzInfo lastInfo = referencee.lastInfo;
-        if ( lastInfo != null && lastInfo.clazz == c) {
+        if ( lastInfo != null && lastInfo.clazz == c && lastInfo.conf == conf) {
             clzSerInfo = lastInfo;
         } else {
             clzSerInfo = clInfoRegistry.getCLInfo(c);

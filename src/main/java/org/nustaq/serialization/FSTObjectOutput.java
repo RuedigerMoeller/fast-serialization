@@ -507,7 +507,7 @@ public class FSTObjectOutput implements ObjectOutput {
     protected FSTClazzInfo getFstClazzInfo(FSTClazzInfo.FSTFieldInfo referencee, Class clazz) {
         FSTClazzInfo serializationInfo = null;
         FSTClazzInfo lastInfo = referencee.lastInfo;
-        if ( lastInfo != null && lastInfo.getClazz() == clazz ) {
+        if ( lastInfo != null && lastInfo.getClazz() == clazz && lastInfo.conf == conf ) {
             serializationInfo = lastInfo;
         } else {
             serializationInfo = getClassInfoRegistry().getCLInfo(clazz);

@@ -30,6 +30,7 @@ import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
+import sun.reflect.FieldInfo;
 
 import java.io.*;
 import java.lang.ref.SoftReference;
@@ -93,6 +94,37 @@ public class FSTConfiguration implements Cloneable {
     LastResortClassRessolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
+
+    // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
+    static class FieldKey {
+        Class clazz;
+        String fieldName;
+
+        public FieldKey(Class clazz, String fieldName) {
+            this.clazz = clazz;
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FieldKey fieldKey = (FieldKey) o;
+
+            if (!clazz.equals(fieldKey.clazz)) return false;
+            return fieldName.equals(fieldKey.fieldName);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = clazz.hashCode();
+            result = 31 * result + fieldName.hashCode();
+            return result;
+        }
+    }
+    ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> fieldInfoCache;
 
     /////////////////////////////////////
     // cross platform stuff only
@@ -1221,6 +1253,9 @@ public class FSTConfiguration implements Cloneable {
     }
 
     public FSTConfiguration deriveConfiguration() {
+        if ( fieldInfoCache == null ) {
+            fieldInfoCache = new ConcurrentHashMap<>();
+        }
         FSTConfiguration derived = createConfiguration(type, shareReferences);
         // try to share as much as possible to save memory
         // note: the creation of those objects in createConfiguration() is unnecessary,
