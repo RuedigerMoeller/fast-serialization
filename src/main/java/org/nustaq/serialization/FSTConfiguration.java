@@ -1327,13 +1327,20 @@ public class FSTConfiguration {
         derived.fieldInfoCache = fieldInfoCache;
         derived.output = output;
         derived.input = input;
-        derived.streamCoderFactory = streamCoderFactory;
+
+//        cannot derive => hard link to conf in anonymous
+//        derived.streamCoderFactory = streamCoderFactory;
+
         derived.instantiator = instantiator;
         derived.lastResortResolver = lastResortResolver;
-        derived.minbinNames = minbinNames;
-        derived.minBinNamesBytez = minBinNamesBytez;
-        derived.minbinNamesReverse = minbinNamesReverse;
-        derived.classRegistry = classRegistry;
+
+// cannot derive these, concurrent registering ..
+//        derived.minbinNames = minbinNames;
+//        derived.minBinNamesBytez = minBinNamesBytez;
+//        derived.minbinNamesReverse = minbinNamesReverse;
+
+        // errors with websockets ..
+//        derived.classRegistry = classRegistry;
         return derived;
     }
 
