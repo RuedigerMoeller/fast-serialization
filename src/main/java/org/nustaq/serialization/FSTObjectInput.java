@@ -382,12 +382,12 @@ public class FSTObjectInput implements ObjectInput {
         } else
         {
             switch (code) {
-                case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
+//                case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
                 case FSTObjectOutput.BIG_LONG: { return Long.valueOf(getCodec().readFLong()); }
                 case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
                 case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec().readFByte()]; }
-                case FSTObjectOutput.NULL: { return null; }
+//                case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.DIRECT_ARRAY_OBJECT: {
                     Object directObject = getCodec().getDirectObject();
                     objects.registerObjectForRead(directObject,readPos);
@@ -409,7 +409,7 @@ public class FSTObjectInput implements ObjectInput {
                     objects.registerObjectForRead(directObject,readPos);
                     return directObject;
                 }
-                case FSTObjectOutput.STRING: return getCodec().readStringUTF();
+//                case FSTObjectOutput.STRING: return getCodec().readStringUTF();
                 case FSTObjectOutput.HANDLE: {
                     Object res = instantiateHandle(referencee);
                     getCodec().readObjectEnd();
@@ -568,7 +568,7 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected void readObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toRead, FSTClazzInfo serializationInfo, Class cl) throws Exception {
-        FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.compInfo.get(cl);
+        FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.getCompInfo().get(cl);
         if (!Serializable.class.isAssignableFrom(cl)) {
             return; // ok here, as compatible mode will never be triggered for "forceSerializable"
         }
@@ -1038,7 +1038,7 @@ public class FSTObjectInput implements ObjectInput {
                         FSTObjectInput.this.readObjectFields(
                                 referencee,
                                 clInfo,
-                                clInfo.compInfo.get(cl).getFieldArray(),
+                                clInfo.getCompInfo().get(cl).getFieldArray(),
                                 toRead,
                                 0,
                                 0
@@ -1055,7 +1055,7 @@ public class FSTObjectInput implements ObjectInput {
             public GetField readFields() throws IOException, ClassNotFoundException {
                 int tag = readByte();
                 try {
-                    FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clInfo.compInfo.get(cl);
+                    FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = clInfo.getCompInfo().get(cl);
                     if (tag==99) { // came from defaultwriteobject
                         // Note: in case number and names of instance fields of reader/writer are different,
                         // this fails as code below implicitely assumes, fields of writer == fields of reader

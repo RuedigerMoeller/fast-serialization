@@ -702,6 +702,15 @@ public class FSTConfiguration {
     }
 
     /**
+     * clear global deduplication caches. Useful for class reloading scenarios, else counter productive as
+     * j.reflect.Fiwld + Construtors will be instantiated more than once per class.
+     */
+    public static void clearGlobalCaches() {
+        FSTClazzInfo.sharedFieldSets.clear();
+        FSTDefaultClassInstantiator.constructorMap.clear();
+    }
+
+    /**
      * clear cached softref's and ThreadLocal. Use if you won't read/write objects anytime soon.
      */
     public void clearCaches() {
@@ -1300,6 +1309,10 @@ public class FSTConfiguration {
         return getObjectInput(buffer).readObject();
     }
 
+    /**
+     * @return a configzration sharing as much as possible state with the callee. Its valid to register
+     * different serializers at the derived configzration obtained.
+     */
     public FSTConfiguration deriveConfiguration() {
         if ( fieldInfoCache == null ) {
             fieldInfoCache = new ConcurrentHashMap<>();

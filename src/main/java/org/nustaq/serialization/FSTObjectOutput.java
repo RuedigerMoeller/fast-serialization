@@ -534,7 +534,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     private void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
-        FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.compInfo.get(cl);
+        FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.getCompInfo().get(cl);
         if ( ! Serializable.class.isAssignableFrom(cl) ) {
             return; // ok here, as compatible mode will never be triggered for "forceSerializable"
         }
@@ -887,7 +887,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         FSTUtil.<RuntimeException>rethrow(e);
                     }
                 }
-                FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.compInfo.get(cl).getFieldArray(),0,0);
+                FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.getCompInfo().get(cl).getFieldArray(),0,0);
             }
 
             PutField pf;

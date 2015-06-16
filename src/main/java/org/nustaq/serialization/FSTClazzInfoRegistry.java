@@ -15,6 +15,8 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.serialization.util.FSTMap;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzInfoRegistry {
 
-    HashMap mInfos = new HashMap(97);
+    FSTMap mInfos = new FSTMap(97);
     FSTSerializerRegistry serializerRegistry = new FSTSerializerRegistry();
     boolean ignoreAnnotations = false;
     final AtomicBoolean rwLock = new AtomicBoolean(false);

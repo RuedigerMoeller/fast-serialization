@@ -17,6 +17,7 @@ package org.nustaq.serialization;
 
 import org.nustaq.offheap.structs.Align;
 import org.nustaq.serialization.annotations.*;
+import org.nustaq.serialization.util.FSTMap;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.*;
@@ -34,8 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class FSTClazzInfo {
 
-    public static boolean BufferConstructorMeta = true; // buffer constructor per class (big saving in permspace)
-    public static boolean BufferFieldMeta = true; // cache and share class.getDeclaredFields amongst all fstconfigs
+    // cache constructor per class (big saving in permspace)
+    public static boolean BufferConstructorMeta = true;
+    // cache and share class.getDeclaredFields amongst all fstconfigs
+    public static boolean BufferFieldMeta = true;
 
     /**
      * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem (e.g. class reloading)
@@ -81,9 +84,9 @@ public final class FSTClazzInfo {
     };
     Class[] predict;
     private boolean ignoreAnn;
-    HashMap<String, FSTFieldInfo> fieldMap;
+    FSTMap<String, FSTFieldInfo> fieldMap;
     Method writeReplaceMethod, readResolveMethod;
-    HashMap<Class, FSTCompatibilityInfo> compInfo = new HashMap<Class, FSTCompatibilityInfo>(7);
+    FSTMap<Class, FSTCompatibilityInfo> compInfo;
 
     Object decoderAttached; // for decoders
 
@@ -328,7 +331,7 @@ public final class FSTClazzInfo {
 
     private void buildFieldMap() {
         if ( fieldMap == null ) {
-            fieldMap = new HashMap<>(fieldInfo.length);
+            fieldMap = new FSTMap<>(fieldInfo.length);
             for (int i = 0; i < fieldInfo.length; i++) {
                 Field field = fieldInfo[i].getField();
                 if ( field != null ) {
@@ -379,22 +382,23 @@ public final class FSTClazzInfo {
         };
 
         // check if we actually need to build up compatibility info (memory intensive)
-        Class tmpCls = c;
-        boolean requiresCompatibility = false;
-        if ( ! Externalizable.class.isAssignableFrom(c) || getSer() != null || c.isArray() ) {
+        boolean requiresCompatibilityData = false;
+        if ( ! Externalizable.class.isAssignableFrom(c) && getSerNoStore() == null ) {
+            Class tmpCls = c;
             while( tmpCls != Object.class ) {
                 if ( FSTUtil.findPrivateMethod(tmpCls, "writeObject", new Class<?>[]{ObjectOutputStream.class}, Void.TYPE) != null ||
                      FSTUtil.findPrivateMethod(tmpCls, "readObject", new Class<?>[]{ObjectInputStream.class},Void.TYPE) != null ||
                      FSTUtil.findDerivedMethod(tmpCls, "writeReplace", null, Object.class) != null ||
                      FSTUtil.findDerivedMethod(tmpCls, "readResolve", null, Object.class) != null ) {
-                     requiresCompatibility = true;
+                     requiresCompatibilityData = true;
                      break;
                 }
                 tmpCls = tmpCls.getSuperclass();
             }
         }
 
-        if (!conf.isStructMode() && requiresCompatibility ) {
+        if (!conf.isStructMode() && requiresCompatibilityData ) {
+            getCompInfo();
             buildFieldMap();
             Class curCl = c;
             fields.clear();
@@ -426,7 +430,7 @@ public final class FSTClazzInfo {
                     }
                     Collections.sort(curClzFields, infocomp);
                     FSTCompatibilityInfo info = new FSTCompatibilityInfo(curClzFields, curCl);
-                    compInfo.put(curCl, info);
+                    getCompInfo().put(curCl, info);
                     if (info.needsCompatibleMode()) {
                         requiresCompatibleMode = true;
                     }
@@ -514,6 +518,12 @@ public final class FSTClazzInfo {
 
     public Object[] getEnumConstants() {
         return enumConstants;
+    }
+
+    public FSTMap<Class, FSTCompatibilityInfo> getCompInfo() {
+        if (compInfo == null)
+            compInfo = new FSTMap<>(3); // just avoid edge case NPE's
+        return compInfo;
     }
 
     public final static class FSTFieldInfo {
@@ -953,12 +963,16 @@ public final class FSTClazzInfo {
         }
     }
 
+    /**
+     * sideeffecting: if no ser is found, next lookup will return null immediate
+     * @return
+     */
     public FSTObjectSerializer getSer() {
         if (ser == null) {
             if (clazz == null) {
                 return null;
             }
-            ser = conf.getCLInfoRegistry().getSerializerRegistry().getSerializer(clazz);
+            ser = getSerNoStore();
             if (ser == null) {
                 ser = FSTSerializerRegistry.NULL;
             }
@@ -967,6 +981,11 @@ public final class FSTClazzInfo {
             return null;
         }
         return ser;
+    }
+
+    // no sideffecting lookup
+    public FSTObjectSerializer getSerNoStore() {
+        return conf.getCLInfoRegistry().getSerializerRegistry().getSerializer(clazz);
     }
 
     static class FSTCompatibilityInfo {
