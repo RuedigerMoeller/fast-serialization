@@ -802,58 +802,27 @@ public class FSTConfiguration {
         classRegistry.registerClass(Object[].class);
         classRegistry.registerClass(Object[][].class);
         classRegistry.registerClass(Object[][][].class);
-        classRegistry.registerClass(Object[][][][].class);
-        classRegistry.registerClass(Object[][][][][].class);
-        classRegistry.registerClass(Object[][][][][][].class);
-        classRegistry.registerClass(Object[][][][][][][].class);
 
         classRegistry.registerClass(byte[].class);
         classRegistry.registerClass(byte[][].class);
-        classRegistry.registerClass(byte[][][].class);
-        classRegistry.registerClass(byte[][][][].class);
-        classRegistry.registerClass(byte[][][][][].class);
-        classRegistry.registerClass(byte[][][][][][].class);
-        classRegistry.registerClass(byte[][][][][][][].class);
 
         classRegistry.registerClass(char[].class);
         classRegistry.registerClass(char[][].class);
-        classRegistry.registerClass(char[][][].class);
-        classRegistry.registerClass(char[][][][].class);
-        classRegistry.registerClass(char[][][][][].class);
-        classRegistry.registerClass(char[][][][][][].class);
-        classRegistry.registerClass(char[][][][][][][].class);
 
         classRegistry.registerClass(short[].class);
         classRegistry.registerClass(short[][].class);
-        classRegistry.registerClass(short[][][].class);
-        classRegistry.registerClass(short[][][][].class);
-        classRegistry.registerClass(short[][][][][].class);
-        classRegistry.registerClass(short[][][][][][].class);
-        classRegistry.registerClass(short[][][][][][][].class);
 
         classRegistry.registerClass(int[].class);
         classRegistry.registerClass(int[][].class);
         classRegistry.registerClass(int[][][].class);
-        classRegistry.registerClass(int[][][][].class);
-        classRegistry.registerClass(int[][][][][].class);
-        classRegistry.registerClass(int[][][][][][].class);
-        classRegistry.registerClass(int[][][][][][][].class);
 
         classRegistry.registerClass(float[].class);
         classRegistry.registerClass(float[][].class);
         classRegistry.registerClass(float[][][].class);
-        classRegistry.registerClass(float[][][][].class);
-        classRegistry.registerClass(float[][][][][].class);
-        classRegistry.registerClass(float[][][][][][].class);
-        classRegistry.registerClass(float[][][][][][][].class);
 
         classRegistry.registerClass(double[].class);
         classRegistry.registerClass(double[][].class);
         classRegistry.registerClass(double[][][].class);
-        classRegistry.registerClass(double[][][][].class);
-        classRegistry.registerClass(double[][][][][].class);
-        classRegistry.registerClass(double[][][][][][].class);
-        classRegistry.registerClass(double[][][][][][][].class);
 
     }
 
