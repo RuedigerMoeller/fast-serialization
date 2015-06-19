@@ -31,7 +31,7 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.29</version>
+    <version>2.30</version>
 </dependency>
 ```
 
