@@ -485,7 +485,7 @@ public class FSTObjectInput implements ObjectInput {
         } else
             serInstance = true;
         if (newObj == null) {
-            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
+            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate or define empty constructor..");
         }
         if (newObj.getClass() != c && ser == null ) {
             // for advanced trickery (e.g. returning non-serializable from FSTSerializer)
@@ -507,7 +507,7 @@ public class FSTObjectInput implements ObjectInput {
         Object newObj;
         newObj = clzSerInfo.newInstance(getCodec().isMapBased());
         if (newObj == null) {
-            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
+            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate or define empty constructor.");
         }
         //fixme: code below improves unshared decoding perf, however disables to run mixed mode (clients can decide)
         //actually would need 2 flags for encode/decode

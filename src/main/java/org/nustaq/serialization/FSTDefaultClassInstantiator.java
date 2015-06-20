@@ -106,6 +106,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
             c.setAccessible(true);
+
             if ( FSTClazzInfo.BufferConstructorMeta)
                 constructorMap.put(clazz,c);
             return c;

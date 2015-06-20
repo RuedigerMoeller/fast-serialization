@@ -1303,10 +1303,10 @@ public class FSTConfiguration {
         derived.instantiator = instantiator;
         derived.lastResortResolver = lastResortResolver;
 
-// cannot derive these, concurrent registering ..
-//        derived.minbinNames = minbinNames;
-//        derived.minBinNamesBytez = minBinNamesBytez;
-//        derived.minbinNamesReverse = minbinNamesReverse;
+        // avoid concurrent registering later on !
+        derived.minbinNames = minbinNames;
+        derived.minBinNamesBytez = minBinNamesBytez;
+        derived.minbinNamesReverse = minbinNamesReverse;
 
         // errors with websockets ..
 //        derived.classRegistry = classRegistry;

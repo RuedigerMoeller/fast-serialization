@@ -82,7 +82,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         Object newObj;
         newObj = clzSerInfo.newInstance(getCodec().isMapBased());
         if (newObj == null) {
-            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate.");
+            throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate or define empty constructor..");
         }
         if ( clzSerInfo.isExternalizable() )
         {
