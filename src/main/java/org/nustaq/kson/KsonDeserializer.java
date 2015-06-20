@@ -143,7 +143,7 @@ public class KsonDeserializer {
                 mappedClass = HashMap.class;
             if (mappedClass == Set.class)
                 mappedClass = HashSet.class;
-            FSTClazzInfo clInfo = Kson.conf.getCLInfoRegistry().getCLInfo(mappedClass);
+            FSTClazzInfo clInfo = Kson.conf.getCLInfoRegistry().getCLInfo(mappedClass, Kson.conf);
             if (DEBUG_STACK) {
                 if ( clInfo != null ) {
                     stack.push(new ParseStep("try reading type " + clInfo.getClazz().getName(), in));

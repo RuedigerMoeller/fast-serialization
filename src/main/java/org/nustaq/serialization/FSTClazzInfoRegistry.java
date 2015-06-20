@@ -38,7 +38,6 @@ public class FSTClazzInfoRegistry {
     boolean ignoreAnnotations = false;
     final AtomicBoolean rwLock = new AtomicBoolean(false);
     private boolean structMode = false;
-    FSTConfiguration conf;
 
     public static void addAllReferencedClasses(Class cl, ArrayList<String> names, String filter) {
         HashSet<String> names1 = new HashSet<String>();
@@ -112,11 +111,10 @@ public class FSTClazzInfoRegistry {
         }
     }
 
-    public FSTClazzInfoRegistry(FSTConfiguration conf) {
-        this.conf = conf;
+    public FSTClazzInfoRegistry() {
     }
 
-    public FSTClazzInfo getCLInfo(Class c) {
+    public FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf) {
         while(!rwLock.compareAndSet(false,true));
         try {
             FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);

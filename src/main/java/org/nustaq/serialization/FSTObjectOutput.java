@@ -98,7 +98,7 @@ public class FSTObjectOutput implements ObjectOutput {
             objects.clearForWrite(conf);
         }
         dontShare = objects.disabled;
-        stringInfo = getClassInfoRegistry().getCLInfo(String.class);
+        stringInfo = getClassInfoRegistry().getCLInfo(String.class, conf);
     }
 
     /**
@@ -431,7 +431,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         }
                         if ( replaced != toWrite ) {
                             toWrite = replaced;
-                            serializationInfo = getClassInfoRegistry().getCLInfo(toWrite.getClass());
+                            serializationInfo = getClassInfoRegistry().getCLInfo(toWrite.getClass(), conf);
                             // fixme: update object map ?
                         }
                     }
@@ -510,7 +510,7 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( lastInfo != null && lastInfo.getClazz() == clazz && lastInfo.conf == conf ) {
             serializationInfo = lastInfo;
         } else {
-            serializationInfo = getClassInfoRegistry().getCLInfo(clazz);
+            serializationInfo = getClassInfoRegistry().getCLInfo(clazz, conf);
             referencee.lastInfo = serializationInfo;
         }
         return serializationInfo;
@@ -881,7 +881,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         Object replaced = newInfo.getWriteReplaceMethod().invoke(replObj);
                         if ( replaced != null && replaced != toWrite ) {
                             replObj = replaced;
-                            newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass());
+                            newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass(), conf);
                         }
                     } catch (Exception e) {
                         FSTUtil.<RuntimeException>rethrow(e);

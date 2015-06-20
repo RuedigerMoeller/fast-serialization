@@ -348,8 +348,13 @@ public class FSTObjectInput implements ObjectInput {
             c = referencee.getType();
             clzSerInfo = getClazzInfo(c, referencee);
         } else if ( code >= 1 ) {
-            c = referencee.getPossibleClasses()[code - 1];
-            clzSerInfo = getClazzInfo(c, referencee);
+            try {
+                c = referencee.getPossibleClasses()[code - 1];
+                clzSerInfo = getClazzInfo(c, referencee);
+            } catch (Throwable th) {
+                clzSerInfo = null; c = null;
+                FSTUtil.<RuntimeException>rethrow(th);
+            }
         } else {
             Object res = instantiateSpecialTag(referencee, readPos, code);
             return res;
@@ -431,7 +436,7 @@ public class FSTObjectInput implements ObjectInput {
         if ( lastInfo != null && lastInfo.clazz == c && lastInfo.conf == conf) {
             clzSerInfo = lastInfo;
         } else {
-            clzSerInfo = clInfoRegistry.getCLInfo(c);
+            clzSerInfo = clInfoRegistry.getCLInfo(c, conf);
             referencee.lastInfo = clzSerInfo;
         }
         return clzSerInfo;
@@ -492,7 +497,7 @@ public class FSTObjectInput implements ObjectInput {
             // this hurts. so in case of FSTSerializers incoming clzInfo will refer to the
             // original class, not the one actually instantiated
             c = newObj.getClass();
-            clzSerInfo = clInfoRegistry.getCLInfo(c);
+            clzSerInfo = clInfoRegistry.getCLInfo(c, conf);
         }
         if ( ! referencee.isFlat() && ! clzSerInfo.isFlat() && !ser.alwaysCopy()) {
             objects.registerObjectForRead(newObj, readPos);

@@ -37,7 +37,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         this.conf = conf;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
         if ( clnames == null ) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
         } else {
             clnames.clear();
         }
@@ -541,7 +541,7 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     public void registerClass(Class possible) {
-        clnames.registerClass(possible);
+        clnames.registerClass(possible,conf);
     }
 
     @Override
@@ -640,6 +640,11 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     @Override
     public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
+    }
+
+    @Override
+    public FSTConfiguration getConf() {
+        return conf;
     }
 
 }

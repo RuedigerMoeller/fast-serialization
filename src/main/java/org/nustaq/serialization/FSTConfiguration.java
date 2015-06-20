@@ -76,14 +76,28 @@ public class FSTConfiguration {
         public FSTDecoder createStreamDecoder() {
             return new FSTStreamDecoder(FSTConfiguration.this);
         }
+
+
+        ThreadLocal input = new ThreadLocal();
+        ThreadLocal output = new ThreadLocal();
+        @Override
+        public ThreadLocal getInput() {
+            return input;
+        }
+
+        @Override
+        public ThreadLocal getOutput() {
+            return output;
+        }
+
     };
 
     String name;
 
     ConfType type = ConfType.DEFAULT;
-    FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry(this);
+    FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
-    FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null, this);
+    FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
     boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
     boolean shareReferences = true;
     volatile ClassLoader classLoader = getClass().getClassLoader();
@@ -202,6 +216,18 @@ public class FSTConfiguration {
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTMinBinDecoder(res);
+            }
+
+            ThreadLocal input = new ThreadLocal();
+            ThreadLocal output = new ThreadLocal();
+            @Override
+            public ThreadLocal getInput() {
+                return input;
+            }
+
+            @Override
+            public ThreadLocal getOutput() {
+                return output;
             }
         });
 
@@ -323,6 +349,18 @@ public class FSTConfiguration {
             @Override
             public FSTDecoder createStreamDecoder() {
                 return new FSTJsonDecoder(conf);
+            }
+
+            ThreadLocal input = new ThreadLocal();
+            ThreadLocal output = new ThreadLocal();
+            @Override
+            public ThreadLocal getInput() {
+                return input;
+            }
+
+            @Override
+            public ThreadLocal getOutput() {
+                return output;
             }
         });
         conf.setShareReferences(shareReferences);
@@ -498,6 +536,19 @@ public class FSTConfiguration {
             public FSTDecoder createStreamDecoder() {
                 return new FSTBytezDecoder(conf);
             }
+
+            ThreadLocal input = new ThreadLocal();
+            ThreadLocal output = new ThreadLocal();
+            @Override
+            public ThreadLocal getInput() {
+                return input;
+            }
+
+            @Override
+            public ThreadLocal getOutput() {
+                return output;
+            }
+
         });
         return conf;
     }
@@ -695,7 +746,7 @@ public class FSTConfiguration {
     /**
      * treat unserializable classes same as if they would be serializable.
      * @param forceSerializable
-     */
+//     */
     public FSTConfiguration setForceSerializable(boolean forceSerializable) {
         this.forceSerializable = forceSerializable;
         return this;
@@ -711,7 +762,7 @@ public class FSTConfiguration {
     }
 
     /**
-     * clear cached softref's and ThreadLocal. Use if you won't read/write objects anytime soon.
+     * clear cached softref's and ThreadLocal.
      */
     public void clearCaches() {
         try {
@@ -756,10 +807,10 @@ public class FSTConfiguration {
      */
     public void registerClass( Class ... c) {
         for (int i = 0; i < c.length; i++) {
-            classRegistry.registerClass(c[i]);
+            classRegistry.registerClass(c[i],this);
             try {
                 Class ac = Class.forName("[L"+c[i].getName()+";");
-                classRegistry.registerClass(ac);
+                classRegistry.registerClass(ac,this);
             } catch (ClassNotFoundException e) {
                 // silent
             }
@@ -767,62 +818,59 @@ public class FSTConfiguration {
     }
 
     void addDefaultClazzes() {
-        classRegistry.registerClass(String.class);
-        classRegistry.registerClass(Byte.class);
-        classRegistry.registerClass(Short.class);
-        classRegistry.registerClass(Integer.class);
-        classRegistry.registerClass(Long.class);
-        classRegistry.registerClass(Float.class);
-        classRegistry.registerClass(Double.class);
-        classRegistry.registerClass(BigDecimal.class);
-        classRegistry.registerClass(BigInteger.class);
-        classRegistry.registerClass(Character.class);
-        classRegistry.registerClass(Boolean.class);
-        classRegistry.registerClass(TreeMap.class);
-        classRegistry.registerClass(HashMap.class);
-        classRegistry.registerClass(ArrayList.class);
-        classRegistry.registerClass(ConcurrentHashMap.class);
-        classRegistry.registerClass(URL.class);
-        classRegistry.registerClass(Date.class);
-        classRegistry.registerClass(java.sql.Date.class);
-        classRegistry.registerClass(SimpleDateFormat.class);
-        classRegistry.registerClass(TreeSet.class);
-        classRegistry.registerClass(LinkedList.class);
-        classRegistry.registerClass(SimpleTimeZone.class);
-        classRegistry.registerClass(GregorianCalendar.class);
-        classRegistry.registerClass(Vector.class);
-        classRegistry.registerClass(Hashtable.class);
-        classRegistry.registerClass(BitSet.class);
-        classRegistry.registerClass(Locale.class);
+        classRegistry.registerClass(String.class,this);
+        classRegistry.registerClass(Byte.class,this);
+        classRegistry.registerClass(Short.class,this);
+        classRegistry.registerClass(Integer.class,this);
+        classRegistry.registerClass(Long.class,this);
+        classRegistry.registerClass(Float.class,this);
+        classRegistry.registerClass(Double.class,this);
+        classRegistry.registerClass(BigDecimal.class,this);
+        classRegistry.registerClass(BigInteger.class,this);
+        classRegistry.registerClass(Character.class,this);
+        classRegistry.registerClass(Boolean.class,this);
+        classRegistry.registerClass(TreeMap.class,this);
+        classRegistry.registerClass(HashMap.class,this);
+        classRegistry.registerClass(ArrayList.class,this);
+        classRegistry.registerClass(ConcurrentHashMap.class,this);
+        classRegistry.registerClass(URL.class,this);
+        classRegistry.registerClass(Date.class,this);
+        classRegistry.registerClass(java.sql.Date.class,this);
+        classRegistry.registerClass(SimpleDateFormat.class,this);
+        classRegistry.registerClass(TreeSet.class,this);
+        classRegistry.registerClass(LinkedList.class,this);
+        classRegistry.registerClass(SimpleTimeZone.class,this);
+        classRegistry.registerClass(GregorianCalendar.class,this);
+        classRegistry.registerClass(Vector.class,this);
+        classRegistry.registerClass(Hashtable.class,this);
+        classRegistry.registerClass(BitSet.class,this);
+        classRegistry.registerClass(Locale.class,this);
 
-        classRegistry.registerClass(StringBuffer.class);
-        classRegistry.registerClass(StringBuilder.class);
+        classRegistry.registerClass(StringBuffer.class,this);
+        classRegistry.registerClass(StringBuilder.class,this);
 
-        classRegistry.registerClass(Object.class);
-        classRegistry.registerClass(Object[].class);
-        classRegistry.registerClass(Object[][].class);
-        classRegistry.registerClass(Object[][][].class);
+        classRegistry.registerClass(Object.class,this);
+        classRegistry.registerClass(Object[].class,this);
+        classRegistry.registerClass(Object[][].class,this);
+        classRegistry.registerClass(Object[][][].class,this);
 
-        classRegistry.registerClass(byte[].class);
-        classRegistry.registerClass(byte[][].class);
+        classRegistry.registerClass(byte[].class,this);
+        classRegistry.registerClass(byte[][].class,this);
 
-        classRegistry.registerClass(char[].class);
-        classRegistry.registerClass(char[][].class);
+        classRegistry.registerClass(char[].class,this);
+        classRegistry.registerClass(char[][].class,this);
 
-        classRegistry.registerClass(short[].class);
-        classRegistry.registerClass(short[][].class);
+        classRegistry.registerClass(short[].class,this);
+        classRegistry.registerClass(short[][].class,this);
 
-        classRegistry.registerClass(int[].class);
-        classRegistry.registerClass(int[][].class);
-        classRegistry.registerClass(int[][][].class);
+        classRegistry.registerClass(int[].class,this);
+        classRegistry.registerClass(int[][].class,this);
 
-        classRegistry.registerClass(float[].class);
-        classRegistry.registerClass(float[][].class);
-        classRegistry.registerClass(float[][][].class);
+        classRegistry.registerClass(float[].class,this);
+        classRegistry.registerClass(float[][].class,this);
 
-        classRegistry.registerClass(double[].class);
-        classRegistry.registerClass(double[][].class);
-        classRegistry.registerClass(double[][][].class);
+        classRegistry.registerClass(double[].class,this);
+        classRegistry.registerClass(double[][].class,this);
 
     }
 
@@ -839,81 +887,8 @@ public class FSTConfiguration {
     }
 
     public FSTClazzInfo getClassInfo(Class type) {
-        return serializationInfoRegistry.getCLInfo(type);
+        return serializationInfoRegistry.getCLInfo(type, this);
     }
-
-    ThreadLocal<FSTObjectOutput> output = new ThreadLocal<FSTObjectOutput>() {
-        @Override
-        protected FSTObjectOutput initialValue() {
-//            if (type == ConfType.DEFAULT) {
-//                return new FSTObjectOutput(FSTConfiguration.this) {
-//                    FSTStreamEncoder st;
-//
-//                    @Override
-//                    protected void setCodec(FSTEncoder codec) {
-//                        st = (FSTStreamEncoder) codec;
-//                    }
-//                    @Override
-//                    public FSTStreamEncoder getCodec() {
-//                        return st; // try to avoid megamorph calls
-//                    }
-//                };
-//            } else if ( type == ConfType.UNSAFE ) {
-//                return new FSTObjectOutput(FSTConfiguration.this) {
-//                    FSTBytezEncoder st;
-//
-//                    @Override
-//                    protected void setCodec(FSTEncoder codec) {
-//                        st = (FSTBytezEncoder) codec;
-//                    }
-//                    @Override
-//                    public FSTBytezEncoder getCodec() {
-//                        return st; // try to avoid megamorph calls
-//                    }
-//                };
-//            } else
-            return new FSTObjectOutput(FSTConfiguration.this);
-        }
-    };
-
-    ThreadLocal<FSTObjectInput> input = new ThreadLocal<FSTObjectInput>() {
-        @Override
-        protected FSTObjectInput initialValue() {
-            try {
-//                if (type == ConfType.DEFAULT) {
-//                    return new FSTObjectInput(FSTConfiguration.this){
-//                        FSTStreamDecoder st;
-//                        @Override
-//                        void setCodec(FSTDecoder codec) {
-//                            st = (FSTStreamDecoder) codec;
-//                        }
-//
-//                        @Override
-//                        public FSTStreamDecoder getCodec() {
-//                            return st;
-//                        }
-//                    };
-//                } else if ( type == ConfType.UNSAFE ) {
-//                    return new FSTObjectInput(FSTConfiguration.this){
-//                        FSTBytezDecoder st;
-//                        @Override
-//                        void setCodec(FSTDecoder codec) {
-//                            st = (FSTBytezDecoder) codec;
-//                        }
-//
-//                        @Override
-//                        public FSTBytezDecoder getCodec() {
-//                            return st;
-//                        }
-//                    };
-//                } else
-                    return new FSTObjectInput(FSTConfiguration.this);
-            } catch (Exception e) {
-                FSTUtil.<RuntimeException>rethrow(e);
-            }
-            return null; // unreachable
-        }
-    };
 
     /**
      * utility for thread safety and reuse. Do not close the resulting stream. However you should close
@@ -958,14 +933,22 @@ public class FSTConfiguration {
     }
 
     protected FSTObjectInput getIn() {
-        FSTObjectInput fstObjectInput = input.get();
+        FSTObjectInput fstObjectInput = (FSTObjectInput) streamCoderFactory.getInput().get();
+        if ( fstObjectInput == null ) {
+            streamCoderFactory.getInput().set(new FSTObjectInput(this));
+            return getIn();
+        }
         fstObjectInput.conf = this;
         fstObjectInput.getCodec().setConf(this);
         return fstObjectInput;
     }
 
     protected FSTObjectOutput getOut() {
-        FSTObjectOutput fstOut = output.get();
+        FSTObjectOutput fstOut = (FSTObjectOutput) streamCoderFactory.getOutput().get();
+        if ( fstOut == null ) {
+            streamCoderFactory.getOutput().set(new FSTObjectOutput(this));
+            return getOut();
+        }
         fstOut.conf = this;
         fstOut.getCodec().setConf(this);
         return fstOut;
@@ -1016,7 +999,7 @@ public class FSTConfiguration {
     }
 
     public FSTClazzInfo getClazzInfo(Class rowClass) {
-        return getCLInfoRegistry().getCLInfo(rowClass);
+        return getCLInfoRegistry().getCLInfo(rowClass, this);
     }
 
     public void setCrossPlatform(boolean crossPlatform) {
@@ -1034,6 +1017,8 @@ public class FSTConfiguration {
     public static interface StreamCoderFactory {
         FSTEncoder createStreamEncoder();
         FSTDecoder createStreamDecoder();
+        ThreadLocal getInput();
+        ThreadLocal getOutput();
     }
     
     public FSTEncoder createStreamEncoder() {
@@ -1294,14 +1279,15 @@ public class FSTConfiguration {
         // still no good test coverage. Problematic distribution of state and references all across the
         // code (to reduce pointer chasing) makes it problematic to implement stuff like this (errors might occur on nasty edge cases)
         derived.fieldInfoCache = fieldInfoCache;
-        derived.output = output;
-        derived.input = input;
+
+        // sharing does not work. need manual clean up
+//        derived.output = output;
+//        derived.input = input;
 
 //        cannot derive => hard link to conf in anonymous
 //        derived.streamCoderFactory = streamCoderFactory;
-
-        derived.instantiator = instantiator;
-        derived.lastResortResolver = lastResortResolver;
+//        derived.instantiator = instantiator;
+//        derived.lastResortResolver = lastResortResolver;
 
         // avoid concurrent registering later on !
         derived.minbinNames = minbinNames;

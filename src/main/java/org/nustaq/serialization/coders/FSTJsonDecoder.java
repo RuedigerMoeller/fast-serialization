@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.nustaq.serialization.*;
-import org.nustaq.serialization.minbin.MBObject;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -451,7 +450,7 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
         if (lastDirectClass != null ) {
-            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(lastDirectClass);
+            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(lastDirectClass, conf);
             lastDirectClass = null;
             return clInfo;
         }
@@ -467,7 +466,7 @@ public class FSTJsonDecoder implements FSTDecoder {
             lastUnknown = name;
         if (aClass!=null)
             return aClass;
-        aClass = conf.getClassRegistry().classForName(name);
+        aClass = conf.getClassRegistry().classForName(name,conf);
         if ( aClass == Unknown.class )
             lastUnknown = name;
         clzCache.put(name,aClass);

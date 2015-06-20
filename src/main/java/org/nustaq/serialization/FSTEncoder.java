@@ -102,4 +102,6 @@ public interface FSTEncoder {
     void writeArrayEnd();
 
     void writeFieldsEnd(FSTClazzInfo serializationInfo);
+
+    FSTConfiguration getConf();
 }

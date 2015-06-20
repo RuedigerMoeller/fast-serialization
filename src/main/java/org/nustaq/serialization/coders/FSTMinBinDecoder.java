@@ -276,7 +276,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
 //                        return FSTObjectOutput.OBJECT;
 //                    } else
                     {
-                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln));
+                        lastDirectClass = conf.getClassRegistry().classForName(conf.getClassForCPName(cln),conf);
                     }
                 } catch (ClassNotFoundException e) {
                     FSTUtil.<RuntimeException>rethrow(e);
@@ -314,14 +314,14 @@ public class FSTMinBinDecoder implements FSTDecoder {
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
         if (lastDirectClass != null ) {
-            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(lastDirectClass);
+            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(lastDirectClass, conf);
             lastDirectClass = null;
             return clInfo;
         }
         Object read = input.readObject();
         String name = (String) read;
         String clzName = conf.getClassForCPName(name);
-        return conf.getCLInfoRegistry().getCLInfo(classForName(clzName));
+        return conf.getCLInfoRegistry().getCLInfo(classForName(clzName), conf);
     }
 
     HashMap<String,Class> clzCache = new HashMap<>();

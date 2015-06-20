@@ -39,7 +39,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         this.conf = conf;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
         if (clnames == null) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
         } else {
             clnames.clear();
         }
@@ -50,7 +50,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         this.conf = conf;
         clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
         if (clnames == null) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry(), conf);
+            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
         } else {
             clnames.clear();
         }
@@ -469,16 +469,16 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        return clnames.decodeClass(this);
+        return clnames.decodeClass(this,conf);
     }
 
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
-        return clnames.classForName(name);
+        return clnames.classForName(name,conf);
     }
     @Override
     public void registerClass(Class possible) {
-        clnames.registerClass(possible);
+        clnames.registerClass(possible,conf);
     }
     @Override
     public void close() {

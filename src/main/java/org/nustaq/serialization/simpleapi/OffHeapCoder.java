@@ -72,6 +72,19 @@ public class OffHeapCoder {
             public FSTDecoder createStreamDecoder() {
                 return new FSTBytezDecoder(conf,readTarget);
             }
+
+            ThreadLocal input = new ThreadLocal();
+            ThreadLocal output = new ThreadLocal();
+            @Override
+            public ThreadLocal getInput() {
+                return input;
+            }
+
+            @Override
+            public ThreadLocal getOutput() {
+                return output;
+            }
+
         });
         if (sharedRefs) {
             out = conf.getObjectOutput();

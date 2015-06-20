@@ -393,4 +393,9 @@ public class FSTMinBinEncoder implements FSTEncoder {
 
     }
 
+    @Override
+    public FSTConfiguration getConf() {
+        return conf;
+    }
+
 }

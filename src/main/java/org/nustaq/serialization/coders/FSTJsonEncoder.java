@@ -485,4 +485,9 @@ public class FSTJsonEncoder implements FSTEncoder {
         }
     }
 
+    @Override
+    public FSTConfiguration getConf() {
+        return conf;
+    }
+
 }

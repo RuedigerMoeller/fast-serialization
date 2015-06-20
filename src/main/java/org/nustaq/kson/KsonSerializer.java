@@ -158,7 +158,7 @@ public class KsonSerializer {
             writeClazzTag(expectedClass, o);
             writeln();
 
-            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(o.getClass());
+            FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(o.getClass(), conf);
             FSTClazzInfo.FSTFieldInfo[] fieldInfo = clInfo.getFieldInfo();
 
             for (int i = 0; i < fieldInfo.length; i++) {
