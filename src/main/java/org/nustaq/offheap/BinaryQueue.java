@@ -82,7 +82,7 @@ public class BinaryQueue {
     }
 
     protected void grow(long sourcelen) {
-        HeapBytez newStorage = new HeapBytez((int) Math.max(capacity()*2,capacity()+sourcelen));
+        HeapBytez newStorage = new HeapBytez((int) Math.max(capacity()*2,capacity()+sourcelen+available()));
         long len = poll(newStorage, 0, available());
         pollIndex = 0;
         addIndex = len;
