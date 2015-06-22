@@ -300,7 +300,6 @@ public class FSTConfiguration {
         conf.type = prettyPrint ? ConfType.JSONPRETTY : ConfType.JSON;
         JsonFactory fac;
         if ( prettyPrint ) {
-        {
             fac = new JsonFactory() {
                 protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
                     UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
@@ -321,7 +320,6 @@ public class FSTConfiguration {
             }
             .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
             .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        }
         } else {
             fac = new JsonFactory() {
                 protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
