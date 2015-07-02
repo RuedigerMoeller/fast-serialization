@@ -92,7 +92,7 @@ public class TCPObjectSocket {
     public void writeObject(Object toWrite) throws Exception {
         try {
             while ( !writeLock.compareAndSet(false,true) );
-            conf.encodeToStream(out,toWrite);
+            conf.encodeToStream(out, toWrite);
         } finally {
             writeLock.set(false);
         }
