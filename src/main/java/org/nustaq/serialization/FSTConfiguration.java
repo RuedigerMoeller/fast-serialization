@@ -1219,8 +1219,6 @@ public class FSTConfiguration {
 
         public MinBinStreamCoderFactory(FSTConfiguration conf) {
             this.conf = conf;
-            input = new ThreadLocal();
-            output = new ThreadLocal();
         }
 
         @Override
@@ -1233,8 +1231,8 @@ public class FSTConfiguration {
             return new FSTMinBinDecoder(conf);
         }
 
-        static ThreadLocal input;
-        static ThreadLocal output;
+        static ThreadLocal input = new ThreadLocal();
+        static ThreadLocal output = new ThreadLocal();
 
         @Override
         public ThreadLocal getInput() {
@@ -1282,8 +1280,6 @@ public class FSTConfiguration {
 
         public JSonStreamCoderFactory(FSTConfiguration conf) {
             this.conf = conf;
-            input = new ThreadLocal();
-            output = new ThreadLocal();
         }
 
         @Override
@@ -1296,8 +1292,8 @@ public class FSTConfiguration {
             return new FSTJsonDecoder(conf);
         }
 
-        static ThreadLocal input;
-        static ThreadLocal output;
+        static ThreadLocal input = new ThreadLocal();
+        static ThreadLocal output = new ThreadLocal();
 
         @Override
         public ThreadLocal getInput() {
@@ -1315,8 +1311,6 @@ public class FSTConfiguration {
 
         public FBinaryStreamCoderFactory(FSTConfiguration conf) {
             this.conf = conf;
-            input = new ThreadLocal();
-            output = new ThreadLocal();
         }
 
         @Override
@@ -1329,8 +1323,8 @@ public class FSTConfiguration {
             return new FSTBytezDecoder(conf);
         }
 
-        static ThreadLocal input;
-        static ThreadLocal output;
+        static ThreadLocal input = new ThreadLocal();
+        static ThreadLocal output = new ThreadLocal();
 
         @Override
         public ThreadLocal getInput() {
