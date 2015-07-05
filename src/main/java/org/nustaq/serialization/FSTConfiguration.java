@@ -66,31 +66,7 @@ public class FSTConfiguration {
         public Class getClass( String clName );
     }
 
-    StreamCoderFactory streamCoderFactory = new StreamCoderFactory() {
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTStreamEncoder(FSTConfiguration.this);
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTStreamDecoder(FSTConfiguration.this);
-        }
-
-
-        ThreadLocal input = new ThreadLocal();
-        ThreadLocal output = new ThreadLocal();
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
-
-    };
+    StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
 
     String name;
 
@@ -207,29 +183,7 @@ public class FSTConfiguration {
         final FSTConfiguration res = createDefaultConfiguration(shared);
         res.setCrossPlatform(true);
         res.type = ConfType.MINBIN;
-        res.setStreamCoderFactory(new StreamCoderFactory() {
-            @Override
-            public FSTEncoder createStreamEncoder() {
-                return new FSTMinBinEncoder(res);
-            }
-
-            @Override
-            public FSTDecoder createStreamDecoder() {
-                return new FSTMinBinDecoder(res);
-            }
-
-            ThreadLocal input = new ThreadLocal();
-            ThreadLocal output = new ThreadLocal();
-            @Override
-            public ThreadLocal getInput() {
-                return input;
-            }
-
-            @Override
-            public ThreadLocal getOutput() {
-                return output;
-            }
-        });
+        res.setStreamCoderFactory(new MinBinStreamCoderFactory(res));
 
         // override some serializers
         FSTSerializerRegistry reg = res.serializationInfoRegistry.getSerializerRegistry();
@@ -339,28 +293,7 @@ public class FSTConfiguration {
                .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         }
         conf.setCoderSpecific(fac);
-        conf.setStreamCoderFactory(new StreamCoderFactory() {
-            @Override
-            public FSTEncoder createStreamEncoder() {
-                return new FSTJsonEncoder(conf);
-            }
-            @Override
-            public FSTDecoder createStreamDecoder() {
-                return new FSTJsonDecoder(conf);
-            }
-
-            ThreadLocal input = new ThreadLocal();
-            ThreadLocal output = new ThreadLocal();
-            @Override
-            public ThreadLocal getInput() {
-                return input;
-            }
-
-            @Override
-            public ThreadLocal getOutput() {
-                return output;
-            }
-        });
+        conf.setStreamCoderFactory(new JSonStreamCoderFactory(conf));
         conf.setShareReferences(shareReferences);
         conf.setLastResortResolver(new LastResortClassRessolver() {
             @Override
@@ -524,30 +457,7 @@ public class FSTConfiguration {
             throw new RuntimeException("not supported under android platform, use default configuration");
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration(shared);
         conf.type = ConfType.UNSAFE;
-        conf.setStreamCoderFactory(new FSTConfiguration.StreamCoderFactory() {
-            @Override
-            public FSTEncoder createStreamEncoder() {
-                return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
-            }
-
-            @Override
-            public FSTDecoder createStreamDecoder() {
-                return new FSTBytezDecoder(conf);
-            }
-
-            ThreadLocal input = new ThreadLocal();
-            ThreadLocal output = new ThreadLocal();
-            @Override
-            public ThreadLocal getInput() {
-                return input;
-            }
-
-            @Override
-            public ThreadLocal getOutput() {
-                return output;
-            }
-
-        });
+        conf.setStreamCoderFactory(new FBinaryStreamCoderFactory(conf));
         return conf;
     }
 
@@ -1302,5 +1212,135 @@ public class FSTConfiguration {
         return "FSTConfiguration{" +
                    "name='" + name + '\'' +
                    '}';
+    }
+
+    protected static class MinBinStreamCoderFactory implements StreamCoderFactory {
+        private final FSTConfiguration conf;
+
+        public MinBinStreamCoderFactory(FSTConfiguration conf) {
+            this.conf = conf;
+            input = new ThreadLocal();
+            output = new ThreadLocal();
+        }
+
+        @Override
+        public FSTEncoder createStreamEncoder() {
+            return new FSTMinBinEncoder(conf);
+        }
+
+        @Override
+        public FSTDecoder createStreamDecoder() {
+            return new FSTMinBinDecoder(conf);
+        }
+
+        static ThreadLocal input;
+        static ThreadLocal output;
+
+        @Override
+        public ThreadLocal getInput() {
+            return input;
+        }
+
+        @Override
+        public ThreadLocal getOutput() {
+            return output;
+        }
+    }
+
+    protected static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
+        private FSTConfiguration fstConfiguration;
+
+        public FSTDefaultStreamCoderFactory(FSTConfiguration fstConfiguration) {this.fstConfiguration = fstConfiguration;}
+
+        @Override
+        public FSTEncoder createStreamEncoder() {
+            return new FSTStreamEncoder(fstConfiguration);
+        }
+
+        @Override
+        public FSTDecoder createStreamDecoder() {
+            return new FSTStreamDecoder(fstConfiguration);
+        }
+
+        static ThreadLocal input = new ThreadLocal();
+        static ThreadLocal output = new ThreadLocal();
+
+        @Override
+        public ThreadLocal getInput() {
+            return input;
+        }
+
+        @Override
+        public ThreadLocal getOutput() {
+            return output;
+        }
+
+    }
+
+    protected static class JSonStreamCoderFactory implements StreamCoderFactory {
+        protected final FSTConfiguration conf;
+
+        public JSonStreamCoderFactory(FSTConfiguration conf) {
+            this.conf = conf;
+            input = new ThreadLocal();
+            output = new ThreadLocal();
+        }
+
+        @Override
+        public FSTEncoder createStreamEncoder() {
+            return new FSTJsonEncoder(conf);
+        }
+
+        @Override
+        public FSTDecoder createStreamDecoder() {
+            return new FSTJsonDecoder(conf);
+        }
+
+        static ThreadLocal input;
+        static ThreadLocal output;
+
+        @Override
+        public ThreadLocal getInput() {
+            return input;
+        }
+
+        @Override
+        public ThreadLocal getOutput() {
+            return output;
+        }
+    }
+
+    protected static class FBinaryStreamCoderFactory implements StreamCoderFactory {
+        protected final FSTConfiguration conf;
+
+        public FBinaryStreamCoderFactory(FSTConfiguration conf) {
+            this.conf = conf;
+            input = new ThreadLocal();
+            output = new ThreadLocal();
+        }
+
+        @Override
+        public FSTEncoder createStreamEncoder() {
+            return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
+        }
+
+        @Override
+        public FSTDecoder createStreamDecoder() {
+            return new FSTBytezDecoder(conf);
+        }
+
+        static ThreadLocal input;
+        static ThreadLocal output;
+
+        @Override
+        public ThreadLocal getInput() {
+            return input;
+        }
+
+        @Override
+        public ThreadLocal getOutput() {
+            return output;
+        }
+
     }
 }
