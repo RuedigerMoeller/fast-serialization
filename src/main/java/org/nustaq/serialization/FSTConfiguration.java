@@ -853,7 +853,7 @@ public class FSTConfiguration {
 
     protected FSTObjectOutput getOut() {
         FSTObjectOutput fstOut = (FSTObjectOutput) streamCoderFactory.getOutput().get();
-        if ( fstOut == null ) {
+        if ( fstOut == null || fstOut.closed ) {
             streamCoderFactory.getOutput().set(new FSTObjectOutput(this));
             return getOut();
         }
