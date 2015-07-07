@@ -9,6 +9,10 @@ import java.io.Serializable;
 
 /**
  * Created by ruedi on 07/07/15.
+ *
+ * Demonstrates how to patch an object and how to 'null' instances of a specific object. Note the example makes no
+ * sense as it demonstrates unwrapping and NULL'ing using one serializer.
+ *
  */
 public class SerializerDelegateTest {
 
@@ -45,6 +49,7 @@ public class SerializerDelegateTest {
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
             in.readObject(); // ensure everything read and registered same order as on write time
+
             return REALLY_NULL; // but just don't use/return it.
             // Note: returning 'null' will result in fst attempting to construct an instance
             // and call readObject on the serializer
