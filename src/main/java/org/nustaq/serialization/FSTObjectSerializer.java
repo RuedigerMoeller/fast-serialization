@@ -29,6 +29,8 @@ import java.io.IOException;
  * @see FSTBasicObjectSerializer
  */
 public interface FSTObjectSerializer {
+
+    public static final String REALLY_NULL = "REALLY_NULL";
     /**
      * write the contents of a given object
      */

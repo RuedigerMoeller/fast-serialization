@@ -492,18 +492,22 @@ public class FSTObjectInput implements ObjectInput {
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate or define empty constructor..");
         }
-        if (newObj.getClass() != c && ser == null ) {
-            // for advanced trickery (e.g. returning non-serializable from FSTSerializer)
-            // this hurts. so in case of FSTSerializers incoming clzInfo will refer to the
-            // original class, not the one actually instantiated
-            c = newObj.getClass();
-            clzSerInfo = clInfoRegistry.getCLInfo(c, conf);
+        if ( newObj == FSTObjectSerializer.REALLY_NULL ) {
+            newObj = null;
+        } else {
+            if (newObj.getClass() != c && ser == null ) {
+                // for advanced trickery (e.g. returning non-serializable from FSTSerializer)
+                // this hurts. so in case of FSTSerializers incoming clzInfo will refer to the
+                // original class, not the one actually instantiated
+                c = newObj.getClass();
+                clzSerInfo = clInfoRegistry.getCLInfo(c, conf);
+            }
+            if ( ! referencee.isFlat() && ! clzSerInfo.isFlat() && !ser.alwaysCopy()) {
+                objects.registerObjectForRead(newObj, readPos);
+            }
+            if ( !serInstance )
+                ser.readObject(this, newObj, clzSerInfo, referencee);
         }
-        if ( ! referencee.isFlat() && ! clzSerInfo.isFlat() && !ser.alwaysCopy()) {
-            objects.registerObjectForRead(newObj, readPos);
-        }
-        if ( !serInstance )
-            ser.readObject(this, newObj, clzSerInfo, referencee);
         getCodec().consumeEndMarker(); //=> bug when writing objects unlimited
         return newObj;
     }
