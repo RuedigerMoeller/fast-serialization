@@ -15,14 +15,11 @@
  */
 package org.nustaq.serialization.coders;
 
-import org.nustaq.offheap.bytez.BasicBytez;
-import org.nustaq.offheap.bytez.onheap.HeapBytez;
+import java.io.*;
+import org.nustaq.offheap.bytez.*;
+import org.nustaq.offheap.bytez.onheap.*;
 import org.nustaq.serialization.*;
-import org.nustaq.serialization.util.FSTUtil;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import org.nustaq.serialization.util.*;
 
 /**
  * Created by ruedi on 09.11.2014.
@@ -76,7 +73,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
 
     protected int readNextInputChunk(int bytes) {
         try {
-            int toRead = Math.max(Integer.MAX_VALUE, bytes);
+            int toRead = Integer.MAX_VALUE - 5;
             if ( inputStream instanceof ByteArrayInputStream ) {
                 toRead = Math.min(((ByteArrayInputStream) inputStream).available(),toRead);
             }
