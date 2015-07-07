@@ -1,4 +1,4 @@
-package ser;
+package ser.serializerdelegate;
 
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.FSTObjectInput.*;
