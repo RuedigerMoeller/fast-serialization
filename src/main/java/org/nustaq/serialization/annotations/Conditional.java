@@ -24,6 +24,10 @@ import java.lang.annotation.Target;
  * applicable to non native fields. if a conditional callback is set on the FSTObjectInput, the callback
  * will be called before the object referenced by the annotated field is decoded. Allows to skip decoding of
  * objects partially to save CPU.
+ *
+ * WARNING: can be used for unshared (cycle free) Objects only. In addition all classes contained in the
+ * skipped subgraph need to be preregistered. So applicable rarely. See git issue #75
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
