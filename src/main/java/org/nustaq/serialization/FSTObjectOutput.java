@@ -336,7 +336,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     /**
-     * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
+     * hook for debugging profiling. register a FSTSerialisationListener to use
      * @param obj
      * @param streamPosition
      */
