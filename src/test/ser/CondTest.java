@@ -13,28 +13,40 @@ import java.util.*;
  */
 public class CondTest {
 
+    static class Unregisterd implements Serializable {
+        int x = 3;
+    }
+
     static class CTest implements Serializable {
 
         int aNum;
 
-        @Conditional
-        ArrayList conditional;
+        ArrayList conditional1;
+        @Conditional ArrayList conditional0;
         String aString;
         CTest other;
+        @Conditional Object unregistered;
 
         public CTest() {
             this.aNum = 0;
-            conditional = new ArrayList();
+            conditional1 = new ArrayList();
+            conditional0 = new ArrayList();
         }
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+
+        conf.registerClass(CTest.class,Unregisterd.class);
+
         CTest cTest = new CTest();
         cTest.other = new CTest();
         cTest.aNum = 3;
-        cTest.conditional.add(new CTest());
-        cTest.conditional.add(cTest.other);
+        cTest.unregistered = new Unregisterd();
+        cTest.conditional0.add(new CTest());
+        cTest.conditional0.add(cTest.unregistered);
+        cTest.conditional0.add(cTest.other);
+        cTest.conditional1.add(new Unregisterd());
 
         byte b[] = conf.asByteArray(cTest);
 
@@ -42,9 +54,10 @@ public class CondTest {
         oin.setConditionalCallback(new ConditionalCallback() {
             @Override
             public boolean shouldSkip(Object halfDecoded, int streamPosition, Field field) {
-                return ((CTest) halfDecoded).aNum != 3;
+                return ((CTest) halfDecoded).aNum == 3;
             }
         });
         CTest o = (CTest) oin.readObject();
+        System.out.println();
     }
 }
