@@ -82,8 +82,6 @@ public final class FSTObjectRegistry {
                     return reuseMap[pos];
                 return candidate;
             }
-        } else {
-            idToObject.get(handle);
         }
         return idToObject.get(handle);
     }

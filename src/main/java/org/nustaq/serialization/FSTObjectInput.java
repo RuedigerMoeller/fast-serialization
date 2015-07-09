@@ -33,6 +33,7 @@ import java.util.*;
  */
 public class FSTObjectInput implements ObjectInput {
 
+    public static boolean REGISTER_ENUMS_READ = false; // do not register enums on read. Flag is saver in case things brake somewhere
     public static ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[0]);
     
     protected FSTDecoder codec;
@@ -471,8 +472,10 @@ public class FSTObjectInput implements ObjectInput {
             return null;
         }
         Object res = enumConstants[ordinal];
-        if ( ! referencee.isFlat() ) { // fixme: unnecessary
-            objects.registerObjectForRead(res, readPos);
+        if ( REGISTER_ENUMS_READ ) {
+            if ( ! referencee.isFlat() ) { // should be unnecessary
+                objects.registerObjectForRead(res, readPos);
+            }
         }
         return res;
     }
