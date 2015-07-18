@@ -52,7 +52,7 @@ public class FSTObjectOutput implements ObjectOutput {
     public static final byte OBJECT = 0;
     protected FSTEncoder codec;
 
-    FSTConfiguration conf; // immutable, should only be set by FSTConf mechanics
+    protected FSTConfiguration conf; // immutable, should only be set by FSTConf mechanics
 
     protected FSTObjectRegistry objects;
     protected int curDepth = 0;
@@ -61,9 +61,9 @@ public class FSTObjectOutput implements ObjectOutput {
     protected FSTSerialisationListener listener;
 
     // double state to reduce pointer chasing
-    boolean dontShare;
-    private final FSTClazzInfo stringInfo;
-    private boolean isCrossPlatform;
+    protected boolean dontShare;
+    protected final FSTClazzInfo stringInfo;
+    protected boolean isCrossPlatform;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -146,9 +146,9 @@ public class FSTObjectOutput implements ObjectOutput {
         resetAndClearRefs();
     }
 
-    static ByteArrayOutputStream empty = new ByteArrayOutputStream(0);
+    protected static ByteArrayOutputStream empty = new ByteArrayOutputStream(0);
 
-    boolean closed = false;
+    protected boolean closed = false;
     @Override
     public void close() throws IOException {
         flush();
@@ -284,10 +284,10 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectInternal(obj, null, possibles);
     }
 
-    FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
+    protected FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
 
     //avoid creation of dummy ref
-    FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
+    protected FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
         if ( curDepth >= refs.length ) {
             return new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
         } else {
@@ -361,7 +361,7 @@ public class FSTObjectOutput implements ObjectOutput {
         return writeObjectWithContext(referencee,toWrite,null);
     }
 
-    int tmp[] = {0};
+    protected int tmp[] = {0};
     // splitting this slows down ...
     protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
         int startPosition = 0;
@@ -463,7 +463,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
 
-    private FSTClazzInfo writeEnum(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    protected FSTClazzInfo writeEnum(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         if ( ! getCodec().writeTag(ENUM, toWrite, 0, toWrite, this) ) {
             boolean isEnumClass = toWrite.getClass().isEnum();
             if (!isEnumClass) {
@@ -485,7 +485,7 @@ public class FSTObjectOutput implements ObjectOutput {
         return null;
     }
 
-    private boolean writeHandleIfApplicable(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
+    protected boolean writeHandleIfApplicable(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
         int writePos = getCodec().getWritten();
         int handle = objects.registerObjectForWrite(toWrite, writePos, serializationInfo, tmp);
         // determine class header
@@ -533,7 +533,7 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectCompatibleRecursive(referencee,toWrite,serializationInfo,cl);
     }
 
-    private void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
+    protected void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
         FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.getCompInfo().get(cl);
         if ( ! Serializable.class.isAssignableFrom(cl) ) {
             return; // ok here, as compatible mode will never be triggered for "forceSerializable"
@@ -554,7 +554,7 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    private void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, int startIndex, int version) throws IOException {
+    protected void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, int startIndex, int version) throws IOException {
         try {
             int booleanMask = 0;
             int boolcount = 0;
@@ -648,7 +648,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     // write identical to other version, but take field values from hashmap (because of annoying putField/getField feature)
-    private void writeCompatibleObjectFields(Object toWrite, Map fields, FSTClazzInfo.FSTFieldInfo[] fieldInfo) throws IOException {
+    protected void writeCompatibleObjectFields(Object toWrite, Map fields, FSTClazzInfo.FSTFieldInfo[] fieldInfo) throws IOException {
         int booleanMask = 0;
         int boolcount = 0;
         for (int i = 0; i < fieldInfo.length; i++) {
@@ -802,7 +802,7 @@ public class FSTObjectOutput implements ObjectOutput {
         getCodec().writeStringUTF(str);
     }
 
-    void resetAndClearRefs() {
+    protected void resetAndClearRefs() {
         getCodec().reset(null);
         objects.clearForWrite(conf);
     }
