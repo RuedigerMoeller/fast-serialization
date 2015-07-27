@@ -17,7 +17,7 @@ public class Github61 {
         CountingOutputStream count;
         long start, elapsed;
 
-        Object obj = new long[SIZE];
+        Object obj = new double[SIZE];
 
         count = new CountingOutputStream();
         FSTConfiguration fastconf = FSTConfiguration.createFastBinaryConfiguration();
