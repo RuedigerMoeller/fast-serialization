@@ -1,6 +1,6 @@
 package ser;
 
-import org.nustaq.serialization.FSTObjectOutput;
+import org.nustaq.serialization.*;
 
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -37,6 +37,16 @@ public class Github61 {
             }
             elapsed = System.nanoTime() - start;
             System.out.println("FST " + count.count + " bytes written in " + (elapsed)/1000000L + "ms");
+
+
+            count = new CountingOutputStream();
+            FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+            start = System.nanoTime();
+            try(FSTObjectOutput fos = new FSTObjectOutput(count,conf)) {
+                fos.writeObject(obj);
+            }
+            elapsed = System.nanoTime() - start;
+            System.out.println("FST unsafe " + count.count + " bytes written in " + (elapsed)/1000000L + "ms");
         }
     }
 
