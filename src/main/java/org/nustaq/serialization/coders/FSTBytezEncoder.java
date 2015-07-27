@@ -288,7 +288,7 @@ public class FSTBytezEncoder implements FSTEncoder {
     public void ensureFree(int bytes) throws IOException {
         if ( buffout.length() <= pos+bytes) {
             if ( autoResize ) {
-                BasicBytez newbytez = buffout.newInstance(Math.max(pos + bytes, buffout.length() * 2));
+                BasicBytez newbytez = buffout.newInstance(Math.max(pos + bytes, Math.min(Integer.MAX_VALUE-10, buffout.length() * 2)));
                 buffout.copyTo(newbytez, 0, 0, pos);
                 // debug
                 //            for ( int i = 0; i < pos; i++) {
