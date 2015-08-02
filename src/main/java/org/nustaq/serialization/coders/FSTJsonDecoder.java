@@ -382,7 +382,7 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     private Object createPrimitiveArrayFrom( List directObject ) {
         if ( directObject.size() == 0 || directObject.get(0) instanceof String == false ) {
-            directObject.add(0,"int");
+            directObject.add(0,"int"); //fixme:slow
         }
         Class arrT = null;
         switch ((String)directObject.get(0)) {
@@ -394,6 +394,9 @@ public class FSTJsonDecoder implements FSTDecoder {
             case "long": arrT = long.class; break;
             case "float": arrT = float.class; break;
             case "double": arrT = double.class; break;
+            default:
+                directObject.add(0,"dummy");
+                arrT = String.class;
         }
         Object newObj = Array.newInstance(arrT, directObject.size()-1);
         for (int i = 0; i < directObject.size()-1; i++) {
@@ -414,6 +417,11 @@ public class FSTJsonDecoder implements FSTDecoder {
                 Array.setFloat(newObj, i, ((Number)n).floatValue());
             else if (arrT == double.class )
                 Array.setDouble(newObj, i, ((Number)n).doubleValue());
+            else if (arrT == String.class ) {
+                Array.set(newObj,i,n);
+            } else {
+                System.err.println("unexpected primitive array type:"+arrT);
+            }
         }
         return newObj;
     }
