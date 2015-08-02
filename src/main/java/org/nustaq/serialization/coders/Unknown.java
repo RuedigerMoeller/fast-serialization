@@ -44,6 +44,38 @@ public class Unknown implements Serializable {
         return this;
     }
 
+    public int getInt(String name) {
+        Number o = (Number) fields.get(name);
+        if ( o != null ) {
+            return o.intValue();
+        }
+        return 0;
+    }
+
+    public double getDouble(String name) {
+        Number o = (Number) fields.get(name);
+        if ( o != null ) {
+            return o.doubleValue();
+        }
+        return 0;
+    }
+
+    public String getString(String name) {
+        Object o = fields.get(name);
+        if ( o != null ) {
+            return o.toString();
+        }
+        return null;
+    }
+
+    public Object[] getArr( String name) {
+        Object o[] = (Object[]) fields.get(name);
+        if ( o != null ) {
+            return o;
+        }
+        return null;
+    }
+
     public Map<String, Object> getFields() {
         return fields;
     }

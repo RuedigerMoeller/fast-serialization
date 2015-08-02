@@ -639,7 +639,7 @@ public class FSTObjectInput implements ObjectInput {
         
         if ( getCodec().isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
-            if ( version >= 0 )
+            if ( version >= 0 && newObj instanceof Unknown == false)
                 getCodec().readObjectEnd();
             return;
         }

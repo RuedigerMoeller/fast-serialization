@@ -20,12 +20,13 @@ import java.util.List;
  */
 public class FSTJsonDecoder implements FSTDecoder {
 
-    FSTConfiguration conf;
+    protected FSTConfiguration conf;
 
-    JsonParser input;
-    JsonFactory fac;
+    protected JsonParser input;
+    protected JsonFactory fac;
 
-    private FSTInputStream fstInput;
+    protected FSTInputStream fstInput;
+    protected String unknownFallbackReadFieldName; // contains read fieldName in case of Unknown resulting from plain JSon structure
 
     public FSTJsonDecoder(FSTConfiguration conf) {
         this.conf = conf;
@@ -39,6 +40,11 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public String readStringUTF() throws IOException {
+        if ( unknownFallbackReadFieldName != null ) {
+            String unkReadAhead = unknownFallbackReadFieldName;
+            unknownFallbackReadFieldName = null;
+            return unkReadAhead;
+        }
         JsonToken jsonToken = input.nextToken();
         if ( jsonToken == JsonToken.VALUE_NULL )
             return null;
@@ -367,7 +373,10 @@ public class FSTJsonDecoder implements FSTDecoder {
             }
             return FSTObjectOutput.DIRECT_OBJECT;
         }
-        throw new RuntimeException("expected object header");
+        // fall back to unknown
+        lastDirectClass = Unknown.class;
+        unknownFallbackReadFieldName = typeTag;
+        return FSTObjectOutput.OBJECT;
     }
 
     List tmpList;
