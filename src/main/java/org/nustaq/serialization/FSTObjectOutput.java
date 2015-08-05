@@ -421,7 +421,8 @@ public class FSTObjectOutput implements ObjectOutput {
             } else if ( ser == null ) {
                 // default write object wihtout custom serializer
                 // handle write replace
-                if ( ! dontShare ) {
+                //if ( ! dontShare ) GIT ISSUE 80
+                {
                     if ( serializationInfo.getWriteReplaceMethod() != null ) {
                         Object replaced = null;
                         try {
