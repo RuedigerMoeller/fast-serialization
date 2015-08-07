@@ -78,12 +78,12 @@ public class FSTBinaryOffheapMap {
 
     Thread debug;
     private void checkThread() {
-        if ( debug == null )
-            debug = Thread.currentThread();
-        else {
-            if ( debug != Thread.currentThread() )
-                throw new RuntimeException( "unexpected concurrency "+debug.getName()+" curr:" + Thread.currentThread().getName() );
-        }
+//        if ( debug == null )
+//            debug = Thread.currentThread();
+//        else {
+//            if ( debug != Thread.currentThread() )
+//                throw new RuntimeException( "unexpected concurrency "+debug.getName()+" curr:" + Thread.currentThread().getName() );
+//        }
     }
 
     public Bytez getCustomFileHeader() {
