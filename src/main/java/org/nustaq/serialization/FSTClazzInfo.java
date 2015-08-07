@@ -237,36 +237,38 @@ public final class FSTClazzInfo {
      * @return
      */
     public final List<Field> getAllFields(Class c, List<Field> res) {
-        if (res == null) {
-            res = new ArrayList<Field>();
-        }
-        if (c == null) {
-            return res;
-        }
-        Field[] declaredFields = BufferFieldMeta ? sharedFieldSets.get(c) : null ;
-        if ( declaredFields == null ) {
-            declaredFields = c.getDeclaredFields();
-            if (BufferFieldMeta)
-                sharedFieldSets.put(c,declaredFields);
-        }
-        List<Field> c1 = Arrays.asList(declaredFields);
-        Collections.reverse(c1);
-        for (int i = 0; i < c1.size(); i++) {
-            Field field = c1.get(i);
-            res.add(0, field);
-        }
-        for (int i = 0; i < res.size(); i++) {
-            Field field = res.get(i);
-            if (Modifier.isStatic(field.getModifiers()) || isTransient(c, field)) {
-                if (isTransient(c, field)) {
-                    hasTransient = true;
-                }
-                res.remove(i);
-                i--;
+        synchronized (sharedFieldSets) {
+            if (res == null) {
+                res = new ArrayList<Field>();
             }
+            if (c == null) {
+                return res;
+            }
+            Field[] declaredFields = BufferFieldMeta ? sharedFieldSets.get(c) : null ;
+            if ( declaredFields == null ) {
+                declaredFields = c.getDeclaredFields();
+                if (BufferFieldMeta)
+                    sharedFieldSets.put(c,declaredFields);
+            }
+            List<Field> c1 = Arrays.asList(declaredFields);
+            Collections.reverse(c1);
+            for (int i = 0; i < c1.size(); i++) {
+                Field field = c1.get(i);
+                res.add(0, field);
+            }
+            for (int i = 0; i < res.size(); i++) {
+                Field field = res.get(i);
+                if (Modifier.isStatic(field.getModifiers()) || isTransient(c, field)) {
+                    if (isTransient(c, field)) {
+                        hasTransient = true;
+                    }
+                    res.remove(i);
+                    i--;
+                }
+            }
+            List<Field> allFields = getAllFields(c.getSuperclass(), res);
+            return new ArrayList<>(allFields);
         }
-        List<Field> allFields = getAllFields(c.getSuperclass(), res);
-        return new ArrayList<>(allFields);
     }
 
     private boolean isTransient(Class c, Field field) {

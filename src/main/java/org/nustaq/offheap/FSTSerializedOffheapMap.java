@@ -33,7 +33,7 @@ import java.io.Serializable;
 public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,V> {
 
     protected ByteArrayByteSource tmpVal;
-    FSTCoder coder;
+    protected FSTCoder coder;
     protected byte buffer[] = new byte[2048];
 
     public FSTSerializedOffheapMap(int keyLen, long sizeBytes, int numberOfElems, FSTCoder coder) {
@@ -74,6 +74,10 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
         return (int) (lengthOfEntry*2);
     }
 
+    public FSTCoder getCoder() {
+        return coder;
+    }
+
     public V decodeValue(BytezByteSource val) {
         while ( val.getLen() > buffer.length ) {
             buffer = new byte[buffer.length*2];
@@ -82,10 +86,7 @@ public abstract class FSTSerializedOffheapMap<K,V> extends FSTCodedOffheapMap<K,
             tmpVal.setLen(buffer.length);
         }
         memory.getArr(val.getOff(), buffer, 0, val.getLen());
-        return (V) coder.toObject(buffer);
-    }
-
-    public FSTCoder getCoder() {
-        return coder;
+        V res = (V) coder.toObject(buffer);
+        return res;
     }
 }

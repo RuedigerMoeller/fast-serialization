@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
 /**
@@ -69,9 +70,20 @@ public class FSTBinaryOffheapMap {
     protected long bytezOffset;
     protected FreeList freeList;// FIXME: missing merge/split of different block sizes
     protected String mappedFile;
+    protected int mutationCount;
 
     public FSTBinaryOffheapMap(String mappedFile, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
         initFromFile(mappedFile, keyLen, sizeMemBytes, numberOfElems);
+    }
+
+    Thread debug;
+    private void checkThread() {
+        if ( debug == null )
+            debug = Thread.currentThread();
+        else {
+            if ( debug != Thread.currentThread() )
+                throw new RuntimeException( "unexpected concurrency "+debug.getName()+" curr:" + Thread.currentThread().getName() );
+        }
     }
 
     public Bytez getCustomFileHeader() {
@@ -79,6 +91,7 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void initFromFile(String file, int keyLen, long sizeMemBytes, int numberOfElems) throws Exception {
+        checkThread();
         numElem = 0;
         bytezOffset = FILE_HEADER_LEN;
         freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
@@ -125,6 +138,8 @@ public class FSTBinaryOffheapMap {
     }
 
     private void resetMem(String file, long sizeMemBytes) throws Exception {
+        checkThread();
+        mutationCount++;
         memory = new MMFBytez(file,sizeMemBytes,false);
         customHeader = memory.slice(CORE_HEADER_LEN, CUSTOM_FILEHEADER_LEN);
         tmpValueBytez = new BytezByteSource(memory,0,0);
@@ -135,6 +150,7 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
+        checkThread();
         numElem = 0;
         bytezOffset = FILE_HEADER_LEN;
         freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
@@ -153,6 +169,8 @@ public class FSTBinaryOffheapMap {
     }
 
     public void free() {
+        checkThread();
+        mutationCount++;
         if ( alloc != null ) {
             alloc.freeAll();
             alloc = null;
@@ -166,8 +184,10 @@ public class FSTBinaryOffheapMap {
     }
 
     public void putBinary( ByteSource key, ByteSource value ) {
+        checkThread();
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
+        mutationCount++;
         long put = index.get(key);
         if ( put != 0 ) {
             int lenFromHeader = getLenFromHeader(put);
@@ -188,6 +208,8 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void removeEntry(long offset) {
+        checkThread();
+        mutationCount++;
         addToFreeList(offset);
         memory.put(offset+4,(byte)1);
     }
@@ -197,6 +219,8 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void setEntry(long off, int entryLen, ByteSource value) {
+        checkThread();
+        mutationCount++;
         writeEntryHeader(off, entryLen, (int) value.length(), false);
         off += getHeaderLen();
         for ( int i = 0; i < value.length(); i++ ) {
@@ -205,6 +229,8 @@ public class FSTBinaryOffheapMap {
     }
 
     protected long addEntry(ByteSource key, ByteSource value) {
+        checkThread();
+        mutationCount++;
         long valueLength = value.length();
         long newOffset = freeList.findFreeBlock( (int) valueLength + getHeaderLen() );
         if ( newOffset > 0) {
@@ -251,6 +277,7 @@ public class FSTBinaryOffheapMap {
     private void resizeStore(long required) {
         if ( mappedFile == null )
             throw new RuntimeException("store is full. Required: "+required);
+        mutationCount++;
         System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
         index.dumpStats();
         long tim = System.currentTimeMillis();
@@ -289,6 +316,7 @@ public class FSTBinaryOffheapMap {
      * @return
      */
     public BytezByteSource getBinary( ByteSource key ) {
+        checkThread();
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
         long aLong = index.get(key);
@@ -308,8 +336,10 @@ public class FSTBinaryOffheapMap {
      * @param key
      */
     public void removeBinary( ByteSource key ) {
+        checkThread();
         if ( key.length() != keyLen )
             throw new RuntimeException("key must have length "+keyLen);
+        mutationCount++;
         long rem = index.get(key);
         if ( rem != 0 ) {
             index.remove(key);
@@ -338,6 +368,8 @@ public class FSTBinaryOffheapMap {
     }
 
     protected void writeEntryHeader( long offset, int entryLen, int contentLen, boolean removed ) {
+        checkThread();
+        mutationCount++;
         memory.putInt( offset, entryLen );
         memory.put( offset + 4, (byte) (removed ? 1 : 0));
         memory.putInt( offset + 8, contentLen);
@@ -358,9 +390,12 @@ public class FSTBinaryOffheapMap {
     }
 
     public Iterator<ByteSource> binaryValues() {
+        checkThread();
         return new Iterator<ByteSource>() {
             long off = FILE_HEADER_LEN;
             int elemCount = 0;
+            int mutSnap = mutationCount;
+
             BytezByteSource byteIter = new BytezByteSource(memory,0,0);
 
             @Override
@@ -370,6 +405,7 @@ public class FSTBinaryOffheapMap {
 
             @Override
             public ByteSource next() {
+                checkThread();
                 int contentLen = getContentLenFromHeader(off);
                 int len = getLenFromHeader(off);
                 boolean removed = memory.get(off+4) != 0;
@@ -385,6 +421,8 @@ public class FSTBinaryOffheapMap {
                 byteIter.setOff(off);
                 byteIter.setLen(contentLen);
                 off+=len;
+                if ( mutSnap != mutationCount )
+                    throw new ConcurrentModificationException("in offheap map snap:"+mutSnap+" current:"+mutationCount);
                 return byteIter;
             }
 
@@ -409,9 +447,11 @@ public class FSTBinaryOffheapMap {
     }
 
     public KeyValIter binaryKeys() {
+        checkThread();
         return new KeyValIter() {
             long off = FILE_HEADER_LEN;
             int elemCount = 0;
+            int mutSnap = mutationCount;
             BytezByteSource byteIter = new BytezByteSource(memory,0,0);
             BytezByteSource byteVal = new BytezByteSource(memory,0,0);
             long valueAddress;
@@ -423,6 +463,7 @@ public class FSTBinaryOffheapMap {
 
             @Override
             public ByteSource next() {
+                checkThread();
                 int len = getLenFromHeader(off);
                 int contentLen = getContentLenFromHeader(off);
                 boolean removed = memory.get(off+4) != 0;
@@ -441,6 +482,8 @@ public class FSTBinaryOffheapMap {
                 byteIter.setOff(off-getHeaderLen()+16);
                 byteIter.setLen(keyLen);
                 off+=len;
+                if ( mutSnap != mutationCount )
+                    throw new ConcurrentModificationException("in offheap map snap:"+mutSnap+" current:"+mutationCount);
                 return byteIter;
             }
 
