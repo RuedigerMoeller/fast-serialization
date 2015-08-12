@@ -1,4 +1,4 @@
-package de.ruedigermoeller.heapofftest;
+package com.ruedigermoeller.heapofftest;
 
 import java.awt.*;
 import java.util.HashMap;

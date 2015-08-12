@@ -1,4 +1,4 @@
-package de.ruedigermoeller.heapofftest.structs.single;
+package com.ruedigermoeller.heapofftest.structs.single;
 
 import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.offheap.structs.FSTStructAllocator;

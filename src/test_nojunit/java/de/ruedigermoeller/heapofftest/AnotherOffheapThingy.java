@@ -1,4 +1,4 @@
-package de.ruedigermoeller.heapofftest;
+package com.ruedigermoeller.heapofftest;
 
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;

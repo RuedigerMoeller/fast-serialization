@@ -1,4 +1,4 @@
-package de.ruedigermoeller.heapofftest;
+package com.ruedigermoeller.heapofftest;
 
 public class SimpleHistogram {
     int operCount;
