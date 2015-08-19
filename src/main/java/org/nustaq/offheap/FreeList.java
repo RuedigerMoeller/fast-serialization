@@ -20,7 +20,7 @@ package org.nustaq.offheap;
  */
 public class FreeList {
 
-    long flists[][] = new long[32][]; // 16, 32, 64, 128, 256, 512,
+    long flists[][] = new long[32][]; // 16, 32, 64, 128, 256, 512, ..
     int flIndex[] = new int[32];
 
     // get freelist index for given length
@@ -63,6 +63,7 @@ public class FreeList {
         li.computeListIndex(99);
         li.computeListIndex(777);
         li.computeListIndex(127);
+        System.out.println((li.computeListIndex(777000)));
     }
 
 }
