@@ -840,6 +840,24 @@ public class FSTConfiguration {
         return null;
     }
 
+    /**
+     * take the given array and copy it to input. the array IS copied
+     * @param arr
+     * @param len
+     * @return
+     */
+    public FSTObjectInput getObjectInputCopyFrom( byte arr[],int off, int len ) {
+        FSTObjectInput fstObjectInput = getIn();
+        try {
+            fstObjectInput.resetForReuseCopyArray(arr, off, len);
+            return fstObjectInput;
+        } catch (IOException e) {
+            FSTUtil.<RuntimeException>rethrow(e);
+        }
+        return null;
+    }
+
+
     protected FSTObjectInput getIn() {
         FSTObjectInput fstObjectInput = (FSTObjectInput) streamCoderFactory.getInput().get();
         if ( fstObjectInput == null ) {
