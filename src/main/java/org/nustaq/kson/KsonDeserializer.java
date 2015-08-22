@@ -210,7 +210,11 @@ public class KsonDeserializer {
                     stack.pop();
                 }
             } else {
-                res = clInfo.newInstance(true);
+                try {
+                    res = clInfo.getClazz().newInstance(); // first try empty constructor to keep default values
+                } catch (Throwable th) {}
+                if ( res == null )
+                    res = clInfo.newInstance(true);
                 if (res==null) {
                     throw new RuntimeException(clInfo.getClazz().getName()+" misses a default constructor. Instantiation failed.");
                 }
