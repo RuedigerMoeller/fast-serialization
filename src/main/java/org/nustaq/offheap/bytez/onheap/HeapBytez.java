@@ -339,15 +339,32 @@ public class HeapBytez implements Bytez {
         return 0;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    int hash;
     @Override
     public int hashCode() {
-        return base.hashCode();
+        int h = hash;
+        if (h == 0 && length() > 0) {
+            for (int i = 0; i < length(); i++) {
+                h = 31 * h + get(i);
+            }
+            hash = h;
+        }
+        return h;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if ( obj instanceof HeapBytez)
-            return base == ((HeapBytez) obj).base;
+        if ( obj instanceof HeapBytez) {
+            HeapBytez other = (HeapBytez) obj;
+            if ( other.length() != length() )
+                return false;
+            for ( int i=0; i < length(); i++ ) {
+                if ( get(i) != other.get(i) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
         return false;
     }
 

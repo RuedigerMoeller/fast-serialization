@@ -146,7 +146,7 @@ public class FSTBinaryOffheapMap {
     }
 
     public FSTBinaryOffheapMap(int keyLen, long sizeMemBytes, int numberOfElems) {
-        init(keyLen,sizeMemBytes,numberOfElems);
+        init(keyLen, sizeMemBytes, numberOfElems);
     }
 
     protected void init(int keyLen, long sizeMemBytes, int numberOfElems) {
@@ -211,7 +211,7 @@ public class FSTBinaryOffheapMap {
         checkThread();
         mutationCount++;
         addToFreeList(offset);
-        memory.put(offset+4,(byte)1);
+        memory.put(offset + 4, (byte) 1);
     }
 
     protected void addToFreeList(long offset) {
@@ -279,7 +279,6 @@ public class FSTBinaryOffheapMap {
             throw new RuntimeException("store is full. Required: "+required);
         mutationCount++;
         System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
-        index.dumpStats();
         long tim = System.currentTimeMillis();
         ((MMFBytez) memory).freeAndClose();
         memory = null;
