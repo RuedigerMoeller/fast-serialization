@@ -16,7 +16,7 @@ public class TestQ {
     @Test
     public void simple() {
 
-        BinaryQueue bq = new BinaryQueue(4);
+        BinaryQueue bq = new BinaryQueue(3);
         bq.add((byte)1);
         bq.add((byte)2);
         bq.add((byte)3);
@@ -35,7 +35,7 @@ public class TestQ {
     @Test
     public void fat() {
 
-        BinaryQueue bq = new BinaryQueue(4);
+        BinaryQueue bq = new BinaryQueue(3);
         bq.add(new HeapBytez(new byte[] {1,1,1,1,1}) );
         bq.add(new HeapBytez(new byte[] {2,1,1,1,1}));
         bq.add(new HeapBytez(new byte[] {3,1,1,1,1}));
@@ -51,4 +51,30 @@ public class TestQ {
             Assert.assertTrue(sink.get(0) == i + 1);
         }
     }
+
+    @Test
+    public void cycle() {
+
+        BinaryQueue bq = new BinaryQueue(3);
+
+        for ( int ii = 0; ii < 20; ii++ ) {
+            bq.add(new HeapBytez(new byte[] {1,1,1,1,1}) );
+            bq.add(new HeapBytez(new byte[] {2,1,1,1,1}));
+            bq.add(new HeapBytez(new byte[] {3,1,1,1,1}));
+            bq.add(new HeapBytez(new byte[] {4,1,1,1,1}));
+            bq.add(new HeapBytez(new byte[] {5,1,1,1,1}));
+            bq.add(new HeapBytez(new byte[] {6,1,1,1,1}));
+            bq.add(new HeapBytez(new byte[]{7, 1, 1, 1, 1}));
+
+            HeapBytez sink = new HeapBytez(new byte[5]);
+            for (int i = 0; i < 7; i++) {
+                long poll = bq.poll(sink,0,5);
+                System.out.println(Arrays.toString(sink.asByteArray()));
+                Assert.assertTrue(sink.get(0) == i + 1);
+            }
+            Assert.assertTrue(bq.poll(sink,0,5)==0);
+        }
+        System.out.println(bq.capacity());
+    }
+
 }
