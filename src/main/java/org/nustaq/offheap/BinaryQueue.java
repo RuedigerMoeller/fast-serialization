@@ -51,7 +51,7 @@ public class BinaryQueue {
      */
     public void add(ByteSource source, long sourceoff, long sourcelen) {
         if ( sourcelen >= remaining() ) {
-            grow(sourcelen);
+            grow(sourcelen+1); //issue85
             add(source,sourceoff,sourcelen);
             return;
         }
@@ -73,7 +73,7 @@ public class BinaryQueue {
     public void add(byte b) {
         long remaining = remaining();
         if ( 1 >= remaining) {
-            grow(1);
+            grow(1+1); // issue85
             add(b);
             return;
         }
