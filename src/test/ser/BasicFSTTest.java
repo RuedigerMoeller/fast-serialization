@@ -297,11 +297,79 @@ public class BasicFSTTest {
 
     }
 
+
+    public static class Issue84 implements Serializable{
+
+        private static final long serialVersionUID = 4180807184662357818L;
+
+        public Issue84(Object code) {
+            this.code = code;
+        }
+
+        private Object code;
+    }
+
+    public static class CodeSRO implements Serializable {
+
+        private static final long         serialVersionUID = -5384611645588792010L;
+
+        private Integer                   id;
+
+        private String                    code;
+
+        public CodeSRO(Integer id, String code) {
+            this.id = id;
+            this.code = code;
+        }
+    }
+
+    public static class CodeSRONew implements Serializable {
+
+        private static final long         serialVersionUID = -5384611645588792010L;
+
+        public CodeSRONew(Integer id1, String code1, String extCode) {
+            id = id1;
+            code = code1;
+            this.extCode = extCode;
+        }
+
+        private Integer                   id;
+
+        private String                    code;
+
+        @Version(1)
+        private String                    extCode;
+    }
+
+    @Test
+    public void testVersioningIssue84() {
+
+        Object[] oldClz = { new Issue84(new CodeSRO(13,"13")), 1 };
+
+        FSTConfiguration oldConf = getTestConfiguration();
+        oldConf.registerClass(CodeSRO.class);
+
+        byte[] bytes = oldConf.asByteArray(oldClz);
+        Object res = oldConf.asObject(bytes);
+
+        // assure default works
+        assertTrue(DeepEquals.deepEquals(oldClz, res));
+
+        // trick to use different class for reading by prereistering
+        FSTConfiguration newConf = getTestConfiguration();
+        newConf.registerClass(CodeSRONew.class);
+
+        Object newClz = newConf.asObject(bytes);
+        System.out.println(newClz);
+
+    }
+
+
+
     protected FSTConfiguration getTestConfiguration() {
         FSTConfiguration.isAndroid = false;
         return FSTConfiguration.createDefaultConfiguration();
     }
-
 
     @Test
     public void testPrimitives() throws Exception {

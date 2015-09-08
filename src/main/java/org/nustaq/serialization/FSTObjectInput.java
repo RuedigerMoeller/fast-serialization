@@ -705,7 +705,7 @@ public class FSTObjectInput implements ObjectInput {
                 throw new IOException(ex);
             }
         }
-        getCodec().readVersionTag(); // just consume '0'
+        int debug = getCodec().readVersionTag();// just consume '0'
     }
 
     public VersionConflictListener getVersionConflictListener() {
