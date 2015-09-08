@@ -511,7 +511,7 @@ public class FSTBinaryOffheapMap {
         return bytezOffset;
     }
 
-    public int getCapacityMB() { return (int) (memory.length()/1024l/1204l); }
+    public int getCapacityMB() { return (int) (memory.length()/1024l/1024l); }
 
     public int getSize() {
         return numElem;
@@ -519,6 +519,10 @@ public class FSTBinaryOffheapMap {
 
     public void dumpIndexStats() {
         index.dumpStats();
+    }
+
+    public String getFileName() {
+        return mappedFile;
     }
 
     public static interface KeyValIter extends Iterator<ByteSource> {
