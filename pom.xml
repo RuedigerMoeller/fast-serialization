@@ -9,7 +9,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
-    <artifactId>fst</artifactId>
+    <artifactId>fst1</artifactId>
     <version>1.63</version>
 
     <description>a fast java serialization drop in-replacement + some serialization based utils (Structs, OffHeap Memory)</description>
