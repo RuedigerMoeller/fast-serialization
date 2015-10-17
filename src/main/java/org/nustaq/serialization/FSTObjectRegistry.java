@@ -36,7 +36,7 @@ public final class FSTObjectRegistry {
     FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
 
     Object reuseMap[] = new Object[POS_MAP_SIZE];
-    private int highestPos;
+    private int highestPos = -1;
 
     public FSTObjectRegistry(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
@@ -51,10 +51,10 @@ public final class FSTObjectRegistry {
             } else {
                 idToObject.clear();
             }
-            if ( highestPos > 0 )
-                FSTUtil.clear(reuseMap,highestPos);
+            if ( highestPos > -1 )
+                FSTUtil.clear( reuseMap, highestPos + 1 );
         }
-        highestPos = 0;
+        highestPos = -1;
     }
 
     public void clearForWrite(FSTConfiguration conf) {
