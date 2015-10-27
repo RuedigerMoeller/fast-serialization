@@ -819,12 +819,25 @@ public class FSTConfiguration {
         return getObjectInput((InputStream)null);
     }
 
+    /**
+     * take the given array as input. the array is NOT copied.
+     *
+     * WARNING: the input streams takes over ownership and might overwrite content
+     * of this array in subsequent IO operations.
+     *
+     * @param arr
+     * @return
+     */
     public FSTObjectInput getObjectInput( byte arr[]) {
         return getObjectInput(arr, arr.length);
     }
 
     /**
-     * take the given array as input. the array is NOT copied
+     * take the given array as input. the array is NOT copied.
+     *
+     * WARNING: the input streams takes over ownership and might overwrite content
+     * of this array in subsequent IO operations.
+     *
      * @param arr
      * @param len
      * @return
