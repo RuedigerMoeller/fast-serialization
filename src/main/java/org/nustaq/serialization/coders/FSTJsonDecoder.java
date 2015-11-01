@@ -1,9 +1,6 @@
 package org.nustaq.serialization.coders;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonLocation;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.*;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -156,6 +153,13 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public byte readFByte() throws IOException {
         input.nextToken();
+        int currentTokenId = input.getCurrentTokenId();
+        if ( currentTokenId == JsonTokenId.ID_FALSE ) {
+            return 0;
+        }
+        if ( currentTokenId == JsonTokenId.ID_TRUE ) {
+            return 1;
+        }
         return input.getByteValue();
     }
 
