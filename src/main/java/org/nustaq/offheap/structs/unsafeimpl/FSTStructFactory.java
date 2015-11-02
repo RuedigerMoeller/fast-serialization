@@ -33,14 +33,11 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * manages + generates struct instrumented classes
