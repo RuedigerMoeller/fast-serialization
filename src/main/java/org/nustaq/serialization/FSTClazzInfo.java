@@ -244,10 +244,10 @@ public final class FSTClazzInfo {
             if (c == null) {
                 return res;
             }
-            Field[] declaredFields = BufferFieldMeta ? sharedFieldSets.get(c) : null ;
+            Field[] declaredFields = BufferFieldMeta && !conf.isStructMode() ? sharedFieldSets.get(c) : null ;
             if ( declaredFields == null ) {
                 declaredFields = c.getDeclaredFields();
-                if (BufferFieldMeta)
+                if (BufferFieldMeta && !conf.isStructMode())
                     sharedFieldSets.put(c,declaredFields);
             }
             List<Field> c1 = Arrays.asList(declaredFields);
