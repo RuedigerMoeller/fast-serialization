@@ -12,8 +12,8 @@
     <artifactId>fst</artifactId>
     <version>2.42</version>
 
-    <description>a fast java serialization drop in-replacement + some serialization based utils (Structs, OffHeap Memory)</description>
-    <url>https://code.google.com/p/fast-serialization/</url>
+    <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
+    <url>http://ruedigermoeller.github.io/fast-serialization/</url>
 
     <licenses>
         <license>
@@ -24,9 +24,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:svn:https://fast-serialization.googlecode.com/svn/trunk/fast-serialization-read-only</connection>
-        <developerConnection>scm:svn:https://fast-serialization.googlecode.com/svn/trunk/</developerConnection>
-        <url>https://fast-serialization.googlecode.com/svn/trunk/</url>
+        <url>https://github.com/RuedigerMoeller/fast-serialization/</url>
+        <connection>scm:git:git://github.com/RuedigerMoeller/fast-serialization.git</connection>
+        <developerConnection>scm:git:git@github.com:RuedigerMoeller/fast-serialization.git</developerConnection>
     </scm>
 
     <!--
