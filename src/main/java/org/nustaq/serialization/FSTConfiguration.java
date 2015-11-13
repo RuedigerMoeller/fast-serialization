@@ -780,6 +780,10 @@ public class FSTConfiguration {
         classRegistry.registerClass(double[].class,this);
         classRegistry.registerClass(double[][].class,this);
 
+// breaks compatibility ..
+//        classRegistry.registerClass(long[].class,this);
+//        classRegistry.registerClass(long[][].class,this);
+
     }
 
     public FSTClazzNameRegistry getClassRegistry() {
