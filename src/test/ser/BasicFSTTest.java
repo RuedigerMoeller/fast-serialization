@@ -5,6 +5,7 @@ import org.nustaq.serialization.*;
 import org.junit.Test;
 import org.nustaq.serialization.annotations.Version;
 
+import java.awt.*;
 import java.io.*;
 import java.lang.Boolean;
 import java.util.ArrayList;
@@ -495,6 +496,27 @@ public class BasicFSTTest {
         Strings res = (Strings) in.readObject();
         assertTrue(DeepEquals.deepEquals(res.junk, res.junk1));
         assertTrue(DeepEquals.deepEquals(obj,res));
+    }
+
+    @Test
+    public void security() {
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration().setVerifier(new FSTConfiguration.ClassSecurityVerifier() {
+            @Override
+            public boolean allowClassDeserialization(Class cl) {
+                if ( cl.getPackage().getName().startsWith("java.awt") )
+                    return false;
+                return true;
+            }
+        });
+
+        try {
+            byte[] hallos = conf.asByteArray(new Dimension(13,13));
+            conf.asObject(hallos);
+            assertTrue(false);
+        } catch (Exception ex) {
+            // success
+            System.out.println(ex.getMessage());
+        }
     }
 
     @Test
