@@ -123,6 +123,10 @@ public class FSTClazzInfoRegistry {
                     rwLock.set(false);
                     throw new NullPointerException("Class is null");
                 }
+                if ( conf.getVerifier() != null ) {
+                    if ( ! conf.getVerifier().allowClassDeserialization(c) )
+                        throw new RuntimeException("tried to deserialize forbidden class "+c.getName() );
+                }
                 res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
                 mInfos.put(c, res);
             }

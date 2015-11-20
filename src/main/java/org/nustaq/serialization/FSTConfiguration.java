@@ -62,14 +62,32 @@ public class FSTConfiguration {
      * if all attempts fail to find a class this guy is asked.
      * Can be used in case e.g. dynamic classes need get generated.
      */
-    public static interface LastResortClassRessolver {
+    public interface LastResortClassRessolver {
         public Class getClass( String clName );
+    }
+
+    /**
+     * Security: disallow packages/classes upon deserialization
+     */
+    public interface ClassSecurityVerifier {
+        /**
+         * return false if your application does not allow to deserialize objects of type
+         * cl. This can be implemented using whitelisting/blacklisting whole packages, subpackages, single classes
+         *
+         * Note: this also disallows serialization of forbidden classes. For assymetric use cases register a custom
+         * serializer in order to prevent reading/writing of certain classes.
+         *
+         * @param cl - the class being serialized/deserialized
+         * @return
+         */
+        boolean allowClassDeserialization( Class cl );
     }
 
     StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
 
     String name;
 
+    ClassSecurityVerifier verifier;
     ConfType type = ConfType.DEFAULT;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
@@ -84,6 +102,15 @@ public class FSTConfiguration {
     LastResortClassRessolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
+
+    public ClassSecurityVerifier getVerifier() {
+        return verifier;
+    }
+
+    public FSTConfiguration setVerifier(ClassSecurityVerifier verifier) {
+        this.verifier = verifier;
+        return this;
+    }
 
     // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
     static class FieldKey {
