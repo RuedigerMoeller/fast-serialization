@@ -500,13 +500,15 @@ public class BasicFSTTest {
 
     @Test
     public void security() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration().setVerifier(new FSTConfiguration.ClassSecurityVerifier() {
-            @Override
-            public boolean allowClassDeserialization(Class cl) {
-                if ( cl.getPackage().getName().startsWith("java.awt") )
-                    return false;
-                return true;
-            }
+        FSTConfiguration conf = FSTConfiguration
+            .createDefaultConfiguration()
+            .setVerifier(new FSTConfiguration.ClassSecurityVerifier() {
+                @Override // need to stick to 1.7, could be lambda
+                public boolean allowClassDeserialization(Class cl) {
+                    if ( cl.getPackage().getName().startsWith("java.awt") )
+                        return false;
+                    return true;
+                }
         });
 
         try {
