@@ -1105,7 +1105,8 @@ public class FSTConfiguration {
         try {
             return getObjectInput(b).readObject();
         } catch (Exception e) {
-            System.out.println("unable to decode:" +new String(b,0) );
+            System.out.println("unable to decode:" + new String(b,0).
+                substring(0, Math.min(b.length, 500)));
             try {
                 getObjectInput(b).readObject();
             } catch (Exception e1) {
