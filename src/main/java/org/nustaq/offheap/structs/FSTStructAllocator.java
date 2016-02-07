@@ -30,6 +30,7 @@ import org.nustaq.serialization.util.FSTUtil;
  * By supplementing a BytezAllocator, structs can also be created offheap.
  */
 public class FSTStructAllocator {
+    public static boolean DUMP_ALLOC = false;
     protected int chunkSize;
     protected Bytez chunk;
     protected int chunkIndex;
@@ -174,6 +175,7 @@ public class FSTStructAllocator {
         synchronized (this) {
             if (chunk == null || chunkIndex+byteSize >= chunk.length()) {
                 chunk = alloc.alloc(chunkSize);
+                if ( DUMP_ALLOC )
                 System.out.println("[Allocator] sum allocated "+MallocBytezAllocator.alloced.get()/1024/1024+" MB");
                 chunkIndex = 0;
                 chunkObjCount = 0;
