@@ -6,6 +6,8 @@ import org.nustaq.offheap.FSTAsciiStringOffheapMap;
 import org.nustaq.offheap.OffHeapByteTree;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.bytesource.AsciiStringByteSource;
+import org.nustaq.offheap.structs.structtypes.StructByteString;
+import org.nustaq.offheap.structs.structtypes.StructString;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.simpleapi.DefaultCoder;
 import org.nustaq.serialization.simpleapi.FSTCoder;
@@ -21,6 +23,16 @@ import java.util.Iterator;
 public class StringOffHeapTest {
 
     public static final long STORE_INITIAL_SIZE = FSTAsciiStringOffheapMap.MB;
+
+    @Test
+    public void testStrComp() {
+        StructString aca = new StructString("acad-h-");
+        StructString acad = new StructString("academ---");
+        Assert.assertTrue( aca.compareTo(acad) == "acad-h-".compareTo("academ---"));
+        StructByteString baca = new StructByteString("academi");
+        StructByteString bacad = new StructByteString("academian");
+        Assert.assertTrue( baca.compareTo(bacad) == "academi".compareTo("academian"));
+    }
 
     @Test
     public void testIndex() {
