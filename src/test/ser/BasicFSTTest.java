@@ -423,6 +423,50 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(obj,res));
     }
 
+    static class FOO implements Serializable {
+        FOO()
+        {
+        }
+        Object[] foos;
+    }
+
+    @Test
+    public void testSelfRef() {
+        FOO[] test = new FOO[1];
+        test[0] = new FOO();
+        test[0].foos = test;
+        FSTConfiguration tf = getTestConfiguration();
+        Object deser = tf.asObject(tf.asByteArray(test));
+        assertTrue(DeepEquals.deepEquals(deser,test));
+    }
+
+    @Test
+    public void testSelfRefArr() {
+        Object[] test = new Object[1];
+        test[0] = test;
+        FSTConfiguration tf = getTestConfiguration();
+        Object deser = tf.asObject(tf.asByteArray(test));
+        assertTrue(DeepEquals.deepEquals(deser,test));
+    }
+
+    @Test
+    public void testSelfRefRefArr() {
+        Object[] test = new Object[1];
+        test[0] = new Object[]{test};
+        FSTConfiguration tf = getTestConfiguration();
+        Object deser = tf.asObject(tf.asByteArray(test));
+        assertTrue(DeepEquals.deepEquals(deser,test));
+    }
+
+    @Test
+    public void testSelfRef2Arr() {
+        Object[][] test = new Object[1][];
+        test[0] = new Object[]{test,test[0]};
+        FSTConfiguration tf = getTestConfiguration();
+        Object deser = tf.asObject(tf.asByteArray(test));
+        assertTrue(DeepEquals.deepEquals(deser,test));
+    }
+
 //    @Test
 //    public void testUTFString() throws Exception {
 //        Play obj = new Play();
