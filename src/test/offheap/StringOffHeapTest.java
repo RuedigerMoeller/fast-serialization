@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by ruedi on 30.06.14.
@@ -122,11 +123,18 @@ public class StringOffHeapTest {
             }
             store.dumpIndexStats();
 
+            List<String> toRemove = new ArrayList<>();
+            int siz = store.getSize();
             for (java.util.Iterator iterator = store.values(); iterator.hasNext(); ) {
                 String next = (String) iterator.next();
                 if (Math.random() > .5)
-                    store.remove(next);
+                    toRemove.add(next);
             }
+            for (int i = 0; i < toRemove.size(); i++) {
+                String s = toRemove.get(i);
+                store.remove(s);
+            }
+            Assert.assertEquals(store.getSize(),siz-toRemove.size());
             store.dumpIndexStats();
             store.free();
 

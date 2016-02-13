@@ -54,8 +54,8 @@ public class FSTIdentity2IdMap {
     private int mValues[];
     private int mNumberOfElements;
     private FSTIdentity2IdMap next;
-    private List linearScanList; // in case of too depth nesting, this one is filled and linear search is applied
-    private List<Integer> linearScanVals; // in case of too depth nesting, this one is filled and linear search is applied
+    private List linearScanList; // in case of too deep nesting, this one is filled and linear search is applied
+    private List<Integer> linearScanVals; // in case of too deep nesting, this one is filled and linear search is applied
 
     public FSTIdentity2IdMap(int initialSize) {
         if (initialSize < 2) {
@@ -322,6 +322,15 @@ public class FSTIdentity2IdMap {
     }
 
     private void rePut(FSTIdentity2IdMap kfstObject2IntMap) {
+        if ( linearScanList != null ) {
+            for (int i = 0; i < linearScanList.size(); i++) {
+                Object key = linearScanList.get(i);
+                int value = linearScanVals.get(i);
+                kfstObject2IntMap.put(key, value);
+            }
+            return;
+        }
+
         for (int i = 0; i < mKeys.length; i++) {
             Object mKey = mKeys[i];
             if (mKey != null) {
@@ -344,7 +353,7 @@ public class FSTIdentity2IdMap {
     private static int calcHash(Object x) {
         int h = System.identityHashCode(x);
 //        return h>>2;
-        return ((h << 1) - (h << 8));
+        return ((h << 1) - (h << 8)) & 0x7fffffff;
     }
 
     public void clear() {
@@ -374,5 +383,9 @@ public class FSTIdentity2IdMap {
         }
         if (next != null)
             next.dump();
+    }
+
+    public int keysLength() {
+        return mKeys.length;
     }
 }

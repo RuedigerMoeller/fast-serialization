@@ -60,7 +60,7 @@ public final class FSTObjectRegistry {
     public void clearForWrite(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( ! disabled ) {
-            if ( objects.size() > 0 && objects.mKeys.length > 6 * objects.size() ) {
+            if ( objects.size() > 0 && objects.keysLength() > 6 * objects.size() ) {
                 objects = new FSTIdentity2IdMap(objects.size());
             } else {
                 objects.clear();
