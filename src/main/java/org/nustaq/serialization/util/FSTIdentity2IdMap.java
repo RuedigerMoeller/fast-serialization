@@ -323,7 +323,8 @@ public class FSTIdentity2IdMap {
 
     private void rePut(FSTIdentity2IdMap kfstObject2IntMap) {
         if ( linearScanList != null ) {
-            for (int i = 0; i < linearScanList.size(); i++) {
+            int size = linearScanList.size();
+            for (int i = 0; i < size; i++) {
                 Object key = linearScanList.get(i);
                 int value = linearScanVals.get(i);
                 kfstObject2IntMap.put(key, value);
