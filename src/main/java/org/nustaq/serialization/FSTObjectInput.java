@@ -876,6 +876,8 @@ public class FSTObjectInput implements ObjectInput {
 
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee, int pos) throws Exception {
         Object classOrArray = getCodec().readArrayHeader();
+        if (pos < 0)
+            pos = getCodec().getInputPos();
         if ( classOrArray instanceof Class == false )
             return classOrArray;
         if ( classOrArray == null )
@@ -914,7 +916,7 @@ public class FSTObjectInput implements ObjectInput {
             }
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, clInfoRegistry.isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
-                Object subArray = readArray(ref1, pos); // PLEASE REVIEW / BE SURE THIS CASE IS PASSING THE RIGHT POS FOR THE ARRAY, MY USE CASES DIDN'T HIT THIS LINE/CASE
+                Object subArray = readArray(ref1, -1);
                 array[i] = subArray;
             }
             return array;
