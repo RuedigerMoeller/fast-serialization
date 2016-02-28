@@ -43,18 +43,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTClazzNameRegistry {
 
     public static final int LOWEST_CLZ_ID = 3;
+    public static final int FIRST_USER_CLZ_ID = 1000;
+
     FSTIdentity2IdMap clzToId;
     FSTClazzInfo idToClz[];
     FSTClazzNameRegistry parent;
     int classIdCount = LOWEST_CLZ_ID;
 
-
     public FSTClazzNameRegistry(FSTClazzNameRegistry par) {
         parent = par;
         if ( parent != null ) {
-            classIdCount = parent.classIdCount+1;
+            classIdCount = Math.max(FIRST_USER_CLZ_ID,parent.classIdCount+1);
             clzToId = new FSTIdentity2IdMap(13);
-            idToClz = new FSTClazzInfo[classIdCount*2];
+            idToClz = new FSTClazzInfo[31];
         } else {
             clzToId = new FSTIdentity2IdMap(FSTObject2IntMap.adjustSize(400));
             idToClz = new FSTClazzInfo[200];
@@ -68,7 +69,7 @@ public class FSTClazzNameRegistry {
         }
         classIdCount = LOWEST_CLZ_ID;
         if ( parent != null ) {
-            classIdCount = parent.classIdCount+1;
+            classIdCount = Math.max(FIRST_USER_CLZ_ID,parent.classIdCount+1);
         }
     }
 

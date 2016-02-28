@@ -245,13 +245,26 @@ public class FSTConfiguration {
         return res;
     }
 
-    public static FSTConfiguration
-    createJsonConfiguration() {
-        return createJsonConfiguration(false, true);
+    /**
+     * @return a configuration encoding to JSon without support for reference sharing (=> NO cyclic object graphs)
+     */
+    public static FSTConfiguration createJsonNoRefConfiguration() {
+        return createJsonConfiguration(false, false);
     }
 
 
+    /**
+     * create a json conf with given attributes. Note that shared refs = true for jason might be not as stable as for binary encodings
+     * as fst relies on stream positions to identify objects within a given input, so any inbetween formatting will break proper reference
+     * resolution
+     * @param prettyPrint
+     * @param shareReferences
+     * @return
+     */
     public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
+        if ( shareReferences && prettyPrint ) {
+            throw new RuntimeException("unsupported flag combination");
+        }
         return createJsonConfiguration(prettyPrint,shareReferences,null);
     }
 
@@ -389,7 +402,7 @@ public class FSTConfiguration {
                 res = createMinBinConfiguration(shared);
                 break;
             case UNSAFE:
-                res = createFastBinaryConfiguration(shared);
+                res = createUnsafeBinaryConfiguration(shared);
                 break;
             case JSON:
                 res = createJsonConfiguration( false, shareRefs, shared);
@@ -479,11 +492,11 @@ public class FSTConfiguration {
      * see also OffHeapCoder, OnHeapCoder.
      *
      */
-    public static FSTConfiguration createFastBinaryConfiguration() {
-        return createFastBinaryConfiguration(null);
+    public static FSTConfiguration createUnsafeBinaryConfiguration() {
+        return createUnsafeBinaryConfiguration(null);
     }
 
-    protected static FSTConfiguration createFastBinaryConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
+    protected static FSTConfiguration createUnsafeBinaryConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
         if ( isAndroid )
             throw new RuntimeException("not supported under android platform, use default configuration");
         final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration(shared);
@@ -811,9 +824,8 @@ public class FSTConfiguration {
         classRegistry.registerClass(double[].class,this);
         classRegistry.registerClass(double[][].class,this);
 
-// breaks compatibility ..
-//        classRegistry.registerClass(long[].class,this);
-//        classRegistry.registerClass(long[][].class,this);
+        classRegistry.registerClass(long[].class,this);
+        classRegistry.registerClass(long[][].class,this);
 
     }
 

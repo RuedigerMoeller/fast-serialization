@@ -36,7 +36,7 @@ public class FSTUnmodifiableMapSerializerTest {
     public void shouldSerializeUnmodifiableMap() throws ClassNotFoundException {
         //given
         Map<String, String> map = Collections.unmodifiableMap(Collections.singletonMap(TEST_KEY, TEST_VALUE));
-        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createJsonNoRefConfiguration();
         //when
         byte[] bytes = conf.asByteArray((map));
         map = (Map<String, String>) conf.asObject(bytes);

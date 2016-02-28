@@ -4,10 +4,7 @@ import com.cedarsoftware.util.DeepEquals;
 import org.nustaq.serialization.*;
 
 import java.awt.*;
-import java.io.File;
 import java.io.Serializable;
-import java.util.*;
-import java.util.List;
 
 /**
  * Created by ruedi on 23/05/15.
@@ -39,7 +36,7 @@ public class Play implements Serializable {
 
     public static void main(String[] args) {
         FSTObjectRegistry.POS_MAP_SIZE = 1;
-        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createJsonNoRefConfiguration();
         System.out.println(conf.asObject(conf.asByteArray("∂ √ ∞ ∑ ≈ ≠ ≡ ≤ ≥ ∆ ∏ ∩ ⌠ ⌡ │ ∫ Ω ⅓ ⅔ ⅛ ⅜ ⅝ ⅞ ♭ ♮ ♯ ♩ ♪ © ® ™")));
 
 

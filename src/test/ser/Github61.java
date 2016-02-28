@@ -20,7 +20,7 @@ public class Github61 {
         Object obj = new double[SIZE];
 
         count = new CountingOutputStream();
-        FSTConfiguration fastconf = FSTConfiguration.createFastBinaryConfiguration();
+        FSTConfiguration fastconf = FSTConfiguration.createUnsafeBinaryConfiguration();
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         while ( true ) {
 

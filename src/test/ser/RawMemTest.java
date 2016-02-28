@@ -18,7 +18,7 @@ public class RawMemTest extends BasicFSTTest {
 
     @Override
     public void setUp() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration();
         out = new FSTObjectOutput(conf);
         in = new FSTObjectInput(conf);
     }
@@ -42,7 +42,7 @@ public class RawMemTest extends BasicFSTTest {
 
     @Test
     public void test() {
-        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration();
         Object deser = null;
         byte[] ser = null;
 

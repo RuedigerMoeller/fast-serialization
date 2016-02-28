@@ -20,7 +20,7 @@ public class FloatBench {
             long start, elapsed;
 
             Object obj = new double[100_000_000];
-//            FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+//            FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration();
             FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
 
@@ -59,7 +59,7 @@ public class FloatBench {
 //            Object obj = new short[40_000];
 //            Object obj = new int[20_000];
 
-//            FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration();
+//            FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration();
             FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
             start = System.nanoTime();

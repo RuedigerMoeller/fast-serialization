@@ -14,7 +14,7 @@ public class BasicJsonTest extends BasicFSTTest {
     @Override
     protected FSTConfiguration getTestConfiguration() {
         FSTConfiguration.isAndroid = false;
-        return FSTConfiguration.createJsonConfiguration();
+        return FSTConfiguration.createJsonConfiguration(false,true);
     }
 
     @Test

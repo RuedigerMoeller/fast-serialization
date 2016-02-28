@@ -36,7 +36,7 @@ public class FSTUnmodifiableCollectionSerializerTest {
     public void shouldSerializeUnmodifiableList() throws ClassNotFoundException {
         //given
         List<String> list = Collections.unmodifiableList(Collections.singletonList(TEST_VALUE));
-        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createJsonNoRefConfiguration();
         //when
         byte[] bytes = conf.asByteArray((list));
         list = (List<String>) conf.asObject(bytes);
@@ -50,7 +50,7 @@ public class FSTUnmodifiableCollectionSerializerTest {
     public void shouldSerializeUnmodifiableSet() throws ClassNotFoundException {
         //given
         Set<String> set = Collections.unmodifiableSet(Collections.singleton(TEST_VALUE));
-        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        FSTConfiguration conf = FSTConfiguration.createJsonNoRefConfiguration();
         //when
         byte[] bytes = conf.asByteArray((set));
         set = (Set<String>) conf.asObject(bytes);

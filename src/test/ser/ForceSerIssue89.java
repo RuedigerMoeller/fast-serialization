@@ -27,7 +27,7 @@ public class ForceSerIssue89 {
     }
 
     public static void main(String[] args) throws UnknownHostException {
-        FSTConfiguration conf = FSTConfiguration.createFastBinaryConfiguration().setForceSerializable(true);
+        FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration().setForceSerializable(true);
         JettyInfo poaksd1 = new JettyInfo(InetAddress.getLocalHost(), 8888, true, "poaksd");
         Object poaksd = conf.asObject(conf.asByteArray(poaksd1));
         System.out.println("POK");
