@@ -23,6 +23,7 @@ package org.nustaq.serialization.util;
  * To change this template use File | Settings | File Templates.
  */
 
+
 import org.nustaq.serialization.FSTConfiguration;
 
 /**

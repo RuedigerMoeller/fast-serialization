@@ -337,7 +337,7 @@ public class FSTObjectInput implements ObjectInput {
         FSTClazzInfo clzSerInfo;
         Class c;
         final int readPos = getCodec().getInputPos();
-        byte code = getCodec().readObjectHeaderTag();  // NOTICE: THIS ADVANCES THE INPUT STREAM...
+        byte code = getCodec().readObjectHeaderTag();
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
             clzSerInfo = readClass();
@@ -453,17 +453,10 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object instantiateArray(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
-        Object res = readArray(referencee, readPos); // NEED TO PASS ALONG THE POS FOR THE ARRAY
-
-        /*
-            registerObjectForRead alerady gets called by readArray (and with the proper pos now).  that said, I'm unclear
-            on the intent of the if ( ! referencee.isFlat() ) so I wanted to comment on that
-
+        Object res = readArray(referencee);
         if ( ! referencee.isFlat() ) {
             objects.registerObjectForRead(res, readPos);
         }
-        */
-
         return res;
     }
 
@@ -874,10 +867,9 @@ public class FSTObjectInput implements ObjectInput {
         return getCodec().readStringAsc();
     }
 
-    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee, int pos) throws Exception {
+    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
+        int pos = getCodec().getInputPos();
         Object classOrArray = getCodec().readArrayHeader();
-        if (pos < 0)
-            pos = getCodec().getInputPos();
         if ( classOrArray instanceof Class == false )
             return classOrArray;
         if ( classOrArray == null )
@@ -916,7 +908,7 @@ public class FSTObjectInput implements ObjectInput {
             }
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, clInfoRegistry.isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
-                Object subArray = readArray(ref1, -1);
+                Object subArray = readArray(ref1);
                 array[i] = subArray;
             }
             return array;

@@ -51,7 +51,7 @@ public class OnHeapCoder implements FSTCoder {
     }
 
     public OnHeapCoder(boolean sharedRefs) {
-        conf = FSTConfiguration.createUnsafeBinaryConfiguration();
+        conf = FSTConfiguration.createFastBinaryConfiguration();
         conf.setShareReferences(sharedRefs);
         writeTarget = new HeapBytez(new byte[0]);
         readTarget = new HeapBytez(new byte[0]);

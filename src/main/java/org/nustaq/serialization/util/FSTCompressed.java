@@ -1,6 +1,5 @@
 package org.nustaq.serialization.util;
 
-import de.exchange.cgx.util.logging.CGLogger;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
@@ -75,12 +74,12 @@ public abstract class FSTCompressed<T> {
             cached = new WeakReference<T>(object);
             storeArray(objectOutput.getBuffer(),objectOutput.getWritten());
         } catch (Exception e) {
-            CGLogger.warning(this, e);
+            //CGLogger.warning(this, e); //TODO
         } finally {
             try {
                 objectOutput.flush();
             } catch (IOException e) {
-                CGLogger.warning(this, e);
+                //CGLogger.warning(this, e); //TODO
             }
         }
     }

@@ -63,18 +63,10 @@ public class OffHeapByteTree {
         return aLong;
     }
 
-    static ThreadLocal<HeapBytez> tmpbtz = new ThreadLocal<HeapBytez>() {
-        @Override
-        protected HeapBytez initialValue() {
-            return new HeapBytez(new byte[0]);
-        }
-    };
     protected HeapBytez getTmpHeapBytez(ByteSource byteKey, byte[] base) {
         for (int i = 0; i < base.length; i++) {
             base[i] = byteKey.get(i);
         }
-        final HeapBytez heapBytez = tmpbtz.get();
-        heapBytez.setBase(base,0,base.length);
         return new HeapBytez(base);
     }
 
