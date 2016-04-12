@@ -56,7 +56,7 @@ public class OffHeapCoder {
         this(true);
     }
     public OffHeapCoder(boolean sharedRefs) {
-        conf = FSTConfiguration.createFastBinaryConfiguration();
+        conf = FSTConfiguration.createUnsafeBinaryConfiguration();
         conf.setShareReferences(sharedRefs);
         writeTarget = new MallocBytez(0l,0);
         readTarget = new MallocBytez(0l,0);

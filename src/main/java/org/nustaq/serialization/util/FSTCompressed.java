@@ -74,7 +74,7 @@ public abstract class FSTCompressed<T> {
             cached = new WeakReference<T>(object);
             storeArray(objectOutput.getBuffer(),objectOutput.getWritten());
         } catch (Exception e) {
-            //CGLogger.warning(this, e); //TODO
+            // CGLogger.warning(this, e); //TODO
         } finally {
             try {
                 objectOutput.flush();
