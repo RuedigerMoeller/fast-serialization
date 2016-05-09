@@ -61,9 +61,9 @@ public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer
                 return Collections.unmodifiableSet(res);
             }
             if (UNMODIFIABLE_COLLECTION_CLASS.isAssignableFrom(objectClass)) {
-              Collection res = new ArrayList(len);
-              fillArray(in, serializationInfo, referencee, streamPosition, res, len);
-              return Collections.unmodifiableCollection(res);
+                Collection res = new ArrayList(len);
+                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+                return Collections.unmodifiableCollection(res);
             }
         } catch (Throwable th) {
             FSTUtil.<RuntimeException>rethrow(th);
