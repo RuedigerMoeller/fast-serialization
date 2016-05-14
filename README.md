@@ -50,7 +50,7 @@ I am not actively tracking use, maven.org reports more than **4500** distinct IP
 
 Notable also:
 
-* used in production system of the Eurex Exchange trading system
+* used in production in the Eurex Exchange's trading back end / middleware
 * JUptr.io's distributed system / NLP engine uses FST
 * Popular Apache Wicket supplementals use FST to speed up Wicket
 
