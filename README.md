@@ -54,6 +54,8 @@ Notable also:
 * JUptr.io's distributed system / NLP engine uses FST
 * Popular Apache Wicket supplementals use FST to speed up Wicket
 
+![alt tag](https://raw.githubusercontent.com/RuedigerMoeller/fast-serialization/master/fst.png)
+
 ###how to build 
 
 * master contains dev branch/trunk.
