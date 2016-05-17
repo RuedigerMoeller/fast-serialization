@@ -19,6 +19,7 @@ import org.nustaq.serialization.util.FSTUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -29,11 +30,7 @@ public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
     public static final Class<?> UNMODIFIABLE_MAP_CLASS;
 
     static {
-        try {
-            UNMODIFIABLE_MAP_CLASS = Class.forName("java.util.Collections$UnmodifiableMap");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot load java.util.Collections classes", e);
-        }
+        UNMODIFIABLE_MAP_CLASS = Collections.unmodifiableMap(new HashMap()).getClass();
     }
 
     @Override
@@ -42,7 +39,7 @@ public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
         try {
             int len = in.readInt();
             if (UNMODIFIABLE_MAP_CLASS.isAssignableFrom(objectClass)) {
-                Map res = new HashMap(len);
+                Map res = new LinkedHashMap(len);
                 in.registerObject(res, streamPosition, serializationInfo, referencee);
                 for (int i = 0; i < len; i++) {
                     Object key = in.readObjectInternal(null);
