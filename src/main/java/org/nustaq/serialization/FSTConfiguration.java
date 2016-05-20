@@ -474,6 +474,8 @@ public class FSTConfiguration {
         reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
 
         reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_COLLECTION_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
+        reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_LIST_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
+        reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_SET_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
         reg.putSerializer(FSTUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS, new FSTUnmodifiableMapSerializer(), true);
 
         return conf;

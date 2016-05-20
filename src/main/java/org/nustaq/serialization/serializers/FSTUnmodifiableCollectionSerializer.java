@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,19 +32,13 @@ import java.util.Set;
 public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer {
 
     public static final Class<?> UNMODIFIABLE_COLLECTION_CLASS;
-
     public static final Class<?> UNMODIFIABLE_LIST_CLASS;
-
     public static final Class<?> UNMODIFIABLE_SET_CLASS;
 
     static {
-        try {
-            UNMODIFIABLE_COLLECTION_CLASS = Class.forName("java.util.Collections$UnmodifiableCollection");
-            UNMODIFIABLE_LIST_CLASS = Class.forName("java.util.Collections$UnmodifiableList");
-            UNMODIFIABLE_SET_CLASS = Class.forName("java.util.Collections$UnmodifiableSet");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot load java.util.Collections classes", e);
-        }
+        UNMODIFIABLE_COLLECTION_CLASS = Collections.unmodifiableCollection(new ArrayList()).getClass();
+        UNMODIFIABLE_LIST_CLASS = Collections.unmodifiableList(new ArrayList()).getClass();
+        UNMODIFIABLE_SET_CLASS = Collections.unmodifiableSet(new HashSet()).getClass();
     }
 
     @Override
@@ -56,7 +51,7 @@ public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer
                 return Collections.unmodifiableList(res);
             }
             if (UNMODIFIABLE_SET_CLASS.isAssignableFrom(objectClass)) {
-                Set res = new HashSet(len);
+                Set res = new LinkedHashSet(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableSet(res);
             }

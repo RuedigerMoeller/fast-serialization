@@ -18,10 +18,10 @@ import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.serializers.FSTUnmodifiableMapSerializer;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Jakub Kubrynski
@@ -29,22 +29,31 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("unchecked")
 public class FSTUnmodifiableMapSerializerTest {
 
-    static final String TEST_VALUE = "TestValue";
-    static final String TEST_KEY = "TestKey";
+    static final String TEST_VALUE_1 = "TestValue1";
+    static final String TEST_KEY_1 = "TestKey1";
+    static final String TEST_VALUE_2 = "TestValue2";
+    static final String TEST_KEY_2 = "TestKey2";
+    static final String TEST_VALUE_3 = "TestValue3";
+    static final String TEST_KEY_3 = "TestKey3";
 
     @Test
-    public void shouldSerializeUnmodifiableMap() throws ClassNotFoundException {
+    public void shouldSerializeUnmodifiableMap() throws Exception {
         //given
-        Map<String, String> map = Collections.unmodifiableMap(Collections.singletonMap(TEST_KEY, TEST_VALUE));
-        FSTConfiguration conf = FSTConfiguration.createJsonNoRefConfiguration();
+        Map<String, String> tmp = new LinkedHashMap<>();
+        tmp.put(TEST_KEY_1, TEST_VALUE_1);
+        tmp.put(TEST_KEY_2, TEST_VALUE_2);
+        tmp.put(TEST_KEY_3, TEST_VALUE_3);
+        Map<String, String> map = Collections.unmodifiableMap(tmp);
+
+        FSTConfiguration configuration = FSTConfiguration.createJsonNoRefConfiguration();
         //when
-        byte[] bytes = conf.asByteArray((map));
-        map = (Map<String, String>) conf.asObject(bytes);
+        byte[] bytes = configuration.asByteArray((map));
+        map = (Map<String, String>) configuration.asObject(bytes);
         //then
         assertTrue(FSTUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS.isAssignableFrom(map.getClass()));
-        assertEquals(1, map.size());
-        assertTrue(map.containsKey(TEST_KEY));
-        assertTrue(map.containsValue(TEST_VALUE));
-    }
+        assertEquals(3, map.size());
 
+        assertArrayEquals(new String[]{TEST_KEY_1, TEST_KEY_2, TEST_KEY_3}, map.keySet().toArray(new String[map.keySet().size()]));
+        assertArrayEquals(new String[]{TEST_VALUE_1, TEST_VALUE_2, TEST_VALUE_3}, map.values().toArray(new String[map.values().size()]));
+    }
 }
