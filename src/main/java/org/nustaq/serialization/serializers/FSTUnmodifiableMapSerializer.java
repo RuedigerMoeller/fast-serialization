@@ -19,10 +19,11 @@ import org.nustaq.serialization.util.FSTUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * For JSON only, see {@link <a href="https://github.com/RuedigerMoeller/fast-serialization/issues/114">Unable to deserialize unmodifiable collections from JSON</a>}.
+ *
  * @author Jakub Kubrynski
  */
 public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
@@ -39,7 +40,7 @@ public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
         try {
             int len = in.readInt();
             if (UNMODIFIABLE_MAP_CLASS.isAssignableFrom(objectClass)) {
-                Map res = new LinkedHashMap(len);
+                Map res = new HashMap(len);
                 in.registerObject(res, streamPosition, serializationInfo, referencee);
                 for (int i = 0; i < len; i++) {
                     Object key = in.readObjectInternal(null);
