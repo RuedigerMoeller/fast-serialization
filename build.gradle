@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 apply plugin: 'java'
 apply plugin: 'maven'
-version="2.45"
+version="2.47"
 
 targetCompatibility = 1.7
 sourceCompatibility = 1.7
@@ -20,7 +20,7 @@ dependencies {
     compile fileTree("src/test/lib")
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.5.3'
     compile group: 'org.javassist', name: 'javassist', version: '3.19.0-GA'
-    compile 'org.objenesis:objenesis:2.1'
+    compile 'org.objenesis:objenesis:2.4'
 }
 
 task sourcesJar(type: Jar, dependsOn:classes) {
@@ -39,7 +39,7 @@ task testJar(type: Jar, dependsOn:classes) {
 
 task allJar(type: Jar, dependsOn:jar) {
     archiveName = 'fst-'+version+"-onejar.jar"
-    from zipTree('lib/objenesis-2.1.jar').matching { true }
+    from zipTree('lib/objenesis-2.4.jar').matching { true }
     from zipTree('lib/jackson-core-2.5.3.jar').matching { true }
     from zipTree('lib/javassist-3.19.0-GA.jar').matching { true }
     from zipTree('build/libs/fst-'+version+'.jar').matching { true }
@@ -61,7 +61,7 @@ task release(type: Jar, dependsOn:allJar) {
     }
     into ('lib') {
         from 'lib/jackson-core-2.5.3.jar'
-        from 'lib/objenesis-2.1.jar'
+        from 'lib/objenesis-2.4.jar'
         from 'lib/javassist-3.19.0-GA.jar'
         from 'build/libs/fst-'+version+'.jar'
         from 'build/libs/fst-'+version+'-onejar.jar'

@@ -32,16 +32,17 @@ public class FSTJSonUnmodifiableCollectionSerializer extends FSTCollectionSerial
         UNMODIFIABLE_COLLECTION_CLASS,
         UNMODIFIABLE_RANDOM_ACCESS_LIST_CLASS,
         UNMODIFIABLE_SET_CLASS,
-        UNMODIFIABLE_SORTED_SET_CLASS,
-        UNMODIFIABLE_NAVIGABLE_SET_CLASS,
+//        UNMODIFIABLE_SORTED_SET_CLASS,
+//        UNMODIFIABLE_NAVIGABLE_SET_CLASS,
         UNMODIFIABLE_LIST_CLASS;
 
     static {
         UNMODIFIABLE_LIST_CLASS = Collections.unmodifiableList(new LinkedList()).getClass();
         UNMODIFIABLE_RANDOM_ACCESS_LIST_CLASS = Collections.unmodifiableList(new ArrayList()).getClass();
         UNMODIFIABLE_SET_CLASS = Collections.unmodifiableSet(Collections.emptySet()).getClass();
-        UNMODIFIABLE_SORTED_SET_CLASS = Collections.unmodifiableSortedSet(Collections.emptySortedSet()).getClass();
-        UNMODIFIABLE_NAVIGABLE_SET_CLASS = Collections.unmodifiableNavigableSet(Collections.emptyNavigableSet()).getClass();
+        // 1.8 only
+//        UNMODIFIABLE_SORTED_SET_CLASS = Collections.unmodifiableSortedSet(Collections.emptySortedSet()).getClass();
+//        UNMODIFIABLE_NAVIGABLE_SET_CLASS = Collections.unmodifiableNavigableSet(Collections.emptyNavigableSet()).getClass();
         UNMODIFIABLE_COLLECTION_CLASS = Collections.unmodifiableCollection(new ArrayList()).getClass();
     }
 
@@ -76,16 +77,17 @@ public class FSTJSonUnmodifiableCollectionSerializer extends FSTCollectionSerial
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableSet(res);
             }
-            if ( UNMODIFIABLE_SORTED_SET_CLASS == clazz ) {
-                Set res = new TreeSet();
-                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
-                return Collections.unmodifiableSet(res);
-            }
-            if (UNMODIFIABLE_NAVIGABLE_SET_CLASS == clazz) {
-                Set res = new TreeSet();
-                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
-                return Collections.unmodifiableSet(res);
-            }
+            // 1.8 only
+//            if ( UNMODIFIABLE_SORTED_SET_CLASS == clazz ) {
+//                Set res = new TreeSet();
+//                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+//                return Collections.unmodifiableSet(res);
+//            }
+//            if (UNMODIFIABLE_NAVIGABLE_SET_CLASS == clazz) {
+//                Set res = new TreeSet();
+//                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+//                return Collections.unmodifiableSet(res);
+//            }
             if (UNMODIFIABLE_COLLECTION_CLASS == clazz) {
                 Collection res = new ArrayList(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);

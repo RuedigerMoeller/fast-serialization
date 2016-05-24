@@ -1,6 +1,6 @@
 package ser;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 
