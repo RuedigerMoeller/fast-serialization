@@ -22,11 +22,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * For JSON only, see {@link <a href="https://github.com/RuedigerMoeller/fast-serialization/issues/114">Unable to deserialize unmodifiable collections from JSON</a>}.
+ *
  * @author Jakub Kubrynski
  */
 public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer {
@@ -51,7 +52,7 @@ public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer
                 return Collections.unmodifiableList(res);
             }
             if (UNMODIFIABLE_SET_CLASS.isAssignableFrom(objectClass)) {
-                Set res = new LinkedHashSet(len);
+                Set res = new HashSet(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableSet(res);
             }
