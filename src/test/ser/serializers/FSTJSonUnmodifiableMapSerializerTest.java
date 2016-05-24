@@ -15,7 +15,7 @@ package ser.serializers;
 
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.serializers.FSTUnmodifiableMapSerializer;
+import org.nustaq.serialization.serializers.FSTJSonUnmodifiableMapSerializer;
 
 import java.util.Collections;
 import java.util.Map;
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jakub Kubrynski
  */
 @SuppressWarnings("unchecked")
-public class FSTUnmodifiableMapSerializerTest {
+public class FSTJSonUnmodifiableMapSerializerTest {
 
     static final String TEST_VALUE = "TestValue";
     static final String TEST_KEY = "TestKey";
@@ -41,7 +41,7 @@ public class FSTUnmodifiableMapSerializerTest {
         byte[] bytes = conf.asByteArray((map));
         map = (Map<String, String>) conf.asObject(bytes);
         //then
-        assertTrue(FSTUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS.isAssignableFrom(map.getClass()));
+        assertTrue(FSTJSonUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS.isAssignableFrom(map.getClass()));
         assertEquals(1, map.size());
         assertTrue(map.containsKey(TEST_KEY));
         assertTrue(map.containsValue(TEST_VALUE));

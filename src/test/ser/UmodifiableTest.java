@@ -15,7 +15,7 @@ public class UmodifiableTest {
 
     @Test
     public void testUnmodifiableMap() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getConfiguration();
         HashMap map = new HashMap();
         map.put("Hello", new Date());
         Map un = Collections.unmodifiableMap(map);
@@ -24,8 +24,18 @@ public class UmodifiableTest {
     }
 
     @Test
+    public void testUnmodifiableOrderedMap() {
+        FSTConfiguration conf = getConfiguration();
+        LinkedHashMap map = new LinkedHashMap();
+        map.put("Hello", new Date());
+        Map un = Collections.unmodifiableMap(map);
+        Map res = (Map) conf.asObject(conf.asByteArray(un));
+        assertTrue(DeepEquals.deepEquals(res, un));
+    }
+
+    @Test
     public void testUnmodifiableList() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getConfiguration();
         ArrayList list = new ArrayList();
         list.add("Hello");
         list.add(new Date());
@@ -34,9 +44,13 @@ public class UmodifiableTest {
         assertTrue(DeepEquals.deepEquals(res,un));
     }
 
+    protected FSTConfiguration getConfiguration() {
+        return FSTConfiguration.createDefaultConfiguration();
+    }
+
     @Test
     public void testUnmodifiableLinkedList() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getConfiguration();
         List list = new LinkedList();
         list.add("Hello");
         list.add(new Date());
@@ -47,7 +61,7 @@ public class UmodifiableTest {
 
     @Test
     public void testUnmodifiableLinkedHashMap() {
-        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        FSTConfiguration conf = getConfiguration();
 
         Map m1 = new LinkedHashMap<String, Integer>();
         m1.put("a", 1);

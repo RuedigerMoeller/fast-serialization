@@ -293,10 +293,8 @@ public class FSTConfiguration {
         final FSTConfiguration conf = createMinBinConfiguration(shared);
 
         FSTSerializerRegistry reg = conf.serializationInfoRegistry.getSerializerRegistry();
-        reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_COLLECTION_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
-        reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_LIST_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
-        reg.putSerializer(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_SET_CLASS, new FSTUnmodifiableCollectionSerializer(), true);
-        reg.putSerializer(FSTUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS, new FSTUnmodifiableMapSerializer(), true);
+        reg.putSerializer(FSTJSonUnmodifiableCollectionSerializer.UNMODIFIABLE_COLLECTION_CLASS, new FSTJSonUnmodifiableCollectionSerializer(), true);
+        reg.putSerializer(FSTJSonUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS, new FSTJSonUnmodifiableMapSerializer(), false);
 
         conf.type = prettyPrint ? ConfType.JSONPRETTY : ConfType.JSON;
         JsonFactory fac;

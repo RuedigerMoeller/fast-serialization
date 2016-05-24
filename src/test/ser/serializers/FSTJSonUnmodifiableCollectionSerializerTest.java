@@ -15,7 +15,7 @@ package ser.serializers;
 
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.serializers.FSTUnmodifiableCollectionSerializer;
+import org.nustaq.serialization.serializers.FSTJSonUnmodifiableCollectionSerializer;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jakub Kubrynski
  */
 @SuppressWarnings("unchecked")
-public class FSTUnmodifiableCollectionSerializerTest {
+public class FSTJSonUnmodifiableCollectionSerializerTest {
 
     static final String TEST_VALUE = "TestValue";
 
@@ -41,7 +41,7 @@ public class FSTUnmodifiableCollectionSerializerTest {
         byte[] bytes = conf.asByteArray((list));
         list = (List<String>) conf.asObject(bytes);
         //then
-        assertTrue(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_LIST_CLASS.isAssignableFrom(list.getClass()));
+        assertTrue(FSTJSonUnmodifiableCollectionSerializer.UNMODIFIABLE_LIST_CLASS.isAssignableFrom(list.getClass()));
         assertEquals(1, list.size());
         assertTrue(list.contains(TEST_VALUE));
     }
@@ -55,7 +55,7 @@ public class FSTUnmodifiableCollectionSerializerTest {
         byte[] bytes = conf.asByteArray((set));
         set = (Set<String>) conf.asObject(bytes);
         //then
-        assertTrue(FSTUnmodifiableCollectionSerializer.UNMODIFIABLE_SET_CLASS.isAssignableFrom(set.getClass()));
+        assertTrue(FSTJSonUnmodifiableCollectionSerializer.UNMODIFIABLE_SET_CLASS.isAssignableFrom(set.getClass()));
         assertEquals(1, set.size());
         assertTrue(set.contains(TEST_VALUE));
     }

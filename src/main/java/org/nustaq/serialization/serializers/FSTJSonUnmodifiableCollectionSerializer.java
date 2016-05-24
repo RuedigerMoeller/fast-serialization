@@ -15,52 +15,83 @@ package org.nustaq.serialization.serializers;
 
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * For JSON only, see {@link <a href="https://github.com/RuedigerMoeller/fast-serialization/issues/114">Unable to deserialize unmodifiable collections from JSON</a>}.
  *
  * @author Jakub Kubrynski
  */
-public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer {
+public class FSTJSonUnmodifiableCollectionSerializer extends FSTCollectionSerializer {
 
-    public static final Class<?> UNMODIFIABLE_COLLECTION_CLASS;
-    public static final Class<?> UNMODIFIABLE_LIST_CLASS;
-    public static final Class<?> UNMODIFIABLE_SET_CLASS;
+    public static final Class<?>
+        UNMODIFIABLE_COLLECTION_CLASS,
+        UNMODIFIABLE_RANDOM_ACCESS_LIST_CLASS,
+        UNMODIFIABLE_SET_CLASS,
+        UNMODIFIABLE_SORTED_SET_CLASS,
+        UNMODIFIABLE_NAVIGABLE_SET_CLASS,
+        UNMODIFIABLE_LIST_CLASS;
 
     static {
+        UNMODIFIABLE_LIST_CLASS = Collections.unmodifiableList(new LinkedList()).getClass();
+        UNMODIFIABLE_RANDOM_ACCESS_LIST_CLASS = Collections.unmodifiableList(new ArrayList()).getClass();
+        UNMODIFIABLE_SET_CLASS = Collections.unmodifiableSet(Collections.emptySet()).getClass();
+        UNMODIFIABLE_SORTED_SET_CLASS = Collections.unmodifiableSortedSet(Collections.emptySortedSet()).getClass();
+        UNMODIFIABLE_NAVIGABLE_SET_CLASS = Collections.unmodifiableNavigableSet(Collections.emptyNavigableSet()).getClass();
         UNMODIFIABLE_COLLECTION_CLASS = Collections.unmodifiableCollection(new ArrayList()).getClass();
-        UNMODIFIABLE_LIST_CLASS = Collections.unmodifiableList(new ArrayList()).getClass();
-        UNMODIFIABLE_SET_CLASS = Collections.unmodifiableSet(new HashSet()).getClass();
+    }
+
+    @Override
+    public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
+        out.writeObject(clzInfo.getClazz());
+        Collection coll = (Collection) toWrite;
+        out.writeInt(coll.size());
+        for (Iterator iterator = coll.iterator(); iterator.hasNext(); ) {
+            out.writeObject(iterator.next());
+        }
     }
 
     @Override
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
+        Class clazz = (Class) in.readObject();
+        int len = in.readInt();
+
         try {
-            int len = in.readInt();
-            if (UNMODIFIABLE_LIST_CLASS.isAssignableFrom(objectClass)) {
+            if ( UNMODIFIABLE_RANDOM_ACCESS_LIST_CLASS == clazz) {
                 List res = new ArrayList(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableList(res);
             }
-            if (UNMODIFIABLE_SET_CLASS.isAssignableFrom(objectClass)) {
+            if ( UNMODIFIABLE_LIST_CLASS == clazz) {
+                List res = new LinkedList();
+                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+                return Collections.unmodifiableList(res);
+            }
+            if ( UNMODIFIABLE_SET_CLASS == clazz) {
                 Set res = new HashSet(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableSet(res);
             }
-            if (UNMODIFIABLE_COLLECTION_CLASS.isAssignableFrom(objectClass)) {
+            if ( UNMODIFIABLE_SORTED_SET_CLASS == clazz ) {
+                Set res = new TreeSet();
+                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+                return Collections.unmodifiableSet(res);
+            }
+            if (UNMODIFIABLE_NAVIGABLE_SET_CLASS == clazz) {
+                Set res = new TreeSet();
+                fillArray(in, serializationInfo, referencee, streamPosition, res, len);
+                return Collections.unmodifiableSet(res);
+            }
+            if (UNMODIFIABLE_COLLECTION_CLASS == clazz) {
                 Collection res = new ArrayList(len);
                 fillArray(in, serializationInfo, referencee, streamPosition, res, len);
                 return Collections.unmodifiableCollection(res);
             }
+            throw new RuntimeException("unexpected class tag "+clazz);
         } catch (Throwable th) {
             FSTUtil.<RuntimeException>rethrow(th);
         }
@@ -75,7 +106,7 @@ public class FSTUnmodifiableCollectionSerializer extends FSTCollectionSerializer
             ((ArrayList) col).ensureCapacity(len);
         }
         for (int i = 0; i < len; i++) {
-            final Object o = in.readObjectInternal(null);
+            final Object o = in.readObject();
             col.add(o);
         }
     }

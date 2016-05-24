@@ -15,18 +15,18 @@ package org.nustaq.serialization.serializers;
 
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 import org.nustaq.serialization.util.FSTUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * For JSON only, see {@link <a href="https://github.com/RuedigerMoeller/fast-serialization/issues/114">Unable to deserialize unmodifiable collections from JSON</a>}.
  *
  * @author Jakub Kubrynski
  */
-public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
+public class FSTJSonUnmodifiableMapSerializer extends FSTMapSerializer {
 
     public static final Class<?> UNMODIFIABLE_MAP_CLASS;
 
@@ -38,6 +38,11 @@ public class FSTUnmodifiableMapSerializer extends FSTMapSerializer {
     @SuppressWarnings("unchecked")
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         try {
+            // note: unlike with list's JDK uses a single wrapper for unmodifiable maps, so information regarding ordering gets lost.
+            // as the enclosed map is private, there is also no possibility to detect that case
+            // we could always create a linkedhashmap here, but this would have major performance drawbacks.
+
+            // this only hits JSON codec as JSON codec does not implement a full JDK-serialization fallback (like the binary codecs)
             int len = in.readInt();
             if (UNMODIFIABLE_MAP_CLASS.isAssignableFrom(objectClass)) {
                 Map res = new HashMap(len);
