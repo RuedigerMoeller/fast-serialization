@@ -46,7 +46,7 @@ Older version (different package name, 1.6 compatible ..). Fixes are not backpor
 
 ###Who uses FST ?
 
-I am not actively tracking use, maven.org reports more than **4500** distinct IP accesses triggered by maven builds world wide.
+I am not actively tracking use, maven.org reports more than **4500** distinct IP accesses triggered by maven builds world wide per month.
 
 Notable also:
 
