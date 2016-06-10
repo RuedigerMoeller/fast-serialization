@@ -20,31 +20,26 @@ import org.nustaq.serialization.FSTObjectRegistry;
 public class TestWriteReplaceInList {
 
 	@Test
-	public void testWriteReplaceInList() throws IOException, ClassNotFoundException
-	{
+	public void testWriteReplaceInList() throws IOException, ClassNotFoundException {
 		Container c = new Container();
 
-		    BaseClass b1 = new BaseClass();
-		    b1.value="morphMe";
-		    c.list.add(b1);
-		    BaseClass b2 = new BaseClass();
-		    b2.value="morphMe";
-		    c.list.add(b2);
+		BaseClass b1 = new BaseClass();
+		b1.value = "morphMe";
+		c.list.add(b1);
+		BaseClass b2 = new BaseClass();
+		b2.value = "morphMe";
+		c.list.add(b2);
 
-		    ByteArrayOutputStream buf = new ByteArrayOutputStream();
-		    FSTObjectOutput out = new FSTObjectOutput(buf, getTestConfiguration());
-		    out.writeObject(c);
-		    out.close();
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		FSTObjectOutput out = new FSTObjectOutput(buf, getTestConfiguration());
+		out.writeObject(c);
+		out.close();
 
-		    ObjectInput in = getTestConfiguration().getObjectInput(new ByteArrayInputStream(buf.toByteArray()));
-		    Container res = (Container) in.readObject();
-		    assertEquals("you have morphed",((Morpher)res.list.get(0)).value);
-		    assertEquals("you have morphed",((Morpher)res.list.get(1)).value);		
+		ObjectInput in = getTestConfiguration().getObjectInput(new ByteArrayInputStream(buf.toByteArray()));
+		Container res = (Container) in.readObject();
+		assertEquals("you have morphed", ((Morpher) res.list.get(0)).value);
+		assertEquals("you have morphed", ((Morpher) res.list.get(1)).value);
 	}
-
-	
-	
-	protected FSTObjectOutput out;
 
 	@org.junit.Before
 	public void setUp() throws Exception {
@@ -55,34 +50,25 @@ public class TestWriteReplaceInList {
 		FSTConfiguration.isAndroid = false;
 		return FSTConfiguration.createDefaultConfiguration();
 	}
-	
-	
-	
-	public static class BaseClass implements Serializable
-	{
+
+	public static class BaseClass implements Serializable {
 		public String value;
-	
-		private Object writeReplace() throws ObjectStreamException
-		{
-		    if(value.equals("morphMe"))
-		    {
-		        Morpher m = new Morpher();
-		        m.value="you have morphed";
-		        return m;
-		    }
-		    return this;
+
+		private Object writeReplace() throws ObjectStreamException {
+			if (value.equals("morphMe")) {
+				Morpher m = new Morpher();
+				m.value = "you have morphed";
+				return m;
+			}
+			return this;
 		}
 	}
 
-	public static class Morpher extends BaseClass
-	{
-	}
-	public static class Container implements Serializable
-	{
-		public List list = new ArrayList<>();
+	public static class Morpher extends BaseClass {
 	}
 
-	
-	
+	public static class Container implements Serializable {
+		public List list = new ArrayList<>();
+	}
 
 }
