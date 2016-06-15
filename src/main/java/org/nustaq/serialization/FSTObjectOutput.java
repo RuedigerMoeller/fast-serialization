@@ -422,7 +422,8 @@ public class FSTObjectOutput implements ObjectOutput {
                 // default write object wihtout custom serializer
                 // handle write replace
                 //if ( ! dontShare ) GIT ISSUE 80
-                {
+            	FSTClazzInfo originalInfo = serializationInfo;
+                {	
                     if ( serializationInfo.getWriteReplaceMethod() != null ) {
                         Object replaced = null;
                         try {
@@ -439,7 +440,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     // clazz uses some JDK special stuff (frequently slow)
                     if ( serializationInfo.useCompatibleMode() && ! serializationInfo.isExternalizable() ) {
                         writeObjectCompatible(referencee, toWrite, serializationInfo);
-                        return serializationInfo;
+                        return originalInfo;
                     }
                 }
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case codec can write object as primitive
@@ -447,7 +448,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     if ( serializationInfo.isExternalizable() )
                         getCodec().externalEnd(serializationInfo);
                 }
-                return serializationInfo;
+                return originalInfo;
             } else { // object has custom serializer
                 // Object header (nothing written till here)
                 if (! writeObjectHeader(serializationInfo, referencee, toWrite) ) { // skip in case code can write object as primitive
