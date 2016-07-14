@@ -17,8 +17,13 @@ package org.nustaq.serialization.util;
 
 import sun.misc.Unsafe;
 
-import java.io.*;
-import java.lang.reflect.*;
+import java.io.InputStream;
+import java.io.ObjectStreamField;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -82,7 +87,7 @@ public class FSTUtil {
     public final static long doublescal;
 
     public static void clear(int[] arr) {
-        Arrays.fill(arr,0);
+        Arrays.fill(arr, 0);
     }
 
     public static void clear(Object[] arr) {
@@ -107,8 +112,7 @@ public class FSTUtil {
         return th.getClass().getSimpleName() + ":" + th.getMessage() + "\n" + sw.toString();
     }
 
-    public static <T extends Throwable> void rethrow(Throwable exception) throws T
-    {
+    public static <T extends Throwable> void rethrow(Throwable exception) throws T {
         throw (T) exception;
     }
 
@@ -131,8 +135,8 @@ public class FSTUtil {
     }
 
     public static Method findPrivateMethod(Class clazz, String methName,
-                                              Class[] clazzArgs,
-                                              Class retClazz) {
+                                           Class[] clazzArgs,
+                                           Class retClazz) {
         try {
             Method m = clazz.getDeclaredMethod(methName, clazzArgs);
             int modif = m.getModifiers();
@@ -147,8 +151,8 @@ public class FSTUtil {
     }
 
     public static Method findDerivedMethod(Class clazz, String metnam,
-                                              Class[] argClzz,
-                                              Class retClz) {
+                                           Class[] argClzz,
+                                           Class retClz) {
         Method m = null;
         Class defCl = clazz;
         while (defCl != null) {
@@ -234,7 +238,7 @@ public class FSTUtil {
     }
 
     public static byte[] readAll(InputStream is)
-        throws Exception {
+            throws Exception {
         int pos = 0;
         byte[] buffer = new byte[1024];
         while (true) {
@@ -259,7 +263,14 @@ public class FSTUtil {
         return buffer;
     }
 
-    public static int nextPow2( int num ) {
-        return 1<<(num == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(num - 1));
+    public static int nextPow2(int num) {
+        return 1 << (num == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(num - 1));
+    }
+
+    public static Class getRealEnumClass(Class enumClass) {
+        if (enumClass.isAnonymousClass()) {
+            return enumClass.getSuperclass();
+        }
+        return enumClass;
     }
 }
