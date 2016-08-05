@@ -405,7 +405,7 @@ public final class FSTClazzInfo {
 
         if (!conf.isStructMode() && requiresCompatibilityData ) {
             getCompInfo();
-            buildFieldMap();
+            fieldMap = buildFieldMap();
             Class curCl = c;
             fields.clear();
             while (curCl != Object.class) {
