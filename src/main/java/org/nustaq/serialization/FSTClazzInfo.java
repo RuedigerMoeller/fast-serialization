@@ -323,25 +323,29 @@ public final class FSTClazzInfo {
     }
 
     public final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
-        if ( fieldMap == null )
-            buildFieldMap();
+        if ( fieldMap != null ) {
         if (declaringClass == null) {
             return fieldMap.get(name);
         }
-        return fieldMap.get(declaringClass.getName() + "#" + name);
+            return fieldMap.get(declaringClass.getName() + "#" + name); //FIXME: THIS IS VERY SLOW (only used by JSON / compatibility mode)
+        } else {
+            synchronized (this) {
+                fieldMap = buildFieldMap();
+                return getFieldInfo(name,declaringClass);
+            }
+        }
     }
 
-    private void buildFieldMap() {
-        if ( fieldMap == null ) {
-            fieldMap = new FSTMap<>(fieldInfo.length);
+    private FSTMap buildFieldMap() {
+        FSTMap res = new FSTMap<>(fieldInfo.length);
             for (int i = 0; i < fieldInfo.length; i++) {
                 Field field = fieldInfo[i].getField();
                 if ( field != null ) {
-                    fieldMap.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
-                    fieldMap.put(field.getName(), fieldInfo[i]);
+                res.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
+                res.put(field.getName(), fieldInfo[i]);
                 }
             }
-        }
+        return res;
     }
 
     private void createFields(Class c) {
