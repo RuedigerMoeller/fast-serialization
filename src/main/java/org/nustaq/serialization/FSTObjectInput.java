@@ -953,6 +953,7 @@ public class FSTObjectInput implements ObjectInput {
         getCodec().reset();
         getCodec().setInputStream(in);
         objects.clearForRead(conf);
+        callbacks = null; //fix memory leak on reuse from default FstConfiguration
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {
