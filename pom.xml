@@ -114,6 +114,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Import-Package>*</Import-Package>
                         <Export-Package>org.nustaq.*;-noimport:=true</Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
