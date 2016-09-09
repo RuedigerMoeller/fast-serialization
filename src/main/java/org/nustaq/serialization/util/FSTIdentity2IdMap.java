@@ -374,6 +374,29 @@ public class FSTIdentity2IdMap {
             next.clear();
         }
     }
+    
+    /**
+     * Method intended to avoid using {@link FSTUtil#clear(int[])} and {@link FSTUtil#clear(Object[])} 
+     * in order to not loop through big arrays and possibly end up creating extra array copies.
+     * 
+     * It simply disposes the current arrays/lists to JVM GC and then creates new ones based on current size.
+     */
+    public void fastClear() {
+    	final int size = size();
+    	if (size == 0) {
+            return;
+        }
+        if ( linearScanList != null ) {
+            linearScanList = new ArrayList<>(linearScanList.size());
+            linearScanVals = new ArrayList<>(linearScanVals.size());
+        }
+        mKeys = new Object[size];
+        mValues = new int[size];
+        mNumberOfElements = 0;
+        if (next != null) {
+            next.fastClear();
+        }
+    }
 
     public void dump() {
         for (int i = 0; i < mKeys.length; i++) {
