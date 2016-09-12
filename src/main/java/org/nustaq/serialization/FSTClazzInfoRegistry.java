@@ -84,14 +84,7 @@ public class FSTClazzInfoRegistry {
             }
         }
 
-        Class[] classes = cl.getDeclaredClasses();
-        for (int i = 0; i < classes.length; i++) {
-            Class aClass = classes[i];
-            if ( ! aClass.isPrimitive() && ! aClass.isArray() ) {
-                names.add(aClass.getName());
-                addAllReferencedClasses(aClass, names,topLevelDone,filter);
-            }
-        }
+    
 
         Class enclosingClass = cl.getEnclosingClass();
         if ( enclosingClass != null ) {
