@@ -15,13 +15,6 @@
  */
 package org.nustaq.serialization;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.coders.*;
@@ -55,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, UNSAFE, MINBIN, JSON, JSONPRETTY
+        DEFAULT, UNSAFE, MINBIN
     }
 
     /**
@@ -241,123 +234,9 @@ public class FSTConfiguration {
                 {"double[]", "[D"},
                 {"float[]", "[F"}
         });
-        res.registerSerializer( BigDecimal.class, new FSTJSonSerializers.BigDecSerializer(), true );
         return res;
     }
 
-    /**
-     * @return a configuration encoding to JSon without support for reference sharing (=> NO cyclic object graphs)
-     */
-    public static FSTConfiguration createJsonNoRefConfiguration() {
-        return createJsonConfiguration(false, false);
-    }
-
-
-    /**
-     * create a json conf with given attributes. Note that shared refs = true for jason might be not as stable as for binary encodings
-     * as fst relies on stream positions to identify objects within a given input, so any inbetween formatting will break proper reference
-     * resolution
-     * @param prettyPrint
-     * @param shareReferences
-     * @return
-     */
-    public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
-        if ( shareReferences && prettyPrint ) {
-            throw new RuntimeException("unsupported flag combination");
-        }
-        return createJsonConfiguration(prettyPrint,shareReferences,null);
-    }
-
-    protected static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared ) {
-        if ( prettyPrint && shareReferences ) {
-            throw new RuntimeException("cannot use prettyPrint with shared refs to 'true'. Set shareRefs to false.");
-        }
-        return constructJsonConf(prettyPrint, shareReferences, shared);
-    }
-
-    public static class JacksonAccessWorkaround extends UTF8JsonGenerator {
-        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out) {
-            super(ctxt, features, codec, out);
-        }
-
-        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out, byte[] outputBuffer, int outputOffset, boolean bufferRecyclable) {
-            super(ctxt, features, codec, out, outputBuffer, outputOffset, bufferRecyclable);
-        }
-
-        public int getOutputTail() {
-            return _outputTail;
-        }
-    }
-
-    private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        final FSTConfiguration conf = createMinBinConfiguration(shared);
-
-        FSTSerializerRegistry reg = conf.serializationInfoRegistry.getSerializerRegistry();
-        reg.putSerializer(FSTJSonUnmodifiableCollectionSerializer.UNMODIFIABLE_COLLECTION_CLASS, new FSTJSonUnmodifiableCollectionSerializer(), true);
-        reg.putSerializer(FSTJSonUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS, new FSTJSonUnmodifiableMapSerializer(), false);
-
-        conf.type = prettyPrint ? ConfType.JSONPRETTY : ConfType.JSON;
-        JsonFactory fac;
-        if ( prettyPrint ) {
-            fac = new JsonFactory() {
-                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
-                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
-                            _generatorFeatures, _objectCodec, out);
-                    if (_characterEscapes != null) {
-                        gen.setCharacterEscapes(_characterEscapes);
-                    }
-                    SerializableString rootSep = _rootValueSeparator;
-                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
-                        gen.setRootValueSeparator(rootSep);
-                    }
-                    return gen;
-                }
-                @Override
-                public JsonGenerator createGenerator(OutputStream out) throws IOException {
-                    return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
-                }
-            }
-            .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
-            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        } else {
-            fac = new JsonFactory() {
-                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
-                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
-                            _generatorFeatures, _objectCodec, out);
-                    if (_characterEscapes != null) {
-                        gen.setCharacterEscapes(_characterEscapes);
-                    }
-                    SerializableString rootSep = _rootValueSeparator;
-                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
-                        gen.setRootValueSeparator(rootSep);
-                    }
-                    return gen;
-                }
-            };
-            fac.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
-               .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        }
-        conf.setCoderSpecific(fac);
-        conf.setStreamCoderFactory(new JSonStreamCoderFactory(conf));
-        conf.setShareReferences(shareReferences);
-        conf.setLastResortResolver(new LastResortClassRessolver() {
-            @Override
-            public Class getClass(String clName) {
-                return Unknown.class;
-            }
-        });
-        return conf;
-    }
-
-    /**
-     * debug only, very slow (creates config with each call). Creates new conf so custom serializers are ignored.
-     *
-     * @param o
-     */
-    public static void prettyPrintJson(Object o) {
-        FSTConfiguration conf = constructJsonConf(true, true, null);
-        System.out.println(conf.asJsonString(o));
-    }
     /**
      *
      * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
@@ -408,12 +287,6 @@ public class FSTConfiguration {
                 break;
             case UNSAFE:
                 res = createUnsafeBinaryConfiguration(shared);
-                break;
-            case JSON:
-                res = createJsonConfiguration( false, shareRefs, shared);
-                break;
-            case JSONPRETTY:
-                res = createJsonConfiguration( true, shareRefs, shared);
                 break;
             default:
                 throw new RuntimeException("unsupported conftype for factory method");
@@ -1170,26 +1043,6 @@ public class FSTConfiguration {
     }
 
     /**
-     * utility/debug method. Use "asByteArray" for programmatic use as the
-     * byte array will already by UTF-8 and ready to be sent on network.
-     *
-     * @param o
-     * @return
-     */
-    public String asJsonString(Object o) {
-        if ( getCoderSpecific() instanceof JsonFactory == false ) {
-            return "can be called on JsonConfiguration only";
-        } else {
-            try {
-                return new String(asByteArray(o),"UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                FSTUtil.<RuntimeException>rethrow(e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * helper to write series of objects to streams/files > Integer.MAX_VALUE.
      * it
      *  - serializes the object
@@ -1348,37 +1201,6 @@ public class FSTConfiguration {
             return output;
         }
 
-    }
-
-    protected static class JSonStreamCoderFactory implements StreamCoderFactory {
-        protected final FSTConfiguration conf;
-
-        public JSonStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTJsonEncoder(conf);
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTJsonDecoder(conf);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
     }
 
     protected static class FBinaryStreamCoderFactory implements StreamCoderFactory {
