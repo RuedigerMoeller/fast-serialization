@@ -15,13 +15,12 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
 import org.nustaq.serialization.util.FSTIdentity2IdMap;
 import org.nustaq.serialization.util.FSTObject2IntMap;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -196,18 +195,7 @@ public class FSTClazzNameRegistry {
                 try {
                     res = Class.forName(clName, false, conf.getClassLoader());
                 } catch (Throwable th) {
-                    if (clName.endsWith("_Struct")) // hack to define struct proxys on the fly if sent from another process
-                    {
-                        try {
-                            clName = clName.substring(0, clName.length() - "_Struct".length());
-                            Class onHeapStructClz = classCache.get(clName);
-                            if (onHeapStructClz == null)
-                                onHeapStructClz = Class.forName(clName, false, conf.getClassLoader() );
-                            res = FSTStructFactory.getInstance().getProxyClass(onHeapStructClz);
-                        } catch (Throwable th1) {
-                            FSTUtil.<RuntimeException>rethrow(th1);
-                        }
-                    } else if ( clName.endsWith("_ActorProxy") ) {
+                    if ( clName.endsWith("_ActorProxy") ) {
                         // same as above for actors. As there is a custom serializer defined for actors, just instantiate
                         // actor clazz
                         String clName0 = clName;

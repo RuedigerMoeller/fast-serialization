@@ -15,8 +15,6 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.coders.*;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -48,7 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, UNSAFE, MINBIN
+        DEFAULT, MINBIN
     }
 
     /**
@@ -285,9 +283,6 @@ public class FSTConfiguration {
             case MINBIN:
                 res = createMinBinConfiguration(shared);
                 break;
-            case UNSAFE:
-                res = createUnsafeBinaryConfiguration(shared);
-                break;
             default:
                 throw new RuntimeException("unsupported conftype for factory method");
         }
@@ -346,37 +341,10 @@ public class FSTConfiguration {
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
-        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
 
         // serializers for classes failing in fst JDK emulation (e.g. Android<=>JDK)
         reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
 
-        return conf;
-    }
-
-    /**
-     * Returns a configuration using Unsafe to read write data.
-     * - platform dependent byte order
-     * - no value compression attempts
-     * - makes heavy use of Unsafe, which can be dangerous in case
-     *   of version conflicts
-     *
-     * Use only in case it makes a significant difference and you absolutely need the performance gain.
-     * Performance gains depend on data. There are cases where this is even slower,
-     * in some scenarios (many native arrays) it can be several times faster.
-     * see also OffHeapCoder, OnHeapCoder.
-     *
-     */
-    public static FSTConfiguration createUnsafeBinaryConfiguration() {
-        return createUnsafeBinaryConfiguration(null);
-    }
-
-    protected static FSTConfiguration createUnsafeBinaryConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        if ( isAndroid )
-            throw new RuntimeException("not supported under android platform, use default configuration");
-        final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration(shared);
-        conf.type = ConfType.UNSAFE;
-        conf.setStreamCoderFactory(new FBinaryStreamCoderFactory(conf));
         return conf;
     }
 
@@ -1054,7 +1022,6 @@ public class FSTConfiguration {
      *  - reads [length] bytes from the stream
      *  - deserializes
      *
-     * @see decodeFromStream
      *
      * @param out
      * @param toSerialize
@@ -1075,7 +1042,6 @@ public class FSTConfiguration {
     }
 
     /**
-     * @see encodeToStream
      *
      * @param in
      * @return
@@ -1186,38 +1152,6 @@ public class FSTConfiguration {
         @Override
         public FSTDecoder createStreamDecoder() {
             return new FSTStreamDecoder(fstConfiguration);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
-
-    }
-
-    protected static class FBinaryStreamCoderFactory implements StreamCoderFactory {
-        protected final FSTConfiguration conf;
-
-        public FBinaryStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTBytezDecoder(conf);
         }
 
         static ThreadLocal input = new ThreadLocal();

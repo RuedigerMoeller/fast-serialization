@@ -15,14 +15,32 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.offheap.structs.Align;
-import org.nustaq.serialization.annotations.*;
+import org.nustaq.serialization.annotations.AnonymousTransient;
+import org.nustaq.serialization.annotations.Conditional;
+import org.nustaq.serialization.annotations.Flat;
+import org.nustaq.serialization.annotations.OneOf;
+import org.nustaq.serialization.annotations.Predict;
+import org.nustaq.serialization.annotations.Serialize;
+import org.nustaq.serialization.annotations.Transient;
+import org.nustaq.serialization.annotations.Version;
 import org.nustaq.serialization.util.FSTMap;
 import org.nustaq.serialization.util.FSTUtil;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
+import java.io.Externalizable;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
+import java.io.ObjectStreamField;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -452,13 +470,6 @@ public final class FSTClazzInfo {
         int off = 8; // object header: length + clzId
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
-            Align al = fstFieldInfo.getField().getAnnotation(Align.class);
-            if (al != null) {
-                fstFieldInfo.align = al.value();
-                int alignOff = fstFieldInfo.align(off);
-                fstFieldInfo.alignPad = alignOff - off;
-                off = alignOff;
-            }
             fstFieldInfo.setStructOffset(off);
             off += fstFieldInfo.getStructSize();
         }
