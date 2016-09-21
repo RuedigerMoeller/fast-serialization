@@ -16,7 +16,6 @@
 package org.nustaq.serialization;
 
 import org.nustaq.serialization.coders.Unknown;
-import org.nustaq.serialization.minbin.MBObject;
 import org.nustaq.serialization.util.FSTUtil;
 import java.io.*;
 import java.lang.reflect.*;
@@ -761,10 +760,6 @@ public class FSTObjectInput implements ObjectInput {
                 fakeField.fakeName = name;
                 Object toSet = readObjectWithHeader(fakeField);
                 ((Unknown)newObj).set(name, toSet);
-            } else
-            if ( newObj.getClass() == MBObject.class ) {
-                Object toSet = readObjectWithHeader(null);
-                ((MBObject)newObj).put(name,toSet);
             } else {
                 FSTClazzInfo.FSTFieldInfo fieldInfo = serializationInfo.getFieldInfo(name, null);
                 if (fieldInfo == null) {
