@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, MINBIN
+        DEFAULT
     }
 
     /**
@@ -181,61 +181,6 @@ public class FSTConfiguration {
     }
 
     /**
-     * Warning: MinBin contains full metainformation (fieldnames,..), so its way slower than the other configs.
-     * It should be used in case of cross language (e.g. java - javascript) serialization only.
-     * Additionally you can read MinBin serialized streams without access to original classes.
-     *
-     * See MBPrinter on an example on how to read a MinBin stream without having access to
-     * original classes. Useful for cross language serialization/long term archiving.
-     *
-     * Warning: MinBin serialization ('binary JSon') is much slower than the other
-     * serialization configurations.
-     *
-     * @return a configuration to encode MinBin format.
-     */
-    public static FSTConfiguration createMinBinConfiguration() {
-        return createMinBinConfiguration(null);
-    }
-
-    protected static FSTConfiguration createMinBinConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        final FSTConfiguration res = createDefaultConfiguration(shared);
-        res.setCrossPlatform(true);
-        res.type = ConfType.MINBIN;
-        res.setStreamCoderFactory(new MinBinStreamCoderFactory(res));
-
-        // override some serializers
-        FSTSerializerRegistry reg = res.serializationInfoRegistry.getSerializerRegistry();
-        reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
-        reg.putSerializer(Throwable.class, new FSTCPThrowableSerializer(), true);
-
-        // for crossplatform fallback does not work => register default serializers for collections and subclasses
-        reg.putSerializer(AbstractCollection.class, new FSTCollectionSerializer(), true); // subclass should register manually
-        reg.putSerializer(AbstractMap.class, new FSTMapSerializer(), true); // subclass should register manually
-
-        res.registerCrossPlatformClassMapping(new String[][]{
-                {"map", HashMap.class.getName()},
-                {"list", ArrayList.class.getName()},
-                {"set", HashSet.class.getName()},
-                {"long", Long.class.getName()},
-                {"integer", Integer.class.getName()},
-                {"short", Short.class.getName()},
-                {"byte", Byte.class.getName()},
-                {"char", Character.class.getName()},
-                {"float", Float.class.getName()},
-                {"double", Double.class.getName()},
-                {"date", Date.class.getName()},
-                {"enumSet", "java.util.RegularEnumSet"},
-                {"array", "[Ljava.lang.Object;"},
-                {"String[]", "[Ljava.lang.String;"},
-                {"Double[]", "[Ljava.lang.Double;"},
-                {"Float[]", "[Ljava.lang.Float;"},
-                {"double[]", "[D"},
-                {"float[]", "[F"}
-        });
-        return res;
-    }
-
-    /**
      *
      * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
      * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
@@ -279,9 +224,6 @@ public class FSTConfiguration {
         switch (ct) {
             case DEFAULT:
                 res = createDefaultConfiguration(shared);
-                break;
-            case MINBIN:
-                res = createMinBinConfiguration(shared);
                 break;
             default:
                 throw new RuntimeException("unsupported conftype for factory method");
@@ -1106,37 +1048,6 @@ public class FSTConfiguration {
         return "FSTConfiguration{" +
                    "name='" + name + '\'' +
                    '}';
-    }
-
-    protected static class MinBinStreamCoderFactory implements StreamCoderFactory {
-        private final FSTConfiguration conf;
-
-        public MinBinStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTMinBinEncoder(conf);
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTMinBinDecoder(conf);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
     }
 
     protected static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
