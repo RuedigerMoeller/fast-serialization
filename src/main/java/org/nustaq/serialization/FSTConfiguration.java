@@ -49,27 +49,27 @@ public class FSTConfiguration {
      * if all attempts fail to find a class this guy is asked.
      * Can be used in case e.g. dynamic classes need get generated.
      */
-    public interface LastResortClassRessolver {
-        public Class getClass( String clName );
+    interface LastResortClassRessolver {
+        Class getClass( String clName );
     }
 
-    StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
+    private StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
 
-    String name;
+    private String name;
 
-    FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
-    HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
-    FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
-    boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
+    private FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
+    private final HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
+    private FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
+    private boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
     boolean shareReferences = true;
-    volatile ClassLoader classLoader = getClass().getClassLoader();
-    boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
-    FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
+    private volatile ClassLoader classLoader = getClass().getClassLoader();
+    private boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
+    private FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
-    Object coderSpecific;
-    LastResortClassRessolver lastResortResolver;
+    private Object coderSpecific;
+    private LastResortClassRessolver lastResortResolver;
 
-    boolean forceClzInit = false; // always execute default fields init, even if no transients
+    private boolean forceClzInit = false; // always execute default fields init, even if no transients
 
     // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
     static class FieldKey {
