@@ -39,7 +39,6 @@ public class FSTObjectInput implements ObjectInput {
 
     protected FSTObjectRegistry objects;
 
-    protected Stack<String> debugStack;
     protected int curDepth;
 
     protected ArrayList<CallbackEntry> callbacks;
@@ -50,12 +49,8 @@ public class FSTObjectInput implements ObjectInput {
     // done
     protected ConditionalCallback conditionalCallback;
     protected int readExternalReadAHead = 8000;
-    protected VersionConflictListener versionConflictListener;
 
     protected FSTConfiguration conf;
-
-    // copied values from conf
-    protected boolean isCrossPlatform;
 
     public FSTConfiguration getConf() {
         return conf;
@@ -190,7 +185,6 @@ public class FSTObjectInput implements ObjectInput {
     public FSTObjectInput(InputStream in, FSTConfiguration conf) {
         setCodec(conf.createStreamDecoder());
         getCodec().setInputStream(in);
-        isCrossPlatform = conf.isCrossPlatform();
         initRegistries(conf);
         this.conf = conf;
     }
@@ -293,9 +287,6 @@ public class FSTObjectInput implements ObjectInput {
 
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
-        if ( isCrossPlatform ) {
-            return readObjectInternal(null); // not supported cross platform
-        }
         try {
             if (possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {
@@ -660,11 +651,6 @@ public class FSTObjectInput implements ObjectInput {
                 FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
                 if (subInfo.getVersion() > version ) {
                     int nextVersion = getCodec().readVersionTag();
-                    if ( nextVersion == 0 ) // old object read
-                    {
-                        oldVersionRead(newObj);
-                        return;
-                    }
                     if ( nextVersion != subInfo.getVersion() ) {
                         throw new RuntimeException("read version tag "+nextVersion+" fieldInfo has "+subInfo.getVersion());
                     }
@@ -712,23 +698,6 @@ public class FSTObjectInput implements ObjectInput {
             }
         }
         int debug = getCodec().readVersionTag();// just consume '0'
-    }
-
-    public VersionConflictListener getVersionConflictListener() {
-        return versionConflictListener;
-    }
-
-    /**
-     * see @Version annotation
-     * @param versionConflictListener
-     */
-    public void setVersionConflictListener(VersionConflictListener versionConflictListener) {
-        this.versionConflictListener = versionConflictListener;
-    }
-
-    protected void oldVersionRead(Object newObj) {
-        if ( versionConflictListener != null )
-            versionConflictListener.onOldVersionRead(newObj);
     }
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
