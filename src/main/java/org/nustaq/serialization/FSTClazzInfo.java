@@ -406,7 +406,7 @@ public final class FSTClazzInfo {
         };
 
         // check if we actually need to build up compatibility info (memory intensive)
-        boolean requiresCompatibilityData = false;
+        /*boolean requiresCompatibilityData = false;
         if ( ! Externalizable.class.isAssignableFrom(c) && getSerNoStore() == null ) {
             Class tmpCls = c;
             while( tmpCls != Object.class ) {
@@ -419,9 +419,9 @@ public final class FSTClazzInfo {
                 }
                 tmpCls = tmpCls.getSuperclass();
             }
-        }
+        }*/
 
-        if (!conf.isStructMode() && requiresCompatibilityData ) {
+        if (!conf.isStructMode()/* && requiresCompatibilityData */) {
             getCompInfo();
             fieldMap = buildFieldMap();
             Class curCl = c;
@@ -474,7 +474,7 @@ public final class FSTClazzInfo {
             off += fstFieldInfo.getStructSize();
         }
         structSize = off;
-        writeReplaceMethod = FSTUtil.findDerivedMethod(
+        /*writeReplaceMethod = FSTUtil.findDerivedMethod(
             c, "writeReplace", null, Object.class);
         readResolveMethod = FSTUtil.findDerivedMethod(
             c, "readResolve", null, Object.class);
@@ -483,7 +483,7 @@ public final class FSTClazzInfo {
         }
         if (readResolveMethod != null) {
             readResolveMethod.setAccessible(true);
-        }
+        }*/
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
             fstFieldInfo.indexId = i;
