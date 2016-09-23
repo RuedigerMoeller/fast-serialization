@@ -45,10 +45,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTConfiguration {
 
-    static enum ConfType {
-        DEFAULT
-    }
-
     /**
      * if all attempts fail to find a class this guy is asked.
      * Can be used in case e.g. dynamic classes need get generated.
@@ -79,7 +75,6 @@ public class FSTConfiguration {
     String name;
 
     ClassSecurityVerifier verifier;
-    ConfType type = ConfType.DEFAULT;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
@@ -215,22 +210,6 @@ public class FSTConfiguration {
         return conf;
     }
 
-    public static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs) {
-        return createConfiguration(ct,shareRefs);
-    }
-
-    protected static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs,ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared ) {
-        FSTConfiguration res;
-        switch (ct) {
-            case DEFAULT:
-                res = createDefaultConfiguration(shared);
-                break;
-            default:
-                throw new RuntimeException("unsupported conftype for factory method");
-        }
-        res.setShareReferences(shareRefs);
-        return res;
-    }
     /**
      * the standard FSTConfiguration.
      * - safe (no unsafe r/w)
@@ -791,7 +770,7 @@ public class FSTConfiguration {
         ThreadLocal getInput();
         ThreadLocal getOutput();
     }
-    
+
     public FSTEncoder createStreamEncoder() {
         return streamCoderFactory.createStreamEncoder();
     }
@@ -1005,42 +984,6 @@ public class FSTConfiguration {
             len -= in.read(buffer, buffer.length - len, len);
         }
         return getObjectInput(buffer).readObject();
-    }
-
-    /**
-     * @return a configzration sharing as much as possible state with the callee. Its valid to register
-     * different serializers at the derived configzration obtained.
-     */
-    public FSTConfiguration deriveConfiguration() {
-        if ( fieldInfoCache == null ) {
-            fieldInfoCache = new ConcurrentHashMap<>();
-        }
-        FSTConfiguration derived = createConfiguration(type, shareReferences, fieldInfoCache);
-        // try to share as much as possible to save memory
-        // note: the creation of those objects in createConfiguration() is unnecessary,
-        // would need a specials lean creation method to avoid that (+init overhead)
-        //
-        // still no good test coverage. Problematic distribution of state and references all across the
-        // code (to reduce pointer chasing) makes it problematic to implement stuff like this (errors might occur on nasty edge cases)
-        derived.fieldInfoCache = fieldInfoCache;
-
-        // sharing does not work. need manual clean up
-//        derived.output = output;
-//        derived.input = input;
-
-//        cannot derive => hard link to conf in anonymous
-//        derived.streamCoderFactory = streamCoderFactory;
-//        derived.instantiator = instantiator;
-//        derived.lastResortResolver = lastResortResolver;
-
-        // avoid concurrent registering later on !
-        derived.minbinNames = minbinNames;
-        derived.minBinNamesBytez = minBinNamesBytez;
-        derived.minbinNamesReverse = minbinNamesReverse;
-
-        // errors with websockets ..
-//        derived.classRegistry = classRegistry;
-        return derived;
     }
 
     @Override
