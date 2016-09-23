@@ -54,9 +54,6 @@ public class FSTObjectInput implements ObjectInput {
 
     protected FSTConfiguration conf;
 
-    // copied values from conf
-    protected boolean isCrossPlatform;
-
     public FSTConfiguration getConf() {
         return conf;
     }
@@ -190,7 +187,6 @@ public class FSTObjectInput implements ObjectInput {
     public FSTObjectInput(InputStream in, FSTConfiguration conf) {
         setCodec(conf.createStreamDecoder());
         getCodec().setInputStream(in);
-        isCrossPlatform = conf.isCrossPlatform();
         initRegistries(conf);
         this.conf = conf;
     }
@@ -293,9 +289,6 @@ public class FSTObjectInput implements ObjectInput {
 
     public Object readObject(Class... possibles) throws Exception {
         curDepth++;
-        if ( isCrossPlatform ) {
-            return readObjectInternal(null); // not supported cross platform
-        }
         try {
             if (possibles != null && possibles.length > 1 ) {
                 for (int i = 0; i < possibles.length; i++) {

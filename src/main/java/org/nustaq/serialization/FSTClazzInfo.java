@@ -134,11 +134,9 @@ public final class FSTClazzInfo {
 
     FSTConfiguration conf;
     protected FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
-    boolean crossPlatform;
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
         this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
-        crossPlatform = conf.isCrossPlatform();
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
         ignoreAnn = ignoreAnnotations;
@@ -187,9 +185,6 @@ public final class FSTClazzInfo {
         }
 
         requiresInit = isExternalizable() || useCompatibleMode() || hasTransient || conf.isForceClzInit();
-
-        if (useCompatibleMode() && crossPlatform && getSer() == null && !clazz.isEnum())
-            throw new RuntimeException("cannot support legacy JDK serialization methods in crossplatform mode. Define a serializer for this class " + clazz.getName());
     }
 
     byte[] bufferedName;
@@ -512,7 +507,7 @@ public final class FSTClazzInfo {
             }
         }
         field.setAccessible(true);
-        Predict predict = crossPlatform ? null : field.getAnnotation(Predict.class); // needs to be iognored cross platform
+        Predict predict = field.getAnnotation(Predict.class); // needs to be iognored cross platform
         FSTFieldInfo result = new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
         if ( conf.fieldInfoCache != null && key != null ) {
             conf.fieldInfoCache.put(key,result);

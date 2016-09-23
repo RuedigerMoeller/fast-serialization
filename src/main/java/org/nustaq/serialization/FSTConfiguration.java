@@ -53,28 +53,10 @@ public class FSTConfiguration {
         public Class getClass( String clName );
     }
 
-    /**
-     * Security: disallow packages/classes upon deserialization
-     */
-    public interface ClassSecurityVerifier {
-        /**
-         * return false if your application does not allow to deserialize objects of type
-         * cl. This can be implemented using whitelisting/blacklisting whole packages, subpackages, single classes
-         *
-         * Note: this also disallows serialization of forbidden classes. For assymetric use cases register a custom
-         * serializer in order to prevent reading/writing of certain classes.
-         *
-         * @param cl - the class being serialized/deserialized
-         * @return
-         */
-        boolean allowClassDeserialization( Class cl );
-    }
-
     StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
 
     String name;
 
-    ClassSecurityVerifier verifier;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
@@ -88,15 +70,6 @@ public class FSTConfiguration {
     LastResortClassRessolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
-
-    public ClassSecurityVerifier getVerifier() {
-        return verifier;
-    }
-
-    public FSTConfiguration setVerifier(ClassSecurityVerifier verifier) {
-        this.verifier = verifier;
-        return this;
-    }
 
     // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
     static class FieldKey {
@@ -144,17 +117,6 @@ public class FSTConfiguration {
     public void setName(String name) {
         this.name = name;
     }
-/////////////////////////////////////
-    // cross platform stuff only
-
-    int cpAttrIdCount = 0;
-    // contains symbol => full qualified name
-    private HashMap<String, String> minbinNames = new HashMap<>();
-    // may contain symbol => cached binary output
-    private HashMap<String, byte[]> minBinNamesBytez = new HashMap<>();
-    // contains full qualified name => symbol
-    private HashMap<String, String> minbinNamesReverse = new HashMap<>();
-    private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
     // non-final for testing
     public static boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
@@ -752,14 +714,6 @@ public class FSTConfiguration {
         return getCLInfoRegistry().getCLInfo(rowClass, this);
     }
 
-    public void setCrossPlatform(boolean crossPlatform) {
-        this.crossPlatform = crossPlatform;
-    }
-
-    public boolean isCrossPlatform() {
-        return crossPlatform;
-    }
-
     public <T> T deepCopy(T metadata) {
         return (T) asObject(asByteArray(metadata));
     }
@@ -777,105 +731,6 @@ public class FSTConfiguration {
 
     public FSTDecoder createStreamDecoder() {
         return streamCoderFactory.createStreamDecoder();
-    }
-
-    AtomicBoolean cplock = new AtomicBoolean(false);
-    public void registerCrossPlatformClassBinaryCache( String fulLQName, byte[] binary ) {
-        try {
-            while (cplock.compareAndSet(false, true)) { } // spin
-            minBinNamesBytez.put(fulLQName, binary);
-        } finally {
-            cplock.set(false);
-        }
-    }
-
-    public byte[] getCrossPlatformBinaryCache(String symbolicName) {
-        try {
-            while ( cplock.compareAndSet(false, true)) { } // spin
-            return minBinNamesBytez.get(symbolicName);
-        } finally {
-            cplock.set(false);
-        }
-    }
-
-    /**
-     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     * currently only for minbin serialization
-     *
-     * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
-     */
-    public FSTConfiguration registerCrossPlatformClassMapping( String[][] keysAndVals ) {
-        for (int i = 0; i < keysAndVals.length; i++) {
-            String[] keysAndVal = keysAndVals[i];
-            registerCrossPlatformClassMapping(keysAndVal[0], keysAndVal[1]);
-        }
-        return this;
-    }
-
-    public FSTConfiguration registerCrossPlatformClassMapping( String shortName,  String fqName ) {
-        minbinNames.put(shortName, fqName);
-        minbinNamesReverse.put(fqName, shortName);
-        return this;
-    }
-
-    /**
-     * shorthand for registerCrossPlatformClassMapping(_,_)
-     * @param shortName - class name in json type field
-     * @param clz - class
-     * @return
-     */
-    public FSTConfiguration cpMap(String shortName, Class clz) {
-        return registerCrossPlatformClassMapping(shortName,clz.getName());
-    }
-
-    /**
-     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     */
-    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
-        registerCrossPlatformClassMappingUseSimpleName(Arrays.asList(classes));
-        return this;
-    }
-
-    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
-        for (int i = 0; i < classes.size(); i++) {
-            Class clz = classes.get(i);
-            minbinNames.put(clz.getSimpleName(), clz.getName());
-            minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
-            try {
-                if (!clz.isArray() ) {
-                    Class ac = Class.forName("[L"+clz.getName()+";");
-                    minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
-                    minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
-                }
-            } catch (ClassNotFoundException e) {
-                FSTUtil.<RuntimeException>rethrow(e);
-            }
-        }
-        return this;
-    }
-
-    /**
-     * get cross platform symbolic class identifier
-     * @param cl
-     * @return
-     */
-    public String getCPNameForClass( Class cl ) {
-        String res = minbinNamesReverse.get(cl.getName());
-        if (res == null) {
-            if (cl.isAnonymousClass()) {
-                return getCPNameForClass(cl.getSuperclass());
-            }
-            return cl.getName();
-        }
-        return res;
-    }
-
-    public String getClassForCPName( String name ) {
-        String res = minbinNames.get(name);
-        if (res == null) {
-            return name;
-        }
-        return res;
     }
 
     /**
@@ -900,11 +755,6 @@ public class FSTConfiguration {
             objectOutput.writeObject(object);
             return objectOutput.getCopyOfWrittenBuffer();
         } catch (IOException e) {
-            try {
-//                FSTConfiguration.prettyPrintJson(object); endless cycle !
-            } catch (Exception ee) {
-                //
-            }
             FSTUtil.<RuntimeException>rethrow(e);
         }
         return null;

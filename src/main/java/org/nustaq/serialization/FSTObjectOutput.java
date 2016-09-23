@@ -63,7 +63,6 @@ public class FSTObjectOutput implements ObjectOutput {
     // double state to reduce pointer chasing
     protected boolean dontShare;
     protected final FSTClazzInfo stringInfo;
-    protected boolean isCrossPlatform;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -88,7 +87,6 @@ public class FSTObjectOutput implements ObjectOutput {
         this.conf = conf;
         setCodec(conf.createStreamEncoder());
         getCodec().setOutstream(out);
-        isCrossPlatform = conf.isCrossPlatform();
 
         objects = (FSTObjectRegistry) conf.getCachedObject(FSTObjectRegistry.class);
         if ( objects == null ) {
@@ -271,10 +269,6 @@ public class FSTObjectOutput implements ObjectOutput {
     
     public void writeObject(Object obj, Class... possibles) throws IOException {
         curDepth++;
-        if ( isCrossPlatform ) {
-            writeObjectInternal(obj, null); // not supported cross platform
-            return;
-        }
         if ( possibles != null && possibles.length > 1 ) {
             for (int i = 0; i < possibles.length; i++) {
                 Class possible = possibles[i];

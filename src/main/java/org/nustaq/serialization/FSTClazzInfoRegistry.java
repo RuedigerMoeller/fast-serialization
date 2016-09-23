@@ -20,7 +20,6 @@ import org.nustaq.serialization.util.FSTMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -122,10 +121,6 @@ public class FSTClazzInfoRegistry {
                 if (c == null) {
                     rwLock.set(false);
                     throw new NullPointerException("Class is null");
-                }
-                if ( conf.getVerifier() != null ) {
-                    if ( ! conf.getVerifier().allowClassDeserialization(c) )
-                        throw new RuntimeException("tried to deserialize forbidden class "+c.getName() );
                 }
                 res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
                 mInfos.put(c, res);
