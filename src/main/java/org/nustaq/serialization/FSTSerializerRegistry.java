@@ -31,17 +31,17 @@ public class FSTSerializerRegistry {
 
     private FSTSerializerRegistryDelegate delegate;
 
-    public static FSTObjectSerializer NULL = new NULLSerializer();
+    static FSTObjectSerializer NULL = new NULLSerializer();
 
-    public void setDelegate(FSTSerializerRegistryDelegate delegate) {
+    void setDelegate(FSTSerializerRegistryDelegate delegate) {
         this.delegate = delegate;
     }
 
-    public FSTSerializerRegistryDelegate getDelegate() {
+    FSTSerializerRegistryDelegate getDelegate() {
         return delegate;
     }
 
-    static class NULLSerializer implements FSTObjectSerializer {
+    private static class NULLSerializer implements FSTObjectSerializer {
 
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) {
@@ -72,7 +72,7 @@ public class FSTSerializerRegistry {
         }
     };
 
-    final static class SerEntry {
+    private final static class SerEntry {
         boolean forSubClasses = false;
         FSTObjectSerializer ser;
 
@@ -82,9 +82,9 @@ public class FSTSerializerRegistry {
         }
     }
 
-    HashMap<Class,SerEntry> map = new HashMap<Class, SerEntry>(97);
+    private final HashMap<Class,SerEntry> map = new HashMap<Class, SerEntry>(97);
 
-    public final FSTObjectSerializer getSerializer(Class cl) {
+    final FSTObjectSerializer getSerializer(Class cl) {
         if ( cl.isPrimitive()) {
             return null;
         }
@@ -97,7 +97,7 @@ public class FSTSerializerRegistry {
         return getSerializer(cl,cl);
     }
 
-    final FSTObjectSerializer getSerializer(Class cl, Class lookupStart) {
+    private FSTObjectSerializer getSerializer(Class cl, Class lookupStart) {
         if ( cl == null ) {
             return null;
         }
@@ -117,9 +117,7 @@ public class FSTSerializerRegistry {
         return null;
     }
 
-    public void putSerializer( Class cl, FSTObjectSerializer ser, boolean includeSubclasses) {
+    void putSerializer(Class cl, FSTObjectSerializer ser, boolean includeSubclasses) {
         map.put(cl,new SerEntry(includeSubclasses,ser));
     }
-
-
 }

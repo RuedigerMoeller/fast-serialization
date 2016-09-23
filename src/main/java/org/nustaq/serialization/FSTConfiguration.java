@@ -15,21 +15,47 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.serialization.coders.*;
+import org.nustaq.serialization.coders.FSTStreamDecoder;
+import org.nustaq.serialization.coders.FSTStreamEncoder;
+import org.nustaq.serialization.serializers.FSTArrayListSerializer;
+import org.nustaq.serialization.serializers.FSTBigIntegerSerializer;
+import org.nustaq.serialization.serializers.FSTBigNumberSerializers;
+import org.nustaq.serialization.serializers.FSTClassSerializer;
+import org.nustaq.serialization.serializers.FSTCollectionSerializer;
+import org.nustaq.serialization.serializers.FSTDateSerializer;
+import org.nustaq.serialization.serializers.FSTEnumSetSerializer;
+import org.nustaq.serialization.serializers.FSTMapSerializer;
+import org.nustaq.serialization.serializers.FSTStringBufferSerializer;
+import org.nustaq.serialization.serializers.FSTStringBuilderSerializer;
+import org.nustaq.serialization.serializers.FSTStringSerializer;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
-import org.nustaq.serialization.serializers.*;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -76,7 +102,7 @@ public class FSTConfiguration {
         Class clazz;
         String fieldName;
 
-        public FieldKey(Class clazz, String fieldName) {
+        FieldKey(Class clazz, String fieldName) {
             this.clazz = clazz;
             this.fieldName = fieldName;
         }
@@ -124,8 +150,8 @@ public class FSTConfiguration {
     // end cross platform stuff only
     /////////////////////////////////////
 
-    static AtomicBoolean conflock = new AtomicBoolean(false);
-    static FSTConfiguration singleton;
+    private static AtomicBoolean conflock = new AtomicBoolean(false);
+    private static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
         do { } while ( !conflock.compareAndSet(false, true) );
         try {
@@ -148,7 +174,7 @@ public class FSTConfiguration {
         return createAndroidDefaultConfiguration(null);
      }
 
-     protected static FSTConfiguration createAndroidDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
+     private static FSTConfiguration createAndroidDefaultConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
         final Objenesis genesis = new ObjenesisStd();
         FSTConfiguration conf = new FSTConfiguration(shared) {
             @Override
@@ -197,7 +223,7 @@ public class FSTConfiguration {
         return initDefaultFstConfigurationInternal(conf);
     }
 
-    protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
+    private static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
         conf.addDefaultClazzes();
         // serializers
         FSTSerializerRegistry reg = conf.getCLInfoRegistry().getSerializerRegistry();
@@ -393,7 +419,7 @@ public class FSTConfiguration {
         serializationInfoRegistry.setSerializerRegistryDelegate(del);
     }
 
-    AtomicBoolean cacheLock = new AtomicBoolean(false);
+    private final AtomicBoolean cacheLock = new AtomicBoolean(false);
     public Object getCachedObject( Class cl ) {
         try  {
             while (!cacheLock.compareAndSet(false, true)) {
@@ -495,7 +521,7 @@ public class FSTConfiguration {
         }
     }
 
-    void addDefaultClazzes() {
+    private void addDefaultClazzes() {
         classRegistry.registerClass(String.class,this);
         classRegistry.registerClass(Byte.class,this);
         classRegistry.registerClass(Short.class,this);
@@ -514,11 +540,11 @@ public class FSTConfiguration {
         classRegistry.registerClass(URL.class,this);
         classRegistry.registerClass(Date.class,this);
         classRegistry.registerClass(java.sql.Date.class,this);
-        classRegistry.registerClass(SimpleDateFormat.class,this);
+        //classRegistry.registerClass(SimpleDateFormat.class,this);
         classRegistry.registerClass(TreeSet.class,this);
         classRegistry.registerClass(LinkedList.class,this);
-        classRegistry.registerClass(SimpleTimeZone.class,this);
-        classRegistry.registerClass(GregorianCalendar.class,this);
+        //classRegistry.registerClass(SimpleTimeZone.class,this);
+        //classRegistry.registerClass(GregorianCalendar.class,this);
         classRegistry.registerClass(Vector.class,this);
         classRegistry.registerClass(Hashtable.class,this);
         classRegistry.registerClass(BitSet.class,this);
@@ -718,7 +744,7 @@ public class FSTConfiguration {
         return (T) asObject(asByteArray(metadata));
     }
 
-    public static interface StreamCoderFactory {
+    public interface StreamCoderFactory {
         FSTEncoder createStreamEncoder();
         FSTDecoder createStreamDecoder();
         ThreadLocal getInput();
@@ -843,10 +869,10 @@ public class FSTConfiguration {
                    '}';
     }
 
-    protected static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
+    private static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
         private FSTConfiguration fstConfiguration;
 
-        public FSTDefaultStreamCoderFactory(FSTConfiguration fstConfiguration) {this.fstConfiguration = fstConfiguration;}
+        FSTDefaultStreamCoderFactory(FSTConfiguration fstConfiguration) {this.fstConfiguration = fstConfiguration;}
 
         @Override
         public FSTEncoder createStreamEncoder() {

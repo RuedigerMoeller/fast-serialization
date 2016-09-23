@@ -32,10 +32,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzInfoRegistry {
 
-    FSTMap mInfos = new FSTMap(97);
-    FSTSerializerRegistry serializerRegistry = new FSTSerializerRegistry();
-    boolean ignoreAnnotations = false;
-    final AtomicBoolean rwLock = new AtomicBoolean(false);
+    private final FSTMap mInfos = new FSTMap(97);
+    private final FSTSerializerRegistry serializerRegistry = new FSTSerializerRegistry();
+    private boolean ignoreAnnotations = false;
+    private final AtomicBoolean rwLock = new AtomicBoolean(false);
     private boolean structMode = false;
 
     public static void addAllReferencedClasses(Class cl, ArrayList<String> names, String filter) {
@@ -44,7 +44,7 @@ public class FSTClazzInfoRegistry {
         names.addAll(names1);
     }
 
-    static void addAllReferencedClasses(Class cl, HashSet<String> names, HashSet<String> topLevelDone, String filter) {
+    private static void addAllReferencedClasses(Class cl, HashSet<String> names, HashSet<String> topLevelDone, String filter) {
         if ( cl == null || topLevelDone.contains(cl.getName()) || !cl.getName().startsWith(filter))
             return;
         topLevelDone.add(cl.getName());
@@ -110,10 +110,10 @@ public class FSTClazzInfoRegistry {
         }
     }
 
-    public FSTClazzInfoRegistry() {
+    FSTClazzInfoRegistry() {
     }
 
-    public FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf) {
+    FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf) {
         while(!rwLock.compareAndSet(false,true));
         try {
             FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
@@ -131,11 +131,11 @@ public class FSTClazzInfoRegistry {
         }
     }
 
-    public FSTSerializerRegistry getSerializerRegistry() {
+    FSTSerializerRegistry getSerializerRegistry() {
         return serializerRegistry;
     }
 
-    public final boolean isIgnoreAnnotations() {
+    final boolean isIgnoreAnnotations() {
         return ignoreAnnotations;
     }
 
@@ -144,7 +144,7 @@ public class FSTClazzInfoRegistry {
     }
 
 
-    public void setSerializerRegistryDelegate(FSTSerializerRegistryDelegate delegate) {
+    void setSerializerRegistryDelegate(FSTSerializerRegistryDelegate delegate) {
         serializerRegistry.setDelegate(delegate);
     }
 
@@ -152,11 +152,11 @@ public class FSTClazzInfoRegistry {
         return serializerRegistry.getDelegate();
     }
 
-    public void setStructMode(boolean structMode) {
+    void setStructMode(boolean structMode) {
         this.structMode = structMode;
     }
 
-    public boolean isStructMode() {
+    boolean isStructMode() {
         return structMode;
     }
 }

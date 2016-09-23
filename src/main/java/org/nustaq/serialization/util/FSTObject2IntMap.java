@@ -16,8 +16,6 @@
 
 package org.nustaq.serialization.util;
 
-import java.util.HashMap;
-
 /**
  * Created with IntelliJ IDEA.
  * User: ruedi
@@ -44,13 +42,13 @@ public class FSTObject2IntMap<K> {
         return size;
     }
 
-    public Object mKeys[];
-    public int mValues[];
-    public int mNumberOfElements;
-    FSTObject2IntMap<K> next;
-    boolean checkClazzOnEquals = false;
+    private Object mKeys[];
+    private int mValues[];
+    private int mNumberOfElements;
+    private FSTObject2IntMap<K> next;
+    private boolean checkClazzOnEquals = false;
 
-    public FSTObject2IntMap(int initialSize, boolean checkClassOnequals) {
+    private FSTObject2IntMap(int initialSize, boolean checkClassOnequals) {
         if (initialSize < 2) {
             initialSize = 2;
         }
@@ -72,7 +70,7 @@ public class FSTObject2IntMap<K> {
         putHash(key, value, hash, this);
     }
 
-    final void putHash(K key, int value, int hash, FSTObject2IntMap<K> parent) {
+    private void putHash(K key, int value, int hash, FSTObject2IntMap<K> parent) {
         if (mNumberOfElements * GROFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
@@ -102,7 +100,7 @@ public class FSTObject2IntMap<K> {
         }
     }
 
-    final K removeHash(K key, int hash) {
+    private K removeHash(K key, int hash) {
         final int idx = hash % mKeys.length;
 
         final Object mKey = mKeys[idx];
@@ -126,7 +124,7 @@ public class FSTObject2IntMap<K> {
         }
     }
 
-    final void putNext(final int hash, final K key, final int value) {
+    private void putNext(final int hash, final K key, final int value) {
         if (next == null) {
             int newSiz = mNumberOfElements / 3;
             next = new FSTObject2IntMap<K>(newSiz, checkClazzOnEquals);
@@ -150,8 +148,7 @@ public class FSTObject2IntMap<K> {
             if (next == null) {
                 return Integer.MIN_VALUE;
             }
-            int res = next.getHash(key, hash);
-            return res;
+            return next.getHash(key, hash);
         }
         // <== inline
     }
@@ -159,7 +156,7 @@ public class FSTObject2IntMap<K> {
     static int miss = 0;
     static int hit = 0;
 
-    final int getHash(final K key, final int hash) {
+    private int getHash(final K key, final int hash) {
         final int idx = hash % mKeys.length;
 
         final Object mapsKey = mKeys[idx];
@@ -173,12 +170,11 @@ public class FSTObject2IntMap<K> {
             if (next == null) {
                 return Integer.MIN_VALUE;
             }
-            int res = next.getHash(key, hash);
-            return res;
+            return next.getHash(key, hash);
         }
     }
 
-    final void resize(int newSize) {
+    private void resize(int newSize) {
         newSize = adjustSize(newSize);
         Object[] oldTabKey = mKeys;
         int[] oldTabVal = mValues;

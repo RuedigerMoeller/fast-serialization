@@ -41,13 +41,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    public static final int LOWEST_CLZ_ID = 3;
-    public static final int FIRST_USER_CLZ_ID = 1000;
+    private static final int LOWEST_CLZ_ID = 3;
+    private static final int FIRST_USER_CLZ_ID = 1000;
 
-    FSTIdentity2IdMap clzToId;
-    FSTClazzInfo idToClz[];
-    FSTClazzNameRegistry parent;
-    int classIdCount = LOWEST_CLZ_ID;
+    private FSTIdentity2IdMap clzToId;
+    private FSTClazzInfo idToClz[];
+    private FSTClazzNameRegistry parent;
+    private int classIdCount = LOWEST_CLZ_ID;
 
     public FSTClazzNameRegistry(FSTClazzNameRegistry par) {
         parent = par;
@@ -91,7 +91,7 @@ public class FSTClazzNameRegistry {
         addClassMapping(c, code, null,conf);
     }
 
-    protected void addClassMapping( Class c, int id, FSTClazzInfo clInfo, FSTConfiguration conf ) {
+    private void addClassMapping(Class c, int id, FSTClazzInfo clInfo, FSTConfiguration conf) {
         clzToId.put(c, id);
         if (clInfo==null)
             clInfo = conf.getCLInfoRegistry().getCLInfo(c, conf);
@@ -107,7 +107,7 @@ public class FSTClazzNameRegistry {
         }
     }
 
-    public int getIdFromClazz(Class c) {
+    private int getIdFromClazz(Class c) {
         int res = Integer.MIN_VALUE;
         if ( parent != null ) {
             res = parent.getIdFromClazz(c);
@@ -182,8 +182,8 @@ public class FSTClazzNameRegistry {
         }
     }
 
-    HashMap<String,Class> classCache = new HashMap<String, Class>(200);
-    AtomicBoolean classCacheLock = new AtomicBoolean(false);
+    private final HashMap<String,Class> classCache = new HashMap<String, Class>(200);
+    private final AtomicBoolean classCacheLock = new AtomicBoolean(false);
     public Class classForName(String clName, FSTConfiguration conf) throws ClassNotFoundException {
         if ( parent != null ) {
             return parent.classForName(clName,conf);
@@ -239,7 +239,7 @@ public class FSTClazzNameRegistry {
         classCacheLock.set(false);
     }
 
-    public FSTClazzInfo getClazzFromId(int c) {
+    private FSTClazzInfo getClazzFromId(int c) {
         FSTClazzInfo res = null;
         if ( parent != null ) {
             res = parent.getClazzFromId(c);
@@ -252,6 +252,4 @@ public class FSTClazzNameRegistry {
             return res;
         }
     }
-
-
 }

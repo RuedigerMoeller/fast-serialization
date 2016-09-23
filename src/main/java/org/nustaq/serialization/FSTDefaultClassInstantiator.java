@@ -16,12 +16,13 @@
 package org.nustaq.serialization;
 
 import org.nustaq.serialization.util.FSTUtil;
-import sun.reflect.ReflectionFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
+
+import sun.reflect.ReflectionFactory;
 
 /**
  * Created by ruedi on 12.12.14.
@@ -34,7 +35,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
     /**
      * reduce number of generated classes. Can be cleared riskless in case.
      */
-    public static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
 
     @Override
     public Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort) {
