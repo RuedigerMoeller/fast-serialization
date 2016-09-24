@@ -216,9 +216,9 @@ public class FSTConfiguration {
     }
 
     protected static FSTConfiguration createDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
-        if (isAndroid) {
+       /* if (isAndroid) {
             return createAndroidDefaultConfiguration(shared);
-        }
+        }*/
         FSTConfiguration conf = new FSTConfiguration(shared);
         return initDefaultFstConfigurationInternal(conf);
     }

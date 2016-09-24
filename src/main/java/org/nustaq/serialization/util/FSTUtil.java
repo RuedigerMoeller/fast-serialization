@@ -15,8 +15,6 @@
  */
 package org.nustaq.serialization.util;
 
-import sun.misc.Unsafe;
-
 import java.io.InputStream;
 import java.io.ObjectStreamField;
 import java.io.PrintWriter;
@@ -26,6 +24,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
+
+import sun.misc.Unsafe;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,7 +38,8 @@ public class FSTUtil {
 
     static Object[] EmptyObjArray = new Object[10000];
     static ObjectStreamField[] NO_FIELDS = new ObjectStreamField[0];
-    public static Unsafe unFlaggedUnsafe = FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
+    public static Unsafe unFlaggedUnsafe = UnsafeUtil.UNSAFE;//FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
+    //public static UnsafeAndroid unFlaggedUnsafeAndroid = new UnsafeAndroid();
 
     static {
         if (unFlaggedUnsafe != null) {

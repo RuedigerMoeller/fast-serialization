@@ -1,5 +1,3 @@
-import java.util.zip.ZipFile
-
 apply plugin: 'java'
 apply plugin: 'maven'
 version="2.47"
@@ -14,10 +12,12 @@ jar.baseName='fst'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     compile 'org.objenesis:objenesis:2.4'
+    compile 'com.implimentz:unsafe:0.0.5'
 }
 
 task sourcesJar(type: Jar, dependsOn:classes) {
