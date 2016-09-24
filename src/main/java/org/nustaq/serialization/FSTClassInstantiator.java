@@ -22,8 +22,8 @@ import java.lang.reflect.Constructor;
  */
 public interface FSTClassInstantiator {
 
-    public Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort );
-    public Constructor findConstructorForExternalize(Class clazz);
-    public Constructor findConstructorForSerializable(Class clazz);
+    Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort);
+    Constructor findConstructorForExternalize(Class clazz);
+    Constructor findConstructorForSerializable(Class clazz);
 
 }

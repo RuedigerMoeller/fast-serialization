@@ -172,11 +172,7 @@ public class FSTConfiguration {
      * @return
      */
     public static FSTConfiguration createDefaultConfiguration() {
-        return createDefaultConfiguration(null);
-    }
-
-    protected static FSTConfiguration createDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
-        FSTConfiguration conf = new FSTConfiguration(shared);
+        FSTConfiguration conf = new FSTConfiguration(null);
         return initDefaultFstConfigurationInternal(conf);
     }
 

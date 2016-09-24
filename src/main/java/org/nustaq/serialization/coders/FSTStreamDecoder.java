@@ -168,7 +168,7 @@ public class FSTStreamDecoder implements FSTDecoder {
                 boolean[] arr = (boolean[]) array;
                 ensureReadAhead(arr.length);
                 for (int j = 0; j < len; j++) {
-                    arr[j] = readFByte() == 0 ? false : true;
+                    arr[j] = readFByte() != 0;
                 }
                 return arr;
             } else {

@@ -30,35 +30,35 @@ import java.io.IOException;
  */
 public interface FSTObjectSerializer {
 
-    public static final String REALLY_NULL = "REALLY_NULL";
+    String REALLY_NULL = "REALLY_NULL";
     /**
      * write the contents of a given object
      */
-    public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition)
+    void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition)
             throws IOException;
 
     /**
      * read the content to an already instantiated object
      */
-    public void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy)
+    void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy)
         throws Exception;
 
     /**
      * useful if you register for a class and its subclasses, but want to exclude a specific subclass
      */
-    public boolean willHandleClass(Class cl);
+    boolean willHandleClass(Class cl);
 
     /**
      * @return true if FST can skip a search for same instances in the serialized ObjectGraph. This speeds up reading and writing and makes
      * sense for short immutable such as Integer, Short, Character, Date, .. . For those classes it is more expensive (CPU, size) to do a lookup than to just
      * write the Object twice in case.
      */
-    public boolean alwaysCopy();
+    boolean alwaysCopy();
 
     /**
      * return null to delegate object instantiation to FST. If you want to implement object instantiation yourself, usually you leave the readObject method empty
      * and handle instantiation and reading the object here. You must call registerObjectForWrite immediately after creating it on the FSTObjectInput
      */
-    public Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition)
+    Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition)
         throws Exception;
 }

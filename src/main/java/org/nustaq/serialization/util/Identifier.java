@@ -65,10 +65,7 @@ public final class Identifier {
             return false;
         }
         Identifier other = (Identifier) obj;
-        if (!Arrays.equals(data, other.data)) {
-            return false;
-        }
-        return true;
+        return Arrays.equals(data, other.data);
     }
 
     /**

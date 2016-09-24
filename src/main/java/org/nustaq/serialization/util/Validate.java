@@ -120,7 +120,7 @@ public final class Validate {
      * The <tt>Validation</tt> interface is used to implement internal and
      * external validations based on Java 8 lambdas.
      */
-    public static interface Validation {
+    public interface Validation {
 
         /**
          * This method implements the validation logic and returns <tt>true</tt>
@@ -138,7 +138,7 @@ public final class Validate {
      * operations to be as lazy as possible and to only happen if really
      * necessary.
      */
-    public static interface MessageBuilder {
+    public interface MessageBuilder {
 
         /**
          * Generates the content and builds the exception message.
@@ -153,7 +153,7 @@ public final class Validate {
      * exception up to the point where a validation really failed and a message
      * was created.
      */
-    public static interface ExceptionBuilder {
+    public interface ExceptionBuilder {
 
         /**
          * Generates the exception using the given exceptional message

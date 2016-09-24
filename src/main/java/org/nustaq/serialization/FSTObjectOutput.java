@@ -565,7 +565,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         break;
                     }
                     final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                    if ( subInfo.getIntegralType() != subInfo.BOOL ) {
+                    if ( subInfo.getIntegralType() != FSTClazzInfo.FSTFieldInfo.BOOL) {
                         if ( boolcount > 0 ) {
                             getCodec().writeFByte(booleanMask << (8 - boolcount));
                         }

@@ -70,7 +70,7 @@ public class FSTSerializerRegistry {
         public Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
             return null;
         }
-    };
+    }
 
     private final static class SerEntry {
         boolean forSubClasses = false;

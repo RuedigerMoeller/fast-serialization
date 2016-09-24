@@ -54,14 +54,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class FSTClazzInfo {
 
     // cache constructor per class (big saving in permspace)
-    public static boolean BufferConstructorMeta = true;
+    static final boolean BufferConstructorMeta = true;
     // cache and share class.getDeclaredFields amongst all fstconfigs
-    public static boolean BufferFieldMeta = true;
+    private static final boolean BufferFieldMeta = true;
 
     /**
      * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem (e.g. class reloading)
      */
-    public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
 
     public static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
         @Override
@@ -101,7 +101,7 @@ public final class FSTClazzInfo {
         }
     };
     Class[] predict;
-    private boolean ignoreAnn;
+    private final boolean ignoreAnn;
     FSTMap<String, FSTFieldInfo> fieldMap;
     Method writeReplaceMethod, readResolveMethod;
     FSTMap<Class, FSTCompatibilityInfo> compInfo;
@@ -125,15 +125,15 @@ public final class FSTClazzInfo {
     FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
 
-    Class clazz;
-    Object[] enumConstants;
+    final Class clazz;
+    final Object[] enumConstants;
     Constructor cons;
     int clzId = -1;
     int structSize = 0;
 
 
-    FSTConfiguration conf;
-    protected FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
+    final FSTConfiguration conf;
+    protected final FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
         this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
@@ -494,8 +494,8 @@ public final class FSTClazzInfo {
     }
 
 
-    static AtomicInteger fiCount = new AtomicInteger(0);
-    static AtomicInteger missCount = new AtomicInteger(0);
+    static final AtomicInteger fiCount = new AtomicInteger(0);
+    static final AtomicInteger missCount = new AtomicInteger(0);
     protected FSTFieldInfo createFieldInfo(Field field) {
         FSTConfiguration.FieldKey key = null;
         if ( conf.fieldInfoCache != null ) {
@@ -569,8 +569,8 @@ public final class FSTClazzInfo {
 
         int structOffset = 0;
         int indexId; // position in serializable fields array
-        int align = 0;
-        int alignPad = 0;
+        final int align = 0;
+        final int alignPad = 0;
         Object bufferedName; // cache byte rep of field name (used for cross platform)
 
         // hack required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
@@ -605,7 +605,7 @@ public final class FSTClazzInfo {
             }
             calcIntegral();
             if (fi != null && !ignoreAnnotations) {
-                version = (byte) (fi.isAnnotationPresent(Version.class) ? fi.getAnnotation(Version.class).value() : 0);
+                version = fi.isAnnotationPresent(Version.class) ? fi.getAnnotation(Version.class).value() : 0;
                 flat = fi.isAnnotationPresent(Flat.class);
                 isConditional = fi.isAnnotationPresent(Conditional.class);
                 if (isIntegral()) {
@@ -1002,11 +1002,11 @@ public final class FSTClazzInfo {
     static class FSTCompatibilityInfo {
         Method writeMethod, readMethod;
         ObjectStreamClass objectStreamClass;
-        List<FSTFieldInfo> infos;
-        Class clazz;
+        final List<FSTFieldInfo> infos;
+        final Class clazz;
         FSTFieldInfo infoArr[];
 
-        public FSTCompatibilityInfo(List<FSTFieldInfo> inf, Class c) {
+        FSTCompatibilityInfo(List<FSTFieldInfo> inf, Class c) {
             readClazz(c);
             infos = inf;
             clazz = c;

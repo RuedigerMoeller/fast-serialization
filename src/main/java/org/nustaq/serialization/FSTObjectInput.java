@@ -97,7 +97,7 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public boolean readBoolean() throws IOException {
-        return getCodec().readFByte() == 0 ? false : true;
+        return getCodec().readFByte() != 0;
     }
 
     @Override
@@ -173,8 +173,8 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    public static interface ConditionalCallback {
-        public boolean shouldSkip(Object halfDecoded, int streamPosition, Field field);
+    public interface ConditionalCallback {
+        boolean shouldSkip(Object halfDecoded, int streamPosition, Field field);
     }
 
     public FSTObjectInput() throws IOException {
@@ -652,14 +652,6 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    public void defaultReadObject(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) {
-        try {
-            readObjectFields(referencee, serializationInfo, serializationInfo.getFieldInfo(), newObj, 0, -1); // -1 flag to indicate no object end should be called
-        } catch (Exception e) {
-            FSTUtil.<RuntimeException>rethrow(e);
-        }
-    }
-
     void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj, int startIndex, int version) throws Exception {
 
         if (getCodec().isMapBased()) {
@@ -763,7 +755,7 @@ public class FSTObjectInput implements ObjectInput {
                     // direct primitive field
                     switch (fieldInfo.getIntegralType()) {
                         case FSTClazzInfo.FSTFieldInfo.BOOL:
-                            fieldInfo.setBooleanValue(newObj, getCodec().readFByte() == 0 ? false : true);
+                            fieldInfo.setBooleanValue(newObj, getCodec().readFByte() != 0);
                             break;
                         case FSTClazzInfo.FSTFieldInfo.BYTE:
                             fieldInfo.setByteValue(newObj, getCodec().readFByte());

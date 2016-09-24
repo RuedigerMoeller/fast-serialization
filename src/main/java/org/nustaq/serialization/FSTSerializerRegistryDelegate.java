@@ -23,5 +23,5 @@ public interface FSTSerializerRegistryDelegate {
      * @param cl
      * @return null for default lookup or a serializer for given class
      */
-    public FSTObjectSerializer getSerializer(Class cl);
+    FSTObjectSerializer getSerializer(Class cl);
 }
