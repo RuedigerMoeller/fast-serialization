@@ -30,8 +30,6 @@ import org.nustaq.serialization.serializers.FSTStringBuilderSerializer;
 import org.nustaq.serialization.serializers.FSTStringSerializer;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
 
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -144,9 +142,6 @@ public class FSTConfiguration {
         this.name = name;
     }
 
-    // non-final for testing
-    public static boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
-
     // end cross platform stuff only
     /////////////////////////////////////
 
@@ -161,41 +156,6 @@ public class FSTConfiguration {
         } finally {
             conflock.set(false);
         }
-    }
-
-    /**
-     *
-     * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
-     * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
-     *
-     * @return
-     */
-     public static FSTConfiguration createAndroidDefaultConfiguration() {
-        return createAndroidDefaultConfiguration(null);
-     }
-
-     private static FSTConfiguration createAndroidDefaultConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        final Objenesis genesis = new ObjenesisStd();
-        FSTConfiguration conf = new FSTConfiguration(shared) {
-            @Override
-            public FSTClassInstantiator getInstantiator(Class clazz) {
-                return new FSTObjenesisInstantiator(genesis,clazz);
-            }
-        };
-        initDefaultFstConfigurationInternal(conf);
-        if ( isAndroid ) {
-            try {
-                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedTreeMap"), new FSTMapSerializer(), true);
-            } catch (ClassNotFoundException e) {
-                //silent
-            }
-            try {
-                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedHashTreeMap"), new FSTMapSerializer(), true);
-            } catch (ClassNotFoundException e) {
-                //silent
-            }
-        }
-        return conf;
     }
 
     /**
@@ -216,9 +176,6 @@ public class FSTConfiguration {
     }
 
     protected static FSTConfiguration createDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
-       /* if (isAndroid) {
-            return createAndroidDefaultConfiguration(shared);
-        }*/
         FSTConfiguration conf = new FSTConfiguration(shared);
         return initDefaultFstConfigurationInternal(conf);
     }
