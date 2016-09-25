@@ -858,7 +858,7 @@ public final class FSTClazzInfo {
          * @throws IllegalAccessException
          */
         public final Object getObjectValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
             }
             return field.get(obj);
