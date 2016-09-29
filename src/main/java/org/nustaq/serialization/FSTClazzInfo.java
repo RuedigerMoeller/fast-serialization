@@ -888,7 +888,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setObjectValue(Object target, Object value) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
                 return;
             }
@@ -912,7 +912,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putLong(newObj, memOffset, i1);
                 return;
             }
@@ -920,7 +920,7 @@ public final class FSTClazzInfo {
         }
 
         public final long getLongValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
             }
             return field.getLong(obj);
@@ -934,7 +934,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putInt(newObj, memOffset, i1);
                 return;
             }
@@ -942,7 +942,7 @@ public final class FSTClazzInfo {
         }
 
         public final int getIntValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
             }
             return field.getInt(obj);
