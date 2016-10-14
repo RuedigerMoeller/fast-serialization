@@ -158,7 +158,8 @@ public class FSTConfiguration {
     public void setName(String name) {
         this.name = name;
     }
-/////////////////////////////////////
+
+    /////////////////////////////////////
     // cross platform stuff only
 
     int cpAttrIdCount = 0;

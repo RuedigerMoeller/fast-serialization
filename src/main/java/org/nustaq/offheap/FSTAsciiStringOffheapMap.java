@@ -82,8 +82,18 @@ public class FSTAsciiStringOffheapMap<V> extends FSTSerializedOffheapMap<String,
     }
 
     public ByteSource encodeKey(String key) {
-        if ( key.length() > tmpKey.length() )
-            throw new RuntimeException("key too long: '"+key+"' maxlen:"+tmpKey.length());
+        if ( key.length() > tmpKey.length() ) {
+            int length = (int) tmpKey.length();
+            StringBuilder buf = new StringBuilder(length);
+            for ( int i = 0; i < length; i++ ) {
+                char c = key.charAt(i);
+                if ( i+length < key.length() ) {
+                    c = (char) ((c + key.charAt(i+length))/2);
+                }
+                buf.append(c);
+            }
+            key = buf.toString();
+        }
         tmpKey.setString(key);
         return tmpKey;
     }

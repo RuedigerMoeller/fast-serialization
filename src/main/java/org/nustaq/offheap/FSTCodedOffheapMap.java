@@ -64,7 +64,6 @@ public abstract class FSTCodedOffheapMap<K,V> extends FSTBinaryOffheapMap {
         }
     }
 
-
     public void put( K key, V value ) {
         ByteSource bkey = encodeKey(key);
         ByteSource decoded = encodeValue(value);
