@@ -67,7 +67,7 @@ public class MigrationTest {
         POJO_v1.addField(field1, "\"fieldInit1\"");
 
         final CtField field2 = new CtField(string, "field2", POJO_v1);
-        field1.setModifiers(Modifier.PUBLIC);
+        field2.setModifiers(Modifier.PUBLIC);
         POJO_v1.addField(field2, "\"fieldInit2\"");
 
         cls2 = POJO_v1.toClass(cl1);
