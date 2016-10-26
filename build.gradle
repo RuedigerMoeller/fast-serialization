@@ -91,6 +91,9 @@ artifacts {
     archives sourcesJar
 }
 
+test{
+     maxHeapSize = "1g"
+}
 //uploadArchives {
 //    repositories {
 //        mavenDeployer {
