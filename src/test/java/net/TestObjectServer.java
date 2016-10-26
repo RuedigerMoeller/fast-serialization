@@ -41,7 +41,7 @@ public class TestObjectServer {
 
     volatile boolean ok = false;
     public void client() throws Exception {
-        TCPObjectSocket socket = new TCPObjectSocket("localhost", 5555);
+        TCPObjectSocket socket = new TCPObjectSocket("127.0.0.1", 5555);
 
         // send request
         HashMap toWrite = new HashMap();
