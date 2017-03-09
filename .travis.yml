@@ -3,3 +3,6 @@ jdk:
   - oraclejdk8
   - oraclejdk7
   - openjdk7
+env:
+  - GRADLE_OPTS="-Xmx512m -Xss4m"
+sudo: true
