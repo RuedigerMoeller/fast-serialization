@@ -21,6 +21,12 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.5.3'
     compile group: 'org.javassist', name: 'javassist', version: '3.19.0-GA'
     compile 'org.objenesis:objenesis:2.4'
+    testCompile 'junit:junit:4.8.1'
+    testCompile 'org.bouncycastle:bcprov-jdk15on:1.51'
+    testCompile 'com.cedarsoftware:java-util:1.4.0'
+    testCompile 'org.hdrhistogram:HdrHistogram:2.1.4'
+    testCompile 'javax.json:javax.json-api:1.0'
+    testCompile 'org.glassfish:javax.json:1.0.4'
 }
 
 task sourcesJar(type: Jar, dependsOn:classes) {
