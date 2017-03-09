@@ -1,6 +1,7 @@
 package offheap;
 
 import junit.framework.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.nustaq.offheap.FSTAsciiStringOffheapMap;
 import org.nustaq.offheap.OffHeapByteTree;
@@ -17,6 +18,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 
 /**
  * Created by ruedi on 30.06.14.

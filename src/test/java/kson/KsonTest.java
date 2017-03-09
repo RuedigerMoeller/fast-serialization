@@ -38,7 +38,7 @@ public class KsonTest {
             .map("test", SomePojoConfig.class)
             .map("pojo", PojoConfigItem.class)
             .map("other", OtherPojoConfigItem.class);
-        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/kson/test.kson"));
+        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/java/kson/test.kson"));
         Assert.assertTrue(result.aList.get(1).nameList[0].equals("Short"));
         Assert.assertTrue(result.untypedList.size() == 2);
 
@@ -60,7 +60,7 @@ public class KsonTest {
             .map("test", SomePojoConfig.class)
             .map("pojo", PojoConfigItem.class)
             .map("other", OtherPojoConfigItem.class);
-        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/kson/test.json"), "test" );
+        SomePojoConfig result = (SomePojoConfig) kk.readObject( new File("./src/test/java/kson/test.json"), "test" );
 
         String res = kk.writeJSonObject(result,true);
         System.out.println(res);

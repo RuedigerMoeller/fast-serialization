@@ -1,6 +1,7 @@
 package net;
 
 import junit.framework.Assert;
+import org.junit.After;
 import org.junit.Test;
 import org.nustaq.net.TCPObjectServer;
 import org.nustaq.net.TCPObjectSocket;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 public class TestObjectServer {
 
     public void server() throws IOException {
-        TCPObjectServer server = new TCPObjectServer(5555);
+        TCPObjectServer server = new TCPObjectServer(5554);
         server.start( new TCPObjectServer.NewClientListener() {
             // for each client an own thread is created by default.
             // so no need to create a new Thread for the client here
@@ -41,7 +42,7 @@ public class TestObjectServer {
 
     volatile boolean ok = false;
     public void client() throws Exception {
-        TCPObjectSocket socket = new TCPObjectSocket("localhost", 5555);
+        TCPObjectSocket socket = new TCPObjectSocket("127.0.0.1", 5554);
 
         // send request
         HashMap toWrite = new HashMap();
