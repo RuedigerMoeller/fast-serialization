@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  * <li>null has specificity 0</li>
  * <li>java.lang.Object has specificity 0</li>
  * <li>an interface without any extends clause has specificity 1</li>
- * <li>a class or interface has a lineageInfos of 1 + the specificity of the superclass + the sum of the specificity of the implemented interfaces.</li>
+ * <li>a class or interface has a specificity of 1 + the specificity of the superclass + the sum of the specificity of the implemented interfaces.</li>
  * </nl>
  * @author Odd Moeller 2017-03-08.
  */
