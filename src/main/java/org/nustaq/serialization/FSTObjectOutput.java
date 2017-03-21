@@ -595,7 +595,9 @@ public class FSTObjectOutput implements ObjectOutput {
                     writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
                 }
-                getCodec().writeAttributeName(subInfo);
+                if ( getCodec().writeAttributeName(subInfo, toWrite) ) {
+                    continue;
+                }
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();

@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.Map;
 
+import static org.nustaq.serialization.FSTObjectOutput.STRING;
+
 /**
  * Created by ruedi on 20/05/15.
  *
@@ -290,7 +292,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
-            case FSTObjectOutput.STRING:
+            case STRING:
                 break; // ignore, header created by calling writeUTF
             case FSTObjectOutput.BIG_BOOLEAN_FALSE:
                 gen.writeBoolean(Boolean.FALSE);
@@ -386,7 +388,7 @@ public class FSTJsonEncoder implements FSTEncoder {
     }
 
     @Override
-    public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
+    public boolean writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo, Object outerObjectToWrite) {
         try {
             SerializedString bufferedName = (SerializedString) subInfo.getBufferedName();
             if ( bufferedName == null ) {
@@ -399,9 +401,22 @@ public class FSTJsonEncoder implements FSTEncoder {
             else {
                 gen.writeFieldName(bufferedName);
             }
+            if ( subInfo.getField().isAnnotationPresent(JSONString.class) ) { // fixme: optimize
+                try {
+                    Object objectValue = subInfo.getObjectValue(outerObjectToWrite);
+                    if ( objectValue instanceof byte[] ) {
+                        String stringVal = new String((byte[]) objectValue, "UTF-8");
+                        writeStringUTF(stringVal);
+                        return true;
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
+        return false;
     }
 
     @Override
