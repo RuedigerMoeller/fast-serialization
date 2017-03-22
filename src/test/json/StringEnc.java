@@ -3,7 +3,6 @@ package json;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTObjectOutput;
 import org.nustaq.serialization.coders.JSONString;
 
 import java.io.Serializable;

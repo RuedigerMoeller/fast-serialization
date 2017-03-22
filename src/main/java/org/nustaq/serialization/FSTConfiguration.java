@@ -1108,6 +1108,11 @@ public class FSTConfiguration {
         } catch (Exception e) {
             System.out.println("unable to decode:" +new String(b,0,0,Math.min(b.length,100)) );
             try {
+                String debug = new String(b, "UTF-8");
+            } catch (UnsupportedEncodingException e1) {
+                //
+            }
+            try {
                 getObjectInput(b).readObject();
             } catch (Exception e1) {
                 // debug hook
