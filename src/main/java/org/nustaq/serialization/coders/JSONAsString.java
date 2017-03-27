@@ -12,8 +12,8 @@ import java.lang.annotation.Target;
  *
  * !!!!!!!! supports byte[] only currently !!!!!!!!!!!!!!!
  */
- @Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 
-public @interface JSONString {
+public @interface JSONAsString {
 }

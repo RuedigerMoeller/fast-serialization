@@ -401,7 +401,7 @@ public class FSTJsonEncoder implements FSTEncoder {
             else {
                 gen.writeFieldName(bufferedName);
             }
-            if ( subInfo.getField().isAnnotationPresent(JSONString.class) ) { // fixme: optimize
+            if ( subInfo.getField().isAnnotationPresent(JSONAsString.class) ) { // fixme: optimize
                 try {
                     Object objectValue = subInfo.getObjectValue(outerObjectToWrite);
                     if ( objectValue instanceof byte[] ) {

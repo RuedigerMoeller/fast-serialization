@@ -3,7 +3,7 @@ package json;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.coders.JSONString;
+import org.nustaq.serialization.coders.JSONAsString;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -14,7 +14,7 @@ import java.io.UnsupportedEncodingException;
 public class StringEnc {
 
     public static class TS implements Serializable {
-        @JSONString
+        @JSONAsString
         byte[] bytes;
     }
 
