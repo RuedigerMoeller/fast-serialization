@@ -66,7 +66,7 @@ public class KsonDeserializer {
         this.in = in;
         this.mapper = mapper;
         if (DEBUG_STACK) {
-            stack = new Stack<>();
+            stack = new Stack<ParseStep>();
             if ( in instanceof KsonStringCharInput ) {
                 ((KsonStringCharInput) in).stack = stack;
             }
@@ -159,7 +159,7 @@ public class KsonDeserializer {
                 if ( clInfo.getClazz() == HashMap.class ) {
                     // newInstance delivers errorneous initialized hashmap, constructorForSerializable ..
                     // should switch to other instantiation method as this is not a serialization ..
-                    res = new HashMap<>();
+                    res = new HashMap();
                 }
                 else
                     res = clInfo.newInstance(true);
@@ -178,9 +178,9 @@ public class KsonDeserializer {
             } else if (Collection.class.isAssignableFrom(clInfo.getClazz())) {
                 List keyVals = readList(genericKeyType, genericKeyType);
                 if (clInfo.getClazz() == ArrayList.class) { // default constructor fails ...
-                    res = new ArrayList<>(keyVals.size());
+                    res = new ArrayList(keyVals.size());
                 } else if (clInfo.getClazz() == HashSet.class) { // default constructor fails ...
-                    res = new HashSet<>(keyVals.size());
+                    res = new HashSet(keyVals.size());
                 } else {
                     res = clInfo.newInstance(true);
                 }

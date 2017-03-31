@@ -439,7 +439,7 @@ public class FSTStruct implements Serializable {
 
         @Override
         protected ByteBuffer initialValue() {
-            List<Field> fields = new ArrayList<>();
+            List<Field> fields = new ArrayList();
             ByteBuffer tmpSend = ByteBuffer.allocateDirect(0);
             FSTUtil.getAllFields( fields, tmpSend.getClass() );
             if ( address == null || capacity == null ) {
