@@ -17,17 +17,13 @@ import java.io.Serializable;
 public class JSonBench {
 
     public static void javaxTest(JsonObject obj) {
-        try (ByteArrayOutputStream oos = new ByteArrayOutputStream();
-             JsonWriter writer = Json.createWriter(oos)) {
-            writer.writeObject(obj);
-            byte b[] = oos.toByteArray();
-            try (ByteArrayInputStream bais = new ByteArrayInputStream(b)) {
-                JsonReader reader = Json.createReader(bais);
-                JsonObject jsonObject = reader.readObject();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ByteArrayOutputStream oos = new ByteArrayOutputStream();
+        JsonWriter writer = Json.createWriter(oos);
+        writer.writeObject(obj);
+        byte b[] = oos.toByteArray();
+        ByteArrayInputStream bais = new ByteArrayInputStream(b);
+        JsonReader reader = Json.createReader(bais);
+        JsonObject jsonObject = reader.readObject();
     }
 
     static FSTConfiguration conf = FSTConfiguration.createJsonConfiguration(false, false);
@@ -58,13 +54,13 @@ public class JSonBench {
 
         while( true ) {
             long now = System.currentTimeMillis();
-            for ( int i = 0; i < 10_000; i++ ) {
+            for ( int i = 0; i < 10000; i++ ) {
                 javaxTest(json);
             }
             System.out.println("javax: "+(System.currentTimeMillis()-now));
 
             now = System.currentTimeMillis();
-            for ( int i = 0; i < 10_000; i++ ) {
+            for ( int i = 0; i < 10000; i++ ) {
                 fstJson(ser);
             }
             System.out.println("fst: "+(System.currentTimeMillis()-now));

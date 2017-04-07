@@ -18,7 +18,7 @@ public class I79 {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Serializable[] os = new Serializable[]{"mysh zzx", 1, 'c'};
 
-        try (FSTObjectOutput fos = new FSTObjectOutput(out,conf)) {
+        FSTObjectOutput fos = new FSTObjectOutput(out,conf); {
             for (Serializable o : os) {
                 fos.writeObject(o);
             }

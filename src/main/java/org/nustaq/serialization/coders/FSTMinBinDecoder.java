@@ -80,14 +80,14 @@ public class FSTMinBinDecoder implements FSTDecoder {
         if ( componentType == double.class ) {
             double[] da = (double[]) array;
             for (int i = 0; i < da.length; i++) {
-                da[i] = (double) input.readTag(input.readIn());
+                da[i] = (Double) input.readTag(input.readIn());
             }
             return da;
         }
         if ( componentType == float.class ) {
             float[] da = (float[]) array;
             for (int i = 0; i < da.length; i++) {
-                da[i] = (float) input.readTag(input.readIn());
+                da[i] = (Float) input.readTag(input.readIn());
             }
             return da;
         }
@@ -122,12 +122,12 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     @Override
     public double readFDouble() throws IOException {
-        return (double) input.readObject();
+        return (Double) input.readObject();
     }
 
     @Override
     public float readFFloat() throws IOException {
-        return (float) input.readObject();
+        return (Float) input.readObject();
     }
 
     @Override
@@ -324,7 +324,7 @@ public class FSTMinBinDecoder implements FSTDecoder {
         return conf.getCLInfoRegistry().getCLInfo(classForName(clzName), conf);
     }
 
-    HashMap<String,Class> clzCache = new HashMap<>();
+    HashMap<String,Class> clzCache = new HashMap<String,Class>();
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
         if ("Object".equals(name))

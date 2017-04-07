@@ -43,7 +43,7 @@ public final class FSTClazzInfo {
     /**
      * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem (e.g. class reloading)
      */
-    public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap();
 
     public static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
         @Override
@@ -267,7 +267,7 @@ public final class FSTClazzInfo {
                 }
             }
             List<Field> allFields = getAllFields(c.getSuperclass(), res);
-            return new ArrayList<>(allFields);
+            return new ArrayList(allFields);
         }
     }
 
@@ -337,7 +337,7 @@ public final class FSTClazzInfo {
     }
 
     private FSTMap buildFieldMap() {
-        FSTMap res = new FSTMap<>(fieldInfo.length);
+        FSTMap res = new FSTMap(fieldInfo.length);
         for (int i = 0; i < fieldInfo.length; i++) {
             Field field = fieldInfo[i].getField();
             if ( field != null ) {
@@ -528,7 +528,7 @@ public final class FSTClazzInfo {
 
     public FSTMap<Class, FSTCompatibilityInfo> getCompInfo() {
         if (compInfo == null)
-            compInfo = new FSTMap<>(3); // just avoid edge case NPE's
+            compInfo = new FSTMap<Class, FSTCompatibilityInfo>(3); // just avoid edge case NPE's
         return compInfo;
     }
 

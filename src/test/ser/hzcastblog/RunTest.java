@@ -52,7 +52,7 @@ public class RunTest {
 
         while( true ) {
             long tim = System.currentTimeMillis();
-            for ( int i = 0; i < 1_000_0000; i++ ) {
+            for ( int i = 0; i < 10000000; i++ ) {
                 coder.toByteArray(orders[count], buf, 0, buf.length);
 //                Object deser = coder.toObject(buf);
             }

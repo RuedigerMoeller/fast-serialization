@@ -32,14 +32,14 @@ public class TestFastSerializationBean1 {
 		// Java
 		// 1. serialize
 		byte[] data1;
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos)) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos); {
 			out.writeObject(bean);
 			data1 = bos.toByteArray();
 		}
 
 		// 2. deserialize
 		BeanTestClass1 bean1;
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis)) {
+		ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis); {
 			bean1 = (BeanTestClass1) in.readObject();
 		}
 

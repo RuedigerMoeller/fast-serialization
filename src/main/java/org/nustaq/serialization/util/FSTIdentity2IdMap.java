@@ -155,8 +155,8 @@ public class FSTIdentity2IdMap {
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
             if ( depth > MAX_DEPTH ) {
-                next.linearScanVals = new ArrayList<>(3);
-                next.linearScanList = new ArrayList<>(3);
+                next.linearScanVals = new ArrayList(3);
+                next.linearScanList = new ArrayList(3);
             }
             next.putHash(key, value, hash, this, depth);
             return Integer.MIN_VALUE;
@@ -240,8 +240,8 @@ public class FSTIdentity2IdMap {
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
             if ( depth > MAX_DEPTH ) {
-                next.linearScanVals = new ArrayList<>(3);
-                next.linearScanList = new ArrayList<>(3);
+                next.linearScanVals = new ArrayList(3);
+                next.linearScanList = new ArrayList(3);
             }
         }
         next.putHash(key, value, hash, this, depth+1);

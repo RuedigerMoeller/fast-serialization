@@ -68,7 +68,7 @@ public class TestWriteReplaceInList {
 	}
 
 	public static class Container implements Serializable {
-		public List list = new ArrayList<>();
+		public List list = new ArrayList();
 	}
 
 }

@@ -20,7 +20,7 @@ public class MapTest {
         FSTIdentity2IdMap map = new FSTIdentity2IdMap(97);
 
         // warm
-        int iters = 50_000;
+        int iters = 50000;
         for (int j = 0; j < iters; j++) {
             testNewPut(strings, map);
             map.clear();

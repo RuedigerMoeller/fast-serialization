@@ -31,14 +31,14 @@ public class TestFastSerialization {
 		// Java
 		// 1. serialize
 		byte[] data1;
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos)) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos); {
 			out.writeObject(object);
 			data1 = bos.toByteArray();
 		}
 
 		// 2. deserialize
 		ExternalizableTestClass object1;
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis)) {
+		ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis); {
 			object1 = (ExternalizableTestClass) in.readObject();
 		}
 

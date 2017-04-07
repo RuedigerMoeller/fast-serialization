@@ -18,7 +18,7 @@ public final class MyFSTSerializer{
         this.fileName       = location + File.separator + journalName + ".mmf";
         this.memorySize     = memorySize;
         this.fastCoder      = fastCoder;
-        this.offHeapMap     = new FSTLongOffheapMap<>( fileName, memorySize, count, fastCoder );
+        this.offHeapMap     = new FSTLongOffheapMap( fileName, memorySize, count, fastCoder );
 //        this.offHeapMap     = new FSTLongOffheapMap<>( memorySize, 2*count, fastCoder );
     }
 
@@ -43,7 +43,7 @@ public final class MyFSTSerializer{
     }
 
     public final Collection<MktDataEvent> retrieveAllEvents( ){
-        Map<Long, MktDataEvent> retrievedMap = new LinkedHashMap<>();
+        Map<Long, MktDataEvent> retrievedMap = new LinkedHashMap();
 
         for( Iterator<MktDataEvent> iterator = offHeapMap.values(); iterator.hasNext(); ){
             MktDataEvent event = (MktDataEvent) iterator.next();

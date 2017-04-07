@@ -52,18 +52,17 @@ public class GitHub159 {
         try {
             FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
             conf.setShareReferences(false);
-            try (FSTObjectInput input = new FSTObjectInputNoShared(conf);
-                    FSTObjectOutput output = new FSTObjectOutputNoShared(conf)) {
+            FSTObjectInput input = new FSTObjectInputNoShared(conf);
+            FSTObjectOutput output = new FSTObjectOutputNoShared(conf);
 
-                output.writeObject(object);
-                byte[] bytes = output.getCopyOfWrittenBuffer();
+            output.writeObject(object);
+            byte[] bytes = output.getCopyOfWrittenBuffer();
 
-                input.resetForReuseUseArray(bytes);
-                Object read = input.readObject();
+            input.resetForReuseUseArray(bytes);
+            Object read = input.readObject();
 
-                System.out.println(read);
-                System.out.println(object.equals(read));
-            }
+            System.out.println(read);
+            System.out.println(object.equals(read));
         } catch (Throwable e) {
             System.err.println(e.getClass() + ": " + e.getMessage());
         }

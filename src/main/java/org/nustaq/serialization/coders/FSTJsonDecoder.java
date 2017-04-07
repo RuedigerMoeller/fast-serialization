@@ -11,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by moelrue on 5/21/15.
@@ -393,23 +394,25 @@ public class FSTJsonDecoder implements FSTDecoder {
         return tmpList;
     }
 
+    private static final Map<String, Class> NAME_TO_TYPE = new HashMap<String, Class>(8);
+    static {
+        NAME_TO_TYPE.put("boolean", boolean.class);
+        NAME_TO_TYPE.put("byte", byte.class);
+        NAME_TO_TYPE.put("char", char.class);
+        NAME_TO_TYPE.put("short", short.class);
+        NAME_TO_TYPE.put("int", int.class);
+        NAME_TO_TYPE.put("long", long.class);
+        NAME_TO_TYPE.put("float", float.class);
+        NAME_TO_TYPE.put("double", double.class);
+    }
     private Object createPrimitiveArrayFrom( List directObject ) {
         if ( directObject.size() == 0 || directObject.get(0) instanceof String == false ) {
             directObject.add(0,"int"); //fixme:slow
         }
-        Class arrT = null;
-        switch ((String)directObject.get(0)) {
-            case "boolean": arrT = boolean.class; break;
-            case "byte": arrT = byte.class; break;
-            case "char": arrT = char.class; break;
-            case "short": arrT = short.class; break;
-            case "int": arrT = int.class; break;
-            case "long": arrT = long.class; break;
-            case "float": arrT = float.class; break;
-            case "double": arrT = double.class; break;
-            default:
-                directObject.add(0,"dummy");
-                arrT = String.class;
+        Class arrT = NAME_TO_TYPE.get((String)directObject.get(0));
+        if (arrT == null) {
+            directObject.add(0,"dummy");
+            arrT = String.class;
         }
         Object newObj = Array.newInstance(arrT, directObject.size()-1);
         for (int i = 0; i < directObject.size()-1; i++) {
@@ -478,7 +481,7 @@ public class FSTJsonDecoder implements FSTDecoder {
         return null;
     }
 
-    HashMap<String,Class> clzCache = new HashMap<>(31);
+    HashMap<String,Class> clzCache = new HashMap<String,Class>(31);
     String lastUnknown;
     @Override
     public Class classForName(String name) throws ClassNotFoundException {

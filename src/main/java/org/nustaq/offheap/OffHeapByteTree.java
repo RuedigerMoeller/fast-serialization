@@ -31,7 +31,7 @@ import java.util.HashMap;
  */
 public class OffHeapByteTree {
 
-    HashMap<ByteSource,Long> map = new HashMap<>();
+    HashMap<ByteSource,Long> map = new HashMap();
 
     // dummy impl
     public static long estimateMBytesForIndex(int keyLen, int numberOfElems) {

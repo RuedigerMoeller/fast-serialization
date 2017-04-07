@@ -67,7 +67,7 @@ public class MBObject implements Serializable {
 
     public MBObject put(String key, Object val) {
         if ( values == null )
-            values = new HashMap<>();
+            values = new HashMap<String,Object>();
         values.put(key,val);
         return this;
     }

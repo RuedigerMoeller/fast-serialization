@@ -131,7 +131,7 @@ public class MinBinTest {
             aMap = new HashMap();
             aMap.put("x", new ARecord("Heinz","butcher",56555));
             aMap.put("xy", new ARecord("Daphne","unknwon",43355));
-            aList = new ArrayList<>();
+            aList = new ArrayList();
             aList.add(aMap);
             aList.add("Second Item");
         }

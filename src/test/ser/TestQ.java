@@ -37,7 +37,7 @@ public class TestQ {
     public void simpleCycle() {
 
         BinaryQueue bq = new BinaryQueue(3);
-        for( int ii = 0; ii < 1_000; ii++ ) {
+        for( int ii = 0; ii < 1000; ii++ ) {
             int loop = (int) (Math.random()*32);
             for (int i = 0; i < loop; i++) {
                 bq.add((byte)i);

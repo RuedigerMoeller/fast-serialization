@@ -62,7 +62,7 @@ public class Play implements Serializable {
     protected static void sb(FSTConfiguration conf) {
         long tim = System.currentTimeMillis();
         EmptyClass ec = new EmptyClass();
-        for ( int i = 0; i < 1_000_000; i++ ) {
+        for ( int i = 0; i < 1000000; i++ ) {
             byte[] bytes = conf.asByteArray(ec);
             Object deser = conf.asObject(bytes);
             if ( deser == null ) {

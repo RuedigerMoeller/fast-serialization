@@ -27,31 +27,31 @@ public class MinBin {
     public static final Object END_MARKER = "_E_";
     public static MinBin DefaultInstance = new MinBin();
     
-    public final static byte INT_8  = 0b0001; // 1 (17 = array)
-    public final static byte INT_16 = 0b0010; // 2 (18 ..)
-    public final static byte INT_32 = 0b0011; // 3 (19 ..)
-    public final static byte INT_64 = 0b0100; // 4 (20 ..)
-    public final static byte TAG    = 0b0101; // 5, top 5 bits contains tag id
-    public final static byte END    = 0b0110; // 6, end marker
-    public final static byte RESERV = 0b0111; // escape for future extension
+    public final static byte INT_8  = 0x1; // 1 (17 = array)
+    public final static byte INT_16 = 0x2; // 2 (18 ..)
+    public final static byte INT_32 = 0x3; // 3 (19 ..)
+    public final static byte INT_64 = 0x4; // 4 (20 ..)
+    public final static byte TAG    = 0x5; // 5, top 5 bits contains tag id
+    public final static byte END    = 0x6; // 6, end marker
+    public final static byte RESERV = 0x7; // escape for future extension
 
-    public final static byte UNSIGN_MASK = 0b01000; // int only
-    public final static byte ARRAY_MASK = 0b10000;// int only, next item expected to be length
+    public final static byte UNSIGN_MASK = 0x8; // int only
+    public final static byte ARRAY_MASK = 0x10;// int only, next item expected to be length
     public final static byte CHAR   = UNSIGN_MASK|INT_16;
 
     /** return wether type is primitive or primitive array */
-    public static boolean isPrimitive(byte type) { return (type & 0b111) < TAG; }
+    public static boolean isPrimitive(byte type) { return (type & 0x7) < TAG; }
     /** return wether type is a tag */
-    public static boolean isTag(byte type) { return (type & 0b111) == TAG; }
+    public static boolean isTag(byte type) { return (type & 0x7) == TAG; }
     /** extract tag id/nr from byte  */
     public static byte getTagId(byte type) { return (byte) (type >>> 3); }
     /** get tag code as written to stream from tag id  */
     public static byte getTagCode(byte tagId) { return (byte) ((tagId << 3)|TAG); }
     /** is primitive type signed ? */
-    public static boolean isSigned(byte type) { return (type & 0b111) < TAG && (type & UNSIGN_MASK) == 0; }
+    public static boolean isSigned(byte type) { return (type & 0x7) < TAG && (type & UNSIGN_MASK) == 0; }
     /** is primitive and array array */
-    public static boolean isArray(byte type) {  return (type & 0b111) < TAG && (type & ARRAY_MASK) != 0; }
-    public static byte extractNumBytes(byte type) { return (byte) (1 << ((type & 0b111)-1)); }
+    public static boolean isArray(byte type) {  return (type & 0x7) < TAG && (type & ARRAY_MASK) != 0; }
+    public static byte extractNumBytes(byte type) { return (byte) (1 << ((type & 0x7)-1)); }
 
     // predefined tag id's
     public static final byte NULL = 7;
@@ -65,7 +65,7 @@ public class MinBin {
     public static final byte BOOL = 8;
     public static final byte HANDLE = 9;
 
-    HashMap<Class,TagSerializer> clz2Ser = new HashMap<>();
+    HashMap<Class,TagSerializer> clz2Ser = new HashMap();
     TagSerializer tag2Ser[] = new TagSerializer[32];
     int tagCount = 0;
 
@@ -123,7 +123,7 @@ public class MinBin {
      * @return
      */
     public static byte getBaseType(byte type) {
-        return (byte) ((type&0b111)|(type&UNSIGN_MASK));
+        return (byte) ((type& 0x7)|(type&UNSIGN_MASK));
     }
 
 

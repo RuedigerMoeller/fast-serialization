@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.48</version>
+    <version>2.48-jdk-6</version>
     <packaging>bundle</packaging>
 
     <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
@@ -43,8 +43,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                     <!--<encoding>UTF-8</encoding>-->
                     <debug>true</debug>
                     <debuglevel>lines,vars,source</debuglevel> <!-- required to make structs work -->

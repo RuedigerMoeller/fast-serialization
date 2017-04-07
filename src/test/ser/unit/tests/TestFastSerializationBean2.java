@@ -36,16 +36,13 @@ public class TestFastSerializationBean2 {
 		// Java
 		// 1. serialize
 		byte[] data1;
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos)) {
-			out.writeObject(bean);
-			data1 = bos.toByteArray();
-		}
-
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos);
+		out.writeObject(bean);
+		data1 = bos.toByteArray();
 		// 2. deserialize
 		BeanTestClass2 bean1;
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis)) {
-			bean1 = (BeanTestClass2) in.readObject();
-		}
+		ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis);
+		bean1 = (BeanTestClass2) in.readObject();
 
 		Assert.assertEquals(1, bean1.getObject().getInteger());
 		Assert.assertEquals(1, ((ExternalizableTestClass) bean1.getSet().toArray()[0]).getInteger());

@@ -37,14 +37,14 @@ public class TestFastSerializationList {
 		// Java
 		// 1. serialize
 		byte[] data1;
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos)) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos); {
 			out.writeObject(list);
 			data1 = bos.toByteArray();
 		}
 
 		// 2. deserialize
 		List<ExternalizableTestClass> list1 = new ArrayList<ExternalizableTestClass>();
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis)) {
+		ByteArrayInputStream bis = new ByteArrayInputStream(data1); ObjectInput in = new ObjectInputStream(bis); {
 			list1 = (List<ExternalizableTestClass>) in.readObject();
 		}
 

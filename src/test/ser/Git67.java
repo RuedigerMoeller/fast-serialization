@@ -17,7 +17,7 @@ public class Git67 {
 
     @Test
     public void testUnshared() {
-        Set<Long> obj = new LinkedHashSet<>();
+        Set<Long> obj = new LinkedHashSet();
         obj.add(11373L);
         FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
         conf.setShareReferences(false);

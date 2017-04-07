@@ -25,9 +25,10 @@ public class Git64 {
 			FSTConfiguration config = FSTConfiguration.getDefaultConfiguration();
 			int numberOfObjects = 0;
 
-			try (FileOutputStream fileOutputStream = new FileOutputStream(temp)) {
-
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream, BUFFER_SIZE_IN_BYTES)) {
+			FileOutputStream fileOutputStream = new FileOutputStream(temp);
+			{
+				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream, BUFFER_SIZE_IN_BYTES);
+				{
                     for (int i = 0; i < NUMBER_OF_ITEMS; i++) {
 
                         Object[] arr = new Object[100];
@@ -47,8 +48,9 @@ public class Git64 {
 
 			System.out.println("done with write");
 
-			try (FileInputStream fileInputStream = new FileInputStream(temp)) {
-				try (BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, BUFFER_SIZE_IN_BYTES)) {
+			FileInputStream fileInputStream = new FileInputStream(temp); {
+				BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, BUFFER_SIZE_IN_BYTES);
+				{
                     for (int idx = 0; idx < numberOfObjects; idx++) {
                         Object[] row = (Object[]) config.decodeFromStream(bufferedInputStream);
                         if (idx % MAX_ITEMS_BEFORE_FLUSH == 0) {
@@ -84,11 +86,11 @@ public class Git64 {
 
 			int numberOfObjects = 0;
 
-			try (FileOutputStream fileOutputStream = new FileOutputStream(temp)) {
+			FileOutputStream fileOutputStream = new FileOutputStream(temp); {
 
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream, BUFFER_SIZE_IN_BYTES)) {
+				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream, BUFFER_SIZE_IN_BYTES); {
 
-					try (FSTObjectOutput fstObjectOutput = new FSTObjectOutput(bufferedOutputStream, config)) {
+					FSTObjectOutput fstObjectOutput = new FSTObjectOutput(bufferedOutputStream, config); {
 
 						for (int i = 0; i < NUMBER_OF_ITEMS; i++) {
 							Object[] arr = new Object[100];
@@ -113,11 +115,11 @@ public class Git64 {
 
 			System.out.println("done with write");
 
-			try (FileInputStream fileInputStream = new FileInputStream(temp)) {
+			FileInputStream fileInputStream = new FileInputStream(temp); {
 
-				try (BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, BUFFER_SIZE_IN_BYTES)) {
+				BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, BUFFER_SIZE_IN_BYTES); {
 
-					try (FSTObjectInput fstObjectInput = new FSTObjectInput(bufferedInputStream, config)) {
+					FSTObjectInput fstObjectInput = new FSTObjectInput(bufferedInputStream, config); {
 
 						for (int idx = 0; idx < numberOfObjects; idx++) {
 

@@ -19,24 +19,22 @@ public class FloatBench {
             CountingOutputStream count;
             long start, elapsed;
 
-            Object obj = new double[100_000_000];
+            Object obj = new double[100000000];
 //            FSTConfiguration conf = FSTConfiguration.createUnsafeBinaryConfiguration();
             FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
 
             count = new CountingOutputStream();
             start = System.nanoTime();
-            try(ObjectOutputStream oos = new ObjectOutputStream(count)) {
-                oos.writeObject(obj);
-            }
+            ObjectOutputStream oos = new ObjectOutputStream(count);
+            oos.writeObject(obj);
             elapsed = System.nanoTime() - start;
             System.out.println("STD " + count.count + " bytes written in " + (elapsed)/1000000L + "ms");
 
             count = new CountingOutputStream();
             start = System.nanoTime();
-            try(FSTObjectOutput fos = new FSTObjectOutput(count,conf)) {
-                fos.writeObject(obj);
-            }
+            FSTObjectOutput fos = new FSTObjectOutput(count,conf);
+            fos.writeObject(obj);
             elapsed = System.nanoTime() - start;
             System.out.println("FST " + count.count + " bytes written in " + (elapsed)/1000000L + "ms");
         }
@@ -52,7 +50,7 @@ public class FloatBench {
 
 //            Object obj = new float[20_000];
 //            Object obj = new long[10_000];
-            Object obj = new boolean[80_000];
+            Object obj = new boolean[80000];
 //            Object obj = new byte[80_000];
 //            Object obj = new double[10_000];
 //            Object obj = new char[40_000];
@@ -64,18 +62,16 @@ public class FloatBench {
 
             start = System.nanoTime();
             for ( int n = 0; n < 10000; n++ ) {
-                try(ObjectOutputStream oos = new ObjectOutputStream(count)) {
-                    oos.writeObject(obj);
-                }
+                ObjectOutputStream oos = new ObjectOutputStream(count);
+                oos.writeObject(obj);
             }
             elapsed = System.nanoTime() - start;
             System.out.println("STD :" + (elapsed)/1000000L + "ms");
 
             start = System.nanoTime();
             for ( int n = 0; n < 10000; n++ ) {
-                try(FSTObjectOutput fos = new FSTObjectOutput(count,conf)) {
-                    fos.writeObject(obj);
-                }
+                FSTObjectOutput fos = new FSTObjectOutput(count,conf);
+                fos.writeObject(obj);
             }
             elapsed = System.nanoTime() - start;
             System.out.println("FST :" + (elapsed)/1000000L + "ms");
