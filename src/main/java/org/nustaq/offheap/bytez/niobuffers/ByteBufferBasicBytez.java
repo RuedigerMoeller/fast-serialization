@@ -210,7 +210,7 @@ public class ByteBufferBasicBytez implements BasicBytez {
     @Override
     public void setBoolean(long byteIndex, boolean[] source, int elemoff, int siz) {
         for ( int i=0; i <siz; i++ ) {
-            buffer.put((int) (byteIndex + 4 * i), (byte) (source[i + elemoff] ? 1 : 0));
+            buffer.put((int) (byteIndex + i), (byte) (source[i + elemoff] ? 1 : 0));
         }
     }
 
