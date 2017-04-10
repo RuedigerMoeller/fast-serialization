@@ -19,6 +19,7 @@ import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -546,6 +547,9 @@ public class FSTObjectOutput implements ObjectOutput {
                 writeByte(55); // tag this is written with writeMethod
                 fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
             } catch (Exception e) {
+                if ( e instanceof InvocationTargetException == true && ((InvocationTargetException) e).getTargetException() != null ) {
+                    FSTUtil.<RuntimeException>rethrow(((InvocationTargetException) e).getTargetException());
+                }
                 FSTUtil.<RuntimeException>rethrow(e);
             }
         } else {
