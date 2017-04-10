@@ -216,7 +216,10 @@ public class ByteBufferBasicBytez implements BasicBytez {
 
     @Override
     public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
-
+        // could be optimized depending on "other" type
+        for ( long i = 0; i < lenBytes; i++ ) {
+            other.put(otherByteIndex+i,get(myByteIndex+i));
+        }
     }
 
     @Override
