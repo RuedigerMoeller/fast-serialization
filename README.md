@@ -31,11 +31,33 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.47</version>
+    <version>2.49</version>
+</dependency>
+```
+**stable** build 
+
+(keeps serialized objects binary compatible to 2.44, more careful pull request merging)
+check maven.org for latest version
+
+```.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>2.44.X</version>
 </dependency>
 ```
 
-Older version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
+**jdk1.6** compatible build of fst 2.x 
+
+```.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>2.48-jdk-6</version>
+</dependency>
+```
+
+1.x version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
