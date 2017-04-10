@@ -22,6 +22,8 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -190,5 +192,48 @@ public class Kson {
 
     public KsonTypeMapper getMapper() {
         return mapper;
+    }
+
+    static class Test implements Serializable {
+        Map<String,Map<String,String>> map;
+        Map<String,String>[] arr;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Test test = new Test();
+        test.map = new HashMap<>();
+        HashMap mp = new HashMap();
+        mp.put("x","y");
+        mp.put("xx","xy");
+        mp.put("xxx","xxyx");
+        test.map.put("pok",mp);
+        test.arr = new Map[] { mp, mp };
+        System.out.println(new Kson().writeObject(test));
+        Object res = new Kson().map(Test.class).readObject(
+"Test {\n" +
+    "  map:\n" +
+    "    {\n" +
+    "      pok : \n" +
+    "      {\n" +
+    "        xx :  xy\n" +
+    "        x :  y\n" +
+    "        xxx :  xxyx\n" +
+    "      }\n" +
+    "    }\n" +
+    "  arr:\n" +
+    "    [ \n" +
+    "      {\n" +
+    "        xx :  xy\n" +
+    "        x :  y\n" +
+    "        xxx :  xxyx\n" +
+    "      }\n" +
+    "      {\n" +
+    "        xx :  xy\n" +
+    "        x :  y\n" +
+    "        xxx :  xxyx\n" +
+    "      }\n" +
+    "    ]\n" +
+    "}"            );
+        int debug = 12;
     }
 }

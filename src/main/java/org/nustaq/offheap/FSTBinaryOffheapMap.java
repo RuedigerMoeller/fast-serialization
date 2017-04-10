@@ -269,14 +269,22 @@ public class FSTBinaryOffheapMap {
         return res;
     }
 
+    private void resizeStore(long required) {
+        resizeStore(required,GB);
+    }
+
     /**
+     * PRIVILEGED method. You gotta know what your doing here ..
+     *
      * currently a very expensive operation .. frees everything, resize file and remap.
      * Remapping involves rebuild of index.
      * @param required
      */
-    private void resizeStore(long required) {
+    public void resizeStore(long required, long maxgrowbytes) {
         if ( mappedFile == null )
             throw new RuntimeException("store is full. Required: "+required);
+        if ( required <= memory.length() )
+            return;
         mutationCount++;
         System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
         long tim = System.currentTimeMillis();
@@ -286,7 +294,7 @@ public class FSTBinaryOffheapMap {
             File mf = new File(mappedFile);
             FileOutputStream f = new FileOutputStream(mf,true);
             long len = mf.length();
-            required = required + Math.min(required,MB*512);
+            required = required + Math.min(required,maxgrowbytes);
             byte[] toWrite = new byte[1000];
             long max = (required - len)/1000;
             for ( long i = 0; i < max+2; i++ ) {

@@ -7,6 +7,7 @@ import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -627,6 +628,13 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public Object coerceElement(Class arrType, Object value) {
+        if ( arrType == byte[].class && value instanceof String ) {
+            try {
+                return ((String) value).getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
         if ( value instanceof Number ) {
             Number n = (Number) value;
             if ( arrType == Byte.class ) {

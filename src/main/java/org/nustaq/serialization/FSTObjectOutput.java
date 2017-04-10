@@ -271,7 +271,6 @@ public class FSTObjectOutput implements ObjectOutput {
     /////////////////////////////////////////////////////
     
     public void writeObject(Object obj, Class... possibles) throws IOException {
-        curDepth++;
         if ( isCrossPlatform ) {
             writeObjectInternal(obj, null); // not supported cross platform
             return;
@@ -312,9 +311,6 @@ public class FSTObjectOutput implements ObjectOutput {
      * @throws IOException
      */
     public FSTClazzInfo writeObjectInternal(Object obj, FSTClazzInfo ci, Class... possibles) throws IOException {
-        if ( curDepth == 0 ) {
-            throw new RuntimeException("not intended to be called from external application. Use public writeObject instead");
-        }
         FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
         curDepth++;
         FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
@@ -600,7 +596,9 @@ public class FSTObjectOutput implements ObjectOutput {
                     writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
                 }
-                getCodec().writeAttributeName(subInfo);
+                if ( getCodec().writeAttributeName(subInfo, toWrite) ) {
+                    continue;
+                }
                 if ( subInfo.isPrimitive() ) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();

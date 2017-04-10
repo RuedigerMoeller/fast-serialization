@@ -28,6 +28,7 @@ import java.util.*;
  *
  */
 public class FSTSerializerRegistry {
+
     private FSTSerializerRegistryDelegate delegate;
 
     public static FSTObjectSerializer NULL = new NULLSerializer();
