@@ -37,7 +37,7 @@ fast-serialization
 **stable** build 
 
 (keeps serialized objects binary compatible to 2.44, more careful pull request merging)
-check maven.org for latest version
+**check maven.org for latest version**
 
 ```.xml
 <dependency>
