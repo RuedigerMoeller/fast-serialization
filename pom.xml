@@ -153,58 +153,60 @@
                     <!--<scope>test</scope>-->
                 <!--</dependency>-->
 
-                <dependency>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                    <version>1.51</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.51</version>
+            <scope>test</scope>
+        </dependency>
 
-				<dependency>
-					<groupId>com.cedarsoftware</groupId>
-					<artifactId>java-util</artifactId>
-					<version>1.4.0</version>
-					<scope>test</scope>
-				</dependency>
+        <dependency>
+            <groupId>com.cedarsoftware</groupId>
+            <artifactId>java-util</artifactId>
+            <version>1.4.0</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>4.8.1</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>org.openjdk.jmh</groupId>
-                    <artifactId>jmh-core</artifactId>
-                    <version>1.8</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.8</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>org.hdrhistogram</groupId>
-                    <artifactId>HdrHistogram</artifactId>
-                    <version>2.1.4</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>HdrHistogram</artifactId>
+            <version>2.1.4</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>javax.json</groupId>
-                    <artifactId>javax.json-api</artifactId>
-                    <version>1.0</version>
-                    <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.glassfish</groupId>
-                <artifactId>javax.json</artifactId>
-                <version>1.0.4</version>
-                <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.cedarsoftware</groupId>
             <artifactId>java-util</artifactId>
             <version>1.9.0</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
