@@ -252,7 +252,18 @@ public class FSTConfiguration {
     }
 
 
+    /**
+     * create a json conf with given attributes. Note that shared refs = true for jason might be not as stable as for binary encodings
+     * as fst relies on stream positions to identify objects within a given input, so any inbetween formatting will break proper reference
+     * resolution
+     * @param prettyPrint
+     * @param shareReferences
+     * @return
+     */
     public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
+        if ( shareReferences && prettyPrint ) {
+            throw new RuntimeException("unsupported flag combination");
+        }
         return createJsonConfiguration(prettyPrint,shareReferences,null);
     }
 

@@ -19,6 +19,7 @@ import org.nustaq.serialization.FSTBasicObjectSerializer;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
+import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -41,11 +42,11 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
         out.writeInt(enset.size());
         if ( enset.isEmpty() ) { //WTF only way to determine enumtype ..
             EnumSet compl = EnumSet.complementOf(enset);
-            out.writeClassTag(compl.iterator().next().getClass());
+            out.writeClassTag(FSTUtil.getRealEnumClass(compl.iterator().next().getClass()));
         } else {
             for (Object element : enset) {
                 if ( count == 0 ) {
-                    out.writeClassTag(element.getClass());
+                    out.writeClassTag(FSTUtil.getRealEnumClass(element.getClass()));
                 }
                 out.writeObjectInternal(element, null, Enum.class);
                 count++;
@@ -66,7 +67,7 @@ public class FSTEnumSetSerializer extends FSTBasicObjectSerializer {
     @Override
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         int len = in.readInt();
-        Class elemCl = in.readClass().getClazz();
+        Class elemCl = FSTUtil.getRealEnumClass(in.readClass().getClazz());
         EnumSet enSet = EnumSet.noneOf(elemCl);
         in.registerObject(enSet,streamPosition,serializationInfo, referencee); // IMPORTANT, else tracking double objects will fail
         for (int i = 0; i < len; i++)

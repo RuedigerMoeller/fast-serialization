@@ -453,10 +453,17 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object instantiateArray(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
-        Object res = readArray(referencee);
+        Object res = readArray(referencee, readPos); // NEED TO PASS ALONG THE POS FOR THE ARRAY
+
+        /*
+            registerObjectForRead alerady gets called by readArray (and with the proper pos now).  that said, I'm unclear
+            on the intent of the if ( ! referencee.isFlat() ) so I wanted to comment on that
+
         if ( ! referencee.isFlat() ) {
             objects.registerObjectForRead(res, readPos);
         }
+        */
+
         return res;
     }
 
@@ -867,9 +874,10 @@ public class FSTObjectInput implements ObjectInput {
         return getCodec().readStringAsc();
     }
 
-    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
-        int pos = getCodec().getInputPos();
+    protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee, int pos) throws Exception {
         Object classOrArray = getCodec().readArrayHeader();
+        if (pos < 0)
+            pos = getCodec().getInputPos();
         if ( classOrArray instanceof Class == false )
             return classOrArray;
         if ( classOrArray == null )
@@ -908,7 +916,7 @@ public class FSTObjectInput implements ObjectInput {
             }
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, clInfoRegistry.isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
-                Object subArray = readArray(ref1);
+                Object subArray = readArray(ref1, -1);
                 array[i] = subArray;
             }
             return array;
@@ -945,6 +953,7 @@ public class FSTObjectInput implements ObjectInput {
         getCodec().reset();
         getCodec().setInputStream(in);
         objects.clearForRead(conf);
+        callbacks = null; //fix memory leak on reuse from default FstConfiguration
     }
 
     public void resetForReuseCopyArray(byte bytes[], int off, int len) throws IOException {

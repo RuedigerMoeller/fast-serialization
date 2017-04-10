@@ -292,7 +292,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 break;
             case FSTObjectOutput.ONE_OF:
                 throw new RuntimeException("not implemented");
-            case STRING:
+            case FSTObjectOutput.STRING:
                 break; // ignore, header created by calling writeUTF
             case FSTObjectOutput.BIG_BOOLEAN_FALSE:
                 gen.writeBoolean(Boolean.FALSE);

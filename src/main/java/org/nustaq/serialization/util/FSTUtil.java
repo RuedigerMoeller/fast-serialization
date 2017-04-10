@@ -17,8 +17,13 @@ package org.nustaq.serialization.util;
 
 import sun.misc.Unsafe;
 
-import java.io.*;
-import java.lang.reflect.*;
+import java.io.InputStream;
+import java.io.ObjectStreamField;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -261,5 +266,12 @@ public class FSTUtil {
 
     public static int nextPow2( int num ) {
         return 1<<(num == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(num - 1));
+    }
+
+    public static Class getRealEnumClass(Class enumClass) {
+        if (enumClass.isAnonymousClass()) {
+            return enumClass.getSuperclass();
+        }
+        return enumClass;
     }
 }

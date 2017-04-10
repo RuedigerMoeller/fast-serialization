@@ -1,5 +1,6 @@
 package ser;
 
+import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 
 /**
@@ -11,5 +12,15 @@ public class BasicAndroidTest extends BasicFSTTest {
     protected FSTConfiguration getTestConfiguration() {
         FSTConfiguration.isAndroid = true;
         return FSTConfiguration.createAndroidDefaultConfiguration();
+    }
+
+    @Override @Test
+    public void testSelfRef() {
+        super.testSelfRef();
+    }
+
+    @Override @Test
+    public void testSelfRefArr() {
+        super.testSelfRefArr();
     }
 }
