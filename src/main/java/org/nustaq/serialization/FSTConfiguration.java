@@ -246,8 +246,7 @@ public class FSTConfiguration {
         return res;
     }
 
-    public static FSTConfiguration
-    createJsonConfiguration() {
+    public static FSTConfiguration createJsonConfiguration() {
         return createJsonConfiguration(false, true);
     }
 

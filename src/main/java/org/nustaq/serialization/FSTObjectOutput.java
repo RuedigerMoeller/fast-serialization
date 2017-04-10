@@ -19,6 +19,7 @@ import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -310,9 +311,6 @@ public class FSTObjectOutput implements ObjectOutput {
      * @throws IOException
      */
     public FSTClazzInfo writeObjectInternal(Object obj, FSTClazzInfo ci, Class... possibles) throws IOException {
-        if ( curDepth == 0 ) {
-            throw new RuntimeException("not intended to be called from external application. Use public writeObject instead");
-        }
         FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
         curDepth++;
         FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
@@ -421,7 +419,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 // default write object wihtout custom serializer
                 // handle write replace
                 //if ( ! dontShare ) GIT ISSUE 80
-            	FSTClazzInfo originalInfo = serializationInfo;
+                FSTClazzInfo originalInfo = serializationInfo;
                 {
                     if ( serializationInfo.getWriteReplaceMethod() != null ) {
                         Object replaced = null;
@@ -545,6 +543,9 @@ public class FSTObjectOutput implements ObjectOutput {
                 writeByte(55); // tag this is written with writeMethod
                 fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
             } catch (Exception e) {
+                if ( e instanceof InvocationTargetException == true && ((InvocationTargetException) e).getTargetException() != null ) {
+                    FSTUtil.<RuntimeException>rethrow(((InvocationTargetException) e).getTargetException());
+                }
                 FSTUtil.<RuntimeException>rethrow(e);
             }
         } else {

@@ -324,9 +324,9 @@ public final class FSTClazzInfo {
 
     public final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
         if ( fieldMap != null ) {
-        if (declaringClass == null) {
-            return fieldMap.get(name);
-        }
+            if (declaringClass == null) {
+                return fieldMap.get(name);
+            }
             return fieldMap.get(declaringClass.getName() + "#" + name); //FIXME: THIS IS VERY SLOW (only used by JSON / compatibility mode)
         } else {
             synchronized (this) {
@@ -341,8 +341,8 @@ public final class FSTClazzInfo {
             for (int i = 0; i < fieldInfo.length; i++) {
                 Field field = fieldInfo[i].getField();
                 if ( field != null ) {
-                res.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
-                res.put(field.getName(), fieldInfo[i]);
+                    res.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
+                    res.put(field.getName(), fieldInfo[i]);
                 }
             }
         return res;
@@ -888,7 +888,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setObjectValue(Object target, Object value) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
                 return;
             }
@@ -912,7 +912,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putLong(newObj, memOffset, i1);
                 return;
             }
@@ -920,7 +920,7 @@ public final class FSTClazzInfo {
         }
 
         public final long getLongValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
             }
             return field.getLong(obj);
@@ -934,7 +934,7 @@ public final class FSTClazzInfo {
         }
 
         public final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putInt(newObj, memOffset, i1);
                 return;
             }
@@ -942,7 +942,7 @@ public final class FSTClazzInfo {
         }
 
         public final int getIntValue(Object obj) throws IllegalAccessException {
-            if (memOffset >= 0) {
+            if (!isAndroid && memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
             }
             return field.getInt(obj);

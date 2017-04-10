@@ -337,7 +337,7 @@ public class FSTObjectInput implements ObjectInput {
         FSTClazzInfo clzSerInfo;
         Class c;
         final int readPos = getCodec().getInputPos();
-        byte code = getCodec().readObjectHeaderTag();
+        byte code = getCodec().readObjectHeaderTag();  // NOTICE: THIS ADVANCES THE INPUT STREAM...
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
             clzSerInfo = readClass();
