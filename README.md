@@ -31,22 +31,9 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.49</version>
+    <version>2.50</version>
 </dependency>
 ```
-**stable** build 
-
-(keeps serialized objects binary compatible to 2.44, more careful pull request merging)
-**check maven.org for latest version**
-
-```.xml
-<dependency>
-    <groupId>de.ruedigermoeller</groupId>
-    <artifactId>fst</artifactId>
-    <version>2.44.X</version>
-</dependency>
-```
-
 **jdk1.6** compatible build of fst 2.x 
 
 ```.xml
