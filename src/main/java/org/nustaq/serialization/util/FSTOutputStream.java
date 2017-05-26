@@ -16,6 +16,8 @@
 
 package org.nustaq.serialization.util;
 
+import org.nustaq.logging.FSTLogger;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -28,6 +30,8 @@ import java.util.Arrays;
  * To change this template use File | Settings | File Templates.
  */
 public final class FSTOutputStream extends OutputStream {
+
+    private static final FSTLogger LOGGER = FSTLogger.getLogger(FSTOutputStream.class);
 
     /**
      * The buffer where data is stored.
@@ -91,7 +95,7 @@ public final class FSTOutputStream extends OutputStream {
         try {
             buf = Arrays.copyOf(buf, newCapacity);
         } catch (OutOfMemoryError ome) {
-            System.out.println("OME resize from " + buf.length + " to " + newCapacity + " clearing caches ..");
+            LOGGER.log(FSTLogger.Level.ERROR, "OME resize from " + buf.length + " to " + newCapacity + " clearing caches ..", ome);
             throw new RuntimeException(ome);
         }
     }
