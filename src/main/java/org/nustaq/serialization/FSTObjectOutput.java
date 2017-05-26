@@ -15,6 +15,7 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.logging.FSTLogger;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.*;
@@ -35,6 +36,7 @@ import java.util.*;
  */
 public class FSTObjectOutput implements ObjectOutput {
 
+    private static final FSTLogger LOGGER = FSTLogger.getLogger(FSTObjectOutput.class);
     public static Object NULL_PLACEHOLDER = new Object() { public String toString() { return "NULL_PLACEHOLDER"; }};
     public static final byte SPECIAL_COMPATIBILITY_OBJECT_TAG = -19; // see issue 52
     public static final byte ONE_OF = -18;
@@ -880,7 +882,7 @@ public class FSTObjectOutput implements ObjectOutput {
                 FSTClazzInfo newInfo = clinfo;
                 Object replObj = toWrite;
                 if ( newInfo.getWriteReplaceMethod() != null ) {
-                    System.out.println("WARNING: WRITE REPLACE NOT FULLY SUPPORTED");
+                    LOGGER.log(FSTLogger.Level.WARN, "WRITE REPLACE NOT FULLY SUPPORTED", null);
                     try {
                         Object replaced = newInfo.getWriteReplaceMethod().invoke(replObj);
                         if ( replaced != null && replaced != toWrite ) {
