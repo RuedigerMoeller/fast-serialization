@@ -164,11 +164,11 @@ public class FSTConfiguration {
 
     int cpAttrIdCount = 0;
     // contains symbol => full qualified name
-    private HashMap<String, String> minbinNames = new HashMap<>();
+    private HashMap<String, String> minbinNames = new HashMap<String, String>();
     // may contain symbol => cached binary output
-    private HashMap<String, byte[]> minBinNamesBytez = new HashMap<>();
+    private HashMap<String, byte[]> minBinNamesBytez = new HashMap<String, byte[]>();
     // contains full qualified name => symbol
-    private HashMap<String, String> minbinNamesReverse = new HashMap<>();
+    private HashMap<String, String> minbinNamesReverse = new HashMap<String, String>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
 
     // non-final for testing
@@ -1263,7 +1263,7 @@ public class FSTConfiguration {
      */
     public FSTConfiguration deriveConfiguration() {
         if ( fieldInfoCache == null ) {
-            fieldInfoCache = new ConcurrentHashMap<>();
+            fieldInfoCache = new ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo>();
         }
         FSTConfiguration derived = createConfiguration(type, shareReferences, fieldInfoCache);
         // try to share as much as possible to save memory

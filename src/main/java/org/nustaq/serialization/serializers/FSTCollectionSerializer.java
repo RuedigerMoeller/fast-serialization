@@ -78,7 +78,7 @@ public class FSTCollectionSerializer extends FSTBasicObjectSerializer {
             } else {
                 if ( AbstractList.class.isAssignableFrom(objectClass) && objectClass.getName().startsWith( "java.util.Arrays" ) ) {
                     // some collections produced by JDK are not properly instantiable (e.g. Arrays.ArrayList), fall back to arraylist then
-                    res = new ArrayList<>();
+                    res = new ArrayList();
                 } else {
                     res = objectClass.newInstance();
                 }

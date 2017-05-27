@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TCPObjectSocket {
 
-    public static int BUFFER_SIZE = 512_000;
+    public static int BUFFER_SIZE = 512000;
 
     InputStream in;
     OutputStream out;
