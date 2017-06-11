@@ -35,7 +35,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
     /**
      * reduce number of generated classes. Can be cleared riskless in case.
      */
-    final static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
+    private final static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
 
     @Override
     public Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort) {
@@ -117,6 +117,4 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             return null;
         }
     }
-
-
 }

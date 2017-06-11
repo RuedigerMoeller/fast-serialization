@@ -31,7 +31,6 @@ public class FSTStreamEncoder implements FSTEncoder {
     
     private FSTClazzNameRegistry clnames;
     private FSTOutputStream buffout;
-    private byte[] ascStringCache;
 
     public FSTStreamEncoder(FSTConfiguration conf) {
         this.conf = conf;
@@ -534,15 +533,6 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     private void writePlainShort(int v) throws IOException {
-        buffout.ensureFree(2);
-        byte[] buf = buffout.buf;
-        int count = buffout.pos;
-        buf[count++] = (byte) (v >>> 0);
-        buf[count++] = (byte) (v >>> 8);
-        buffout.pos += 2;
-    }
-
-    private void writePlainChar(int v) throws IOException {
         buffout.ensureFree(2);
         byte[] buf = buffout.buf;
         int count = buffout.pos;

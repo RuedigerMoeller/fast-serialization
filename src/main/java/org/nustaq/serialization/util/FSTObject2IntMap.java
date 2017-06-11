@@ -179,17 +179,4 @@ public class FSTObject2IntMap<K> {
             next.rePut(kfstObject2IntMap);
         }
     }
-
-    public void clear() {
-        if (size() == 0) {
-            return;
-        }
-        FSTUtil.clear(mKeys);
-        FSTUtil.clear(mValues);
-        mNumberOfElements = 0;
-        if (next != null) {
-            next.clear();
-        }
-    }
-
 }

@@ -105,9 +105,6 @@ public class FSTMap<K,V> {
         // <== inline
     }
 
-    static int miss = 0;
-    static int hit = 0;
-
     private V getHash(final K key, final int hash) {
         final int idx = hash % mKeys.length;
 
@@ -159,17 +156,4 @@ public class FSTMap<K,V> {
             next.rePut(kfstObject2IntMap);
         }
     }
-
-    public void clear() {
-        if (size() == 0) {
-            return;
-        }
-        FSTUtil.clear(mKeys);
-        FSTUtil.clear(mValues);
-        mNumberOfElements = 0;
-        if (next != null) {
-            next.clear();
-        }
-    }
-
 }

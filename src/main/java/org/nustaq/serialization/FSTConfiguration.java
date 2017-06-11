@@ -85,7 +85,6 @@ public class FSTConfiguration {
     private boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
     private FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
-    private Object coderSpecific;
     private LastResortClassRessolver lastResortResolver;
 
     private boolean forceClzInit = false; // always execute default fields init, even if no transients
@@ -107,8 +106,7 @@ public class FSTConfiguration {
 
             FieldKey fieldKey = (FieldKey) o;
 
-            if (!clazz.equals(fieldKey.clazz)) return false;
-            return fieldName.equals(fieldKey.fieldName);
+            return clazz.equals(fieldKey.clazz) && fieldName.equals(fieldKey.fieldName);
 
         }
 

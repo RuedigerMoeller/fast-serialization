@@ -54,7 +54,7 @@ public class FSTIdentity2IdMap {
     private int mValues[];
     private int mNumberOfElements;
     private FSTIdentity2IdMap next;
-    private List linearScanList; // in case of too deep nesting, this one is filled and linear search is applied
+    private List<Object> linearScanList; // in case of too deep nesting, this one is filled and linear search is applied
     private List<Integer> linearScanVals; // in case of too deep nesting, this one is filled and linear search is applied
 
     public FSTIdentity2IdMap(int initialSize) {
@@ -108,8 +108,7 @@ public class FSTIdentity2IdMap {
         }
 
         Object[] mKeys = this.mKeys;
-//        int idx = calcIndexFromHash(hash, mKeys);
-        int idx = calcIndexFromHash(hash, mKeys);
+        int idx = calcIndexFromHash(hash);
 
         Object mKeyAtIdx = mKeys[idx];
         if (mKeyAtIdx == null) // new
@@ -197,7 +196,7 @@ public class FSTIdentity2IdMap {
         }
 
         Object[] mKeys = this.mKeys;
-        int idx = calcIndexFromHash(hash, mKeys);
+        int idx = calcIndexFromHash(hash);
 
         if (mKeys[idx] == null) // new
         {
@@ -263,7 +262,7 @@ public class FSTIdentity2IdMap {
             return Integer.MIN_VALUE;
         }
 
-        final int idx = calcIndexFromHash(hash, mKeys);
+        final int idx = calcIndexFromHash(hash);
 
         Object mapsKey = mKeys[idx];
         if (mapsKey == null) // not found
@@ -343,7 +342,7 @@ public class FSTIdentity2IdMap {
         }
     }
 
-    private int calcIndexFromHash(int hash, Object[] mKeys) {
+    private int calcIndexFromHash(int hash) {
         int res = hash & mask;
         while (res >= klen) {
             res = res >>> 1;

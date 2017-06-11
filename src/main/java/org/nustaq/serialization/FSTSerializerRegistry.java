@@ -36,10 +36,6 @@ class FSTSerializerRegistry {
         this.delegate = delegate;
     }
 
-    FSTSerializerRegistryDelegate getDelegate() {
-        return delegate;
-    }
-
     private static class NULLSerializer implements FSTObjectSerializer {
 
         @Override

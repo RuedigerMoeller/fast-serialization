@@ -46,7 +46,7 @@ public class FSTClazzInfoRegistry {
                     rwLock.set(false);
                     throw new NullPointerException("Class is null");
                 }
-                res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
+                res = new FSTClazzInfo(conf, c, ignoreAnnotations);
                 mInfos.put(c, res);
             }
             return res;
@@ -70,10 +70,6 @@ public class FSTClazzInfoRegistry {
 
     void setSerializerRegistryDelegate(FSTSerializerRegistryDelegate delegate) {
         serializerRegistry.setDelegate(delegate);
-    }
-
-    public FSTSerializerRegistryDelegate getSerializerRegistryDelegate() {
-        return serializerRegistry.getDelegate();
     }
 
     void setStructMode(boolean structMode) {

@@ -122,7 +122,7 @@ public final class FSTClazzInfo {
     final FSTConfiguration conf;
     private final FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
 
-    public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
+    public FSTClazzInfo(FSTConfiguration conf, Class clazz, boolean ignoreAnnotations) {
         this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
@@ -302,7 +302,7 @@ public final class FSTClazzInfo {
         Comparator<FSTFieldInfo> infocomp = new Comparator<FSTFieldInfo>() {
             @Override
             public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
-                int res = 0;
+                int res;
                 res = o1.getType().getSimpleName().compareTo(o2.getType().getSimpleName());
                 if (res == 0)
                     res = o1.getType().getName().compareTo(o2.getType().getName());
@@ -315,32 +315,14 @@ public final class FSTClazzInfo {
                     if (declaringClass != null && declaringClass1 == null) {
                         return 1;
                     }
-                    if (declaringClass == null && declaringClass1 != null) {
+                    if (declaringClass == null) {
                         return -1;
                     }
-                    if (res == 0) {
-                        return declaringClass.getName().compareTo(declaringClass1.getName());
-                    }
+                    return declaringClass.getName().compareTo(declaringClass1.getName());
                 }
                 return res;
             }
         };
-
-        // check if we actually need to build up compatibility info (memory intensive)
-        /*boolean requiresCompatibilityData = false;
-        if ( ! Externalizable.class.isAssignableFrom(c) && getSerNoStore() == null ) {
-            Class tmpCls = c;
-            while( tmpCls != Object.class ) {
-                if ( FSTUtil.findPrivateMethod(tmpCls, "writeObject", new Class<?>[]{ObjectOutputStream.class}, Void.TYPE) != null ||
-                     FSTUtil.findPrivateMethod(tmpCls, "readObject", new Class<?>[]{ObjectInputStream.class},Void.TYPE) != null ||
-                     FSTUtil.findDerivedMethod(tmpCls, "writeReplace", null, Object.class) != null ||
-                     FSTUtil.findDerivedMethod(tmpCls, "readResolve", null, Object.class) != null ) {
-                     requiresCompatibilityData = true;
-                     break;
-                }
-                tmpCls = tmpCls.getSuperclass();
-            }
-        }*/
 
         if (!conf.isStructMode()/* && requiresCompatibilityData */) {
             getCompInfo();
@@ -431,7 +413,7 @@ public final class FSTClazzInfo {
         field.setAccessible(true);
         Predict predict = field.getAnnotation(Predict.class); // needs to be iognored cross platform
         FSTFieldInfo result = new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
-        if (conf.fieldInfoCache != null && key != null) {
+        if (conf.fieldInfoCache != null) {
             conf.fieldInfoCache.put(key, result);
         }
         missCount.incrementAndGet();
@@ -483,9 +465,6 @@ public final class FSTClazzInfo {
 
         int structOffset = 0;
         int indexId; // position in serializable fields array
-        final int align = 0;
-        final int alignPad = 0;
-        Object bufferedName; // cache byte rep of field name (used for cross platform)
 
         // hack required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
