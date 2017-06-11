@@ -348,8 +348,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         int ch3 = (buf[count++] + 256) & 0xff;
         int ch4 = (buf[count++] + 256) & 0xff;
         input.pos = count;
-        int res = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
-        return res;
+        return (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
     }
 
     private long readPlainLong() throws IOException {

@@ -61,14 +61,14 @@ public final class FSTClazzInfo {
     /**
      * cache + share j.reflect.Field. This can be cleared in case it gets too fat/leaks mem (e.g. class reloading)
      */
-    static final ConcurrentHashMap<Class,Field[]> sharedFieldSets = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class, Field[]> sharedFieldSets = new ConcurrentHashMap<>();
 
-    public static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
+    static final Comparator<FSTFieldInfo> defFieldComparator = new Comparator<FSTFieldInfo>() {
         @Override
         public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
             int res = 0;
 
-            if ( o1.getVersion() != o2.getVersion() ) {
+            if (o1.getVersion() != o2.getVersion()) {
                 return o1.getVersion() < o2.getVersion() ? -1 : 1;
             }
 
@@ -100,40 +100,27 @@ public final class FSTClazzInfo {
             return res;
         }
     };
-    Class[] predict;
     private final boolean ignoreAnn;
-    FSTMap<String, FSTFieldInfo> fieldMap;
-    Method writeReplaceMethod, readResolveMethod;
-    FSTMap<Class, FSTCompatibilityInfo> compInfo;
+    private FSTMap<String, FSTFieldInfo> fieldMap;
+    private FSTMap<Class, FSTCompatibilityInfo> compInfo;
 
-    Object decoderAttached; // for decoders
-
-    public Object getDecoderAttached() {
-        return decoderAttached;
-    }
-
-    public void setDecoderAttached(Object decoderAttached) {
-        this.decoderAttached = decoderAttached;
-    }
-
-    boolean requiresCompatibleMode;
-    boolean externalizable;
-    boolean flat; // never share instances of this class
+    private boolean requiresCompatibleMode;
+    private boolean externalizable;
+    private boolean flat; // never share instances of this class
     boolean isAsciiNameShortString = false;
-    boolean requiresInit = false;
-    boolean hasTransient;
-    FSTObjectSerializer ser;
-    FSTFieldInfo fieldInfo[]; // serializable fields
+    private boolean requiresInit = false;
+    private boolean hasTransient;
+    private FSTObjectSerializer ser;
+    private FSTFieldInfo fieldInfo[]; // serializable fields
 
     final Class clazz;
-    final Object[] enumConstants;
-    Constructor cons;
-    int clzId = -1;
-    int structSize = 0;
+    private final Object[] enumConstants;
+    private Constructor cons;
+    private int clzId = -1;
 
 
     final FSTConfiguration conf;
-    protected final FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
+    private final FSTClassInstantiator instantiator; // initialized from FSTConfiguration in constructor
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
         this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
@@ -151,7 +138,7 @@ public final class FSTClazzInfo {
             cons = instantiator.findConstructorForSerializable(clazz);
         } else {
             if (!conf.isStructMode()) {
-                if ( conf.isForceSerializable() || getSer() != null ) {
+                if (conf.isForceSerializable() || getSer() != null) {
                     externalizable = false;
                     cons = instantiator.findConstructorForSerializable(clazz);
                 } else {
@@ -162,10 +149,6 @@ public final class FSTClazzInfo {
             }
         }
         if (!ignoreAnnotations) {
-            Predict annotation = (Predict) clazz.getAnnotation(Predict.class);
-            if (annotation != null) {
-                predict = annotation.value();
-            }
             flat = clazz.isAnnotationPresent(Flat.class);
         }
 
@@ -187,9 +170,9 @@ public final class FSTClazzInfo {
         requiresInit = isExternalizable() || useCompatibleMode() || hasTransient || conf.isForceClzInit();
     }
 
-    byte[] bufferedName;
+    private byte[] bufferedName;
 
-    public byte[] getBufferedName() {
+    byte[] getBufferedName() {
         if (bufferedName == null) {
             bufferedName = getClazz().getName().getBytes();
         }
@@ -203,43 +186,24 @@ public final class FSTClazzInfo {
                 '}';
     }
 
-    public boolean isAsciiNameShortString() {
-        return isAsciiNameShortString;
-    }
-
-    public int getClzId() {
+    int getClzId() {
         return clzId;
     }
 
-    public void setClzId(int clzId) {
+    void setClzId(int clzId) {
         this.clzId = clzId;
     }
 
-    public int getNumBoolFields() {
-        FSTFieldInfo[] fis = getFieldInfo();
-        for (int i = 0; i < fis.length; i++) {
-            FSTFieldInfo fstFieldInfo = fis[i];
-            if (fstFieldInfo.getType() != boolean.class) {
-                return i;
-            }
-        }
-        return fis.length;
-    }
-
-    public boolean isExternalizable() {
+    boolean isExternalizable() {
         return externalizable;
     }
 
-    public final boolean isFlat() {
+    final boolean isFlat() {
         return flat;
     }
 
-    public final Class[] getPredict() {
-        return predict;
-    }
-
-    public final Object newInstance(boolean doesRequireInit) {
-        return instantiator.newInstance(clazz, cons, doesRequireInit || requiresInit, conf.isForceSerializable() );
+    final Object newInstance(boolean doesRequireInit) {
+        return instantiator.newInstance(clazz, cons, doesRequireInit || requiresInit, conf.isForceSerializable());
     }
 
     /**
@@ -249,7 +213,7 @@ public final class FSTClazzInfo {
      * @param res
      * @return
      */
-    public final List<Field> getAllFields(Class c, List<Field> res) {
+    private List<Field> getAllFields(Class c, List<Field> res) {
         synchronized (sharedFieldSets) {
             if (res == null) {
                 res = new ArrayList<>();
@@ -257,11 +221,11 @@ public final class FSTClazzInfo {
             if (c == null) {
                 return res;
             }
-            Field[] declaredFields = BufferFieldMeta && !conf.isStructMode() ? sharedFieldSets.get(c) : null ;
-            if ( declaredFields == null ) {
+            Field[] declaredFields = BufferFieldMeta && !conf.isStructMode() ? sharedFieldSets.get(c) : null;
+            if (declaredFields == null) {
                 declaredFields = c.getDeclaredFields();
                 if (BufferFieldMeta && !conf.isStructMode())
-                    sharedFieldSets.put(c,declaredFields);
+                    sharedFieldSets.put(c, declaredFields);
             }
             List<Field> c1 = Arrays.asList(declaredFields);
             Collections.reverse(c1);
@@ -290,53 +254,15 @@ public final class FSTClazzInfo {
         while (c.getName().indexOf("$") >= 0) {
             c = c.getSuperclass(); // patch fuer reallive queries, kontraktor spore
         }
-        if ( field.getName().startsWith("this$") && c.getAnnotation(AnonymousTransient.class) != null )
-            return true;
-        return (c.getAnnotation(Transient.class) != null && field.getAnnotation(Serialize.class) == null);
+        return field.getName().startsWith("this$") && c.getAnnotation(AnonymousTransient.class) != null || (c.getAnnotation(Transient.class) != null && field.getAnnotation(Serialize.class) == null);
     }
 
-    public final FSTFieldInfo[] getFieldInfo() {
+    final FSTFieldInfo[] getFieldInfo() {
         return fieldInfo;
     }
 
-    public final FSTFieldInfo[] getFieldInfoFiltered(Class... toRemove) {
-        FSTFieldInfo[] fis = getFieldInfo();
-        int count = 0;
-        for (int i = 0; i < fis.length; i++) {
-            FSTFieldInfo fi = fis[i];
-            boolean skip = false;
-            for (int j = 0; j < toRemove.length; j++) {
-                Class aClass = toRemove[j];
-                if (fi.getField().getDeclaringClass() == aClass) {
-                    skip = true;
-                    break;
-                }
-            }
-            if (!skip) {
-                count++;
-            }
-        }
-        FSTFieldInfo res[] = new FSTFieldInfo[count];
-        count = 0;
-        for (int i = 0; i < fis.length; i++) {
-            FSTFieldInfo fi = fis[i];
-            boolean skip = false;
-            for (int j = 0; j < toRemove.length; j++) {
-                Class aClass = toRemove[j];
-                if (fi.getField().getDeclaringClass() == aClass) {
-                    skip = true;
-                    break;
-                }
-            }
-            if (!skip) {
-                res[count++] = fis[i];
-            }
-        }
-        return res;
-    }
-
-    public final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
-        if ( fieldMap != null ) {
+    final FSTFieldInfo getFieldInfo(String name, Class declaringClass) {
+        if (fieldMap != null) {
             if (declaringClass == null) {
                 return fieldMap.get(name);
             }
@@ -344,7 +270,7 @@ public final class FSTClazzInfo {
         } else {
             synchronized (this) {
                 fieldMap = buildFieldMap();
-                return getFieldInfo(name,declaringClass);
+                return getFieldInfo(name, declaringClass);
             }
         }
     }
@@ -353,7 +279,7 @@ public final class FSTClazzInfo {
         FSTMap res = new FSTMap<>(fieldInfo.length);
         for (int i = 0; i < fieldInfo.length; i++) {
             Field field = fieldInfo[i].getField();
-            if ( field != null ) {
+            if (field != null) {
                 res.put(field.getDeclaringClass().getName() + "#" + field.getName(), fieldInfo[i]);
                 res.put(field.getName(), fieldInfo[i]);
             }
@@ -440,7 +366,7 @@ public final class FSTClazzInfo {
                                 curClzFields.add(fstFieldInfo);
                                 fields.add(fstFieldInfo.getField());
                             } else {
-                                FSTFieldInfo fake = new FSTFieldInfo(null, null, true );
+                                FSTFieldInfo fake = new FSTFieldInfo(null, null, true);
                                 fake.type = objectStreamField.getType();
                                 fake.fakeName = objectStreamField.getName();
                                 curClzFields.add(fake);
@@ -468,7 +394,6 @@ public final class FSTClazzInfo {
             fstFieldInfo.setStructOffset(off);
             off += fstFieldInfo.getStructSize();
         }
-        structSize = off;
         /*writeReplaceMethod = FSTUtil.findDerivedMethod(
             c, "writeReplace", null, Object.class);
         readResolveMethod = FSTUtil.findDerivedMethod(
@@ -485,23 +410,20 @@ public final class FSTClazzInfo {
         }
     }
 
-    public int getStructSize() {
-        return structSize;
-    }
-
-    public boolean useCompatibleMode() {
-        return requiresCompatibleMode || writeReplaceMethod != null || readResolveMethod != null;
+    boolean useCompatibleMode() {
+        return requiresCompatibleMode;
     }
 
 
-    static final AtomicInteger fiCount = new AtomicInteger(0);
-    static final AtomicInteger missCount = new AtomicInteger(0);
-    protected FSTFieldInfo createFieldInfo(Field field) {
+    private static final AtomicInteger fiCount = new AtomicInteger(0);
+    private static final AtomicInteger missCount = new AtomicInteger(0);
+
+    private FSTFieldInfo createFieldInfo(Field field) {
         FSTConfiguration.FieldKey key = null;
-        if ( conf.fieldInfoCache != null ) {
+        if (conf.fieldInfoCache != null) {
             key = new FSTConfiguration.FieldKey(field.getDeclaringClass(), field.getName());
             FSTFieldInfo res = conf.fieldInfoCache.get(key);
-            if ( res != null ) {
+            if (res != null) {
                 fiCount.incrementAndGet();
                 return res;
             }
@@ -509,30 +431,22 @@ public final class FSTClazzInfo {
         field.setAccessible(true);
         Predict predict = field.getAnnotation(Predict.class); // needs to be iognored cross platform
         FSTFieldInfo result = new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
-        if ( conf.fieldInfoCache != null && key != null ) {
-            conf.fieldInfoCache.put(key,result);
+        if (conf.fieldInfoCache != null && key != null) {
+            conf.fieldInfoCache.put(key, result);
         }
         missCount.incrementAndGet();
         return result;
-    }
-
-    public final Method getReadResolveMethod() {
-        return readResolveMethod;
-    }
-
-    public final Method getWriteReplaceMethod() {
-        return writeReplaceMethod;
     }
 
     public final Class getClazz() {
         return clazz;
     }
 
-    public Object[] getEnumConstants() {
+    Object[] getEnumConstants() {
         return enumConstants;
     }
 
-    public FSTMap<Class, FSTCompatibilityInfo> getCompInfo() {
+    FSTMap<Class, FSTCompatibilityInfo> getCompInfo() {
         if (compInfo == null)
             compInfo = new FSTMap<>(3); // just avoid edge case NPE's
         return compInfo;
@@ -540,14 +454,14 @@ public final class FSTClazzInfo {
 
     public final static class FSTFieldInfo {
 
-        final public static int BOOL = 1;
-        final public static int BYTE = 2;
-        final public static int CHAR = 3;
-        final public static int SHORT = 4;
-        final public static int INT = 5;
-        final public static int LONG = 6;
-        final public static int FLOAT = 7;
-        final public static int DOUBLE = 8;
+        final static int BOOL = 1;
+        final static int BYTE = 2;
+        final static int CHAR = 3;
+        final static int SHORT = 4;
+        final static int INT = 5;
+        final static int LONG = 6;
+        final static int FLOAT = 7;
+        final static int DOUBLE = 8;
 
         Class possibleClasses[];
         FSTClazzInfo lastInfo; // cache last class stored (can save a hash lookup)
@@ -576,7 +490,7 @@ public final class FSTClazzInfo {
         // hack required for compatibility with ancient JDK mechanics (cross JDK, e.g. Android <=> OpenJDK ).
         // in rare cases, a field used in putField is not present as a real field
         // in this case only these of a fieldinfo are set
-        public String fakeName;
+        String fakeName;
 
         public FSTFieldInfo(Class[] possibleClasses, Field fi, boolean ignoreAnnotations) {
             this.possibleClasses = possibleClasses;
@@ -587,7 +501,7 @@ public final class FSTClazzInfo {
                 isArr = field.getType().isArray();
                 type = fi.getType();
                 primitive = type.isPrimitive();
-                if (FSTUtil.unFlaggedUnsafe != null ) {
+                if (FSTUtil.unFlaggedUnsafe != null) {
                     fi.setAccessible(true);
                     if (!Modifier.isStatic(fi.getModifiers())) {
                         try {
@@ -623,58 +537,16 @@ public final class FSTClazzInfo {
             return version;
         }
 
-        public Object getBufferedName() {
-            return bufferedName;
-        }
-
-        public void setBufferedName(Object bufferedName) {
-            this.bufferedName = bufferedName;
-        }
-
-        public int align(int off) {
-            while ((off / align) * align != off)
-                off++;
-            return off;
-        }
-
-        public int getIndexId() {
-            return indexId;
-        }
-
-        public int getStructOffset() {
-            return structOffset;
-        }
-
-        public void setStructOffset(int structOffset) {
+        void setStructOffset(int structOffset) {
             this.structOffset = structOffset;
         }
 
-        public String[] getOneOf() {
+        String[] getOneOf() {
             return oneOf;
         }
 
-        public long getMemOffset() {
-            return memOffset;
-        }
-
-        public int getAlign() {
-            return align;
-        }
-
-        public int getAlignPad() {
-            return alignPad;
-        }
-
-        public boolean isConditional() {
+        boolean isConditional() {
             return isConditional;
-        }
-
-        public FSTClazzInfo getLastInfo() {
-            return lastInfo;
-        }
-
-        public void setLastInfo(FSTClazzInfo lastInfo) {
-            this.lastInfo = lastInfo;
         }
 
         Class calcComponentType(Class c) {
@@ -684,27 +556,19 @@ public final class FSTClazzInfo {
             return c;
         }
 
-        public boolean isVolatile() {
-            return Modifier.isVolatile(getField().getModifiers());
-        }
-
         public final Class getType() {
             return type;
         }
 
-        public boolean isArray() {
+        boolean isArray() {
             return isArr;
         }
 
-        public int getArrayDepth() {
-            return arrayDim;
-        }
-
-        public Class getArrayType() {
+        Class getArrayType() {
             return arrayType;
         }
 
-        public Class[] getPossibleClasses() {
+        Class[] getPossibleClasses() {
             return possibleClasses;
         }
 
@@ -716,7 +580,7 @@ public final class FSTClazzInfo {
             return field;
         }
 
-        public void calcIntegral() {
+        void calcIntegral() {
             if (field == null) {
                 return;
             }
@@ -730,7 +594,7 @@ public final class FSTClazzInfo {
             }
         }
 
-        public static int getIntegralCode(Class type) {
+        static int getIntegralCode(Class type) {
             if (type == boolean.class) {
                 return BOOL;
             } else if (type == byte.class) {
@@ -756,22 +620,22 @@ public final class FSTClazzInfo {
          *
          * @return
          */
-        public int getIntegralType() {
+        int getIntegralType() {
             return integralType;
         }
 
-        public boolean isIntegral(Class type) {
+        boolean isIntegral(Class type) {
             return type.isPrimitive();
         }
 
         /**
          * @return wether this is primitive or an array of primitives
          */
-        public boolean isIntegral() {
+        boolean isIntegral() {
             return integral;
         }
 
-        public String getDesc() {
+        String getDesc() {
             return field != null ? "<" + field.getName() + " of " + field.getDeclaringClass().getSimpleName() + ">" : "<undefined referencee>";
         }
 
@@ -779,23 +643,11 @@ public final class FSTClazzInfo {
             return getDesc();
         }
 
-        public boolean isFlat() {
+        boolean isFlat() {
             return flat;
         }
 
-        public int getComponentStructSize() {
-            if (arrayType == boolean.class || arrayType == byte.class)
-                return 1;
-            if (arrayType == char.class || arrayType == short.class)
-                return 2;
-            if (arrayType == int.class || arrayType == float.class)
-                return 4;
-            if (arrayType == long.class || arrayType == double.class)
-                return 8;
-            return 0; // object => cannot decide
-        }
-
-        public int getStructSize() {
+        int getStructSize() {
             if (type == boolean.class || type == byte.class)
                 return 1;
             if (type == char.class || type == short.class)
@@ -813,41 +665,32 @@ public final class FSTClazzInfo {
             return 4;
         }
 
-        public boolean isPrimitive() {
+        boolean isPrimitive() {
             return primitive;
         }
 
-        public final int getByteValue(Object obj) throws IllegalAccessException {
+        final int getByteValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getByte(obj, memOffset);
             }
             return field.getByte(obj);
         }
 
-        public final int getCharValue(Object obj) throws IllegalAccessException {
+        final int getCharValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getChar(obj, memOffset);
             }
             return field.getChar(obj);
         }
 
-        public final int getShortValue(Object obj) throws IllegalAccessException {
+        final int getShortValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getShort(obj, memOffset);
             }
             return field.getShort(obj);
         }
 
-        public final int getIntValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
-        }
-
-
-        public final long getLongValueUnsafe(Object obj) throws IllegalAccessException {
-            return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
-        }
-
-        public final boolean getBooleanValue(Object obj) throws IllegalAccessException {
+        final boolean getBooleanValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getBoolean(obj, memOffset);
             }
@@ -862,21 +705,21 @@ public final class FSTClazzInfo {
          * @return
          * @throws IllegalAccessException
          */
-        public final Object getObjectValue(Object obj) throws IllegalAccessException {
+        final Object getObjectValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getObject(obj, memOffset);
             }
             return field.get(obj);
         }
 
-        public final float getFloatValue(Object obj) throws IllegalAccessException {
+        final float getFloatValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getFloat(obj, memOffset);
             }
             return field.getFloat(obj);
         }
 
-        public final void setCharValue(Object newObj, char c) throws IllegalAccessException {
+        final void setCharValue(Object newObj, char c) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putChar(newObj, memOffset, c);
                 return;
@@ -884,7 +727,7 @@ public final class FSTClazzInfo {
             field.setChar(newObj, c);
         }
 
-        public final void setShortValue(Object newObj, short i1) throws IllegalAccessException {
+        final void setShortValue(Object newObj, short i1) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putShort(newObj, memOffset, i1);
                 return;
@@ -892,7 +735,7 @@ public final class FSTClazzInfo {
             field.setShort(newObj, i1);
         }
 
-        public final void setObjectValue(Object target, Object value) throws IllegalAccessException {
+        final void setObjectValue(Object target, Object value) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
                 return;
@@ -900,7 +743,7 @@ public final class FSTClazzInfo {
             field.set(target, value);
         }
 
-        public final void setFloatValue(Object newObj, float l) throws IllegalAccessException {
+        final void setFloatValue(Object newObj, float l) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putFloat(newObj, memOffset, l);
                 return;
@@ -908,7 +751,7 @@ public final class FSTClazzInfo {
             field.setFloat(newObj, l);
         }
 
-        public final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
+        final void setDoubleValue(Object newObj, double l) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putDouble(newObj, memOffset, l);
                 return;
@@ -916,7 +759,7 @@ public final class FSTClazzInfo {
             field.setDouble(newObj, l);
         }
 
-        public final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
+        final void setLongValue(Object newObj, long i1) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putLong(newObj, memOffset, i1);
                 return;
@@ -924,21 +767,21 @@ public final class FSTClazzInfo {
             field.setLong(newObj, i1);
         }
 
-        public final long getLongValue(Object obj) throws IllegalAccessException {
+        final long getLongValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getLong(obj, memOffset);
             }
             return field.getLong(obj);
         }
 
-        public final double getDoubleValue(Object obj) throws IllegalAccessException {
+        final double getDoubleValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getDouble(obj, memOffset);
             }
             return field.getDouble(obj);
         }
 
-        public final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
+        final void setIntValue(Object newObj, int i1) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putInt(newObj, memOffset, i1);
                 return;
@@ -946,14 +789,14 @@ public final class FSTClazzInfo {
             field.setInt(newObj, i1);
         }
 
-        public final int getIntValue(Object obj) throws IllegalAccessException {
+        final int getIntValue(Object obj) throws IllegalAccessException {
             if (memOffset >= 0) {
                 return FSTUtil.unFlaggedUnsafe.getInt(obj, memOffset);
             }
             return field.getInt(obj);
         }
 
-        public final void setBooleanValue(Object newObj, boolean i1) throws IllegalAccessException {
+        final void setBooleanValue(Object newObj, boolean i1) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putBoolean(newObj, memOffset, i1);
                 return;
@@ -961,7 +804,7 @@ public final class FSTClazzInfo {
             field.setBoolean(newObj, i1);
         }
 
-        public final void setByteValue(Object newObj, byte b) throws IllegalAccessException {
+        final void setByteValue(Object newObj, byte b) throws IllegalAccessException {
             if (memOffset >= 0) {
                 FSTUtil.unFlaggedUnsafe.putByte(newObj, memOffset, b);
                 return;
@@ -976,9 +819,10 @@ public final class FSTClazzInfo {
 
     /**
      * sideeffecting: if no ser is found, next lookup will return null immediate
+     *
      * @return
      */
-    public FSTObjectSerializer getSer() {
+    FSTObjectSerializer getSer() {
         if (ser == null) {
             if (clazz == null) {
                 return null;
@@ -995,13 +839,12 @@ public final class FSTClazzInfo {
     }
 
     // no sideffecting lookup
-    public FSTObjectSerializer getSerNoStore() {
+    private FSTObjectSerializer getSerNoStore() {
         return conf.getCLInfoRegistry().getSerializerRegistry().getSerializer(clazz);
     }
 
     static class FSTCompatibilityInfo {
         Method writeMethod, readMethod;
-        ObjectStreamClass objectStreamClass;
         final List<FSTFieldInfo> infos;
         final Class clazz;
         FSTFieldInfo infoArr[];
@@ -1016,7 +859,7 @@ public final class FSTClazzInfo {
             return infos;
         }
 
-        public FSTFieldInfo[] getFieldArray() {
+        FSTFieldInfo[] getFieldArray() {
             if (infoArr == null) {
                 List<FSTClazzInfo.FSTFieldInfo> fields = getFields();
                 final FSTFieldInfo[] fstFieldInfos = new FSTFieldInfo[fields.size()];
@@ -1027,21 +870,17 @@ public final class FSTClazzInfo {
             return infoArr;
         }
 
-        public Class getClazz() {
-            return clazz;
-        }
-
-        public boolean needsCompatibleMode() {
+        boolean needsCompatibleMode() {
             return writeMethod != null || readMethod != null;
         }
 
-        public void readClazz(Class c) {
+        void readClazz(Class c) {
             writeMethod = FSTUtil.findPrivateMethod(c, "writeObject",
-                                                    new Class<?>[]{ObjectOutputStream.class},
-                                                    Void.TYPE);
+                    new Class<?>[]{ObjectOutputStream.class},
+                    Void.TYPE);
             readMethod = FSTUtil.findPrivateMethod(c, "readObject",
-                                                   new Class<?>[]{ObjectInputStream.class},
-                                                   Void.TYPE);
+                    new Class<?>[]{ObjectInputStream.class},
+                    Void.TYPE);
             if (writeMethod != null) {
                 writeMethod.setAccessible(true);
             }
@@ -1050,27 +889,12 @@ public final class FSTClazzInfo {
             }
         }
 
-        public Method getReadMethod() {
+        Method getReadMethod() {
             return readMethod;
         }
 
-        public void setReadMethod(Method readMethod) {
-            this.readMethod = readMethod;
-        }
-
-        public Method getWriteMethod() {
+        Method getWriteMethod() {
             return writeMethod;
         }
-
-        public void setWriteMethod(Method writeMethod) {
-            this.writeMethod = writeMethod;
-        }
-
-        public boolean isAsymmetric() {
-            return (getReadMethod() == null && getWriteMethod() != null) || (getWriteMethod() == null && getReadMethod() != null);
-        }
-
     }
-
-
 }

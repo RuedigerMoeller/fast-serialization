@@ -514,13 +514,6 @@ public class FSTObjectInput implements ObjectInput {
             getCodec().ensureReadAhead(readExternalReadAHead);
             ((Externalizable) newObj).readExternal(this);
             getCodec().readExternalEnd();
-            if (clzSerInfo.getReadResolveMethod() != null) {
-                final Object prevNew = newObj;
-                newObj = handleReadRessolve(clzSerInfo, newObj);
-                if (newObj != prevNew && needsRefLookup) {
-                    objects.replace(prevNew, newObj, tmp);
-                }
-            }
         } else if (clzSerInfo.useCompatibleMode()) {
             Object replaced = readObjectCompatible(referencee, clzSerInfo, newObj);
             if (replaced != null && replaced != newObj) {
@@ -538,21 +531,6 @@ public class FSTObjectInput implements ObjectInput {
     private Object readObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
         Class cl = serializationInfo.getClazz();
         readObjectCompatibleRecursive(referencee, newObj, serializationInfo, cl);
-        if (newObj != null &&
-                serializationInfo.getReadResolveMethod() != null) {
-            newObj = handleReadRessolve(serializationInfo, newObj);
-        }
-        return newObj;
-    }
-
-    private Object handleReadRessolve(FSTClazzInfo serializationInfo, Object newObj) throws IllegalAccessException {
-        Object rep = null;
-        try {
-            rep = serializationInfo.getReadResolveMethod().invoke(newObj);
-        } catch (InvocationTargetException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
-        }
-        newObj = rep;//FIXME: support this in call
         return newObj;
     }
 

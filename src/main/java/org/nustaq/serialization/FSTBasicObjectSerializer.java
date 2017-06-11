@@ -22,7 +22,7 @@ package org.nustaq.serialization;
  * Time: 12:09
  * To change this template use File | Settings | File Templates.
  */
-public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerialzer {
+public abstract class FSTBasicObjectSerializer implements FSTObjectSerializer {
 
     protected FSTBasicObjectSerializer() {
     }
