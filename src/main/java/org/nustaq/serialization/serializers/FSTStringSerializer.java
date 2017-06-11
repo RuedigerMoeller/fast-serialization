@@ -31,8 +31,6 @@ import java.io.IOException;
  */
 public class FSTStringSerializer extends FSTBasicObjectSerializer {
 
-    public static FSTStringSerializer Instance = new FSTStringSerializer(); // used directly
-
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         out.writeStringUTF((String) toWrite);
@@ -43,10 +41,5 @@ public class FSTStringSerializer extends FSTBasicObjectSerializer {
         String s = in.readStringUTF();
         in.registerObject(s, streamPosition, serializationInfo, referencee);
         return s;
-    }
-
-    @Override
-    public boolean writeTupleEnd() {
-        return false;
     }
 }

@@ -38,13 +38,12 @@ public class FSTBigNumberSerializers {
     public static class FSTByteSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeByte(((Byte)toWrite).byteValue());
+            out.writeByte((Byte) toWrite);
         }
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-            Object res = Byte.valueOf(in.readByte());
-            return res;
+            return in.readByte();
         }
 
         /**
@@ -57,33 +56,22 @@ public class FSTBigNumberSerializers {
             return true;
         }
 
-        @Override
-        public boolean writeTupleEnd() {
-            return false;
-        }
-
     }
 
     static public class FSTCharSerializer extends FSTBasicObjectSerializer {
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeChar(((Character)toWrite).charValue());
+            out.writeChar((Character) toWrite);
         }
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-            Object res = Character.valueOf(in.readChar());
-            return res;
+            return in.readChar();
         }
 
         @Override
         public boolean alwaysCopy() {
             return true;
-        }
-
-        @Override
-        public boolean writeTupleEnd() {
-            return false;
         }
 
     }
@@ -92,23 +80,17 @@ public class FSTBigNumberSerializers {
 
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeShort(((Short)toWrite).shortValue());
+            out.writeShort((Short) toWrite);
         }
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-            Object res = Short.valueOf(in.readShort());
-            return res;
+            return in.readShort();
         }
 
         @Override
         public boolean alwaysCopy() {
             return true;
-        }
-
-        @Override
-        public boolean writeTupleEnd() {
-            return false;
         }
 
     }
@@ -117,22 +99,17 @@ public class FSTBigNumberSerializers {
 
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeFloat(((Float) toWrite).floatValue());
+            out.writeFloat((Float) toWrite);
         }
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-            Object res = new Float(in.readFloat());
-            return res;
+            return in.readFloat();
         }
 
         @Override
         public boolean alwaysCopy() {
             return true;
-        }
-        @Override
-        public boolean writeTupleEnd() {
-            return false;
         }
 
     }
@@ -141,23 +118,17 @@ public class FSTBigNumberSerializers {
 
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            out.writeDouble(((Double) toWrite).doubleValue());
+            out.writeDouble((Double) toWrite);
         }
 
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-            Object res = new Double(in.readDouble());
-            return res;
+            return in.readDouble();
         }
 
         @Override
         public boolean alwaysCopy() {
             return true;
-        }
-
-        @Override
-        public boolean writeTupleEnd() {
-            return false;
         }
 
     }

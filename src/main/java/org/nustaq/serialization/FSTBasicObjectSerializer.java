@@ -51,9 +51,5 @@ public abstract class FSTBasicObjectSerializer implements FSTCrossPlatformSerial
         return null;
     }
 
-    public boolean writeTupleEnd() {
-        return true;
-    }
-
 
 }

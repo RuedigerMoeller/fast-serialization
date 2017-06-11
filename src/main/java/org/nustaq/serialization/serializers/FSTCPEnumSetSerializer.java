@@ -22,7 +22,6 @@ import org.nustaq.serialization.FSTObjectOutput;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.EnumSet;
 
 /**
@@ -36,7 +35,6 @@ import java.util.EnumSet;
  */
 public class FSTCPEnumSetSerializer extends FSTBasicObjectSerializer {
 
-    Field elemType;
     @Override
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         EnumSet enset = (EnumSet) toWrite;

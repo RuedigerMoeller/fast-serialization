@@ -44,23 +44,23 @@ final class FSTObjectRegistry {
 
     void clearForRead(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
-        if ( !disabled ) {
-            if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
+        if (!disabled) {
+            if (idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0) {
                 // avoid cleaning huge mem areas after having written a large object
                 idToObject = new FSTInt2ObjectMap(idToObject.size());
             } else {
                 idToObject.clear();
             }
-            if ( highestPos > -1 )
-                FSTUtil.clear( reuseMap, highestPos + 1 );
+            if (highestPos > -1)
+                FSTUtil.clear(reuseMap, highestPos + 1);
         }
         highestPos = -1;
     }
 
     void clearForWrite(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
-        if ( ! disabled ) {
-            if ( objects.size() > 0 && objects.keysLength() > 6 * objects.size() ) {
+        if (!disabled) {
+            if (objects.size() > 0 && objects.keysLength() > 6 * objects.size()) {
                 objects = new FSTIdentity2IdMap(objects.size());
             } else {
                 objects.clear();
@@ -73,12 +73,12 @@ final class FSTObjectRegistry {
             return null;
         }
         int pos = handle / OBJ_DIVISOR;
-        if ( pos < reuseMap.length ) {
-            if ( reuseMap[pos] == null ) {
+        if (pos < reuseMap.length) {
+            if (reuseMap[pos] == null) {
                 return null;
             } else {
                 Object candidate = idToObject.get(handle);
-                if ( candidate == null )
+                if (candidate == null)
                     return reuseMap[pos];
                 return candidate;
             }
@@ -89,15 +89,14 @@ final class FSTObjectRegistry {
     void replace(Object old, Object replaced, int streamPos) {
         int pos = streamPos / OBJ_DIVISOR;
         final Object[] reuseMap = this.reuseMap;
-        if ( pos < reuseMap.length ) {
-            if ( this.reuseMap[pos] == old ) {
+        if (pos < reuseMap.length) {
+            if (this.reuseMap[pos] == old) {
                 this.reuseMap[pos] = replaced;
             } else {
-                if ( this.reuseMap[pos] == null || reuseMap[pos] == old )
-                {
+                if (this.reuseMap[pos] == null || reuseMap[pos] == old) {
                     this.reuseMap[pos] = replaced;
                 } else {
-                    idToObject.put(streamPos,replaced);
+                    idToObject.put(streamPos, replaced);
                 }
             }
         } else {
@@ -112,15 +111,15 @@ final class FSTObjectRegistry {
 //        System.out.println("POK REGISTER AT READ:"+streamPosition+" : "+o);
         int pos = streamPosition / OBJ_DIVISOR;
         Object[] reuseMap = this.reuseMap;
-        if ( pos < reuseMap.length ) {
+        if (pos < reuseMap.length) {
             highestPos = pos > highestPos ? pos : highestPos;
-            if ( this.reuseMap[pos] == null ) {
+            if (this.reuseMap[pos] == null) {
                 this.reuseMap[pos] = o;
             } else {
-                idToObject.put(streamPosition,o);
+                idToObject.put(streamPosition, o);
             }
         } else {
-            idToObject.put(streamPosition,o);
+            idToObject.put(streamPosition, o);
         }
     }
 
@@ -135,19 +134,11 @@ final class FSTObjectRegistry {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
-//        System.out.println("REGISTER AT WRITE:"+streamPosition+" "+o.getClass().getSimpleName());
-//        final Class clazz = o.getClass();
-        if ( clzInfo == null ) { // array oder enum oder primitive
-            // unused ?
-//            clzInfo = reg.getCLInfo(clazz);
-        } else if ( clzInfo.isFlat() ) {
+        if (clzInfo != null && clzInfo.isFlat()) {
             return Integer.MIN_VALUE;
         }
-        int handle = objects.putOrGet(o,streamPosition);
-        if ( handle >= 0 ) {
-//            if ( idToObject.get(handle) == null ) { // (*) (can get improved)
-//                idToObject.add(handle, o);
-//            }
+        int handle = objects.putOrGet(o, streamPosition);
+        if (handle >= 0) {
             reUseType[0] = 0;
             return handle;
         }

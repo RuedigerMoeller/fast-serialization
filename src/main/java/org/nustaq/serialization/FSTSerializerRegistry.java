@@ -22,10 +22,9 @@ import java.util.*;
  * User: ruedi
  * Date: 10.11.12
  * Time: 15:04
- *
+ * <p>
  * contains a map from class => serializer.
  * One can register Serializers for exact classes or a class and all its subclasses (can have unexpected consequences in case a subclass holds additional state).
- *
  */
 class FSTSerializerRegistry {
 
@@ -58,8 +57,8 @@ class FSTSerializerRegistry {
 
         /**
          * @return true if FST can skip a search for same instances in the serialized ObjectGraph. This speeds up reading and writing and makes
-         *         sense for short immutable such as Integer, Short, Character, Date, .. . For those classes it is more expensive (CPU, size) to do a lookup than to just
-         *         write the Object twice in case.
+         * sense for short immutable such as Integer, Short, Character, Date, .. . For those classes it is more expensive (CPU, size) to do a lookup than to just
+         * write the Object twice in case.
          */
         @Override
         public boolean alwaysCopy() {
@@ -82,42 +81,42 @@ class FSTSerializerRegistry {
         }
     }
 
-    private final HashMap<Class,SerEntry> map = new HashMap<>(97);
+    private final HashMap<Class, SerEntry> map = new HashMap<>(97);
 
     final FSTObjectSerializer getSerializer(Class cl) {
-        if ( cl.isPrimitive()) {
+        if (cl.isPrimitive()) {
             return null;
         }
-        if ( delegate != null ) {
+        if (delegate != null) {
             FSTObjectSerializer ser = delegate.getSerializer(cl);
-            if ( ser != null ) {
+            if (ser != null) {
                 return ser;
             }
         }
-        return getSerializer(cl,cl);
+        return getSerializer(cl, cl);
     }
 
     private FSTObjectSerializer getSerializer(Class cl, Class lookupStart) {
-        if ( cl == null ) {
+        if (cl == null) {
             return null;
         }
         final SerEntry serEntry = map.get(cl);
-        if ( serEntry != null ) {
-            if ( cl == lookupStart && serEntry.ser.willHandleClass(cl)) {
+        if (serEntry != null) {
+            if (cl == lookupStart && serEntry.ser.willHandleClass(cl)) {
                 return serEntry.ser;
             }
-            if ( serEntry.forSubClasses && serEntry.ser.willHandleClass(cl) ) {
-                putSerializer(lookupStart,serEntry.ser, false);
+            if (serEntry.forSubClasses && serEntry.ser.willHandleClass(cl)) {
+                putSerializer(lookupStart, serEntry.ser, false);
                 return serEntry.ser;
             }
         }
-        if ( cl != Object.class && cl != null ) {
-            return getSerializer(cl.getSuperclass(),lookupStart);
+        if (cl != Object.class) {
+            return getSerializer(cl.getSuperclass(), lookupStart);
         }
         return null;
     }
 
     void putSerializer(Class cl, FSTObjectSerializer ser, boolean includeSubclasses) {
-        map.put(cl,new SerEntry(includeSubclasses,ser));
+        map.put(cl, new SerEntry(includeSubclasses, ser));
     }
 }

@@ -84,13 +84,6 @@ public class FSTClazzNameRegistry {
         addClassMapping(c, classIdCount++,cli,conf);
     }
 
-    public void registerClass( Class c, int code, FSTConfiguration conf) {
-        if ( getIdFromClazz(c) != Integer.MIN_VALUE ) {
-            return;
-        }
-        addClassMapping(c, code, null,conf);
-    }
-
     private void addClassMapping(Class c, int id, FSTClazzInfo clInfo, FSTConfiguration conf) {
         clzToId.put(c, id);
         if (clInfo==null)
@@ -231,12 +224,6 @@ public class FSTClazzNameRegistry {
         } finally {
             classCacheLock.set(false);
         }
-    }
-
-    public void registerClazzFromOtherLoader( Class cl ) {
-        while( ! classCacheLock.compareAndSet(false,true) );
-        classCache.put(cl.getName(),cl);
-        classCacheLock.set(false);
     }
 
     private FSTClazzInfo getClazzFromId(int c) {

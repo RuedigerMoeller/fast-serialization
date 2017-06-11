@@ -37,7 +37,7 @@ public final class FSTOutputStream extends OutputStream {
      * The number of valid bytes in the buffer.
      */
     public int pos;
-    OutputStream outstream;
+    private OutputStream outstream;
     private int off;
 
     public FSTOutputStream(OutputStream out) {
@@ -49,20 +49,8 @@ public final class FSTOutputStream extends OutputStream {
         outstream = out;
     }
 
-    public OutputStream getOutstream() {
-        return outstream;
-    }
-
     public void setOutstream(OutputStream outstream) {
         this.outstream = outstream;
-    }
-
-    public byte[] getBuf() {
-        return buf;
-    }
-
-    public void setBuf(byte[] buf) {
-        this.buf = buf;
     }
 
     public final void ensureFree(int free) throws IOException {
@@ -71,7 +59,7 @@ public final class FSTOutputStream extends OutputStream {
             grow(pos + free);
     }
 
-    public final void ensureCapacity(int minCapacity) throws IOException {
+    private void ensureCapacity(int minCapacity) throws IOException {
         if (minCapacity - buf.length > 0)
             grow(minCapacity);
     }
@@ -114,7 +102,7 @@ public final class FSTOutputStream extends OutputStream {
      * @param out
      * @throws IOException
      */
-    public void copyTo(OutputStream out) throws IOException {
+    private void copyTo(OutputStream out) throws IOException {
         out.write(buf, 0, pos);
     }
 

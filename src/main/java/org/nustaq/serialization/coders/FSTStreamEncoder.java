@@ -48,14 +48,14 @@ public class FSTStreamEncoder implements FSTEncoder {
         this.conf = conf;
     }
 
-    void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {
+    private void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {
         buffout.ensureFree(len);
         for (int i = off; i < off+len; i++) {
             buffout.buf[buffout.pos++] = (byte) (arr[i] ? 1 : 0);
         }
     }
 
-    public void writeFFloatArr(float[] arr, int off, int len) throws IOException {
+    private void writeFFloatArr(float[] arr, int off, int len) throws IOException {
         int byteLen = arr.length * 4;
         buffout.ensureFree(byteLen);
         byte buf[] = buffout.buf;
@@ -72,7 +72,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.pos+= byteLen;
     }
 
-    public void writeFDoubleArr(double[] arr, int off, int len) throws IOException {
+    private void writeFDoubleArr(double[] arr, int off, int len) throws IOException {
         final int byteLen = arr.length * 8;
         buffout.ensureFree(byteLen);
         final byte buf[] = buffout.buf;
@@ -147,7 +147,7 @@ public class FSTStreamEncoder implements FSTEncoder {
 //        buffout.pos+= byteLen;
 //    }
 
-    public void writeFShortArr(short[] arr, int off, int len) throws IOException {
+    private void writeFShortArr(short[] arr, int off, int len) throws IOException {
         buffout.ensureFree(len*3);
         for (int i = off; i < off+len; i++) {
             short c = arr[i];
@@ -162,7 +162,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         }
     }
 
-    public void writeFCharArr(char[] arr, int off, int len) throws IOException {
+    private void writeFCharArr(char[] arr, int off, int len) throws IOException {
         buffout.ensureFree(len*3);
         for (int i = off; i < off+len; i++) {
             char c = arr[i];
@@ -180,7 +180,7 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
     // uncompressed version
-    public void writeFIntArr(int[] arr, int off, int len) throws IOException {
+    private void writeFIntArr(int[] arr, int off, int len) throws IOException {
         int byteLen = arr.length * 4;
         buffout.ensureFree(byteLen);
         byte buf[] = buffout.buf;
@@ -197,33 +197,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.pos+= byteLen;
     }
 
-    // compressed version
-    public void _writeFIntArr(int v[], int off, int len) throws IOException {
-        final int free = 5 * len;
-        buffout.ensureFree(free);
-        final byte[] buf = buffout.buf;
-        int count = buffout.pos;
-        for (int i = off; i < off+len; i++) {
-            final int anInt = v[i];
-            if ( anInt > -127 && anInt <=127 ) {
-                buffout.buf[count++] = (byte)anInt;
-            } else
-            if ( anInt >= Short.MIN_VALUE && anInt <= Short.MAX_VALUE ) {
-                buf[count++] = -128;
-                buf[count++] = (byte) ((anInt >>>  0) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 8) & 0xFF);
-            } else {
-                buf[count++] = -127;
-                buf[count++] = (byte) ((anInt >>>  0) & 0xFF);
-                buf[count++] = (byte) ((anInt >>>  8) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 16) & 0xFF);
-                buf[count++] = (byte) ((anInt >>> 24) & 0xFF);
-            }
-        }
-        buffout.pos = count;
-    }
-
-    void writeFLongArr(long[] arr, int off, int len) throws IOException {
+    private void writeFLongArr(long[] arr, int off, int len) throws IOException {
         int byteLen = arr.length * 8;
         buffout.ensureFree(byteLen);
         byte buf[] = buffout.buf;
@@ -312,25 +286,6 @@ public class FSTStreamEncoder implements FSTEncoder {
             }
         }
         buffout.pos = count;
-    }
-    
-    /**
-     * length < 127 !!!!!
-     *
-     * @param name
-     * @throws java.io.IOException
-     */
-    void writeStringAsc(String name) throws IOException {
-        int len = name.length();
-        if ( len >= 127 ) {
-            throw new RuntimeException("Ascii String too long");
-        }
-        writeFByte((byte) len);
-        buffout.ensureFree(len);
-        if (ascStringCache == null || ascStringCache.length < len)
-            ascStringCache = new byte[len];
-        name.getBytes(0, len, ascStringCache, 0);
-        writeRawBytes(ascStringCache, 0, len);
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.nustaq.serialization.serializers.FSTMapSerializer;
 import org.nustaq.serialization.serializers.FSTStringBufferSerializer;
 import org.nustaq.serialization.serializers.FSTStringBuilderSerializer;
 import org.nustaq.serialization.serializers.FSTStringSerializer;
-import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
@@ -247,22 +246,6 @@ public class FSTConfiguration {
         return instantiator;
     }
 
-    public void setInstantiator(FSTClassInstantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
-    public <T> T getCoderSpecific() {
-        return (T) coderSpecific;
-    }
-
-    public void setCoderSpecific(Object coderSpecific) {
-        this.coderSpecific = coderSpecific;
-    }
-
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
     protected FSTConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> sharedFieldInfos) {
         this.fieldInfoCache = sharedFieldInfos;
     }
@@ -333,30 +316,6 @@ public class FSTConfiguration {
     public FSTConfiguration setForceSerializable(boolean forceSerializable) {
         this.forceSerializable = forceSerializable;
         return this;
-    }
-
-    /**
-     * clear global deduplication caches. Useful for class reloading scenarios, else counter productive as
-     * j.reflect.Fiwld + Construtors will be instantiated more than once per class.
-     */
-    public static void clearGlobalCaches() {
-        FSTClazzInfo.sharedFieldSets.clear();
-        FSTDefaultClassInstantiator.constructorMap.clear();
-    }
-
-    /**
-     * clear cached softref's and ThreadLocal.
-     */
-    public void clearCaches() {
-        try {
-            FSTInputStream.cachedBuffer.set(null);
-            while (!cacheLock.compareAndSet(false, true)) {
-                // empty
-            }
-            cachedObjects.clear();
-        } finally {
-            cacheLock.set( false );
-        }
     }
 
     public boolean isShareReferences() {

@@ -29,7 +29,7 @@ import java.util.List;
 public class FSTIdentity2IdMap {
     private static final int RESERVE = 4;
     private static final int MAX_DEPTH = 4;
-    static final int[] prim = {
+    private static final int[] prim = {
                             3, 5, 7, 11, 13, 17, 19, 23, 29, 37, 67, 97, 139,
                             211, 331, 641, 1097, 1531, 2207, 3121, 5059, 7607, 10891,
                             15901, 19993, 30223, 50077, 74231, 99991, 150001, 300017,
@@ -37,7 +37,7 @@ public class FSTIdentity2IdMap {
 
     };
 
-    static int adjustSize(int size) {
+    private static int adjustSize(int size) {
         for (int i = 0; i < prim.length - 1; i++) {
             if (size < prim[i]) {
                 return prim[i] + RESERVE;
@@ -49,7 +49,7 @@ public class FSTIdentity2IdMap {
     private static final int GROFAC = 2;
 
     private int mask;
-    public Object[] mKeys;
+    private Object[] mKeys;
     private int klen;
     private int mValues[];
     private int mNumberOfElements;
@@ -82,7 +82,7 @@ public class FSTIdentity2IdMap {
         return putOrGetHash(key, value, hash, this, 0);
     }
 
-    final int putOrGetHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth ) {
+    private int putOrGetHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth ) {
         if ( linearScanList != null ) {
             for (int i = 0; i < linearScanList.size(); i++) {
                 Object o = linearScanList.get(i);
@@ -150,7 +150,7 @@ public class FSTIdentity2IdMap {
         }
     }
 
-    final int putOrGetNext(final int hash, final Object key, final int value, int depth) {
+    private int putOrGetNext(final int hash, final Object key, final int value, int depth) {
         if (next == null) { // new
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
@@ -169,7 +169,7 @@ public class FSTIdentity2IdMap {
         putHash(key, value, hash, this, 0);
     }
 
-    final void putHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth) {
+    private void putHash(Object key, int value, int hash, FSTIdentity2IdMap parent, int depth) {
         if ( linearScanList != null ) {
             for (int i = 0; i < linearScanList.size(); i++) {
                 Object o = linearScanList.get(i);
@@ -235,7 +235,7 @@ public class FSTIdentity2IdMap {
         }
     }
 
-    final void putNext(final int hash, final Object key, final int value, int depth) {
+    private void putNext(final int hash, final Object key, final int value, int depth) {
         if (next == null) {
             int newSiz = mKeys.length / 10;
             next = new FSTIdentity2IdMap(newSiz);
@@ -252,7 +252,7 @@ public class FSTIdentity2IdMap {
         return getHash(key, hash);
     }
 
-    final int getHash(final Object key, final int hash) {
+    private int getHash(final Object key, final int hash) {
         if ( linearScanList != null ) {
             for (int i = 0; i < linearScanList.size(); i++) {
                 Object o = linearScanList.get(i);
@@ -298,7 +298,7 @@ public class FSTIdentity2IdMap {
         }
     }
 
-    final void resize(int newSize) {
+    private void resize(int newSize) {
         newSize = adjustSize(newSize);
         Object[] oldTabKey = mKeys;
         int[] oldTabVal = mValues;
@@ -343,7 +343,7 @@ public class FSTIdentity2IdMap {
         }
     }
 
-    final int calcIndexFromHash(int hash, Object[] mKeys) {
+    private int calcIndexFromHash(int hash, Object[] mKeys) {
         int res = hash & mask;
         while (res >= klen) {
             res = res >>> 1;
@@ -373,17 +373,6 @@ public class FSTIdentity2IdMap {
         if (next != null) {
             next.clear();
         }
-    }
-
-    public void dump() {
-        for (int i = 0; i < mKeys.length; i++) {
-            Object mKey = mKeys[i];
-            if (mKey != null) {
-                System.out.println("" + mKey + " => " + mValues[i]);
-            }
-        }
-        if (next != null)
-            next.dump();
     }
 
     public int keysLength() {

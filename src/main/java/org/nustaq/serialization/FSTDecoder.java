@@ -38,14 +38,13 @@ public interface FSTDecoder {
     short readFShort() throws IOException;
     int readPlainInt() throws IOException;
 
-    byte[] getBuffer();
     int getInputPos();
     void moveTo(int position);
     void setInputStream(InputStream in);
     int ensureReadAhead(int bytes); // might signal eof by returning -1, depends on decoder impl though
 
     void reset();
-    void resetToCopyOf(byte[] bytes, int off, int len);
+
     void resetWith(byte[] bytes, int len);
 
     FSTClazzInfo readClass() throws IOException, ClassNotFoundException;
@@ -91,13 +90,6 @@ public interface FSTDecoder {
      * @return a value > 0 if more bytes are available
      */
     int available();
-
-    /**
-     * return wether current stream is reading an object or sequence currently
-     * makes sense for MinBin and JSon only, only Json serializer actually has implemented it
-     * @return
-     */
-    boolean inArray();
 
     /**
      * quirks for json unknown decoding. Need a hook to set original classname
