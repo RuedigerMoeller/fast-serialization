@@ -26,6 +26,7 @@ public interface FSTEncoder {
     void setConf(FSTConfiguration conf);
 
     void writeRawBytes(byte[] bufferedName, int off, int length) throws IOException;
+
     /**
      * does not write class tag and length
      *
@@ -33,35 +34,46 @@ public interface FSTEncoder {
      * @throws IOException
      */
     void writePrimitiveArray(Object array, int start, int length) throws IOException;
-    
+
     void writeStringUTF(String str) throws IOException;
 
     void writeFShort(short c) throws IOException;
+
     void writeFChar(char c) throws IOException;
+
     void writeFByte(int v) throws IOException;
+
     void writeFInt(int anInt) throws IOException;
+
     void writeFLong(long anInt) throws IOException;
+
     void writeFFloat(float value) throws IOException;
+
     void writeFDouble(double value) throws IOException;
 
     int getWritten();
+
     void skip(int i);
 
     /**
      * close and flush to underlying stream if present. The stream is also closed
+     *
      * @throws java.io.IOException
      */
     void close() throws IOException;
+
     void reset(byte[] out); // resets outbuff only
 
     /**
      * resets stream (positions are lost)
+     *
      * @throws java.io.IOException
      */
     void flush() throws IOException;
 
     /**
      * used to write uncompressed int (guaranteed length = 4) at a (eventually recent) position
+     *
      * @param position
      * @param v
      */
@@ -69,6 +81,7 @@ public interface FSTEncoder {
 
     /**
      * if output stream is null, just encode into a byte array
+     *
      * @param outstream
      */
     void setOutstream(OutputStream outstream);
@@ -80,6 +93,7 @@ public interface FSTEncoder {
     void registerClass(Class possible);
 
     void writeClass(Class cl);
+
     void writeClass(FSTClazzInfo clInf);
 
     // write a meta byte item. return true if encoder wrote full object (e.g. literal, primitive)

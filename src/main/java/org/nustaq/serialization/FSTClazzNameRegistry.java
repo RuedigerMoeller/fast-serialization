@@ -28,16 +28,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * User: ruedi
  * Date: 10.11.12
  * Time: 00:34
- *
+ * <p>
  * maps classnames => id and vice versa.
- *
+ * <p>
  * FSTConfiguration holds a parent containing default mappings (e.g. created by
  * registerClass ). A stream instance then creates a temporary instance to record/id encode
  * classes dynamically during serialization. This way a class name is only written once per
  * object graph.
- *
+ * <p>
  * This class is thread safe,
- *
  */
 public class FSTClazzNameRegistry {
 
@@ -51,8 +50,8 @@ public class FSTClazzNameRegistry {
 
     public FSTClazzNameRegistry(FSTClazzNameRegistry par) {
         parent = par;
-        if ( parent != null ) {
-            classIdCount = Math.max(FIRST_USER_CLZ_ID,parent.classIdCount+1);
+        if (parent != null) {
+            classIdCount = Math.max(FIRST_USER_CLZ_ID, parent.classIdCount + 1);
             clzToId = new FSTIdentity2IdMap(13);
             idToClz = new FSTClazzInfo[31];
         } else {
@@ -62,50 +61,49 @@ public class FSTClazzNameRegistry {
     }
 
     public void clear() {
-        if ( clzToId.size() > 0 ) {
+        if (clzToId.size() > 0) {
             clzToId.clear();
             //idToClz.clear();
         }
         classIdCount = LOWEST_CLZ_ID;
-        if ( parent != null ) {
-            classIdCount = Math.max(FIRST_USER_CLZ_ID,parent.classIdCount+1);
+        if (parent != null) {
+            classIdCount = Math.max(FIRST_USER_CLZ_ID, parent.classIdCount + 1);
         }
     }
 
     // for read => always increase handle (wg. replaceObject)
-    public void registerClass(Class c,FSTConfiguration conf) {
-        if ( getIdFromClazz(c) != Integer.MIN_VALUE ) {
+    public void registerClass(Class c, FSTConfiguration conf) {
+        if (getIdFromClazz(c) != Integer.MIN_VALUE) {
             return;
         }
-        registerClassNoLookup(c,null,conf);
+        registerClassNoLookup(c, null, conf);
     }
 
-    private void registerClassNoLookup(Class c,FSTClazzInfo cli, FSTConfiguration conf) {
-        addClassMapping(c, classIdCount++,cli,conf);
+    private void registerClassNoLookup(Class c, FSTClazzInfo cli, FSTConfiguration conf) {
+        addClassMapping(c, classIdCount++, cli, conf);
     }
 
     private void addClassMapping(Class c, int id, FSTClazzInfo clInfo, FSTConfiguration conf) {
         clzToId.put(c, id);
-        if (clInfo==null)
+        if (clInfo == null)
             clInfo = conf.getCLInfoRegistry().getCLInfo(c, conf);
-        if (idToClz.length<=id)
-        {
+        if (idToClz.length <= id) {
             final FSTClazzInfo[] tmp = new FSTClazzInfo[id + 100];
-            System.arraycopy(idToClz,0,tmp,0,idToClz.length);
+            System.arraycopy(idToClz, 0, tmp, 0, idToClz.length);
             idToClz = tmp;
         }
         idToClz[id] = clInfo;
-        if ( parent == null ) {
+        if (parent == null) {
             clInfo.setClzId(id);
         }
     }
 
     private int getIdFromClazz(Class c) {
         int res = Integer.MIN_VALUE;
-        if ( parent != null ) {
+        if (parent != null) {
             res = parent.getIdFromClazz(c);
         }
-        if ( res == Integer.MIN_VALUE ) {
+        if (res == Integer.MIN_VALUE) {
             res = clzToId.get(c);
         }
         return res;
@@ -113,13 +111,13 @@ public class FSTClazzNameRegistry {
 
     public void encodeClass(FSTEncoder out, FSTClazzInfo ci) throws IOException {
         int clzId = ci.getClzId();
-        if ( clzId >= 0 ) {
+        if (clzId >= 0) {
             out.writeFShort((short) clzId); // > 2 !!
         } else {
-            if ( ci.isAsciiNameShortString) {
+            if (ci.isAsciiNameShortString) {
                 final Class aClass = ci.getClazz();
                 int clid = getIdFromClazz(aClass);
-                if ( clid != Integer.MIN_VALUE ) {
+                if (clid != Integer.MIN_VALUE) {
                     out.writeFShort((short) clid); // > 2 !!
                 } else {
                     // ugly hack, also making assumptions about
@@ -127,59 +125,59 @@ public class FSTClazzNameRegistry {
                     final byte[] bufferedName = ci.getBufferedName();
                     out.writeFShort((short) 1); // no direct cl id ascii enc
                     out.writeFInt((char) bufferedName.length);
-                    out.writeRawBytes(bufferedName,0,bufferedName.length);
-                    registerClassNoLookup(aClass,ci,ci.conf);
+                    out.writeRawBytes(bufferedName, 0, bufferedName.length);
+                    registerClassNoLookup(aClass, ci, ci.conf);
                 }
             } else {
-                encodeClass(out,ci.getClazz());
+                encodeClass(out, ci.getClazz());
             }
         }
     }
 
     public void encodeClass(FSTEncoder out, Class c) throws IOException {
         int clid = getIdFromClazz(c);
-        if ( clid != Integer.MIN_VALUE ) {
+        if (clid != Integer.MIN_VALUE) {
             out.writeFShort((short) clid); // > 2 !!
         } else {
-            encodeClassName(out, c, out.getConf() );
+            encodeClassName(out, c, out.getConf());
         }
     }
 
     private void encodeClassName(FSTEncoder out, Class c, FSTConfiguration conf) throws IOException {
         out.writeFShort((short) 0); // no direct cl id
         out.writeStringUTF(c.getName());
-        registerClassNoLookup(c,null,conf);
+        registerClassNoLookup(c, null, conf);
     }
 
     public FSTClazzInfo decodeClass(FSTDecoder in, FSTConfiguration conf) throws IOException, ClassNotFoundException {
         short c = in.readFShort();
-        if ( c < LOWEST_CLZ_ID ) {
+        if (c < LOWEST_CLZ_ID) {
             // full class name
             String clName;
-            if ( c==0) {
+            if (c == 0) {
                 clName = in.readStringUTF();
-            }
-            else {
+            } else {
                 clName = in.readStringAsc();
             }
-            Class cl = classForName(clName,conf);
+            Class cl = classForName(clName, conf);
             final FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(cl, conf);
-            registerClassNoLookup(cl,clInfo,conf);
+            registerClassNoLookup(cl, clInfo, conf);
             return clInfo;
         } else {
             FSTClazzInfo aClass = getClazzFromId(c);
-            if ( aClass == null ) {
-                throw new RuntimeException("unable to find class for code "+c);
+            if (aClass == null) {
+                throw new RuntimeException("unable to find class for code " + c);
             }
             return aClass;
         }
     }
 
-    private final HashMap<String,Class> classCache = new HashMap<>(200);
+    private final HashMap<String, Class> classCache = new HashMap<>(200);
     private final AtomicBoolean classCacheLock = new AtomicBoolean(false);
+
     public Class classForName(String clName, FSTConfiguration conf) throws ClassNotFoundException {
-        if ( parent != null ) {
-            return parent.classForName(clName,conf);
+        if (parent != null) {
+            return parent.classForName(clName, conf);
         }
         try {
             while (!classCacheLock.compareAndSet(false, true)) ;
@@ -188,7 +186,7 @@ public class FSTClazzNameRegistry {
                 try {
                     res = Class.forName(clName, false, conf.getClassLoader());
                 } catch (Throwable th) {
-                    if ( clName.endsWith("_ActorProxy") ) {
+                    if (clName.endsWith("_ActorProxy")) {
                         // same as above for actors. As there is a custom serializer defined for actors, just instantiate
                         // actor clazz
                         String clName0 = clName;
@@ -198,9 +196,9 @@ public class FSTClazzNameRegistry {
                             try {
                                 actorClz = Class.forName(clName, false, conf.getClassLoader());
                             } catch (ClassNotFoundException clf) {
-                                if ( conf.getLastResortResolver() != null ) {
+                                if (conf.getLastResortResolver() != null) {
                                     Class aClass = conf.getLastResortResolver().getClass(clName0);
-                                    if ( aClass != null )
+                                    if (aClass != null)
                                         return aClass;
                                 }
                                 FSTUtil.<RuntimeException>rethrow(clf);
@@ -208,12 +206,12 @@ public class FSTClazzNameRegistry {
                         }
                         return actorClz;
                     } else {
-                        if ( conf.getLastResortResolver() != null ) {
+                        if (conf.getLastResortResolver() != null) {
                             Class aClass = conf.getLastResortResolver().getClass(clName);
-                            if ( aClass != null )
+                            if (aClass != null)
                                 return aClass;
                         }
-                        throw new RuntimeException("class not found CLASSNAME:" + clName + " loader:"+conf.getClassLoader(), th);
+                        throw new RuntimeException("class not found CLASSNAME:" + clName + " loader:" + conf.getClassLoader(), th);
                     }
                 }
                 if (res != null) {
@@ -228,11 +226,11 @@ public class FSTClazzNameRegistry {
 
     private FSTClazzInfo getClazzFromId(int c) {
         FSTClazzInfo res = null;
-        if ( parent != null ) {
+        if (parent != null) {
             res = parent.getClazzFromId(c);
         }
-        if ( res == null ) {
-            if ( c < 0 || c >= idToClz.length )
+        if (res == null) {
+            if (c < 0 || c >= idToClz.length)
                 return null;
             return idToClz[c];
         } else {

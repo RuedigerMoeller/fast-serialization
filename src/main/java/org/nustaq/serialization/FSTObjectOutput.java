@@ -53,10 +53,8 @@ public class FSTObjectOutput implements ObjectOutput {
 
     protected FSTConfiguration conf; // immutable, should only be set by FSTConf mechanics
 
-    protected FSTObjectRegistry objects;
+    private FSTObjectRegistry objects;
     private int curDepth = 0;
-
-    private FSTSerialisationListener listener;
 
     // double state to reduce pointer chasing
     private final boolean dontShare;
@@ -288,43 +286,6 @@ public class FSTObjectOutput implements ObjectOutput {
         return fstClazzInfo.useCompatibleMode() ? null : fstClazzInfo;
     }
 
-    public FSTSerialisationListener getListener() {
-        return listener;
-    }
-
-    /**
-     * note this might slow down serialization significantly
-     * * @param listener
-     */
-    public void setListener(FSTSerialisationListener listener) {
-        this.listener = listener;
-    }
-
-    /**
-     * hook for debugging profiling. register a FSTSerialisationListener to use
-     *
-     * @param obj
-     * @param streamPosition
-     */
-    private void objectWillBeWritten(Object obj, int streamPosition) {
-        if (listener != null) {
-            listener.objectWillBeWritten(obj, streamPosition);
-        }
-    }
-
-    /**
-     * hook for debugging profiling. empty impl, you need to subclass to make use of this hook
-     *
-     * @param obj
-     * @param oldStreamPosition
-     * @param streamPosition
-     */
-    private void objectHasBeenWritten(Object obj, int oldStreamPosition, int streamPosition) {
-        if (listener != null) {
-            listener.objectHasBeenWritten(obj, oldStreamPosition, streamPosition);
-        }
-    }
-
     private FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         return writeObjectWithContext(referencee, toWrite, null);
     }
@@ -333,92 +294,85 @@ public class FSTObjectOutput implements ObjectOutput {
 
     // splitting this slows down ...
     private FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
-        int startPosition = 0;
-        try {
-            if (toWrite == null) {
-                getCodec().writeTag(NULL, null, 0, toWrite, this);
-                return null;
-            }
-            startPosition = getCodec().getWritten();
-            objectWillBeWritten(toWrite, startPosition);
-            final Class clazz = toWrite.getClass();
-            if (clazz == String.class) {
-                String[] oneOf = referencee.getOneOf();
-                if (oneOf != null) {
-                    for (int i = 0; i < oneOf.length; i++) {
-                        String s = oneOf[i];
-                        if (s.equals(toWrite)) {
-                            getCodec().writeTag(ONE_OF, oneOf, i, toWrite, this);
-                            getCodec().writeFByte(i);
-                            return null;
-                        }
-                    }
-                }
-                // shortpath
-                if (!dontShare && writeHandleIfApplicable(toWrite, stringInfo))
-                    return stringInfo;
-                getCodec().writeTag(STRING, toWrite, 0, toWrite, this);
-                getCodec().writeStringUTF((String) toWrite);
-                return null;
-            } else if (clazz == Integer.class) {
-                getCodec().writeTag(BIG_INT, null, 0, toWrite, this);
-                getCodec().writeFInt((Integer) toWrite);
-                return null;
-            } else if (clazz == Long.class) {
-                getCodec().writeTag(BIG_LONG, null, 0, toWrite, this);
-                getCodec().writeFLong((Long) toWrite);
-                return null;
-            } else if (clazz == Boolean.class) {
-                getCodec().writeTag((Boolean) toWrite ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite, this);
-                return null;
-            } else if ((referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum) {
-                return writeEnum(referencee, toWrite);
-            }
-
-            FSTClazzInfo serializationInfo = ci == null ? getFstClazzInfo(referencee, clazz) : ci;
-
-            // check for identical / equal objects
-            FSTObjectSerializer ser = serializationInfo.getSer();
-            if (!dontShare && !referencee.isFlat() && !serializationInfo.isFlat() && (ser == null || !ser.alwaysCopy())) {
-                if (writeHandleIfApplicable(toWrite, serializationInfo))
-                    return serializationInfo;
-            }
-            if (clazz.isArray()) {
-                if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite, this))
-                    return serializationInfo; // some codecs handle primitive arrays like an primitive type
-                writeArray(referencee, toWrite);
-                getCodec().writeArrayEnd();
-            } else if (ser == null) {
-                // default write object wihtout custom serializer
-                // handle write replace
-                //if ( ! dontShare ) GIT ISSUE 80
-                FSTClazzInfo originalInfo = serializationInfo;
-                {
-                    // clazz uses some JDK special stuff (frequently slow)
-                    if (serializationInfo.useCompatibleMode() && !serializationInfo.isExternalizable()) {
-                        writeObjectCompatible(referencee, toWrite, serializationInfo);
-                        return originalInfo;
-                    }
-                }
-                if (!writeObjectHeader(serializationInfo, referencee, toWrite)) { // skip in case codec can write object as primitive
-                    defaultWriteObject(toWrite, serializationInfo);
-                    if (serializationInfo.isExternalizable())
-                        getCodec().externalEnd(serializationInfo);
-                }
-                return originalInfo;
-            } else { // object has custom serializer
-                // Object header (nothing written till here)
-                if (!writeObjectHeader(serializationInfo, referencee, toWrite)) { // skip in case code can write object as primitive
-                    int pos = getCodec().getWritten();
-                    // write object depending on type (custom, externalizable, serializable/java, default)
-                    ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
-                    getCodec().externalEnd(serializationInfo);
-                }
-            }
-            return serializationInfo;
-        } finally {
-            objectHasBeenWritten(toWrite, startPosition, getCodec().getWritten());
+        if (toWrite == null) {
+            getCodec().writeTag(NULL, null, 0, toWrite, this);
+            return null;
         }
+        final Class clazz = toWrite.getClass();
+        if (clazz == String.class) {
+            String[] oneOf = referencee.getOneOf();
+            if (oneOf != null) {
+                for (int i = 0; i < oneOf.length; i++) {
+                    String s = oneOf[i];
+                    if (s.equals(toWrite)) {
+                        getCodec().writeTag(ONE_OF, oneOf, i, toWrite, this);
+                        getCodec().writeFByte(i);
+                        return null;
+                    }
+                }
+            }
+            // shortpath
+            if (!dontShare && writeHandleIfApplicable(toWrite, stringInfo))
+                return stringInfo;
+            getCodec().writeTag(STRING, toWrite, 0, toWrite, this);
+            getCodec().writeStringUTF((String) toWrite);
+            return null;
+        } else if (clazz == Integer.class) {
+            getCodec().writeTag(BIG_INT, null, 0, toWrite, this);
+            getCodec().writeFInt((Integer) toWrite);
+            return null;
+        } else if (clazz == Long.class) {
+            getCodec().writeTag(BIG_LONG, null, 0, toWrite, this);
+            getCodec().writeFLong((Long) toWrite);
+            return null;
+        } else if (clazz == Boolean.class) {
+            getCodec().writeTag((Boolean) toWrite ? BIG_BOOLEAN_TRUE : BIG_BOOLEAN_FALSE, null, 0, toWrite, this);
+            return null;
+        } else if ((referencee.getType() != null && referencee.getType().isEnum()) || toWrite instanceof Enum) {
+            return writeEnum(referencee, toWrite);
+        }
+
+        FSTClazzInfo serializationInfo = ci == null ? getFstClazzInfo(referencee, clazz) : ci;
+
+        // check for identical / equal objects
+        FSTObjectSerializer ser = serializationInfo.getSer();
+        if (!dontShare && !referencee.isFlat() && !serializationInfo.isFlat() && (ser == null || !ser.alwaysCopy())) {
+            if (writeHandleIfApplicable(toWrite, serializationInfo))
+                return serializationInfo;
+        }
+        if (clazz.isArray()) {
+            if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite, this))
+                return serializationInfo; // some codecs handle primitive arrays like an primitive type
+            writeArray(referencee, toWrite);
+            getCodec().writeArrayEnd();
+        } else if (ser == null) {
+            // default write object wihtout custom serializer
+            // handle write replace
+            //if ( ! dontShare ) GIT ISSUE 80
+            FSTClazzInfo originalInfo = serializationInfo;
+            {
+                // clazz uses some JDK special stuff (frequently slow)
+                if (serializationInfo.useCompatibleMode() && !serializationInfo.isExternalizable()) {
+                    writeObjectCompatible(referencee, toWrite, serializationInfo);
+                    return originalInfo;
+                }
+            }
+            if (!writeObjectHeader(serializationInfo, referencee, toWrite)) { // skip in case codec can write object as primitive
+                defaultWriteObject(toWrite, serializationInfo);
+                if (serializationInfo.isExternalizable())
+                    getCodec().externalEnd(serializationInfo);
+            }
+            return originalInfo;
+        } else { // object has custom serializer
+            // Object header (nothing written till here)
+            if (!writeObjectHeader(serializationInfo, referencee, toWrite)) { // skip in case code can write object as primitive
+                int pos = getCodec().getWritten();
+                // write object depending on type (custom, externalizable, serializable/java, default)
+                ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
+                getCodec().externalEnd(serializationInfo);
+            }
+        }
+        return serializationInfo;
     }
 
     private FSTClazzInfo writeEnum(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {

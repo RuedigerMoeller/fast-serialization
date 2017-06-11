@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzInfoRegistry {
 
-    private final FSTMap mInfos = new FSTMap(97);
+    private final FSTMap<Class, FSTClazzInfo> mInfos = new FSTMap<>(97);
     private final FSTSerializerRegistry serializerRegistry = new FSTSerializerRegistry();
     private boolean ignoreAnnotations = false;
     private final AtomicBoolean rwLock = new AtomicBoolean(false);
@@ -38,9 +38,9 @@ public class FSTClazzInfoRegistry {
     }
 
     FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf) {
-        while(!rwLock.compareAndSet(false,true));
+        while (!rwLock.compareAndSet(false, true)) ;
         try {
-            FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
+            FSTClazzInfo res = mInfos.get(c);
             if (res == null) {
                 if (c == null) {
                     rwLock.set(false);

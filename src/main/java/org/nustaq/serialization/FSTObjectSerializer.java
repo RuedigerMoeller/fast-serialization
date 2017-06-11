@@ -31,6 +31,7 @@ import java.io.IOException;
 public interface FSTObjectSerializer {
 
     String REALLY_NULL = "REALLY_NULL";
+
     /**
      * write the contents of a given object
      */
@@ -41,7 +42,7 @@ public interface FSTObjectSerializer {
      * read the content to an already instantiated object
      */
     void readObject(FSTObjectInput in, Object toRead, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy)
-        throws Exception;
+            throws Exception;
 
     /**
      * useful if you register for a class and its subclasses, but want to exclude a specific subclass
@@ -60,5 +61,5 @@ public interface FSTObjectSerializer {
      * and handle instantiation and reading the object here. You must call registerObjectForWrite immediately after creating it on the FSTObjectInput
      */
     Object instantiate(Class objectClass, FSTObjectInput fstObjectInput, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition)
-        throws Exception;
+            throws Exception;
 }

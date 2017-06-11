@@ -26,16 +26,15 @@ import sun.reflect.ReflectionFactory;
 
 /**
  * Created by ruedi on 12.12.14.
- *
+ * <p>
  * Valid for common x86 JDK's (not android)
- *
  */
 public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
 
     /**
      * reduce number of generated classes. Can be cleared riskless in case.
      */
-    private final static ConcurrentHashMap<Class,Constructor> constructorMap = new ConcurrentHashMap<>();
+    private final static ConcurrentHashMap<Class, Constructor> constructorMap = new ConcurrentHashMap<>();
 
     @Override
     public Object newInstance(Class clazz, Constructor cons, boolean doesRequireInit, boolean unsafeAsLastResort) {
@@ -43,18 +42,18 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             if (!doesRequireInit && FSTUtil.unFlaggedUnsafe != null) { // no performance improvement here, keep for nasty constructables ..
                 return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
             }
-            if ( cons == null ) // no suitable constructor found
+            if (cons == null) // no suitable constructor found
             {
-                if ( unsafeAsLastResort ) {
+                if (unsafeAsLastResort) {
                     // best effort. use Unsafe to instantiate.
                     // Warning: if class contains transient fields which have default values assigned ('transient int x = 3'),
                     // those will not be assigned after deserialization as unsafe instantiation does not execute any default
                     // construction code.
                     // Define a public no-arg constructor to avoid this behaviour (rarely an issue, but there are cases).
-                    if ( FSTUtil.unFlaggedUnsafe != null ) {
+                    if (FSTUtil.unFlaggedUnsafe != null) {
                         return FSTUtil.unFlaggedUnsafe.allocateInstance(clazz);
                     }
-                    throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate "+ clazz.getName());
+                    throw new RuntimeException("no suitable constructor found and no Unsafe instance avaiable. Can't instantiate " + clazz.getName());
                 }
             }
             return cons.newInstance();
@@ -67,7 +66,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
     public Constructor findConstructorForExternalize(Class clazz) {
         try {
             Constructor c = clazz.getDeclaredConstructor((Class[]) null);
-            if ( c == null )
+            if (c == null)
                 return null;
             c.setAccessible(true);
             if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
@@ -85,7 +84,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             // in case forceSerializable flag is present, just look for no-arg constructor
             return findConstructorForExternalize(clazz);
         }
-        if ( FSTClazzInfo.BufferConstructorMeta) {
+        if (FSTClazzInfo.BufferConstructorMeta) {
             Constructor constructor = constructorMap.get(clazz);
             if (constructor != null) {
                 return constructor;
@@ -102,14 +101,14 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             int mods = c.getModifiers();
             if ((mods & Modifier.PRIVATE) != 0 ||
                     ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0 &&
-                         !FSTUtil.isPackEq(clazz, curCl))) {
+                            !FSTUtil.isPackEq(clazz, curCl))) {
                 return null;
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
             c.setAccessible(true);
 
-            if ( FSTClazzInfo.BufferConstructorMeta)
-                constructorMap.put(clazz,c);
+            if (FSTClazzInfo.BufferConstructorMeta)
+                constructorMap.put(clazz, c);
             return c;
         } catch (NoClassDefFoundError cle) {
             return null;

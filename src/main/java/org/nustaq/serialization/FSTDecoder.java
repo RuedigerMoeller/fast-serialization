@@ -23,24 +23,40 @@ import java.io.InputStream;
  */
 public interface FSTDecoder {
 
-    void setConf( FSTConfiguration conf );
+    void setConf(FSTConfiguration conf);
+
     String readStringUTF() throws IOException;
+
     String readStringAsc() throws IOException;
+
     Object readFPrimitiveArray(Object array, Class componentType, int len);
+
     void readFIntArr(int len, int[] arr) throws IOException;
+
     int readFInt() throws IOException;
+
     double readFDouble() throws IOException;
+
     float readFFloat() throws IOException;
+
     byte readFByte() throws IOException;
+
     int readIntByte() throws IOException;
+
     long readFLong() throws IOException;
+
     char readFChar() throws IOException;
+
     short readFShort() throws IOException;
+
     int readPlainInt() throws IOException;
 
     int getInputPos();
+
     void moveTo(int position);
+
     void setInputStream(InputStream in);
+
     int ensureReadAhead(int bytes); // might signal eof by returning -1, depends on decoder impl though
 
     void reset();
@@ -52,12 +68,15 @@ public interface FSTDecoder {
     Class classForName(String name) throws ClassNotFoundException;
 
     void registerClass(Class possible);
+
     void close();
 
     void skip(int n);
+
     void readPlainBytes(byte[] b, int off, int len);
 
     byte readObjectHeaderTag() throws IOException;
+
     int getObjectHeaderLen(); // len field of last header read (if avaiable)
 
     boolean isMapBased();

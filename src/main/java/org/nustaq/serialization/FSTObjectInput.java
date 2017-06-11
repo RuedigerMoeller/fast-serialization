@@ -58,7 +58,7 @@ public class FSTObjectInput implements ObjectInput {
 
     private FSTDecoder codec;
 
-    protected FSTObjectRegistry objects;
+    private FSTObjectRegistry objects;
 
     private ArrayList<CallbackEntry> callbacks;
     //    FSTConfiguration conf;
@@ -509,7 +509,6 @@ public class FSTObjectInput implements ObjectInput {
             objects.registerObjectForRead(newObj, readPos);
         }
         if (clzSerInfo.isExternalizable()) {
-            int tmp = readPos;
             int readExternalReadAHead = 8000;
             getCodec().ensureReadAhead(readExternalReadAHead);
             ((Externalizable) newObj).readExternal(this);
@@ -653,7 +652,7 @@ public class FSTObjectInput implements ObjectInput {
                 throw new IOException(ex);
             }
         }
-        int debug = getCodec().readVersionTag();// just consume '0'
+        getCodec().readVersionTag();// just consume '0'
     }
 
     private void readFieldsMapBased(FSTClazzInfo serializationInfo, Object newObj) throws Exception {

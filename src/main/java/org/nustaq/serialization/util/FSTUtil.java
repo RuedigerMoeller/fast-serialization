@@ -34,11 +34,11 @@ public class FSTUtil {
     public static final Unsafe unFlaggedUnsafe = UnsafeUtil.UNSAFE;//FSTUtil.getUnsafe(); // even if unsafe is disabled, use it for memoffset computation
     //public static UnsafeAndroid unFlaggedUnsafeAndroid = new UnsafeAndroid();
 
-    public static void clear(int[] arr) {
+    static void clear(int[] arr) {
         Arrays.fill(arr, 0);
     }
 
-    public static void clear(Object[] arr) {
+    static void clear(Object[] arr) {
         final int arrlen = arr.length;
         clear(arr, arrlen);
     }

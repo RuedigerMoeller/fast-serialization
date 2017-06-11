@@ -33,7 +33,7 @@ final class FSTObjectRegistry {
 
     boolean disabled = false;
     private FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
-    private FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
+    private FSTInt2ObjectMap<Object> idToObject = new FSTInt2ObjectMap<>(11);
 
     private final Object reuseMap[] = new Object[POS_MAP_SIZE];
     private int highestPos = -1;
@@ -47,7 +47,7 @@ final class FSTObjectRegistry {
         if (!disabled) {
             if (idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0) {
                 // avoid cleaning huge mem areas after having written a large object
-                idToObject = new FSTInt2ObjectMap(idToObject.size());
+                idToObject = new FSTInt2ObjectMap<>(idToObject.size());
             } else {
                 idToObject.clear();
             }
