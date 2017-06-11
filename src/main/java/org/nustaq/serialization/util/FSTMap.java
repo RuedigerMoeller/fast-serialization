@@ -3,7 +3,7 @@ package org.nustaq.serialization.util;
 /**
  * Created by ruedi on 15.06.2015.
  */
-public class FSTMap<K,V> {
+public class FSTMap<K, V> {
 
     private static final int[] prim = FSTObject2IntMap.prim;
 
@@ -21,7 +21,7 @@ public class FSTMap<K,V> {
     private Object mKeys[];
     private Object mValues[];
     private int mNumberOfElements;
-    private FSTMap<K,V> next;
+    private FSTMap<K, V> next;
     private final boolean checkClazzOnEquals = false;
 
     public FSTMap(int initialSize) {
@@ -45,7 +45,7 @@ public class FSTMap<K,V> {
         putHash(key, value, hash, this);
     }
 
-    private void putHash(K key, V value, int hash, FSTMap<K,V> parent) {
+    private void putHash(K key, V value, int hash, FSTMap<K, V> parent) {
         if (mNumberOfElements * GROFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
@@ -145,7 +145,7 @@ public class FSTMap<K,V> {
         }
     }
 
-    private void rePut(FSTMap<K,V> kfstObject2IntMap) {
+    private void rePut(FSTMap<K, V> kfstObject2IntMap) {
         for (int i = 0; i < mKeys.length; i++) {
             Object mKey = mKeys[i];
             if (mKey != null) {

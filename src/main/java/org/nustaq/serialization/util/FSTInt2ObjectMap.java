@@ -42,7 +42,7 @@ public class FSTInt2ObjectMap<V> {
     final public void put(int key, V value) {
         int hash = key & 0x7FFFFFFF;
         if (key == 0 && value == null) {
-            throw new RuntimeException("key value pair not supported " + key + " " + value);
+            throw new RuntimeException("key value pair not supported " + key + " null");
         }
         putHash(key, value, hash, this);
     }
@@ -155,5 +155,4 @@ public class FSTInt2ObjectMap<V> {
             next.clear();
         }
     }
-
 }

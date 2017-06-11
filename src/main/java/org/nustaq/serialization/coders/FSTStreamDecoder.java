@@ -62,10 +62,11 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     private char chBufS[];
+
     private char[] getCharBuf(int siz) {
         char chars[] = chBufS;
         if (chars == null || chars.length < siz) {
-            chars = new char[Math.max(siz,15)];
+            chars = new char[Math.max(siz, 15)];
             chBufS = chars;
         }
         return chars;
@@ -73,18 +74,18 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     public String readStringUTF() throws IOException {
         int len = readFInt();
-        char[] charBuf = getCharBuf(len*3);
+        char[] charBuf = getCharBuf(len * 3);
         input.ensureReadAhead(len * 3);
         byte buf[] = input.buf;
         int count = input.pos;
         int chcount = 0;
         for (int i = 0; i < len; i++) {
-            char head = (char) ((buf[count++] + 256) &0xff);
+            char head = (char) ((buf[count++] + 256) & 0xff);
             if (head < 255) {
                 charBuf[chcount++] = head;
             } else {
-                int ch1 = ((buf[count++] + 256) &0xff);
-                int ch2 = ((buf[count++] + 256) &0xff);
+                int ch1 = ((buf[count++] + 256) & 0xff);
+                int ch2 = ((buf[count++] + 256) & 0xff);
                 charBuf[chcount++] = (char) ((ch1 << 0) + (ch2 << 8));
             }
         }
@@ -126,7 +127,7 @@ public class FSTStreamDecoder implements FSTDecoder {
             if (componentType == byte.class) {
                 byte[] arr = (byte[]) array;
                 ensureReadAhead(arr.length); // fixme: move this stuff to the stream !
-                System.arraycopy(input.buf,input.pos,arr,0,len);
+                System.arraycopy(input.buf, input.pos, arr, 0, len);
                 input.pos += len;
                 return arr;
             } else if (componentType == int.class) {
@@ -193,7 +194,7 @@ public class FSTStreamDecoder implements FSTDecoder {
             int ch4 = (buf[count++] + 256) & 0xff;
             arr[j] = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
         }
-        input.pos+=bytelen;
+        input.pos += bytelen;
     }
 
     private void readFLongArr(int len, long[] arr) throws IOException {
@@ -212,7 +213,7 @@ public class FSTStreamDecoder implements FSTDecoder {
             long ch1 = (buf[count++] + 256) & 0xff;
             arr[j] = ((ch1 << 56) + (ch2 << 48) + (ch3 << 40) + (ch4 << 32) + (ch5 << 24) + (ch6 << 16) + (ch7 << 8) + (ch8 << 0));
         }
-        input.pos+=bytelen;
+        input.pos += bytelen;
     }
 
     @Override
@@ -265,7 +266,7 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public final int readIntByte() throws IOException {
         input.ensureReadAhead(1);
-        if ( input.isFullyRead() )
+        if (input.isFullyRead())
             return -1;
         return input.buf[input.pos++] & 0xff;
     }
@@ -322,7 +323,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         }
         int ch1 = readFByte() & 0xff;
         int ch2 = readFByte() & 0xff;
-        return (char)((ch1 << 0) + (ch2 << 8));
+        return (char) ((ch1 << 0) + (ch2 << 8));
     }
 
 
@@ -335,7 +336,7 @@ public class FSTStreamDecoder implements FSTDecoder {
         }
         int ch1 = readFByte() & 0xff;
         int ch2 = readFByte() & 0xff;
-        return (short)((ch1 << 0) + (ch2 << 8));
+        return (short) ((ch1 << 0) + (ch2 << 8));
     }
 
     @Override
@@ -385,7 +386,7 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public void setInputStream(InputStream in) {
-        if ( input == null )
+        if (input == null)
             input = new FSTInputStream(in);
         else
             input.initFromStream(in);
@@ -395,7 +396,7 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void resetWith(byte[] bytes, int len) {
         clnames.clear();
-        input.resetForReuse(bytes,len);
+        input.resetForReuse(bytes, len);
 //        input.reset();
 //        input.count = len;
 //        input.buf = bytes;
@@ -405,17 +406,19 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public FSTClazzInfo readClass() throws IOException, ClassNotFoundException {
-        return clnames.decodeClass(this,conf);
+        return clnames.decodeClass(this, conf);
     }
 
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
-        return clnames.classForName(name,conf);
+        return clnames.classForName(name, conf);
     }
+
     @Override
     public void registerClass(Class possible) {
-        clnames.registerClass(possible,conf);
+        clnames.registerClass(possible, conf);
     }
+
     @Override
     public void close() {
         conf.returnObject(clnames);
@@ -423,13 +426,13 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     @Override
     public void skip(int n) {
-        input.pos+=n;
+        input.pos += n;
     }
 
     @Override
     public void readPlainBytes(byte[] b, int off, int len) {
         input.ensureReadAhead(len);
-        System.arraycopy(input.buf,input.pos,b,off,len);
+        System.arraycopy(input.buf, input.pos, b, off, len);
         input.pos += len;
     }
 
@@ -445,13 +448,13 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     @Override
-    public int getObjectHeaderLen()
-    {
+    public int getObjectHeaderLen() {
         return -1;
     }
 
     @Override
-    public void consumeEndMarker() {}
+    public void consumeEndMarker() {
+    }
 
     @Override
     public Class readArrayHeader() throws Exception {

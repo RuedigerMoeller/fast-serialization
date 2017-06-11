@@ -57,7 +57,7 @@ public class FSTArrayListSerializer extends FSTBasicObjectSerializer {
     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
         try {
             int len = in.readInt();
-            ArrayList res = new ArrayList(len);
+            ArrayList<Object> res = new ArrayList<>(len);
             in.registerObject(res, streamPosition,serializationInfo, referencee);
             for ( int i = 0; i < len; i++ ) {
                 final Object o = in.readObjectInternal(null);
