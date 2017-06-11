@@ -27,11 +27,11 @@ import java.util.*;
  * One can register Serializers for exact classes or a class and all its subclasses (can have unexpected consequences in case a subclass holds additional state).
  *
  */
-public class FSTSerializerRegistry {
+class FSTSerializerRegistry {
 
     private FSTSerializerRegistryDelegate delegate;
 
-    static FSTObjectSerializer NULL = new NULLSerializer();
+    static final FSTObjectSerializer NULL = new NULLSerializer();
 
     void setDelegate(FSTSerializerRegistryDelegate delegate) {
         this.delegate = delegate;
@@ -74,7 +74,7 @@ public class FSTSerializerRegistry {
 
     private final static class SerEntry {
         boolean forSubClasses = false;
-        FSTObjectSerializer ser;
+        final FSTObjectSerializer ser;
 
         SerEntry(boolean forSubClasses, FSTObjectSerializer ser) {
             this.forSubClasses = forSubClasses;
@@ -82,7 +82,7 @@ public class FSTSerializerRegistry {
         }
     }
 
-    private final HashMap<Class,SerEntry> map = new HashMap<Class, SerEntry>(97);
+    private final HashMap<Class,SerEntry> map = new HashMap<>(97);
 
     final FSTObjectSerializer getSerializer(Class cl) {
         if ( cl.isPrimitive()) {

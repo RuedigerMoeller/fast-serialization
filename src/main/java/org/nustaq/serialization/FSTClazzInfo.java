@@ -252,7 +252,7 @@ public final class FSTClazzInfo {
     public final List<Field> getAllFields(Class c, List<Field> res) {
         synchronized (sharedFieldSets) {
             if (res == null) {
-                res = new ArrayList<Field>();
+                res = new ArrayList<>();
             }
             if (c == null) {
                 return res;
@@ -430,7 +430,7 @@ public final class FSTClazzInfo {
                 }
                 if (os != null) {
                     final ObjectStreamField[] fi = os.getFields();
-                    List<FSTFieldInfo> curClzFields = new ArrayList<FSTFieldInfo>();
+                    List<FSTFieldInfo> curClzFields = new ArrayList<>();
                     if (fi != null) {
                         for (int i = 0; i < fi.length; i++) {
                             ObjectStreamField objectStreamField = fi[i];

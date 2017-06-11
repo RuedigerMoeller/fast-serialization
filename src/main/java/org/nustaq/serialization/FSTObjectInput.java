@@ -54,23 +54,23 @@ import java.util.Map;
  */
 public class FSTObjectInput implements ObjectInput {
 
-    public static boolean REGISTER_ENUMS_READ = false; // do not register enums on read. Flag is saver in case things brake somewhere
-    public static ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[0]);
+    private static final boolean REGISTER_ENUMS_READ = false; // do not register enums on read. Flag is saver in case things brake somewhere
+    private static final ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[0]);
 
-    protected FSTDecoder codec;
+    private FSTDecoder codec;
 
     protected FSTObjectRegistry objects;
 
-    protected int curDepth;
+    private int curDepth;
 
-    protected ArrayList<CallbackEntry> callbacks;
+    private ArrayList<CallbackEntry> callbacks;
     //    FSTConfiguration conf;
     // mirrored from conf
-    protected boolean ignoreAnnotations;
-    protected FSTClazzInfoRegistry clInfoRegistry;
+    private boolean ignoreAnnotations;
+    private FSTClazzInfoRegistry clInfoRegistry;
     // done
-    protected ConditionalCallback conditionalCallback;
-    protected int readExternalReadAHead = 8000;
+    private ConditionalCallback conditionalCallback;
+    private int readExternalReadAHead = 8000;
 
     protected FSTConfiguration conf;
 
@@ -164,8 +164,8 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected static class CallbackEntry {
-        ObjectInputValidation cb;
-        int prio;
+        final ObjectInputValidation cb;
+        final int prio;
 
         CallbackEntry(ObjectInputValidation cb, int prio) {
             this.cb = cb;
@@ -288,7 +288,7 @@ public class FSTObjectInput implements ObjectInput {
         return getCodec().available();
     }
 
-    protected void processValidation() throws InvalidObjectException {
+    private void processValidation() throws InvalidObjectException {
         if (callbacks == null) {
             return;
         }
@@ -308,7 +308,7 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    public Object readObject(Class... possibles) throws Exception {
+    private Object readObject(Class... possibles) throws Exception {
         curDepth++;
         try {
             if (possibles != null && possibles.length > 1) {
@@ -1064,11 +1064,11 @@ public class FSTObjectInput implements ObjectInput {
                         // JDK compatibility classes, however this will waste lots of performance. As
                         // it would be necessary to *always* write full metainformation (a map of fieldName => value pairs)
                         // see #53
-                        fieldMap = new HashMap<String, Object>();
+                        fieldMap = new HashMap<>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                         getCodec().readVersionTag(); // consume dummy version tag as created by defaultWriteObject
                     } else if (tag == 66) { // has been written from writeObjectCompatible without writeMethod
-                        fieldMap = new HashMap<String, Object>();
+                        fieldMap = new HashMap<>();
                         FSTObjectInput.this.readCompatibleObjectFields(referencee, clInfo, fstCompatibilityInfo.getFieldArray(), fieldMap);
                         getCodec().readVersionTag(); // consume dummy version tag as created by defaultWriteObject
                     } else {
@@ -1166,7 +1166,7 @@ public class FSTObjectInput implements ObjectInput {
             @Override
             public void registerValidation(ObjectInputValidation obj, int prio) throws NotActiveException, InvalidObjectException {
                 if (callbacks == null) {
-                    callbacks = new ArrayList<CallbackEntry>();
+                    callbacks = new ArrayList<>();
                 }
                 callbacks.add(new CallbackEntry(obj, prio));
             }
@@ -1304,9 +1304,9 @@ public class FSTObjectInput implements ObjectInput {
     private static class MyObjectStream extends ObjectInputStream {
 
         ObjectInputStream wrapped;
-        ArrayDeque<ObjectInputStream> wrappedStack = new ArrayDeque<ObjectInputStream>();
+        final ArrayDeque<ObjectInputStream> wrappedStack = new ArrayDeque<>();
 
-        public void push(ObjectInputStream in) {
+        void push(ObjectInputStream in) {
             wrappedStack.push(in);
             wrapped = in;
         }

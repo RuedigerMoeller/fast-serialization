@@ -26,23 +26,23 @@ import org.nustaq.serialization.util.FSTUtil;
  * Time: 15:34
  * To change this template use File | Settings | File Templates.
  */
-public final class FSTObjectRegistry {
+final class FSTObjectRegistry {
 
-    public static final int OBJ_DIVISOR = 16;
-    public static int POS_MAP_SIZE = 1000; // reduce this for testing
+    private static final int OBJ_DIVISOR = 16;
+    private final static int POS_MAP_SIZE = 1000; // reduce this for testing
 
     boolean disabled = false;
-    FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
-    FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
+    private FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
+    private FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
 
-    Object reuseMap[] = new Object[POS_MAP_SIZE];
+    private final Object reuseMap[] = new Object[POS_MAP_SIZE];
     private int highestPos = -1;
 
-    public FSTObjectRegistry(FSTConfiguration conf) {
+    FSTObjectRegistry(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
     }
 
-    public void clearForRead(FSTConfiguration conf) {
+    void clearForRead(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( !disabled ) {
             if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
@@ -57,7 +57,7 @@ public final class FSTObjectRegistry {
         highestPos = -1;
     }
 
-    public void clearForWrite(FSTConfiguration conf) {
+    void clearForWrite(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( ! disabled ) {
             if ( objects.size() > 0 && objects.keysLength() > 6 * objects.size() ) {
@@ -68,7 +68,7 @@ public final class FSTObjectRegistry {
         }
     }
 
-    public Object getReadRegisteredObject(int handle) {
+    Object getReadRegisteredObject(int handle) {
         if (disabled) {
             return null;
         }
@@ -86,7 +86,7 @@ public final class FSTObjectRegistry {
         return idToObject.get(handle);
     }
 
-    public void replace(Object old, Object replaced, int streamPos) {
+    void replace(Object old, Object replaced, int streamPos) {
         int pos = streamPos / OBJ_DIVISOR;
         final Object[] reuseMap = this.reuseMap;
         if ( pos < reuseMap.length ) {
@@ -105,7 +105,7 @@ public final class FSTObjectRegistry {
         }
     }
 
-    public void registerObjectForRead(Object o, int streamPosition) {
+    void registerObjectForRead(Object o, int streamPosition) {
         if (disabled /*|| streamPosition <= lastRegisteredReadPos*/) {
             return;
         }
@@ -131,7 +131,7 @@ public final class FSTObjectRegistry {
      * @param streamPosition
      * @return 0 if added, handle if already present
      */
-    public int registerObjectForWrite(Object o, int streamPosition, FSTClazzInfo clzInfo, int reUseType[]) {
+    int registerObjectForWrite(Object o, int streamPosition, FSTClazzInfo clzInfo, int reUseType[]) {
         if (disabled) {
             return Integer.MIN_VALUE;
         }
@@ -153,9 +153,4 @@ public final class FSTObjectRegistry {
         }
         return Integer.MIN_VALUE;
     }
-
-    public int getObjectSize() {
-        return objects.size();
-    }
-
 }

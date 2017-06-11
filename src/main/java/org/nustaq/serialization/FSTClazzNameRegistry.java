@@ -44,9 +44,9 @@ public class FSTClazzNameRegistry {
     private static final int LOWEST_CLZ_ID = 3;
     private static final int FIRST_USER_CLZ_ID = 1000;
 
-    private FSTIdentity2IdMap clzToId;
+    private final FSTIdentity2IdMap clzToId;
     private FSTClazzInfo idToClz[];
-    private FSTClazzNameRegistry parent;
+    private final FSTClazzNameRegistry parent;
     private int classIdCount = LOWEST_CLZ_ID;
 
     public FSTClazzNameRegistry(FSTClazzNameRegistry par) {
@@ -182,7 +182,7 @@ public class FSTClazzNameRegistry {
         }
     }
 
-    private final HashMap<String,Class> classCache = new HashMap<String, Class>(200);
+    private final HashMap<String,Class> classCache = new HashMap<>(200);
     private final AtomicBoolean classCacheLock = new AtomicBoolean(false);
     public Class classForName(String clName, FSTConfiguration conf) throws ClassNotFoundException {
         if ( parent != null ) {

@@ -29,7 +29,7 @@ import java.util.List;
 public class FSTIdentity2IdMap {
     private static final int RESERVE = 4;
     private static final int MAX_DEPTH = 4;
-    static int[] prim = {
+    static final int[] prim = {
                             3, 5, 7, 11, 13, 17, 19, 23, 29, 37, 67, 97, 139,
                             211, 331, 641, 1097, 1531, 2207, 3121, 5059, 7607, 10891,
                             15901, 19993, 30223, 50077, 74231, 99991, 150001, 300017,

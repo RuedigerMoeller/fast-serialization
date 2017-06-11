@@ -31,10 +31,7 @@ import org.nustaq.serialization.serializers.FSTStringSerializer;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
@@ -77,14 +74,13 @@ public class FSTConfiguration {
         Class getClass( String clName );
     }
 
-    private StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
+    private final StreamCoderFactory streamCoderFactory = new FSTDefaultStreamCoderFactory(this);
 
     private String name;
 
-    private FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
-    private final HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
-    private FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
-    private boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
+    private final FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
+    private final HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<>(97);
+    private final FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
     boolean shareReferences = true;
     private volatile ClassLoader classLoader = getClass().getClassLoader();
     private boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
@@ -97,8 +93,8 @@ public class FSTConfiguration {
 
     // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
     static class FieldKey {
-        Class clazz;
-        String fieldName;
+        final Class clazz;
+        final String fieldName;
 
         FieldKey(Class clazz, String fieldName) {
             this.clazz = clazz;
@@ -124,7 +120,7 @@ public class FSTConfiguration {
             return result;
         }
     }
-    ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> fieldInfoCache;
+    final ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> fieldInfoCache;
 
     /**
      * debug helper
@@ -145,7 +141,7 @@ public class FSTConfiguration {
     // end cross platform stuff only
     /////////////////////////////////////
 
-    private static AtomicBoolean conflock = new AtomicBoolean(false);
+    private static final AtomicBoolean conflock = new AtomicBoolean(false);
     private static FSTConfiguration singleton;
     public static FSTConfiguration getDefaultConfiguration() {
         do { } while ( !conflock.compareAndSet(false, true) );
@@ -267,47 +263,8 @@ public class FSTConfiguration {
         this.classLoader = classLoader;
     }
 
-    /**
-     * special configuration used internally for struct emulation
-     * @return
-     */
-    public static FSTConfiguration createStructConfiguration() {
-        FSTConfiguration conf = new FSTConfiguration(null);
-        conf.setStructMode(true);
-        return conf;
-    }
-
     protected FSTConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> sharedFieldInfos) {
         this.fieldInfoCache = sharedFieldInfos;
-    }
-
-    public StreamCoderFactory getStreamCoderFactory() {
-        return streamCoderFactory;
-    }
-
-    /**
-     * allows to use subclassed stream codecs. Can also be used to change class loading behaviour, as
-     * clasForName is part of a codec's interface.
-     *
-     * e.g. new StreamCoderFactory() {
-     *   @Override
-     *   public FSTEncoder createStreamEncoder() {
-     *      return new FSTStreamEncoder(FSTConfiguration.this);
-     *   }
-     *
-     *   @Override
-     *   public FSTDecoder createStreamDecoder() {
-     *      return new FSTStreamDecoder(FSTConfiguration.this) { public Class classForName(String name) { ... }  } ;
-     *   }
-     * };
-     *
-     * You need to work with thread locals most probably as the factory is ~global (assigned to fstconfiguration shared amongst
-     * streams)
-     *
-     * @param streamCoderFactory
-     */
-    public void setStreamCoderFactory(StreamCoderFactory streamCoderFactory) {
-        this.streamCoderFactory = streamCoderFactory;
     }
 
     /**
@@ -322,7 +279,7 @@ public class FSTConfiguration {
             }
             List<SoftReference> li = cachedObjects.get(cached.getClass());
             if ( li == null ) {
-                li = new ArrayList<SoftReference>();
+                li = new ArrayList<>();
                 cachedObjects.put(cached.getClass(),li);
             }
             if ( li.size() < 5 )
@@ -330,37 +287,6 @@ public class FSTConfiguration {
         } finally {
             cacheLock.set(false);
         }
-    }
-
-    /**
-     * ignored currently
-     * @return
-     */
-    public boolean isPreferSpeed() {
-        return preferSpeed;
-    }
-
-    /**
-     * this options lets FST favour speed of encoding over size of the encoded object.
-     * Warning: this option alters the format of the written stream, so both reader and writer should have
-     * the same setting, else exceptions will occur
-     * @param preferSpeed
-     */
-    public void setPreferSpeed(boolean preferSpeed) {
-        this.preferSpeed = preferSpeed;
-    }
-
-    /**
-     * for optimization purposes, do not use to benchmark processing time or in a regular program as
-     * this methods creates a temporary binaryoutputstream and serializes the object in order to measure the
-     * size.
-     */
-    public int calcObjectSizeBytesNotAUtility( Object obj ) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream(10000);
-        FSTObjectOutput ou = new FSTObjectOutput(bout,this);
-        ou.writeObject(obj, obj.getClass());
-        ou.close();
-        return bout.toByteArray().length;
     }
 
     /**
@@ -546,31 +472,6 @@ public class FSTConfiguration {
         return classLoader;
     }
 
-    public FSTClazzInfo getClassInfo(Class type) {
-        return serializationInfoRegistry.getCLInfo(type, this);
-    }
-
-    /**
-     * utility for thread safety and reuse. Do not close the resulting stream. However you should close
-     * the given InputStream 'in'
-     * @param in
-     * @return
-     */
-    public FSTObjectInput getObjectInput( InputStream in ) {
-        FSTObjectInput fstObjectInput = getIn();
-        try {
-            fstObjectInput.resetForReuse(in);
-            return fstObjectInput;
-        } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
-        }
-        return null;
-    }
-
-    public FSTObjectInput getObjectInput() {
-        return getObjectInput((InputStream)null);
-    }
-
     /**
      * take the given array as input. the array is NOT copied.
      *
@@ -598,23 +499,6 @@ public class FSTConfiguration {
         FSTObjectInput fstObjectInput = getIn();
         try {
             fstObjectInput.resetForReuseUseArray(arr,len);
-            return fstObjectInput;
-        } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
-        }
-        return null;
-    }
-
-    /**
-     * take the given array and copy it to input. the array IS copied
-     * @param arr
-     * @param len
-     * @return
-     */
-    public FSTObjectInput getObjectInputCopyFrom( byte arr[],int off, int len ) {
-        FSTObjectInput fstObjectInput = getIn();
-        try {
-            fstObjectInput.resetForReuseCopyArray(arr, off, len);
             return fstObjectInput;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
@@ -664,12 +548,6 @@ public class FSTConfiguration {
         return getObjectOutput((OutputStream)null);
     }
 
-    public FSTObjectOutput getObjectOutput(byte[] outByte) {
-        FSTObjectOutput fstObjectOutput = getOut();
-        fstObjectOutput.resetForReUse(outByte);
-        return fstObjectOutput;
-    }
-
     /**
      * ignores all serialization related interfaces (Serializable, Externalizable) and serializes all classes using the
      * default scheme. Warning: this is a special mode of operation which fail serializing/deserializing many standard
@@ -687,14 +565,6 @@ public class FSTConfiguration {
      */
     public boolean isStructMode() {
         return serializationInfoRegistry.isStructMode();
-    }
-
-    public FSTClazzInfo getClazzInfo(Class rowClass) {
-        return getCLInfoRegistry().getCLInfo(rowClass, this);
-    }
-
-    public <T> T deepCopy(T metadata) {
-        return (T) asObject(asByteArray(metadata));
     }
 
     public interface StreamCoderFactory {
@@ -760,61 +630,6 @@ public class FSTConfiguration {
         return null;
     }
 
-    /**
-     * helper to write series of objects to streams/files > Integer.MAX_VALUE.
-     * it
-     *  - serializes the object
-     *  - writes the length of the serialized object to the stream
-     *  - the writes the serialized object data
-     *
-     * on reader side (e.g. from a blocking socketstream, the reader then
-     *  - reads the length
-     *  - reads [length] bytes from the stream
-     *  - deserializes
-     *
-     *
-     * @param out
-     * @param toSerialize
-     * @throws IOException
-     */
-    public void encodeToStream( OutputStream out, Object toSerialize ) throws IOException {
-        FSTObjectOutput objectOutput = getObjectOutput(); // could also do new with minor perf impact
-        objectOutput.writeObject(toSerialize);
-        int written = objectOutput.getWritten();
-        out.write((written >>> 0) & 0xFF);
-        out.write((written >>> 8) & 0xFF);
-        out.write((written >>> 16) & 0xFF);
-        out.write((written >>> 24) & 0xFF);
-
-        // copy internal buffer to bufferedoutput
-        out.write(objectOutput.getBuffer(), 0, written);
-        objectOutput.flush();
-    }
-
-    /**
-     *
-     * @param in
-     * @return
-     * @throws Exception
-     */
-    public Object decodeFromStream( InputStream in ) throws Exception {
-        int read = in.read();
-        if ( read < 0 )
-            throw new EOFException("stream is closed");
-        int ch1 = (read + 256) & 0xff;
-        int ch2 = (in.read()+ 256) & 0xff;
-        int ch3 = (in.read() + 256) & 0xff;
-        int ch4 = (in.read() + 256) & 0xff;
-        int len = (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
-        if ( len <= 0 )
-            throw new EOFException("stream is corrupted");
-        byte buffer[] = new byte[len]; // this could be reused !
-        while (len > 0) {
-            len -= in.read(buffer, buffer.length - len, len);
-        }
-        return getObjectInput(buffer).readObject();
-    }
-
     @Override
     public String toString() {
         return "FSTConfiguration{" +
@@ -823,7 +638,7 @@ public class FSTConfiguration {
     }
 
     private static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
-        private FSTConfiguration fstConfiguration;
+        private final FSTConfiguration fstConfiguration;
 
         FSTDefaultStreamCoderFactory(FSTConfiguration fstConfiguration) {this.fstConfiguration = fstConfiguration;}
 
@@ -837,8 +652,8 @@ public class FSTConfiguration {
             return new FSTStreamDecoder(fstConfiguration);
         }
 
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
+        static final ThreadLocal input = new ThreadLocal();
+        static final ThreadLocal output = new ThreadLocal();
 
         @Override
         public ThreadLocal getInput() {

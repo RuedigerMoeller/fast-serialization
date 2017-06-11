@@ -24,7 +24,7 @@ package org.nustaq.serialization.util;
  * To change this template use File | Settings | File Templates.
  */
 public class FSTObject2IntMap<K> {
-    static int[] prim = {
+    static final int[] prim = {
                             3, 5, 7, 11, 13, 17, 19, 23, 29, 37, 67, 97, 139,
                             211, 331, 641, 1097, 1531, 2207, 3121, 5059, 7607, 10891,
                             15901, 19993, 30223, 50077, 74231, 99991, 150001, 300017,
@@ -100,34 +100,10 @@ public class FSTObject2IntMap<K> {
         }
     }
 
-    private K removeHash(K key, int hash) {
-        final int idx = hash % mKeys.length;
-
-        final Object mKey = mKeys[idx];
-        if (mKey == null) // not found
-        {
-//            hit++;
-            return null;
-        } else if (mKey.equals(key) && (!checkClazzOnEquals || mKeys[idx].getClass() == key.getClass()))  // found
-        {
-//            hit++;
-            K val = (K) mKeys[idx];
-            mValues[idx] = 0; mKeys[idx] = null;
-            mNumberOfElements--;
-            return val;
-        } else {
-            if (next == null) {
-                return null;
-            }
-//            miss++;
-            return next.removeHash(key, hash);
-        }
-    }
-
     private void putNext(final int hash, final K key, final int value) {
         if (next == null) {
             int newSiz = mNumberOfElements / 3;
-            next = new FSTObject2IntMap<K>(newSiz, checkClazzOnEquals);
+            next = new FSTObject2IntMap<>(newSiz, checkClazzOnEquals);
         }
         next.putHash(key, value, hash, this);
     }
@@ -152,9 +128,6 @@ public class FSTObject2IntMap<K> {
         }
         // <== inline
     }
-
-    static int miss = 0;
-    static int hit = 0;
 
     private int getHash(final K key, final int hash) {
         final int idx = hash % mKeys.length;

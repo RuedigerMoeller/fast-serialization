@@ -18,9 +18,9 @@ package org.nustaq.serialization.util;
 public class FSTInt2ObjectMap<V> {
 
     public int mKeys[];
-    public Object mValues[];
-    public int mNumberOfElements;
-    FSTInt2ObjectMap<V> next;
+    private Object mValues[];
+    private int mNumberOfElements;
+    private FSTInt2ObjectMap<V> next;
     private static final int GROWFAC = 2;
 
     public FSTInt2ObjectMap(int initialSize) {
@@ -47,7 +47,7 @@ public class FSTInt2ObjectMap<V> {
         putHash(key, value, hash, this);
     }
 
-    final void putHash(int key, V value, int hash, FSTInt2ObjectMap<V> parent) {
+    private void putHash(int key, V value, int hash, FSTInt2ObjectMap<V> parent) {
         if (mNumberOfElements * GROWFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROWFAC > parent.mKeys.length) {
@@ -77,10 +77,10 @@ public class FSTInt2ObjectMap<V> {
         }
     }
 
-    final void putNext(int hash, int key, V value) {
+    private void putNext(int hash, int key, V value) {
         if (next == null) {
             int newSiz = mNumberOfElements / 3;
-            next = new FSTInt2ObjectMap<V>(newSiz);
+            next = new FSTInt2ObjectMap<>(newSiz);
         }
         next.putHash(key, value, hash, this);
     }
@@ -90,7 +90,7 @@ public class FSTInt2ObjectMap<V> {
         return getHash(key, hash);
     }
 
-    final V getHash(int key, int hash) {
+    private V getHash(int key, int hash) {
         final int idx = hash % mKeys.length;
 
         final int mKey = mKeys[idx];
@@ -112,7 +112,7 @@ public class FSTInt2ObjectMap<V> {
         }
     }
 
-    final void resize(int newSize) {
+    private void resize(int newSize) {
         newSize = FSTObject2IntMap.adjustSize(newSize);
         int[] oldTabKey = mKeys;
         Object[] oldTabVal = mValues;

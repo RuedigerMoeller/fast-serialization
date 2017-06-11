@@ -34,35 +34,34 @@ import java.util.*;
  */
 public class FSTObjectOutput implements ObjectOutput {
 
-    public static Object NULL_PLACEHOLDER = new Object() { public String toString() { return "NULL_PLACEHOLDER"; }};
-    public static final byte SPECIAL_COMPATIBILITY_OBJECT_TAG = -19; // see issue 52
-    public static final byte ONE_OF = -18;
-    public static final byte BIG_BOOLEAN_FALSE = -17;
-    public static final byte BIG_BOOLEAN_TRUE = -16;
-    public static final byte BIG_LONG = -10;
-    public static final byte BIG_INT = -9;
-    public static final byte DIRECT_ARRAY_OBJECT = -8;
-    public static final byte HANDLE = -7;
-    public static final byte ENUM = -6;
-    public static final byte ARRAY = -5;
-    public static final byte STRING = -4;
-    public static final byte TYPED = -3; // var class == object written class
-    public static final byte DIRECT_OBJECT = -2;
-    public static final byte NULL = -1;
-    public static final byte OBJECT = 0;
-    protected FSTEncoder codec;
+    static final byte SPECIAL_COMPATIBILITY_OBJECT_TAG = -19; // see issue 52
+    static final byte ONE_OF = -18;
+    static final byte BIG_BOOLEAN_FALSE = -17;
+    static final byte BIG_BOOLEAN_TRUE = -16;
+    static final byte BIG_LONG = -10;
+    static final byte BIG_INT = -9;
+    static final byte DIRECT_ARRAY_OBJECT = -8;
+    static final byte HANDLE = -7;
+    static final byte ENUM = -6;
+    static final byte ARRAY = -5;
+    static final byte STRING = -4;
+    static final byte TYPED = -3; // var class == object written class
+    static final byte DIRECT_OBJECT = -2;
+    static final byte NULL = -1;
+    static final byte OBJECT = 0;
+    private FSTEncoder codec;
 
     protected FSTConfiguration conf; // immutable, should only be set by FSTConf mechanics
 
     protected FSTObjectRegistry objects;
-    protected int curDepth = 0;
-    protected int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
+    private int curDepth = 0;
+    private int writeExternalWriteAhead = 8000; // max size an external may occupy FIXME: document this, create annotation to configure this
 
-    protected FSTSerialisationListener listener;
+    private FSTSerialisationListener listener;
 
     // double state to reduce pointer chasing
-    protected boolean dontShare;
-    protected final FSTClazzInfo stringInfo;
+    private final boolean dontShare;
+    private final FSTClazzInfo stringInfo;
 
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
@@ -144,9 +143,7 @@ public class FSTObjectOutput implements ObjectOutput {
         resetAndClearRefs();
     }
 
-    protected static ByteArrayOutputStream empty = new ByteArrayOutputStream(0);
-
-    protected boolean closed = false;
+    boolean closed = false;
     @Override
     public void close() throws IOException {
         flush();
@@ -278,10 +275,10 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectInternal(obj, null, possibles);
     }
 
-    protected FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
+    private final FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
 
     //avoid creation of dummy ref
-    protected FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
+    private FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
         if ( curDepth >= refs.length ) {
             return new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
         } else {
@@ -334,7 +331,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * @param obj
      * @param streamPosition
      */
-    protected void objectWillBeWritten( Object obj, int streamPosition ) {
+    private void objectWillBeWritten( Object obj, int streamPosition ) {
         if (listener != null) {
             listener.objectWillBeWritten(obj, streamPosition);
         }
@@ -346,18 +343,18 @@ public class FSTObjectOutput implements ObjectOutput {
      * @param oldStreamPosition
      * @param streamPosition
      */
-    protected void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {
+    private void objectHasBeenWritten( Object obj, int oldStreamPosition, int streamPosition ) {
         if (listener != null) {
             listener.objectHasBeenWritten(obj, oldStreamPosition, streamPosition);
         }
     }
-    protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
+    private FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite) throws IOException {
         return writeObjectWithContext(referencee,toWrite,null);
     }
 
-    protected int tmp[] = {0};
+    private final int tmp[] = {0};
     // splitting this slows down ...
-    protected FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
+    private FSTClazzInfo writeObjectWithContext(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo ci) throws IOException {
         int startPosition = 0;
         try {
             if ( toWrite == null ) {
@@ -500,7 +497,7 @@ public class FSTObjectOutput implements ObjectOutput {
     /**
      * if class is same as last referenced, returned cached clzinfo, else do a lookup
      */
-    protected FSTClazzInfo getFstClazzInfo(FSTClazzInfo.FSTFieldInfo referencee, Class clazz) {
+    private FSTClazzInfo getFstClazzInfo(FSTClazzInfo.FSTFieldInfo referencee, Class clazz) {
         FSTClazzInfo serializationInfo = null;
         FSTClazzInfo lastInfo = referencee.lastInfo;
         if ( lastInfo != null && lastInfo.getClazz() == clazz && lastInfo.conf == conf ) {
@@ -512,7 +509,7 @@ public class FSTObjectOutput implements ObjectOutput {
         return serializationInfo;
     }
 
-    public void defaultWriteObject(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
+    private void defaultWriteObject(Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
         if ( serializationInfo.isExternalizable() ) {
             getCodec().ensureFree(writeExternalWriteAhead);
             ((Externalizable) toWrite).writeExternal(this);
@@ -522,14 +519,14 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    protected void writeObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
+    private void writeObjectCompatible(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo) throws IOException {
         // Object header (nothing written till here)
         writeObjectHeader(serializationInfo, referencee, toWrite);
         Class cl = serializationInfo.getClazz();
         writeObjectCompatibleRecursive(referencee,toWrite,serializationInfo,cl);
     }
 
-    protected void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
+    private void writeObjectCompatibleRecursive(FSTClazzInfo.FSTFieldInfo referencee, Object toWrite, FSTClazzInfo serializationInfo, Class cl) throws IOException {
         FSTClazzInfo.FSTCompatibilityInfo fstCompatibilityInfo = serializationInfo.getCompInfo().get(cl);
         if ( ! Serializable.class.isAssignableFrom(cl) ) {
             return; // ok here, as compatible mode will never be triggered for "forceSerializable"
@@ -550,7 +547,7 @@ public class FSTObjectOutput implements ObjectOutput {
         }
     }
 
-    protected void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, int startIndex, int version) throws IOException {
+    private void writeObjectFields(Object toWrite, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, int startIndex, int version) throws IOException {
         try {
             int booleanMask = 0;
             int boolcount = 0;
@@ -712,7 +709,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * @return true if header already wrote object
      * @throws IOException
      */
-    protected boolean writeObjectHeader(final FSTClazzInfo clsInfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
+    private boolean writeObjectHeader(final FSTClazzInfo clsInfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
         if ( toWrite.getClass() == referencee.getType()
                 && ! clsInfo.useCompatibleMode() )
         {
@@ -746,7 +743,7 @@ public class FSTObjectOutput implements ObjectOutput {
     }
 
     // incoming array is already registered
-    protected void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
+    private void writeArray(FSTClazzInfo.FSTFieldInfo referencee, Object array) throws IOException {
         if ( array == null ) {
             getCodec().writeClass(Object.class);
             getCodec().writeFInt(-1);
@@ -798,7 +795,7 @@ public class FSTObjectOutput implements ObjectOutput {
         getCodec().writeStringUTF(str);
     }
 
-    protected void resetAndClearRefs() {
+    private void resetAndClearRefs() {
         getCodec().reset(null);
         objects.clearForWrite(conf);
     }
@@ -808,7 +805,7 @@ public class FSTObjectOutput implements ObjectOutput {
      *
      * @param out
      */
-    public void resetForReUse( OutputStream out ) {
+    void resetForReUse( OutputStream out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         getCodec().reset(null);
@@ -825,14 +822,14 @@ public class FSTObjectOutput implements ObjectOutput {
         resetForReUse((byte[])null);
     }
 
-    public void resetForReUse( byte[] out ) {
+    private void resetForReUse( byte[] out ) {
         if ( closed )
             throw new RuntimeException("Can't reuse closed stream");
         getCodec().reset(out);
         objects.clearForWrite(conf);
     }
 
-    public FSTClazzInfoRegistry getClassInfoRegistry() {
+    private FSTClazzInfoRegistry getClassInfoRegistry() {
         return conf.getCLInfoRegistry();
     }
 
@@ -849,7 +846,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * @return
      * @throws IOException
      */
-    public ObjectOutputStream getObjectOutputStream(final Class cl, final FSTClazzInfo clinfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
+    private ObjectOutputStream getObjectOutputStream(final Class cl, final FSTClazzInfo clinfo, final FSTClazzInfo.FSTFieldInfo referencee, final Object toWrite) throws IOException {
         ObjectOutputStream out = new ObjectOutputStream() {
             @Override
             public void useProtocolVersion(int version) throws IOException {
@@ -887,7 +884,7 @@ public class FSTObjectOutput implements ObjectOutput {
             }
 
             PutField pf;
-            HashMap<String,Object> fields = new HashMap<String, Object>(); // fixme: init lazy
+            final HashMap<String,Object> fields = new HashMap<>(); // fixme: init lazy
             @Override
             public PutField putFields() throws IOException {
                 if ( pf == null ) {
@@ -1045,10 +1042,6 @@ public class FSTObjectOutput implements ObjectOutput {
         return out;
     }
 
-    public FSTObjectRegistry getObjectMap() {
-        return objects;
-    }
-
     /**
      * @return the written buffer reference. use getWritten() to obtain the length of written bytes. WARNING:
      * if more than one objects have been written, an implicit flush is triggered, so the buffer only contains
@@ -1058,7 +1051,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * note: in case of non-standard underlyings (e.g. serializing to direct offheap or DirectBuffer, this method
      * might cause creation of a byte array and a copy.
      */
-    public byte[] getBuffer() {
+    byte[] getBuffer() {
         return getCodec().getBuffer();
     }
 
@@ -1069,7 +1062,7 @@ public class FSTObjectOutput implements ObjectOutput {
      *
      * note: in case of non-stream based serialization (directbuffer, offheap mem) getBuffer will return a copy anyways.
      */
-    public byte[] getCopyOfWrittenBuffer() {
+    byte[] getCopyOfWrittenBuffer() {
         if ( ! getCodec().isByteArrayBased() ) {
             return getBuffer();
         }
@@ -1089,7 +1082,7 @@ public class FSTObjectOutput implements ObjectOutput {
      * Warning: if the stream has been flushed (done after each 1st level object write),
      * the buffer will be smaller than the value given here or contain invalid bytes.
      */
-    public int getWritten() {
+    int getWritten() {
         return getCodec().getWritten();
     }
 
@@ -1097,11 +1090,11 @@ public class FSTObjectOutput implements ObjectOutput {
         getCodec().writeClass(aClass);
     }
 
-    public FSTEncoder getCodec() {
+    FSTEncoder getCodec() {
         return codec;
     }
 
-    protected void setCodec(FSTEncoder codec) {
+    private void setCodec(FSTEncoder codec) {
         this.codec = codec;
     }
 }

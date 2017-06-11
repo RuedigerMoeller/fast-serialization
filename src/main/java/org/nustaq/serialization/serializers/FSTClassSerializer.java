@@ -36,7 +36,7 @@ public class FSTClassSerializer extends FSTBasicObjectSerializer {
 
     public FSTClassSerializer() {
         super();
-        primitiveMap = new HashMap<String,Class>();
+        primitiveMap = new HashMap<>();
         Class[] primitives = {byte.class, short.class, int.class, long.class, float.class, double.class, char.class, boolean.class, void.class};
         for (Class cls: primitives) {
             primitiveMap.put(cls.getName(), cls);

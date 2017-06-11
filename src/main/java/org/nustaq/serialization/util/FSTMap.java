@@ -5,11 +5,11 @@ package org.nustaq.serialization.util;
  */
 public class FSTMap<K,V> {
 
-    static int[] prim = FSTObject2IntMap.prim;
+    private static final int[] prim = FSTObject2IntMap.prim;
 
     private static final int GROFAC = 2;
 
-    public static int adjustSize(int size) {
+    private static int adjustSize(int size) {
         for (int i = 0; i < prim.length - 1; i++) {
             if (size < prim[i]) {
                 return prim[i];
@@ -18,11 +18,11 @@ public class FSTMap<K,V> {
         return size;
     }
 
-    public Object mKeys[];
-    public Object mValues[];
-    public int mNumberOfElements;
-    FSTMap<K,V> next;
-    boolean checkClazzOnEquals = false;
+    private Object mKeys[];
+    private Object mValues[];
+    private int mNumberOfElements;
+    private FSTMap<K,V> next;
+    private final boolean checkClazzOnEquals = false;
 
     public FSTMap(int initialSize) {
         if (initialSize < 2) {
@@ -45,7 +45,7 @@ public class FSTMap<K,V> {
         putHash(key, value, hash, this);
     }
 
-    final void putHash(K key, V value, int hash, FSTMap<K,V> parent) {
+    private void putHash(K key, V value, int hash, FSTMap<K,V> parent) {
         if (mNumberOfElements * GROFAC > mKeys.length) {
             if (parent != null) {
                 if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
@@ -75,34 +75,10 @@ public class FSTMap<K,V> {
         }
     }
 
-    final K removeHash(K key, int hash) {
-        final int idx = hash % mKeys.length;
-
-        final Object mKey = mKeys[idx];
-        if (mKey == null) // not found
-        {
-//            hit++;
-            return null;
-        } else if (mKey.equals(key) && (!checkClazzOnEquals || mKeys[idx].getClass() == key.getClass()))  // found
-        {
-//            hit++;
-            K val = (K) mKeys[idx];
-            mValues[idx] = 0; mKeys[idx] = null;
-            mNumberOfElements--;
-            return val;
-        } else {
-            if (next == null) {
-                return null;
-            }
-//            miss++;
-            return next.removeHash(key, hash);
-        }
-    }
-
-    final void putNext(final int hash, final K key, final V value) {
+    private void putNext(final int hash, final K key, final V value) {
         if (next == null) {
             int newSiz = mNumberOfElements / 3;
-            next = new FSTMap<K,V>(newSiz);
+            next = new FSTMap<>(newSiz);
         }
         next.putHash(key, value, hash, this);
     }
@@ -132,7 +108,7 @@ public class FSTMap<K,V> {
     static int miss = 0;
     static int hit = 0;
 
-    final V getHash(final K key, final int hash) {
+    private V getHash(final K key, final int hash) {
         final int idx = hash % mKeys.length;
 
         final Object mapsKey = mKeys[idx];
@@ -151,7 +127,7 @@ public class FSTMap<K,V> {
         }
     }
 
-    final void resize(int newSize) {
+    private void resize(int newSize) {
         newSize = adjustSize(newSize);
         Object[] oldTabKey = mKeys;
         Object[] oldTabVal = mValues;

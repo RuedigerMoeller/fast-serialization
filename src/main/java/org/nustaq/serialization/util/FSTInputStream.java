@@ -27,13 +27,13 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
-    public int chunk_size = 8000;
-    public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
+    private final int chunk_size = 8000;
+    public static final ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<>();
     public byte buf[];
     public int pos;
     public int count; // avaiable valid read bytes
-    InputStream in;
-    boolean fullyRead = false; // true if input source has been read til end
+    private InputStream in;
+    private boolean fullyRead = false; // true if input source has been read til end
     public boolean byteBacked = false;
 
     public FSTInputStream(InputStream in) {
@@ -68,7 +68,7 @@ public final class FSTInputStream extends InputStream {
         return fullyRead && pos >= count;
     }
 
-    public void readNextChunk(InputStream in) {
+    private void readNextChunk(InputStream in) {
         int read;
         try {
             if (buf.length < count + chunk_size) {
