@@ -437,38 +437,8 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     @Override
-    public boolean isMapBased() {
-        return false;
-    }
-
-    @Override
-    public Object getDirectObject() // in case class already resolves to read object (e.g. mix input)
-    {
-        return null;
-    }
-
-    @Override
-    public int getObjectHeaderLen() {
-        return -1;
-    }
-
-    @Override
-    public void consumeEndMarker() {
-    }
-
-    @Override
     public Class readArrayHeader() throws Exception {
         return readClass().getClazz();
-    }
-
-    @Override
-    public void readExternalEnd() {
-        // do nothing for direct encoding
-    }
-
-    @Override
-    public boolean isEndMarker(String s) {
-        return false;
     }
 
     @Override
@@ -482,30 +452,9 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     @Override
-    public void readArrayEnd(FSTClazzInfo clzSerInfo) {
-    }
-
-    @Override
-    public void readObjectEnd() {
-    }
-
-    @Override
-    public Object coerceElement(Class arrType, Object value) {
-        return value;
-    }
-
-
-    @Override
     public int available() {
         input.ensureReadAhead(1);
         return input.available();
     }
-
-    @Override
-    public void startFieldReading(Object newObj) {
-
-    }
-
-
 }
 

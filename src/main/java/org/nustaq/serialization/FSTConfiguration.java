@@ -82,7 +82,7 @@ public class FSTConfiguration {
     boolean shareReferences = true;
     private volatile ClassLoader classLoader = getClass().getClassLoader();
     private boolean forceSerializable = false; // serialize objects which are not instanceof serializable using default serialization scheme.
-    private FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
+    private final FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
     private LastResortClassRessolver lastResortResolver;
 

@@ -289,10 +289,6 @@ public class FSTStreamEncoder implements FSTEncoder {
         }
     }
 
-    public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
-
-    }
-
     public boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {
         writeFByte(tag);
         return false;
@@ -547,39 +543,9 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.pos = count;
     }
 
-    public void externalEnd(FSTClazzInfo clz) {
-    }
-
-    @Override
-    public boolean isWritingAttributes() {
-        return false;
-    }
-
-    public boolean isPrimitiveArray(Object array, Class<?> componentType) {
-        return componentType.isPrimitive();
-    }
-
-    public boolean isTagMultiDimSubArrays() {
-        return false;
-    }
-
     @Override
     public void writeVersionTag(int version) throws IOException {
         writeFByte(version);
-    }
-
-    @Override
-    public boolean isByteArrayBased() {
-        return true;
-    }
-
-    @Override
-    public void writeArrayEnd() {
-
-    }
-
-    @Override
-    public void writeFieldsEnd(FSTClazzInfo serializationInfo) {
     }
 
     @Override

@@ -202,8 +202,8 @@ public final class FSTClazzInfo {
         return flat;
     }
 
-    final Object newInstance(boolean doesRequireInit) {
-        return instantiator.newInstance(clazz, cons, doesRequireInit || requiresInit, conf.isForceSerializable());
+    final Object newInstance() {
+        return instantiator.newInstance(clazz, cons, requiresInit, conf.isForceSerializable());
     }
 
     /**

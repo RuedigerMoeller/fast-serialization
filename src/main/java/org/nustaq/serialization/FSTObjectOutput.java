@@ -344,7 +344,6 @@ public class FSTObjectOutput implements ObjectOutput {
             if (getCodec().writeTag(ARRAY, toWrite, 0, toWrite, this))
                 return serializationInfo; // some codecs handle primitive arrays like an primitive type
             writeArray(referencee, toWrite);
-            getCodec().writeArrayEnd();
         } else if (ser == null) {
             // default write object wihtout custom serializer
             // handle write replace
@@ -359,8 +358,6 @@ public class FSTObjectOutput implements ObjectOutput {
             }
             if (!writeObjectHeader(serializationInfo, referencee, toWrite)) { // skip in case codec can write object as primitive
                 defaultWriteObject(toWrite, serializationInfo);
-                if (serializationInfo.isExternalizable())
-                    getCodec().externalEnd(serializationInfo);
             }
             return originalInfo;
         } else { // object has custom serializer
@@ -369,7 +366,6 @@ public class FSTObjectOutput implements ObjectOutput {
                 int pos = getCodec().getWritten();
                 // write object depending on type (custom, externalizable, serializable/java, default)
                 ser.writeObject(this, toWrite, serializationInfo, referencee, pos);
-                getCodec().externalEnd(serializationInfo);
             }
         }
         return serializationInfo;
@@ -473,31 +469,30 @@ public class FSTObjectOutput implements ObjectOutput {
             int boolcount = 0;
             final int length = fieldInfo.length;
             int j = startIndex;
-            if (!getCodec().isWritingAttributes()) { // pack bools into bits in case it's not a chatty codec
-                for (; ; j++) {
-                    if (j == length || fieldInfo[j].getVersion() != version) {
-                        if (boolcount > 0) {
-                            getCodec().writeFByte(booleanMask << (8 - boolcount));
-                        }
-                        break;
+            // pack bools into bits in case it's not a chatty codec
+            for (; ; j++) {
+                if (j == length || fieldInfo[j].getVersion() != version) {
+                    if (boolcount > 0) {
+                        getCodec().writeFByte(booleanMask << (8 - boolcount));
                     }
-                    final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                    if (subInfo.getIntegralType() != FSTClazzInfo.FSTFieldInfo.BOOL) {
-                        if (boolcount > 0) {
-                            getCodec().writeFByte(booleanMask << (8 - boolcount));
-                        }
-                        break;
-                    } else {
-                        if (boolcount == 8) {
-                            getCodec().writeFByte(booleanMask << (8 - boolcount));
-                            boolcount = 0;
-                            booleanMask = 0;
-                        }
-                        boolean booleanValue = subInfo.getBooleanValue(toWrite);
-                        booleanMask = booleanMask << 1;
-                        booleanMask = (booleanMask | (booleanValue ? 1 : 0));
-                        boolcount++;
+                    break;
+                }
+                final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
+                if (subInfo.getIntegralType() != FSTClazzInfo.FSTFieldInfo.BOOL) {
+                    if (boolcount > 0) {
+                        getCodec().writeFByte(booleanMask << (8 - boolcount));
                     }
+                    break;
+                } else {
+                    if (boolcount == 8) {
+                        getCodec().writeFByte(booleanMask << (8 - boolcount));
+                        boolcount = 0;
+                        booleanMask = 0;
+                    }
+                    boolean booleanValue = subInfo.getBooleanValue(toWrite);
+                    booleanMask = booleanMask << 1;
+                    booleanMask = (booleanMask | (booleanValue ? 1 : 0));
+                    boolcount++;
                 }
             }
             for (int i = j; i < length; i++) {
@@ -507,7 +502,6 @@ public class FSTObjectOutput implements ObjectOutput {
                     writeObjectFields(toWrite, serializationInfo, fieldInfo, i, subInfo.getVersion());
                     return;
                 }
-                getCodec().writeAttributeName(subInfo);
                 if (subInfo.isPrimitive()) {
                     // speed safe
                     int integralType = subInfo.getIntegralType();
@@ -560,7 +554,6 @@ public class FSTObjectOutput implements ObjectOutput {
                 }
             }
             getCodec().writeVersionTag((byte) 0);
-            getCodec().writeFieldsEnd(serializationInfo);
         } catch (IllegalAccessException ex) {
             FSTUtil.<RuntimeException>rethrow(ex);
         }
@@ -618,7 +611,7 @@ public class FSTObjectOutput implements ObjectOutput {
         getCodec().writeClass(array.getClass());
         getCodec().writeFInt(len);
         if (!componentType.isArray()) {
-            if (getCodec().isPrimitiveArray(array, componentType)) {
+            if (componentType.isPrimitive()) {
                 getCodec().writePrimitiveArray(array, 0, len);
             } else { // objects
                 Object arr[] = (Object[]) array;
@@ -638,18 +631,7 @@ public class FSTObjectOutput implements ObjectOutput {
             FSTClazzInfo.FSTFieldInfo ref1 = new FSTClazzInfo.FSTFieldInfo(referencee.getPossibleClasses(), null, conf.getCLInfoRegistry().isIgnoreAnnotations());
             for (int i = 0; i < len; i++) {
                 Object subArr = arr[i];
-                boolean needsWrite = true;
-                if (getCodec().isTagMultiDimSubArrays()) {
-                    if (subArr == null) {
-                        needsWrite = !getCodec().writeTag(NULL, null, 0, null, this);
-                    } else {
-                        needsWrite = !getCodec().writeTag(ARRAY, subArr, 0, subArr, this);
-                    }
-                }
-                if (needsWrite) {
-                    writeArray(ref1, subArr);
-                    getCodec().writeArrayEnd();
-                }
+                writeArray(ref1, subArr);
             }
         }
     }
@@ -900,9 +882,6 @@ public class FSTObjectOutput implements ObjectOutput {
      * note: in case of non-stream based serialization (directbuffer, offheap mem) getBuffer will return a copy anyways.
      */
     byte[] getCopyOfWrittenBuffer() {
-        if (!getCodec().isByteArrayBased()) {
-            return getBuffer();
-        }
         byte res[] = new byte[getCodec().getWritten()];
         byte[] buffer = getBuffer();
         System.arraycopy(buffer, 0, res, 0, getCodec().getWritten());

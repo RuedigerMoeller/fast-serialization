@@ -99,23 +99,7 @@ public interface FSTEncoder {
     // write a meta byte item. return true if encoder wrote full object (e.g. literal, primitive)
     boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException;
 
-    void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
-
-    void externalEnd(FSTClazzInfo clz); // demarkls the end of an externalizable or classes with serializer registered
-
-    boolean isWritingAttributes();
-
-    boolean isPrimitiveArray(Object array, Class<?> componentType);
-
-    boolean isTagMultiDimSubArrays();
-
     void writeVersionTag(int version) throws IOException;
-
-    boolean isByteArrayBased();
-
-    void writeArrayEnd();
-
-    void writeFieldsEnd(FSTClazzInfo serializationInfo);
 
     FSTConfiguration getConf();
 }

@@ -77,43 +77,15 @@ public interface FSTDecoder {
 
     byte readObjectHeaderTag() throws IOException;
 
-    int getObjectHeaderLen(); // len field of last header read (if avaiable)
-
-    boolean isMapBased();
-
-    Object getDirectObject(); // in case class already resolves to read object (e.g. mix input)
-
-    void consumeEndMarker();
-
     // returns class or directly read array
     Object readArrayHeader() throws Exception;
-
-    // read end maker and consume, if no endmarker found do nothing
-    void readExternalEnd();
-
-    boolean isEndMarker(String s);
 
     int readVersionTag() throws IOException;
 
     void pushBack(int bytes);
 
-    // clashes with read end marker, however avoid breaking minbin, so new methods for JSONDe/Encoding
-    // clzSerInfo can be null
-    void readArrayEnd(FSTClazzInfo clzSerInfo);
-
-    void readObjectEnd();
-
-    Object coerceElement(Class arrType, Object value);
-
     /**
      * @return a value > 0 if more bytes are available
      */
     int available();
-
-    /**
-     * quirks for json unknown decoding. Need a hook to set original classname
-     *
-     * @param newObj
-     */
-    void startFieldReading(Object newObj);
 }
