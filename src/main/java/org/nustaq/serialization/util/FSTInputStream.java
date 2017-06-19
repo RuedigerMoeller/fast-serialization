@@ -84,9 +84,9 @@ public final class FSTInputStream extends InputStream {
             } else {
                 fullyRead = true;
             }
-        } catch (Exception iex) {
-            LOGGER.log(FSTLogger.Level.ERROR, "Failed to read next chunk, assuming fully read", iex);
-            fullyRead = true;
+        } catch (IOException e) {
+            LOGGER.log(FSTLogger.Level.ERROR, "Failed to read next chunk from InputStream", e);
+            throw new RuntimeException("Failed to read next chunk from InputStream", e);
         }
     }
 
