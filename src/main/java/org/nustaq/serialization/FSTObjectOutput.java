@@ -68,6 +68,14 @@ public class FSTObjectOutput implements ObjectOutput {
     protected final FSTClazzInfo stringInfo;
     protected boolean isCrossPlatform;
 
+    protected ThreadLocal<FSTClazzInfo.FSTFieldInfo[]> refsLocal = new ThreadLocal() {
+        @Override
+        protected Object initialValue() {
+            return new FSTClazzInfo.FSTFieldInfo[20];
+        }
+    };
+
+    FSTClazzInfo.FSTFieldInfo[] refs;
     /**
      * Creates a new FSTObjectOutput stream to write data to the specified
      * underlying output stream.
@@ -286,10 +294,11 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectInternal(obj, null, possibles);
     }
 
-    protected FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
-
     //avoid creation of dummy ref
     protected FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
+        if ( refs == null ) {
+            refs = refsLocal.get();
+        }
         if ( curDepth >= refs.length ) {
             return new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
         } else {
