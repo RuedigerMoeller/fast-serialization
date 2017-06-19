@@ -29,6 +29,8 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
+    public static final boolean REPORT_READ_FAILS = false;
+
     private static final FSTLogger LOGGER = FSTLogger.getLogger(FSTInputStream.class);
 
     public int chunk_size = 8000;
@@ -85,8 +87,12 @@ public final class FSTInputStream extends InputStream {
                 fullyRead = true;
             }
         } catch (IOException e) {
-            LOGGER.log(FSTLogger.Level.ERROR, "Failed to read next chunk from InputStream", e);
-            throw new RuntimeException("Failed to read next chunk from InputStream", e);
+            if ( REPORT_READ_FAILS ) { // flag bound to avoid breaking things ..
+                LOGGER.log(FSTLogger.Level.ERROR, "Failed to read next chunk from InputStream", e);
+                throw new RuntimeException("Failed to read next chunk from InputStream", e);
+            } else {
+                fullyRead = true;
+            }
         }
     }
 
