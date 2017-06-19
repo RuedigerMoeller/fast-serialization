@@ -15,6 +15,8 @@
  */
 package org.nustaq.serialization.util;
 
+import org.nustaq.logging.FSTLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,6 +28,10 @@ import java.io.InputStream;
  * To change this template use File | Settings | File Templates.
  */
 public final class FSTInputStream extends InputStream {
+
+    public static final boolean REPORT_READ_FAILS = false;
+
+    private static final FSTLogger LOGGER = FSTLogger.getLogger(FSTInputStream.class);
 
     public int chunk_size = 8000;
     public static ThreadLocal<byte[]> cachedBuffer = new ThreadLocal<byte[]>();
@@ -80,8 +86,13 @@ public final class FSTInputStream extends InputStream {
             } else {
                 fullyRead = true;
             }
-        } catch (Exception iex) {
-            fullyRead = true;
+        } catch (IOException e) {
+            if ( REPORT_READ_FAILS ) { // flag bound to avoid breaking things ..
+                LOGGER.log(FSTLogger.Level.ERROR, "Failed to read next chunk from InputStream", e);
+                throw new RuntimeException("Failed to read next chunk from InputStream", e);
+            } else {
+                fullyRead = true;
+            }
         }
     }
 

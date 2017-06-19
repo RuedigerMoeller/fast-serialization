@@ -13,7 +13,7 @@ import org.nustaq.offheap.bytez.onheap.HeapBytez;
  * read* methods throw excpetions in case the q contains not enough bytes (need to use available() to
  * ensure data is present).
  *
- * add methods add to the queue. If the adding outperforms reading/polling, the queue is growed automatically.
+ * add methods add to the queue. If the adding outperforms reading/polling, the queue is grown automatically.
  *
  */
 public class BinaryQueue {

@@ -1,6 +1,7 @@
 package org.nustaq.offheap.bytez.niobuffers;
 
 import org.nustaq.offheap.bytez.BasicBytez;
+import org.nustaq.offheap.bytez.onheap.HeapBytez;
 
 import java.nio.ByteBuffer;
 
@@ -210,13 +211,16 @@ public class ByteBufferBasicBytez implements BasicBytez {
     @Override
     public void setBoolean(long byteIndex, boolean[] source, int elemoff, int siz) {
         for ( int i=0; i <siz; i++ ) {
-            buffer.put((int) (byteIndex + 4 * i), (byte) (source[i + elemoff] ? 1 : 0));
+            buffer.put((int) (byteIndex + i), (byte) (source[i + elemoff] ? 1 : 0));
         }
     }
 
     @Override
     public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
-
+        // could be optimized depending on "other" type
+        for ( long i = 0; i < lenBytes; i++ ) {
+            other.put(otherByteIndex+i,get(myByteIndex+i));
+        }
     }
 
     @Override

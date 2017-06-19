@@ -179,8 +179,8 @@ public class FSTBytezEncoder implements FSTEncoder {
         writePlainShort(c);
     }
 
-    public void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo) {
-
+    public boolean writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo, Object value) {
+        return false;
     }
 
     public boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException {

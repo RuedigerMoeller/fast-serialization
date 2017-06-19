@@ -2,13 +2,13 @@ fast-serialization
 ==================
 
 * up to 10 times faster 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..). As an example: Lambda Serialization which came with 1.8 worked instantly.
-* Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
+* Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidDefaultConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
 * OffHeap Maps, Persistent OffHeap maps
 * FSTStructs is very similar to IBM's packed objects. Difference is: You can run it with Oracle JDK today.
 * optionally en/decode any Serializable object graph to JSON (incl. shared references) (since 2.29) for interop
 * Apache 2.0 license since 2.17
 
-###Docs:
+### Docs:
 
 [Fast JDK-compatible Serialization](https://github.com/RuedigerMoeller/fast-serialization/wiki/Serialization)
 
@@ -22,7 +22,7 @@ fast-serialization
 
 [Struct Emulation](https://github.com/RuedigerMoeller/fast-serialization/wiki/Structs) (currently not covered by tests)
 
-###mvn
+### mvn
 
 **note:** maven.org might lag 1 day behind after releasing.
 
@@ -31,11 +31,20 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.47</version>
+    <version>2.50</version>
+</dependency>
+```
+**jdk1.6** compatible build of fst 2.x 
+
+```.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>2.48-jdk-6</version>
 </dependency>
 ```
 
-Older version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
+1.x version (different package name, 1.6 compatible ..). Fixes are not backported anymore, unsupported.
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
@@ -44,7 +53,7 @@ Older version (different package name, 1.6 compatible ..). Fixes are not backpor
 </dependency>
 ```
 
-###Who uses FST ?
+### Who uses FST ?
 
 I am not actively tracking use, maven.org reports more than **12000** downloads from **5000** distinct IP accesses triggered by maven builds world wide per month.
 
@@ -56,7 +65,7 @@ Notable also:
 
 ![alt tag](https://raw.githubusercontent.com/RuedigerMoeller/fast-serialization/master/fst.png)
 
-###how to build 
+### how to build 
 
 * master contains dev branch/trunk.
 * 1.x contains old version

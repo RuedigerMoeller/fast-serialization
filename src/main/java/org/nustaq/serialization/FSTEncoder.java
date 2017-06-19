@@ -85,7 +85,8 @@ public interface FSTEncoder {
     // write a meta byte item. return true if encoder wrote full object (e.g. literal, primitive)
     boolean writeTag(byte tag, Object info, long somValue, Object toWrite, FSTObjectOutput oout) throws IOException;
 
-    void writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo);
+    // return true, if this already wrote everything
+    boolean writeAttributeName(FSTClazzInfo.FSTFieldInfo subInfo, Object value);
 
     void externalEnd(FSTClazzInfo clz); // demarkls the end of an externalizable or classes with serializer registered
 

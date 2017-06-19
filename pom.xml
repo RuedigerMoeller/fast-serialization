@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.48</version>
+    <version>2.50</version>
     <packaging>bundle</packaging>
 
     <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
@@ -114,6 +114,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Import-Package>*</Import-Package>
                         <Export-Package>org.nustaq.*;-noimport:=true</Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -127,76 +128,85 @@
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
-          <version>2.8.1</version>
+          <version>2.8.8</version>
         </dependency>
 
         <!-- only required if structs are used -->
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.19.0-GA</version>
+            <version>3.21.0-GA</version>
         </dependency>
 
         <!-- only required for android -->
         <dependency>
             <groupId>org.objenesis</groupId>
             <artifactId>objenesis</artifactId>
-            <version>2.4</version>
+            <version>2.5.1</version>
         </dependency>
 
         <!-- test dependencies -->
-                <dependency>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                    <version>1.51</version>
-                    <scope>test</scope>
-                </dependency>
+                <!--<dependency>-->
+                    <!--<groupId>org.hamcrest</groupId>-->
+                    <!--<artifactId>hamcrest-junit</artifactId>-->
+                    <!--<version>2.0.0.0</version>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
 
-				<dependency>
-					<groupId>com.cedarsoftware</groupId>
-					<artifactId>java-util</artifactId>
-					<version>1.4.0</version>
-					<scope>test</scope>
-				</dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.51</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>4.8.1</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>com.cedarsoftware</groupId>
+            <artifactId>java-util</artifactId>
+            <version>1.4.0</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>org.openjdk.jmh</groupId>
-                    <artifactId>jmh-core</artifactId>
-                    <version>1.8</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>org.hdrhistogram</groupId>
-                    <artifactId>HdrHistogram</artifactId>
-                    <version>2.1.4</version>
-                    <scope>test</scope>
-                </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.8</version>
+            <scope>test</scope>
+        </dependency>
 
-                <dependency>
-                    <groupId>javax.json</groupId>
-                    <artifactId>javax.json-api</artifactId>
-                    <version>1.0</version>
-                    <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>HdrHistogram</artifactId>
+            <version>2.1.4</version>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.glassfish</groupId>
-                <artifactId>javax.json</artifactId>
-                <version>1.0.4</version>
-                <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.cedarsoftware</groupId>
             <artifactId>java-util</artifactId>
             <version>1.9.0</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

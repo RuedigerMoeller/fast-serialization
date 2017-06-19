@@ -94,7 +94,12 @@ public class FSTSerializerRegistry {
                 return ser;
             }
         }
-        return getSerializer(cl,cl);
+        final Class[] lineage = FSTClazzLineageInfo.getLineage(cl);
+        for (final Class ascendant : lineage) {
+            final FSTObjectSerializer serializer = getSerializer(ascendant, cl);
+            if (serializer != null) return serializer;
+        }
+        return null;
     }
 
     final FSTObjectSerializer getSerializer(Class cl, Class lookupStart) {
@@ -111,15 +116,10 @@ public class FSTSerializerRegistry {
                 return serEntry.ser;
             }
         }
-        if ( cl != Object.class && cl != null ) {
-            return getSerializer(cl.getSuperclass(),lookupStart);
-        }
         return null;
     }
 
     public void putSerializer( Class cl, FSTObjectSerializer ser, boolean includeSubclasses) {
         map.put(cl,new SerEntry(includeSubclasses,ser));
     }
-
-
 }
