@@ -15,8 +15,11 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.serialization.FSTClazzInfo.FSTFieldInfo;
+import org.nustaq.serialization.util.BasicObjectPool;
 import org.nustaq.logging.FSTLogger;
 import org.nustaq.serialization.util.FSTUtil;
+import org.nustaq.serialization.util.ObjectPool;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -286,22 +289,27 @@ public class FSTObjectOutput implements ObjectOutput {
         writeObjectInternal(obj, null, possibles);
     }
 
-    protected FSTClazzInfo.FSTFieldInfo refs[] = new FSTClazzInfo.FSTFieldInfo[20];
+    /* unbounded object pool to put less pressure on JVM GC*/
+    protected ObjectPool<FSTClazzInfo.FSTFieldInfo> cachedFIPool = 
+    		new BasicObjectPool<>(FSTFieldInfoObjectPoolFactory.INSTANCE, 20);
+    
+    static final class FSTFieldInfoObjectPoolFactory implements ObjectPool.ObjectPoolFactory<FSTFieldInfo> {
+    	
+    	public static final FSTFieldInfoObjectPoolFactory INSTANCE = new FSTFieldInfoObjectPoolFactory();
+    	
+    	private FSTFieldInfoObjectPoolFactory() {}
+    	
+		@Override
+		public FSTFieldInfo create() {
+			return new FSTClazzInfo.FSTFieldInfo(null, null, true);
+		}
+    }
 
     //avoid creation of dummy ref
     protected FSTClazzInfo.FSTFieldInfo getCachedFI( Class... possibles ) {
-        if ( curDepth >= refs.length ) {
-            return new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
-        } else {
-            FSTClazzInfo.FSTFieldInfo inf = refs[curDepth];
-            if ( inf == null ) {
-                inf = new FSTClazzInfo.FSTFieldInfo(possibles, null, true);
-                refs[curDepth] = inf;
-                return inf;
-            }
-            inf.setPossibleClasses(possibles);
-            return inf;
-        }
+    	final FSTFieldInfo inf = cachedFIPool.borrow();
+    	inf.setPossibleClasses(possibles);
+        return inf;
     }
 
     /**
@@ -316,6 +324,7 @@ public class FSTObjectOutput implements ObjectOutput {
         FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
         curDepth++;
         FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
+        cachedFIPool.release(info);
         curDepth--;
         if ( fstClazzInfo == null )
             return null;

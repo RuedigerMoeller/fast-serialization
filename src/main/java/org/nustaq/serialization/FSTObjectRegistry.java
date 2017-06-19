@@ -46,8 +46,8 @@ public final class FSTObjectRegistry {
         disabled = !conf.isShareReferences();
         if ( !disabled ) {
             if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
-                // avoid cleaning huge mem areas after having written a large object
-                idToObject = new FSTInt2ObjectMap(idToObject.size());
+                // use fastClear method to avoid creating new FSTInt2ObjectMap in order to reduce memory footprint
+                idToObject.fastClear();
             } else {
                 idToObject.clear();
             }
@@ -61,7 +61,8 @@ public final class FSTObjectRegistry {
         disabled = !conf.isShareReferences();
         if ( ! disabled ) {
             if ( objects.size() > 0 && objects.keysLength() > 6 * objects.size() ) {
-                objects = new FSTIdentity2IdMap(objects.size());
+            	// use fastClear method to avoid creating new FSTIdentity2IdMap in order to reduce memory footprint
+                objects.fastClear();
             } else {
                 objects.clear();
             }
