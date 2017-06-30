@@ -62,7 +62,7 @@ public class FSTConfiguration {
      * if all attempts fail to find a class this guy is asked.
      * Can be used in case e.g. dynamic classes need get generated.
      */
-    public interface LastResortClassRessolver {
+    public interface LastResortClassResolver {
         public Class getClass( String clName );
     }
 
@@ -99,7 +99,7 @@ public class FSTConfiguration {
     FSTClassInstantiator instantiator = new FSTDefaultClassInstantiator();
 
     Object coderSpecific;
-    LastResortClassRessolver lastResortResolver;
+    LastResortClassResolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
 
@@ -341,7 +341,7 @@ public class FSTConfiguration {
         conf.setCoderSpecific(fac);
         conf.setStreamCoderFactory(new JSonStreamCoderFactory(conf));
         conf.setShareReferences(shareReferences);
-        conf.setLastResortResolver(new LastResortClassRessolver() {
+        conf.setLastResortResolver(new LastResortClassResolver() {
             @Override
             public Class getClass(String clName) {
                 return Unknown.class;
@@ -525,11 +525,11 @@ public class FSTConfiguration {
         return forceClzInit;
     }
 
-    public LastResortClassRessolver getLastResortResolver() {
+    public LastResortClassResolver getLastResortResolver() {
         return lastResortResolver;
     }
 
-    public void setLastResortResolver(LastResortClassRessolver lastResortResolver) {
+    public void setLastResortResolver(LastResortClassResolver lastResortResolver) {
         this.lastResortResolver = lastResortResolver;
     }
 
