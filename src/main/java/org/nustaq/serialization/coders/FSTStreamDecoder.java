@@ -290,6 +290,9 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public final byte readFByte() throws IOException {
         input.ensureReadAhead(1);
+        if (input.pos > input.count) {
+            throw new IOException("Failed to read the next byte");
+        }
         return input.buf[input.pos++];
     }
 
