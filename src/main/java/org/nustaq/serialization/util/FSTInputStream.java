@@ -29,7 +29,7 @@ import java.io.InputStream;
  */
 public final class FSTInputStream extends InputStream {
 
-    public static final boolean REPORT_READ_FAILS = false;
+    public static boolean REPORT_READ_FAILS = false;
 
     private static final FSTLogger LOGGER = FSTLogger.getLogger(FSTInputStream.class);
 
