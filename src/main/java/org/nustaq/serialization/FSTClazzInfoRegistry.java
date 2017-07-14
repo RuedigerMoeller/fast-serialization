@@ -120,7 +120,6 @@ public class FSTClazzInfoRegistry {
             FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
             if (res == null) {
                 if (c == null) {
-                    rwLock.set(false);
                     throw new NullPointerException("Class is null");
                 }
                 if ( conf.getVerifier() != null ) {
