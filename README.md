@@ -31,7 +31,7 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.51</version>
+    <version>2.52</version>
 </dependency>
 ```
 **jdk1.6** compatible build of fst 2.x 
@@ -55,7 +55,7 @@ fast-serialization
 
 ### Who uses FST ?
 
-I am not actively tracking use, maven.org reports more than **12000** downloads from **5000** distinct IP accesses triggered by maven builds world wide per month.
+I am not actively tracking use, maven.org reports more than **14000** downloads from **6000** distinct IP accesses triggered by maven builds world wide per month.
 
 Notable also:
 
