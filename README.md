@@ -55,7 +55,7 @@ fast-serialization
 
 ### Who uses FST ?
 
-I am not actively tracking use, maven.org reports more than **12000** downloads from **5000** distinct IP accesses triggered by maven builds world wide per month.
+I am not actively tracking use, maven.org reports more than **14000** downloads from **6000** distinct IP accesses triggered by maven builds world wide per month.
 
 Notable also:
 
