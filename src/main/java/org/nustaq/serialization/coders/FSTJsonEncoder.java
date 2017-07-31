@@ -3,7 +3,9 @@ package org.nustaq.serialization.coders;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.SerializedString;
+import com.fasterxml.jackson.core.json.JsonWriteContext;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -168,6 +170,13 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     @Override
     public void reset(byte[] outbytes) {
+        if ( gen != null ) {
+            try {
+                createGenerator();
+            } catch (Exception e) {
+                FSTUtil.<RuntimeException>rethrow(e);
+            }
+        }
         if (outbytes==null) {
             out.reset();
         } else {

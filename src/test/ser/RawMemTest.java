@@ -49,16 +49,10 @@ public class RawMemTest extends BasicFSTTest {
         System.out.println("binary");
         deser = smallBench(conf, original, deser);
         deser = smallBench(conf, original, deser);
-        deser = smallBench(conf, original, deser);
-        deser = smallBench(conf, original, deser);
-        deser = smallBench(conf, original, deser);
         assertTrue(DeepEquals.deepEquals(original, deser));
 
         System.out.println("default");
         conf = FSTConfiguration.createDefaultConfiguration();
-        deser = smallBench(conf, original, deser);
-        deser = smallBench(conf, original, deser);
-        deser = smallBench(conf, original, deser);
         deser = smallBench(conf, original, deser);
         deser = smallBench(conf, original, deser);
         assertTrue(DeepEquals.deepEquals(original, deser));
@@ -101,14 +95,10 @@ public class RawMemTest extends BasicFSTTest {
 
         ohbench(original, coder, bytez);
         ohbench(original, coder, bytez);
-        ohbench(original, coder, bytez);
-        ohbench(original, coder, bytez);
         Object deser = ohbench(original, coder, bytez);
         assertTrue(DeepEquals.deepEquals(original, deser));
 
         System.out.println("-----");
-        ohbench(smallClazz, coder, bytez);
-        ohbench(smallClazz, coder, bytez);
         ohbench(smallClazz, coder, bytez);
         ohbench(smallClazz, coder, bytez);
         deser = ohbench(smallClazz, coder, bytez);
@@ -160,15 +150,10 @@ public class RawMemTest extends BasicFSTTest {
 
         onhbench(original, coder, arr, 0);
         onhbench(original, coder, arr, 0);
-        onhbench(original, coder, arr, 0);
-        onhbench(original, coder, arr, 0);
         deser = onhbench(original, coder, arr, 0);
         assertTrue(DeepEquals.deepEquals(original, deser));
 
         System.out.println("-----");
-        deser = onhbench(smallClazz, coder, arr, 0);
-        deser = onhbench(smallClazz, coder, arr, 0);
-        deser = onhbench(smallClazz, coder, arr, 0);
         deser = onhbench(smallClazz, coder, arr, 0);
         deser = onhbench(smallClazz, coder, arr, 0);
         assertTrue(DeepEquals.deepEquals(smallClazz, deser));

@@ -31,4 +31,20 @@ public class StringEnc {
         Assert.assertTrue(x.equals("ÄÖasdß"));
     }
 
+    static class PJ implements Serializable {
+        int a = 10;
+    }
+
+    @Test
+    public void testLeadingSpaceBug() {
+        FSTConfiguration fst = FSTConfiguration.createJsonConfiguration();
+        PJ pojo = new PJ();
+        String x = fst.asJsonString(pojo);
+        System.out.println(x);
+        String x1 = fst.asJsonString(pojo);
+        System.out.println(x1);
+        Assert.assertTrue(x.equals(x1));
+
+    }
+
 }

@@ -148,7 +148,7 @@ public class StringOffHeapTest {
         FSTCoder coder = createCoder();
         coder.getConf().registerClass(TestRec.class);
 
-        int count = 5;
+        int count = 2;
 //        while (true)
         while (count-- > 0)
         {

@@ -147,6 +147,10 @@ public class FSTObjectInput implements ObjectInput {
         this.codec = codec;
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     protected static class CallbackEntry {
         ObjectInputValidation cb;
         int prio;
