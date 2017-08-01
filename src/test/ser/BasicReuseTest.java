@@ -36,7 +36,7 @@ public class BasicReuseTest {
 
         FSTObjectInput secondInput = configuration.getObjectInput(new ByteArrayInputStream(new byte[0]));
         expectedException.expect(IOException.class);
-        expectedException.expectMessage("Failed to read");
+        expectedException.expectMessage("Only read");
         secondInput.readObject();
     }
 }

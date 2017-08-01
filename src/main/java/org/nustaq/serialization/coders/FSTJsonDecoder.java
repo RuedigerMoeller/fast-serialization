@@ -1,7 +1,15 @@
 package org.nustaq.serialization.coders;
 
-import com.fasterxml.jackson.core.*;
-import org.nustaq.serialization.*;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonTokenId;
+import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTDecoder;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTUtil;
 
@@ -229,6 +237,10 @@ public class FSTJsonDecoder implements FSTDecoder {
     @Override
     public int ensureReadAhead(int bytes) {
         return 0;
+    }
+
+    @Override
+    public void attemptReadAhead(int bytes) {
     }
 
     @Override
@@ -658,7 +670,7 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public int available() {
-        fstInput.ensureReadAhead(1);
+        fstInput.attemptReadAhead(1);
         return fstInput.available();
     }
 

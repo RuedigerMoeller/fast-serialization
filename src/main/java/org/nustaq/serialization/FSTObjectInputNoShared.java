@@ -86,7 +86,7 @@ public class FSTObjectInputNoShared extends FSTObjectInput {
         }
         if ( clzSerInfo.isExternalizable() )
         {
-            getCodec().ensureReadAhead(readExternalReadAHead);
+            getCodec().attemptReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
             getCodec().readExternalEnd();
         } else {

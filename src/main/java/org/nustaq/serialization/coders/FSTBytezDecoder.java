@@ -60,15 +60,30 @@ public class FSTBytezDecoder  implements FSTDecoder {
     }
 
     byte tmp[];
-    public int ensureReadAhead(int bytes) {
+    public int ensureReadAhead(int bytes) throws IOException {
+        if ( inputStream != null ) {
+            int totalRead = 0;
+            int read;
+            while (pos + bytes > readUntil && (read = readNextInputChunk(bytes)) > 0) {
+                totalRead += read;
+            }
+
+            if (pos + bytes <= readUntil) {
+                return totalRead;
+            }
+        } else if ( pos+bytes <= input.length() ) {
+            return bytes;
+        }
+        throw new IOException("Not enough bytes available");
+    }
+
+    @Override
+    public void attemptReadAhead(int bytes) {
         if ( inputStream != null ) {
             if ( pos+bytes > readUntil ) {
-                return readNextInputChunk(bytes);
+                readNextInputChunk(bytes);
             }
-        } else if ( pos+bytes > input.length() ) {
-            return -1;
         }
-        return 0;
     }
 
     protected int readNextInputChunk(int bytes) {
@@ -156,7 +171,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
      * @return
      */
     @Override
-    public Object readFPrimitiveArray(Object array, Class componentType, int len) {
+    public Object readFPrimitiveArray(Object array, Class componentType, int len) throws IOException {
         // FIXME: if else chaining could be avoided
         if (componentType == byte.class) {
             ensureReadAhead(len);
@@ -395,7 +410,7 @@ public class FSTBytezDecoder  implements FSTDecoder {
     }
 
     @Override
-    public void readPlainBytes(byte[] b, int off, int len) {
+    public void readPlainBytes(byte[] b, int off, int len) throws IOException {
         ensureReadAhead(len);
 //        System.arraycopy(input.buf,input.pos,b,off,len);
         input.getArr(pos, b, off, len);
