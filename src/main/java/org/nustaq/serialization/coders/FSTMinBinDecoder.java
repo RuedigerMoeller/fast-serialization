@@ -470,4 +470,9 @@ public class FSTMinBinDecoder implements FSTDecoder {
 
     }
 
+    @Override
+    public void endFieldReading(Object newObj) {
+
+    }
+
 }

@@ -101,8 +101,14 @@ public interface FSTDecoder {
 
     /**
      * quirks for json unknown decoding. Need a hook to set original classname
-     *
+     * only called when reading named fields
      * @param newObj
      */
     void startFieldReading(Object newObj);
+
+    /**
+     * only called when reading named fields
+     * @param newObj
+     */
+    void endFieldReading(Object newObj);
 }

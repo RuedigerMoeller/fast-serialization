@@ -44,8 +44,68 @@ public class Unknown implements Serializable {
         return this;
     }
 
+    /**
+     * access nested data. unk.dot( 3, "id" );
+     * @param propPath
+     * @return
+     */
+    public Object dot(Object ... propPath) {
+        return dotImpl(0,propPath);
+    }
+
+    public <T> T ddot(Object ... propPath) {
+        List res = new ArrayList(propPath.length*2);
+        for (int i = 0; i < propPath.length; i++) {
+            Object o = propPath[i];
+            if ( o instanceof String) {
+                if ( ((String) o).indexOf('.') >= 0 ) {
+                    String split[] = ((String) o).split("\\.");
+                    for (int j = 0; j < split.length; j++) {
+                        String s = split[j];
+                        res.add(s);
+                    }
+                } else
+                    res.add(o);
+            } else
+                res.add(o);
+        }
+        return (T) dotImpl(0,res.toArray());
+    }
+
+    public Unknown dotUnk(Object ... propPath) {
+        return (Unknown) dotImpl(0,propPath);
+    }
+
+    public String dotStr(Object ... propPath) {
+        return (String) dotImpl(0,propPath);
+    }
+
+    public Integer dotInt(Object ... propPath) {
+        return ((Number) dotImpl(0,propPath)).intValue();
+    }
+
+    private Object dotImpl(int index, Object ... propPath) {
+        if (propPath[index] instanceof Number) {
+            int idx = ((Number) propPath[index]).intValue();
+            if ( ! isSequence() || idx < 0 || idx >= items.size() )
+                return null;
+            Object o = items.get(idx);
+            if ( index == propPath.length-1 )
+                return o;
+            return ((Unknown)o).dotImpl(index+1, propPath);
+        } else {
+            String field = ""+propPath[index];
+            if ( isSequence() )
+                return null;
+            Object o = get(field);
+            if ( index == propPath.length-1 )
+                return o;
+            return ((Unknown)o).dotImpl(index+1, propPath);
+        }
+    }
+
     public int getInt(String name) {
-        Number o = (Number) fields.get(name);
+        Number o = (Number) get(name);
         if ( o != null ) {
             return o.intValue();
         }
@@ -53,7 +113,7 @@ public class Unknown implements Serializable {
     }
 
     public double getDouble(String name) {
-        Number o = (Number) fields.get(name);
+        Number o = (Number) get(name);
         if ( o != null ) {
             return o.doubleValue();
         }
@@ -61,17 +121,23 @@ public class Unknown implements Serializable {
     }
 
     public String getString(String name) {
-        Object o = fields.get(name);
+        Object o = get(name);
         if ( o != null ) {
             return o.toString();
         }
         return null;
     }
 
-    public Object[] getArr( String name) {
-        Object o[] = (Object[]) fields.get(name);
-        if ( o != null ) {
-            return o;
+    public Object get(String name) {
+        if ( fields == null )
+            return null;
+        return fields.get(name);
+    }
+
+    public List getArr( String name) {
+        Object o = get(name);
+        if ( o instanceof Unknown ) {
+            return ((Unknown) o).getItems();
         }
         return null;
     }
@@ -119,5 +185,30 @@ public class Unknown implements Serializable {
             sb.append(" }");
             return sb.toString();
         }
+    }
+
+    public Unknown fields(Map<String, Object> fields) {
+        this.fields = fields;
+        return this;
+    }
+
+    public Unknown items(List items) {
+        this.items = items;
+        return this;
+    }
+
+    public Unknown type(String type) {
+        this.type = type;
+        return this;
+    }
+
+    public Unknown put( String field, Object ... vals) {
+        Unknown unk = new Unknown();
+        for (int i = 0; i < vals.length; i++) {
+            Object val = vals[i];
+            unk.add(val);
+        }
+        put(field,unk);
+        return this;
     }
 }

@@ -25,6 +25,9 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     protected FSTInputStream fstInput;
     protected String unknownFallbackReadFieldName; // contains read fieldName in case of Unknown resulting from plain JSon structure
+    protected HashMap<String,Class> clzCache = new HashMap<>(31);
+    protected String lastUnknown;
+    protected int unknownNestLevel;
 
     public FSTJsonDecoder(FSTConfiguration conf) {
         this.conf = conf;
@@ -235,6 +238,8 @@ public class FSTJsonDecoder implements FSTDecoder {
     public void reset() {
         fstInput.reset();
         input = null;
+        unknownNestLevel = 0;
+        firstCall = true;
     }
 
     @Override
@@ -249,6 +254,8 @@ public class FSTJsonDecoder implements FSTDecoder {
             fstInput.resetForReuse(bytes,len);
         try {
             createParser();
+            unknownNestLevel = 0;
+            firstCall = true;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -270,6 +277,8 @@ public class FSTJsonDecoder implements FSTDecoder {
         }
         try {
             createParser();
+            unknownNestLevel = 0; // fixme: should delegate to core reset (not now as I don't want to break things)
+            firstCall = true;
         } catch (IOException e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
@@ -282,7 +291,10 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     int lastObjectLen;
     Class lastDirectClass;
+    boolean firstCall = true;
     public byte readObjectHeaderTag() throws IOException {
+        boolean isFirst = firstCall;
+        firstCall = false;
         lastObjectLen = -1;
         lastReadDirectObject = null;
         lastDirectClass = null;
@@ -311,8 +323,13 @@ public class FSTJsonDecoder implements FSTDecoder {
                 return FSTObjectOutput.DIRECT_OBJECT;
             }
             case START_ARRAY: {
-                lastReadDirectObject = createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
-                return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
+                if (unknownNestLevel > 0 || isFirst) {
+                    lastReadDirectObject = createUnknownArray();
+                    return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
+                } else {
+                    lastReadDirectObject = createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
+                    return FSTObjectOutput.DIRECT_ARRAY_OBJECT;
+                }
             }
             case VALUE_NULL: {
                 lastReadDirectObject = null;
@@ -392,6 +409,72 @@ public class FSTJsonDecoder implements FSTDecoder {
             tmpList.clear();
         }
         return tmpList;
+    }
+
+    protected Unknown createUnknownArray() throws IOException {
+        unknownNestLevel++;
+        List arrayTokens = new ArrayList(14);
+        JsonToken elem = input.nextToken();
+        while ( ! elem.isStructEnd() ) {
+            if ( elem == JsonToken.VALUE_NUMBER_INT ) {
+                arrayTokens.add(input.getLongValue());
+            } else if ( elem == JsonToken.VALUE_NUMBER_FLOAT ) {
+                arrayTokens.add(input.getDoubleValue());
+            } else if ( elem == JsonToken.VALUE_TRUE ) {
+                arrayTokens.add(true);
+            } else if ( elem == JsonToken.VALUE_FALSE ) {
+                arrayTokens.add(false);
+            } else if ( elem == JsonToken.VALUE_NULL ) {
+                arrayTokens.add(null);
+            } else if ( elem == JsonToken.VALUE_STRING ){
+                arrayTokens.add(input.getText());
+            } else if ( elem == JsonToken.START_OBJECT ) {
+                arrayTokens.add( readUnknownObject() );
+            } else if ( elem == JsonToken.START_ARRAY ) {
+                arrayTokens.add( createUnknownArray() );
+            } else {
+                throw new RuntimeException("unexpected array content in Unknown array");
+            }
+            elem = input.nextValue();
+        }
+        unknownNestLevel--;
+        return new Unknown().items(arrayTokens);
+    }
+
+    private Unknown readUnknownObject() throws IOException {
+        Unknown unk = new Unknown();
+        JsonToken elem = input.nextToken();
+        boolean expectField = true;
+        String field = null;
+        while ( ! elem.isStructEnd() ) {
+            if ( expectField ) {
+                field = input.getValueAsString();
+                expectField = false;
+            } else {
+                if ( elem == JsonToken.VALUE_NUMBER_INT ) {
+                    unk.set(field,input.getLongValue());
+                } else if ( elem == JsonToken.VALUE_NUMBER_FLOAT ) {
+                    unk.set(field,input.getDoubleValue());
+                } else if ( elem == JsonToken.VALUE_TRUE ) {
+                    unk.set(field,true);
+                } else if ( elem == JsonToken.VALUE_FALSE ) {
+                    unk.set(field,false);
+                } else if ( elem == JsonToken.VALUE_NULL ) {
+                    unk.set(field,null);
+                } else if ( elem == JsonToken.VALUE_STRING ){
+                    unk.set(field,input.getText());
+                } else if ( elem == JsonToken.START_OBJECT ) {
+                    unk.set(field,readUnknownObject());
+                } else if ( elem == JsonToken.START_ARRAY ) {
+                    unk.set(field, createUnknownArray());
+                } else {
+                    throw new RuntimeException("unexpected array content in Unknown array");
+                }
+                expectField = true;
+            }
+            elem = input.nextToken();
+        }
+        return unk;
     }
 
     private Object createPrimitiveArrayFrom( List directObject ) {
@@ -479,8 +562,6 @@ public class FSTJsonDecoder implements FSTDecoder {
         return null;
     }
 
-    HashMap<String,Class> clzCache = new HashMap<>(31);
-    String lastUnknown;
     @Override
     public Class classForName(String name) throws ClassNotFoundException {
         Class aClass = clzCache.get(name);
@@ -537,8 +618,12 @@ public class FSTJsonDecoder implements FSTDecoder {
             JsonToken jsonToken = input.nextToken();
             String type = null;
             if ( jsonToken == JsonToken.START_ARRAY ) {
-                // direct primitive array [1,2, ..]
-                return createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
+                if (unknownNestLevel>0) {
+                    return createUnknownArray();
+                } else {
+                    // direct primitive array [1,2, ..]
+                    return createPrimitiveArrayFrom(readJSonArr2List(getTmpList()));
+                }
             } else if ( jsonToken == JsonToken.VALUE_NULL ) {
                 return null;
             } else {
@@ -672,6 +757,14 @@ public class FSTJsonDecoder implements FSTDecoder {
         if ( newObj instanceof Unknown ) {
             ((Unknown) newObj).setType(lastUnknown);
             lastUnknown = null;
+            unknownNestLevel++;
+        }
+    }
+
+    @Override
+    public void endFieldReading(Object newObj) {
+        if ( newObj instanceof Unknown ) {
+            unknownNestLevel--;
         }
     }
 

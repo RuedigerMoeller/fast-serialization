@@ -812,6 +812,7 @@ public class FSTObjectInput implements ObjectInput {
                 }
             }
         }
+        getCodec().endFieldReading(newObj);
     }
 
     protected boolean skipConditional(Object newObj, int conditional, FSTClazzInfo.FSTFieldInfo subInfo) {
