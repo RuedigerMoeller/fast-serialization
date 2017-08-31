@@ -172,6 +172,7 @@ public final class FSTInputStream extends InputStream {
         pos = 0;
         fullyRead = false;
         byteBacked = false;
+        in = null;
     }
 
     public void close() throws IOException {
@@ -179,9 +180,27 @@ public final class FSTInputStream extends InputStream {
             in.close();
     }
 
-    public void ensureReadAhead(int bytes) {
-        if ( byteBacked )
+    public void ensureReadAhead(int bytes) throws IOException {
+        if (byteBacked) {
+            if (pos + bytes > buf.length) {
+                throw new IOException(String.format(
+                        "Buffer only has %d of %d bytes remaining", buf.length - pos, bytes));
+            }
             return;
+        }
+        int targetCount = pos + bytes;
+        while (!fullyRead && count < targetCount) {
+            readNextChunk(in);
+        }
+        if (count < targetCount) {
+            throw new IOException(String.format("Only read %d of %d bytes", count, targetCount));
+        }
+    }
+
+    public void attemptReadAhead(int bytes) {
+        if (byteBacked) {
+            return;
+        }
         int targetCount = pos + bytes;
         while (!fullyRead && count < targetCount) {
             readNextChunk(in);

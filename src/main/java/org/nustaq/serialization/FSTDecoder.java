@@ -26,7 +26,7 @@ public interface FSTDecoder {
     void setConf( FSTConfiguration conf );
     String readStringUTF() throws IOException;
     String readStringAsc() throws IOException;
-    Object readFPrimitiveArray(Object array, Class componentType, int len);
+    Object readFPrimitiveArray(Object array, Class componentType, int len) throws IOException;
     void readFIntArr(int len, int[] arr) throws IOException;
     int readFInt() throws IOException;
     double readFDouble() throws IOException;
@@ -42,7 +42,16 @@ public interface FSTDecoder {
     int getInputPos();
     void moveTo(int position);
     void setInputStream(InputStream in);
-    int ensureReadAhead(int bytes); // might signal eof by returning -1, depends on decoder impl though
+    int ensureReadAhead(int bytes) throws IOException; // might signal eof by returning -1, depends on decoder impl though
+
+    /**
+     * Similar to {@link #ensureReadAhead(int)}, except this provides no guarantees that any
+     * data is actually read. This method serves to prebuffer data if possible for performance,
+     * but should not be necessary for correctness.
+     *
+     * @param bytes maximum number of bytes to read ahead, if possible
+     */
+    void attemptReadAhead(int bytes);
 
     void reset();
     void resetToCopyOf(byte[] bytes, int off, int len);
@@ -56,7 +65,7 @@ public interface FSTDecoder {
     void close();
 
     void skip(int n);
-    void readPlainBytes(byte[] b, int off, int len);
+    void readPlainBytes(byte[] b, int off, int len) throws IOException;
 
     byte readObjectHeaderTag() throws IOException;
     int getObjectHeaderLen(); // len field of last header read (if avaiable)
