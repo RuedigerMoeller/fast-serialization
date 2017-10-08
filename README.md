@@ -31,7 +31,7 @@ fast-serialization
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>2.52</version>
+    <version>2.54</version>
 </dependency>
 ```
 **jdk1.6** compatible build of fst 2.x 
