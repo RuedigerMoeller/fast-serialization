@@ -48,6 +48,7 @@ public class FSTInt2ObjectMap<V> {
     }
 
     final private static <V> void putHash(int key, V value, int hash, FSTInt2ObjectMap<V> current, FSTInt2ObjectMap<V> parent) {
+        int count = 0;
         while(true){
             if (current.mNumberOfElements * GROWFAC > current.mKeys.length) {
                 if (parent != null) {
@@ -77,26 +78,25 @@ public class FSTInt2ObjectMap<V> {
                 return;
             } else {
                 if (current.next == null) {
-                    int newSiz = current.mNumberOfElements / 3;
-                    current.next = new FSTInt2ObjectMap<V>(newSiz);
+                    // try break edge cases leading to long chains of maps
+                    if ( count > 4 && current.mNumberOfElements < 5 ) {
+                        int newSiz = current.mNumberOfElements*2+1;
+                        current.next = new FSTInt2ObjectMap<V>(newSiz);
+                        count = 0;
+                    } else {
+                        int newSiz = current.mNumberOfElements / 3;
+                        current.next = new FSTInt2ObjectMap<V>(newSiz);
+                    }
                 }
                 parent = current;
                 current = current.next;
-
+                count ++;
             }
         }
     }
 
     final void putHash(int key, V value, int hash, FSTInt2ObjectMap<V> parent) {
         putHash(key, value, hash,this, parent);
-    }
-
-    final void putNext(int hash, int key, V value) {
-        if (next == null) {
-            int newSiz = mNumberOfElements / 3;
-            next = new FSTInt2ObjectMap<V>(newSiz);
-        }
-        next.putHash(key, value, hash, this);
     }
 
     final public V get(int key) {

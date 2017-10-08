@@ -21,6 +21,7 @@ package org.nustaq.serialization.util;
  * Date: 20.11.12
  * Time: 21:02
  * <p>
+ *     
  * unused currently. pretty old.
  */
 public class FSTInt2IntMap {

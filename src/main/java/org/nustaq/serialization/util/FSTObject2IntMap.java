@@ -72,34 +72,56 @@ public class FSTObject2IntMap<K> {
         putHash(key, value, hash, this);
     }
 
-    final void putHash(K key, int value, int hash, FSTObject2IntMap<K> parent) {
-        if (mNumberOfElements * GROFAC > mKeys.length) {
-            if (parent != null) {
-                if ((parent.mNumberOfElements + mNumberOfElements) * GROFAC > parent.mKeys.length) {
-                    parent.resize(parent.mKeys.length * GROFAC);
-                    parent.put(key, value);
-                    return;
+    final private static <K> void putHash(K key, int value, int hash, FSTObject2IntMap<K> current, FSTObject2IntMap<K> parent,boolean checkClazzOnEquals) {
+        int count = 0;
+        while(true){
+            if (current.mNumberOfElements * GROFAC > current.mKeys.length) {
+                if (parent != null) {
+                    if ((parent.mNumberOfElements + current.mNumberOfElements) * GROFAC > parent.mKeys.length) {
+                        parent.resize(parent.mKeys.length * GROFAC);
+                        parent.put(key, value);
+                        return;
+                    } else {
+                        current.resize(current.mKeys.length * GROFAC);
+                    }
                 } else {
-                    resize(mKeys.length * GROFAC);
+                    current.resize(current.mKeys.length * GROFAC);
                 }
+            }
+
+            int idx = hash % current.mKeys.length;
+
+            if (current.mKeys[idx] == null) // new
+            {
+                current.mNumberOfElements++;
+                current.mValues[idx] = value;
+                current.mKeys[idx] = key;
+                return;
+            } else if (current.mKeys[idx] == key && (!checkClazzOnEquals || current.mKeys[idx].getClass() == key.getClass()))  // overwrite
+            {
+                current.mValues[idx] = value;
+                return;
             } else {
-                resize(mKeys.length * GROFAC);
+                if (current.next == null) {
+                    // try break edge cases leading to long chains of maps
+                    if ( count > 4 && current.mNumberOfElements < 5 ) {
+                        int newSiz = current.mNumberOfElements*2+1;
+                        current.next = new FSTObject2IntMap<K>(newSiz,checkClazzOnEquals);
+                        count = 0;
+                    } else {
+                        int newSiz = current.mNumberOfElements / 3;
+                        current.next = new FSTObject2IntMap<K>(newSiz,checkClazzOnEquals);
+                    }
+                }
+                parent = current;
+                current = current.next;
+                count++;
             }
         }
+    }
 
-        int idx = hash % mKeys.length;
-
-        if (mKeys[idx] == null) // new
-        {
-            mNumberOfElements++;
-            mValues[idx] = value;
-            mKeys[idx] = key;
-        } else if (mKeys[idx].equals(key) && (!checkClazzOnEquals || mKeys[idx].getClass() == key.getClass()))    // overwrite
-        {
-            mValues[idx] = value;
-        } else {
-            putNext(hash, key, value);
-        }
+    final void putHash(K key, int value, int hash, FSTObject2IntMap<K> parent) {
+        putHash(key, value, hash,this, parent,checkClazzOnEquals);
     }
 
     final K removeHash(K key, int hash) {

@@ -14,8 +14,10 @@ import java.util.HashMap;
  */
 public class TestObjectServer {
 
+    public static final int PORT = 7777;
+
     public void server() throws IOException {
-        TCPObjectServer server = new TCPObjectServer(5555);
+        TCPObjectServer server = new TCPObjectServer(PORT);
         server.start( new TCPObjectServer.NewClientListener() {
             // for each client an own thread is created by default.
             // so no need to create a new Thread for the client here
@@ -41,7 +43,7 @@ public class TestObjectServer {
 
     volatile boolean ok = false;
     public void client() throws Exception {
-        TCPObjectSocket socket = new TCPObjectSocket("localhost", 5555);
+        TCPObjectSocket socket = new TCPObjectSocket("localhost", PORT);
 
         // send request
         HashMap toWrite = new HashMap();
@@ -62,6 +64,7 @@ public class TestObjectServer {
     @Test
     public void test() throws Exception {
         server();
+        Thread.sleep(1000);
         client();
         Thread.sleep(2000);
         Assert.assertTrue(ok);
