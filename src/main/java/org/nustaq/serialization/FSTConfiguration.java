@@ -26,7 +26,9 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.coders.*;
+import org.nustaq.serialization.util.DefaultFSTInt2ObjectMapFactory;
 import org.nustaq.serialization.util.FSTInputStream;
+import org.nustaq.serialization.util.FSTInt2ObjectMapFactory;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
 import org.objenesis.Objenesis;
@@ -94,6 +96,7 @@ public class FSTConfiguration {
     ConfType type = ConfType.DEFAULT;
     FSTClazzInfoRegistry serializationInfoRegistry = new FSTClazzInfoRegistry();
     HashMap<Class,List<SoftReference>> cachedObjects = new HashMap<Class, List<SoftReference>>(97);
+    FSTInt2ObjectMapFactory intToObjectMapFactory = new DefaultFSTInt2ObjectMapFactory();
     FSTClazzNameRegistry classRegistry = new FSTClazzNameRegistry(null);
     boolean preferSpeed = false; // hint to prefer speed over size in case, currently ignored.
     boolean shareReferences = true;
@@ -113,6 +116,10 @@ public class FSTConfiguration {
     public FSTConfiguration setVerifier(ClassSecurityVerifier verifier) {
         this.verifier = verifier;
         return this;
+    }
+
+    public FSTInt2ObjectMapFactory getIntToObjectMapFactory() {
+        return intToObjectMapFactory;
     }
 
     // cache fieldinfo. This can be shared with derived FSTConfigurations in order to reduce footprint
@@ -458,6 +465,7 @@ public class FSTConfiguration {
     }
 
     protected static FSTConfiguration initDefaultFstConfigurationInternal(FSTConfiguration conf) {
+        conf.registerIntToObjectMapFactory(new DefaultFSTInt2ObjectMapFactory());
         conf.addDefaultClazzes();
         // serializers
         FSTSerializerRegistry reg = conf.getCLInfoRegistry().getSerializerRegistry();
@@ -468,7 +476,6 @@ public class FSTConfiguration {
         reg.putSerializer(Short.class, new FSTBigNumberSerializers.FSTShortSerializer(), false);
         reg.putSerializer(Float.class, new FSTBigNumberSerializers.FSTFloatSerializer(), false);
         reg.putSerializer(Double.class, new FSTBigNumberSerializers.FSTDoubleSerializer(), false);
-
         reg.putSerializer(Date.class, new FSTDateSerializer(), false);
         reg.putSerializer(StringBuffer.class, new FSTStringBufferSerializer(), true);
         reg.putSerializer(StringBuilder.class, new FSTStringBuilderSerializer(), true);
@@ -490,6 +497,12 @@ public class FSTConfiguration {
         reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
 
         return conf;
+    }
+
+    public void registerIntToObjectMapFactory(FSTInt2ObjectMapFactory intToObjectMapFactory){
+        if (intToObjectMapFactory != null) {
+            this.intToObjectMapFactory = intToObjectMapFactory;
+        }
     }
 
     /**

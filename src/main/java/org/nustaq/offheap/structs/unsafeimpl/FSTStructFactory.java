@@ -24,6 +24,7 @@ import org.nustaq.offheap.structs.structtypes.StructByteString;
 import org.nustaq.offheap.structs.structtypes.StructString;
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.util.DefaultFSTInt2ObjectMap;
 import org.nustaq.serialization.util.FSTInt2ObjectMap;
 import org.nustaq.serialization.util.FSTUtil;
 import javassist.*;
@@ -596,7 +597,7 @@ public class FSTStructFactory {
         return align(elemSiz,SIZE_ALIGN);
     }
 
-    FSTInt2ObjectMap<Class> mIntToClz = new FSTInt2ObjectMap<Class>(97); // id to onheap class
+    FSTInt2ObjectMap<Class> mIntToClz = conf.getIntToObjectMapFactory().createMap(97); // id to onheap class
     HashMap<Class,Integer> mClzToInt = new HashMap<Class,Integer>(); // reverse
 
     int idCount = 1;
