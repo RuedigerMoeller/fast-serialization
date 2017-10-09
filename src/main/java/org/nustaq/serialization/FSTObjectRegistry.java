@@ -33,24 +33,21 @@ public final class FSTObjectRegistry {
 
     boolean disabled = false;
     FSTIdentity2IdMap objects = new FSTIdentity2IdMap(11); // object => id
-    FSTInt2ObjectMap idToObject = new FSTInt2ObjectMap(11);
+    FSTInt2ObjectMap idToObject;
 
     Object reuseMap[] = new Object[POS_MAP_SIZE];
     private int highestPos = -1;
 
     public FSTObjectRegistry(FSTConfiguration conf) {
+
         disabled = !conf.isShareReferences();
+        idToObject = conf.intToObjectMapFactory.createMap(11);
     }
 
     public void clearForRead(FSTConfiguration conf) {
         disabled = !conf.isShareReferences();
         if ( !disabled ) {
-            if ( idToObject.mKeys.length > 6 * idToObject.size() && idToObject.size() > 0 ) {
-                // avoid cleaning huge mem areas after having written a large object
-                idToObject = new FSTInt2ObjectMap(idToObject.size());
-            } else {
-                idToObject.clear();
-            }
+            idToObject.clear();
             if ( highestPos > -1 )
                 FSTUtil.clear( reuseMap, highestPos + 1 );
         }
