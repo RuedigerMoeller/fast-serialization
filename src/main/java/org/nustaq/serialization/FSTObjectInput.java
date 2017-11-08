@@ -544,7 +544,7 @@ public class FSTObjectInput implements ObjectInput {
         if ( clzSerInfo.isExternalizable() )
         {
             int tmp = readPos;
-            getCodec().ensureReadAhead(readExternalReadAHead);
+            getCodec().attemptReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
             getCodec().readExternalEnd();
             if ( clzSerInfo.getReadResolveMethod() != null ) {

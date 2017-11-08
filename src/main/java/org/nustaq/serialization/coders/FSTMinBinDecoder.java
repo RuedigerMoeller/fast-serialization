@@ -216,6 +216,10 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
+    public void attemptReadAhead(int bytes) {
+    }
+
+    @Override
     public void reset() {
         input.reset();
     }
