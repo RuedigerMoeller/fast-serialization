@@ -655,6 +655,9 @@ public class FSTJsonDecoder implements FSTDecoder {
             return classForName(conf.getClassForCPName(type));
         }
         Class ldc = this.lastDirectClass;
+        if ( ldc == Unknown.class ) {
+            ldc = Object[].class;
+        }
         this.lastDirectClass = null; // marker, only valid once
         return ldc;
     }

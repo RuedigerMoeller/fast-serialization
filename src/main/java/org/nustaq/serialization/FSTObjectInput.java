@@ -898,11 +898,11 @@ public class FSTObjectInput implements ObjectInput {
             return null;
         }
         Class arrType = arrCl.getComponentType();
-        if (!arrCl.getComponentType().isArray()) {
+        if (!arrType.isArray()) {
             Object array = Array.newInstance(arrType, len);
             if ( ! referencee.isFlat() )
                 objects.registerObjectForRead(array, pos );
-            if (arrCl.getComponentType().isPrimitive()) {
+            if (arrType.isPrimitive()) {
                 return getCodec().readFPrimitiveArray(array, arrType, len);
             } else { // Object Array
                 Object arr[] = (Object[]) array;

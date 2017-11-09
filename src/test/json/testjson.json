@@ -1,0 +1,18 @@
+{
+  "styp": "Schnmock[]",
+  "seq": [
+    1,
+    {
+      "typ": "JSCompetitionChannel",
+      "obj": {
+        "stickyPost": {
+          "typ": "ArticleTeaser",
+          "obj": {
+            "discussionIds": "pok"
+          }
+        },
+        "name": "HoCaX_Ideen_Forum",
+      }
+    }
+  ]
+}
