@@ -686,6 +686,8 @@ public class FSTJsonDecoder implements FSTDecoder {
     private void consumeEnd() {
         try {
             JsonToken jsonToken = input.nextToken();
+            if ( jsonToken == null )
+                return;
             if ( ! jsonToken.isStructEnd() ) {
                 throw new RuntimeException("end of structure expected found:"+jsonToken+" : value:"+input.getValueAsString()+" fname:'"+input.getCurrentName()+"'");
             }

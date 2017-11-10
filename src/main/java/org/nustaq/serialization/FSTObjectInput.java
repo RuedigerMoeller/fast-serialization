@@ -650,8 +650,9 @@ public class FSTObjectInput implements ObjectInput {
         
         if ( getCodec().isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
-            if ( version >= 0 && newObj instanceof Unknown == false)
+            if ( version >= 0 /*&& newObj instanceof Unknown == false*/ ) {
                 getCodec().readObjectEnd();
+            }
             return;
         }
         if ( version < 0 )

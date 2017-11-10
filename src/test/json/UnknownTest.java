@@ -1,13 +1,23 @@
-package ser;
+package json;
 
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.coders.Unknown;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 
 public class UnknownTest {
 
+    @Test
+    public void testU() throws IOException {
+        FSTConfiguration jsonConfiguration = FSTConfiguration.createJsonConfiguration(false, false);
+//        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest.json").toPath());
+        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest.json").toPath());
+        jsonConfiguration.asObject(bytes);
+    }
 
     @Test
     public void testUnknown() throws UnsupportedEncodingException {
