@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.nustaq.offheap.bytez.malloc;
 
-import sun.misc.Cleaner;
-import sun.nio.ch.FileChannelImpl;
+
+//import sun.misc.Cleaner;
+//import sun.nio.ch.FileChannelImpl;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -24,6 +26,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.channels.FileChannel;
 
+// dummy to get things started
+class Cleaner {
+
+    public static Cleaner create(MMFBytez mmfBytez, Object unmapper) {
+        return null;
+    }
+
+    public void clean() {
+
+    }
+}
+
+class FileChannelImpl {
+
+}
 /**
  * Bytez allocated inside a memory mapped file. Some Mmap file stuff handling is copied from OpenHFT library (too big to depend on for fst),
  * a great tool for all kind of binary/low level java stuff. Check it out at github.
