@@ -14,8 +14,7 @@ import org.nustaq.serialization.FSTObjectOutput;
 
 public class OverflowTest {
 
-    @Test
-    @Ignore
+    @Test @Ignore
     public void test() throws Throwable {
         FSTConfiguration fc = FSTConfiguration.createDefaultConfiguration();
 

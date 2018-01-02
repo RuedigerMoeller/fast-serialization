@@ -9,9 +9,8 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
-    <artifactId>fst</artifactId>
-    <version>2.56</version>
-    <packaging>bundle</packaging>
+    <artifactId>fstj9-core</artifactId>
+    <version>3.00-BETA</version>
 
     <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
     <url>http://ruedigermoeller.github.io/fast-serialization/</url>
@@ -41,44 +40,23 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.7.0</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.9</source>
+                    <target>1.9</target>
                     <!--<encoding>UTF-8</encoding>-->
                     <debug>true</debug>
-                    <debuglevel>lines,vars,source</debuglevel> <!-- required to make structs work -->
-                    <optimize>false</optimize>
                     <verbose>true</verbose>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.0-M1</version>
                 <configuration>
                     <additionalparam>-Xdoclint:none</additionalparam>
+                    <javadocExecutable>/home/ruedi/jdk-9.0.1/bin/javadoc</javadocExecutable>
                 </configuration>
                 <executions>
                     <execution>
@@ -93,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -103,55 +82,12 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>3.0.1</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <Import-Package>*</Import-Package>
-                        <Export-Package>org.nustaq.*;-noimport:=true</Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 
     <dependencies>
 
-        <!-- required for createJSONConfiguration -->
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <version>2.8.8</version>
-        </dependency>
-
-        <!-- only required if structs are used -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.21.0-GA</version>
-        </dependency>
-
-        <!-- only required for android -->
-        <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-
         <!-- test dependencies -->
-                <!--<dependency>-->
-                    <!--<groupId>org.hamcrest</groupId>-->
-                    <!--<artifactId>hamcrest-junit</artifactId>-->
-                    <!--<version>2.0.0.0</version>-->
-                    <!--<scope>test</scope>-->
-                <!--</dependency>-->
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -163,7 +99,7 @@
         <dependency>
             <groupId>com.cedarsoftware</groupId>
             <artifactId>java-util</artifactId>
-            <version>1.4.0</version>
+            <version>1.34.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -199,13 +135,6 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>1.0.4</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.cedarsoftware</groupId>
-            <artifactId>java-util</artifactId>
-            <version>1.9.0</version>
             <scope>test</scope>
         </dependency>
 

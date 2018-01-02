@@ -39,21 +39,4 @@ public class FSTEnumSetSerializerTest {
         Assert.assertEquals(o.enumSet, EnumSet.of(SomeEnum.override, SomeEnum.plain));
     }
 
-    @Test
-    public void shouldCompatibleSerializeEnumSet() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
-        byte[] bytes = conf.asByteArray(new Clazz());
-        Clazz o = (Clazz) conf.asObject(bytes);
-        Assert.assertEquals(o.enumSet, EnumSet.of(SomeEnum.override, SomeEnum.plain));
-    }
-
-    @Test
-    public void shouldCompatibleSerializeEmptyEnumSet() throws Exception {
-        FSTConfiguration conf = FSTConfiguration.createMinBinConfiguration();
-        Clazz object = new Clazz();
-        object.enumSet = EnumSet.noneOf(SomeEnum.class);
-        byte[] bytes = conf.asByteArray(object);
-        Clazz o = (Clazz) conf.asObject(bytes);
-        Assert.assertEquals(o.enumSet, EnumSet.noneOf(SomeEnum.class));
-    }
 }

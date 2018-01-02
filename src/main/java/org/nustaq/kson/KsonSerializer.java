@@ -18,6 +18,7 @@ package org.nustaq.kson;
 
 import org.nustaq.serialization.FSTClazzInfo;
 import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.util.FSTUtil;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -165,7 +166,7 @@ public class KsonSerializer {
                 FSTClazzInfo.FSTFieldInfo fstFieldInfo = fieldInfo[i];
                 Class expectedKey = Kson.fumbleOutGenericKeyType(fstFieldInfo.getField());
                 Class expectedValue = Kson.fumbleOutGenericValueType(fstFieldInfo.getField());
-                Object fieldValue = fstFieldInfo.getField().get(o);
+                Object fieldValue = FSTUtil.getField(o,fstFieldInfo.getField());
                 //              fieldValue = mapper.coerceWriting(fieldValue);
                 if (!isNullValue(fstFieldInfo, fieldValue) || writeNull) {
                     writeIndent(indent + 1);
@@ -251,17 +252,21 @@ public class KsonSerializer {
     static Character zeroC = Character.valueOf((char) 0);
 
     private boolean isNullValue(FSTClazzInfo.FSTFieldInfo fstFieldInfo, Object fieldValue) {
-        if (fieldValue==null)
-            return true;
-        if (writeNull)
-            return false;
-        if (fstFieldInfo != null ) {
-            if (fstFieldInfo.getType().isPrimitive()) {
-                if (fieldValue instanceof Number) {
-                    return ((Number) fieldValue).doubleValue() == 0.0;
+        try {
+            if (fieldValue == null)
+                return true;
+            if (writeNull)
+                return false;
+            if (fstFieldInfo != null) {
+                if (fstFieldInfo.getType().isPrimitive()) {
+                    if (fieldValue instanceof Number) {
+                        return ((Number) fieldValue).doubleValue() == 0.0;
+                    }
+                    return fieldValue.equals(zeroC) || fieldValue.equals(Boolean.FALSE);
                 }
-                return fieldValue.equals(zeroC) || fieldValue.equals(Boolean.FALSE);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }

@@ -47,7 +47,7 @@ public class TestWriteReplaceInList {
 	}
 
 	protected FSTConfiguration getTestConfiguration() {
-		FSTConfiguration.isAndroid = false;
+//		FSTConfiguration.isAndroid = false;
 		return FSTConfiguration.createDefaultConfiguration();
 	}
 

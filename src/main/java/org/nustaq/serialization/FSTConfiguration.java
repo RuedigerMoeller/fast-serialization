@@ -15,24 +15,13 @@
  */
 package org.nustaq.serialization;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
-import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.offheap.structs.FSTStruct;
-import org.nustaq.serialization.coders.*;
+import org.nustaq.serialization.coders.FSTStreamDecoder;
+import org.nustaq.serialization.coders.FSTStreamEncoder;
 import org.nustaq.serialization.util.DefaultFSTInt2ObjectMapFactory;
 import org.nustaq.serialization.util.FSTInputStream;
 import org.nustaq.serialization.util.FSTInt2ObjectMapFactory;
 import org.nustaq.serialization.util.FSTUtil;
 import org.nustaq.serialization.serializers.*;
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
 
 import java.io.*;
 import java.lang.ref.SoftReference;
@@ -60,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FSTConfiguration {
 
     static enum ConfType {
-        DEFAULT, UNSAFE, MINBIN, JSON, JSONPRETTY
+        DEFAULT, UNSAFE, JSON, JSONPRETTY
     }
 
     /**
@@ -172,17 +161,7 @@ public class FSTConfiguration {
     /////////////////////////////////////
     // cross platform stuff only
 
-    int cpAttrIdCount = 0;
-    // contains symbol => full qualified name
-    private HashMap<String, String> minbinNames = new HashMap<>();
-    // may contain symbol => cached binary output
-    private HashMap<String, byte[]> minBinNamesBytez = new HashMap<>();
-    // contains full qualified name => symbol
-    private HashMap<String, String> minbinNamesReverse = new HashMap<>();
     private boolean crossPlatform = false; // if true do not support writeObject/readObject etc.
-
-    // non-final for testing
-    public static boolean isAndroid = System.getProperty("java.runtime.name", "no").toLowerCase().contains("android");
 
     // end cross platform stuff only
     /////////////////////////////////////
@@ -200,217 +179,6 @@ public class FSTConfiguration {
         }
     }
 
-    /**
-     * Warning: MinBin contains full metainformation (fieldnames,..), so its way slower than the other configs.
-     * It should be used in case of cross language (e.g. java - javascript) serialization only.
-     * Additionally you can read MinBin serialized streams without access to original classes.
-     *
-     * See MBPrinter on an example on how to read a MinBin stream without having access to
-     * original classes. Useful for cross language serialization/long term archiving.
-     *
-     * Warning: MinBin serialization ('binary JSon') is much slower than the other
-     * serialization configurations.
-     *
-     * @return a configuration to encode MinBin format.
-     */
-    public static FSTConfiguration createMinBinConfiguration() {
-        return createMinBinConfiguration(null);
-    }
-
-    protected static FSTConfiguration createMinBinConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        final FSTConfiguration res = createDefaultConfiguration(shared);
-        res.setCrossPlatform(true);
-        res.type = ConfType.MINBIN;
-        res.setStreamCoderFactory(new MinBinStreamCoderFactory(res));
-
-        // override some serializers
-        FSTSerializerRegistry reg = res.serializationInfoRegistry.getSerializerRegistry();
-        reg.putSerializer(EnumSet.class, new FSTCPEnumSetSerializer(), true);
-        reg.putSerializer(Throwable.class, new FSTCPThrowableSerializer(), true);
-
-        // for crossplatform fallback does not work => register default serializers for collections and subclasses
-        reg.putSerializer(AbstractCollection.class, new FSTCollectionSerializer(), true); // subclass should register manually
-        reg.putSerializer(AbstractMap.class, new FSTMapSerializer(), true); // subclass should register manually
-
-        res.registerCrossPlatformClassMapping(new String[][]{
-                {"map", HashMap.class.getName()},
-                {"list", ArrayList.class.getName()},
-                {"set", HashSet.class.getName()},
-                {"long", Long.class.getName()},
-                {"integer", Integer.class.getName()},
-                {"short", Short.class.getName()},
-                {"byte", Byte.class.getName()},
-                {"char", Character.class.getName()},
-                {"float", Float.class.getName()},
-                {"double", Double.class.getName()},
-                {"date", Date.class.getName()},
-                {"enumSet", "java.util.RegularEnumSet"},
-                {"array", "[Ljava.lang.Object;"},
-                {"String[]", "[Ljava.lang.String;"},
-                {"Double[]", "[Ljava.lang.Double;"},
-                {"Float[]", "[Ljava.lang.Float;"},
-                {"double[]", "[D"},
-                {"float[]", "[F"}
-        });
-        res.registerSerializer( BigDecimal.class, new FSTJSonSerializers.BigDecSerializer(), true );
-        return res;
-    }
-
-    /**
-     * @return a configuration encoding to JSon without support for reference sharing (=> NO cyclic object graphs)
-     */
-    public static FSTConfiguration createJsonNoRefConfiguration() {
-        return createJsonConfiguration(false, false);
-    }
-
-
-    /**
-     * create a json conf with given attributes. Note that shared refs = true for jason might be not as stable as for binary encodings
-     * as fst relies on stream positions to identify objects within a given input, so any inbetween formatting will break proper reference
-     * resolution.
-     *
-     * WARNING: use of sharedrefs = true is Deprecated as its flakey
-     *
-     * @param prettyPrint
-     * @param shareReferences
-     * @return
-     */
-    public static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences ) {
-        if ( shareReferences && prettyPrint ) {
-            throw new RuntimeException("unsupported flag combination");
-        }
-        return createJsonConfiguration(prettyPrint,shareReferences,null);
-    }
-
-    public static FSTConfiguration createJsonConfiguration() {
-        return createJsonConfiguration(false,false);
-    }
-
-    protected static FSTConfiguration createJsonConfiguration(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared ) {
-        if ( prettyPrint && shareReferences ) {
-            throw new RuntimeException("cannot use prettyPrint with shared refs to 'true'. Set shareRefs to false.");
-        }
-        return constructJsonConf(prettyPrint, shareReferences, shared);
-    }
-
-    public static class JacksonAccessWorkaround extends UTF8JsonGenerator {
-        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out) {
-            super(ctxt, features, codec, out);
-        }
-
-        public JacksonAccessWorkaround(IOContext ctxt, int features, ObjectCodec codec, OutputStream out, byte[] outputBuffer, int outputOffset, boolean bufferRecyclable) {
-            super(ctxt, features, codec, out, outputBuffer, outputOffset, bufferRecyclable);
-        }
-
-        public int getOutputTail() {
-            return _outputTail;
-        }
-    }
-
-    private static FSTConfiguration constructJsonConf(boolean prettyPrint, boolean shareReferences, ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        final FSTConfiguration conf = createMinBinConfiguration(shared);
-
-        FSTSerializerRegistry reg = conf.serializationInfoRegistry.getSerializerRegistry();
-        reg.putSerializer(FSTJSonUnmodifiableCollectionSerializer.UNMODIFIABLE_COLLECTION_CLASS, new FSTJSonUnmodifiableCollectionSerializer(), true);
-        reg.putSerializer(FSTJSonUnmodifiableMapSerializer.UNMODIFIABLE_MAP_CLASS, new FSTJSonUnmodifiableMapSerializer(), false);
-
-        conf.type = prettyPrint ? ConfType.JSONPRETTY : ConfType.JSON;
-        JsonFactory fac;
-        if ( prettyPrint ) {
-            fac = new JsonFactory() {
-                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
-                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
-                            _generatorFeatures, _objectCodec, out);
-                    if (_characterEscapes != null) {
-                        gen.setCharacterEscapes(_characterEscapes);
-                    }
-                    SerializableString rootSep = _rootValueSeparator;
-                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
-                        gen.setRootValueSeparator(rootSep);
-                    }
-                    return gen;
-                }
-                @Override
-                public JsonGenerator createGenerator(OutputStream out) throws IOException {
-                    return super.createGenerator(out).setPrettyPrinter(new DefaultPrettyPrinter());
-                }
-            }
-            .disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
-            .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        } else {
-            fac = new JsonFactory() {
-                protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
-                    UTF8JsonGenerator gen = new JacksonAccessWorkaround(ctxt,
-                            _generatorFeatures, _objectCodec, out);
-                    if (_characterEscapes != null) {
-                        gen.setCharacterEscapes(_characterEscapes);
-                    }
-                    SerializableString rootSep = _rootValueSeparator;
-                    if (rootSep != DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR) {
-                        gen.setRootValueSeparator(rootSep);
-                    }
-                    return gen;
-                }
-            };
-            fac.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)
-               .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        }
-        conf.setCoderSpecific(fac);
-        conf.setStreamCoderFactory(new JSonStreamCoderFactory(conf));
-        conf.setShareReferences(shareReferences);
-        conf.setLastResortResolver(new LastResortClassResolver() {
-            @Override
-            public Class getClass(String clName) {
-                return Unknown.class;
-            }
-        });
-        return conf;
-    }
-
-    /**
-     * debug only, very slow (creates config with each call). Creates new conf so custom serializers are ignored.
-     *
-     * @param o
-     */
-    public static void prettyPrintJson(Object o) {
-        FSTConfiguration conf = constructJsonConf(true, true, null);
-        System.out.println(conf.asJsonString(o));
-    }
-    /**
-     *
-     * Configuration for use on Android. Its binary compatible with getDefaultConfiguration().
-     * So one can write on server with getDefaultConf and read on mobile client with getAndroidConf().
-     *
-     * @return
-     */
-     public static FSTConfiguration createAndroidDefaultConfiguration() {
-        return createAndroidDefaultConfiguration(null);
-     }
-
-     protected static FSTConfiguration createAndroidDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
-        final Objenesis genesis = new ObjenesisStd();
-        FSTConfiguration conf = new FSTConfiguration(shared) {
-            @Override
-            public FSTClassInstantiator getInstantiator(Class clazz) {
-                return new FSTObjenesisInstantiator(genesis,clazz);
-            }
-        };
-        initDefaultFstConfigurationInternal(conf);
-        if ( isAndroid ) {
-            try {
-                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedTreeMap"), new FSTMapSerializer(), true);
-            } catch (ClassNotFoundException e) {
-                //silent
-            }
-            try {
-                conf.registerSerializer(Class.forName("com.google.gson.internal.LinkedHashTreeMap"), new FSTMapSerializer(), true);
-            } catch (ClassNotFoundException e) {
-                //silent
-            }
-        }
-        return conf;
-    }
-
     public static FSTConfiguration createConfiguration(ConfType ct, boolean shareRefs) {
         return createConfiguration(ct,shareRefs);
     }
@@ -421,19 +189,11 @@ public class FSTConfiguration {
             case DEFAULT:
                 res = createDefaultConfiguration(shared);
                 break;
-            case MINBIN:
-                res = createMinBinConfiguration(shared);
-                break;
             case UNSAFE:
-                res = createUnsafeBinaryConfiguration(shared);
-                break;
             case JSON:
-                res = createJsonConfiguration( false, shareRefs, shared);
-                break;
             case JSONPRETTY:
-                res = createJsonConfiguration( true, shareRefs, shared);
-                break;
             default:
+                // TODO make dynamic lookup
                 throw new RuntimeException("unsupported conftype for factory method");
         }
         res.setShareReferences(shareRefs);
@@ -457,9 +217,6 @@ public class FSTConfiguration {
     }
 
     protected static FSTConfiguration createDefaultConfiguration(ConcurrentHashMap<FieldKey,FSTClazzInfo.FSTFieldInfo> shared) {
-        if (isAndroid) {
-            return createAndroidDefaultConfiguration(shared);
-        }
         FSTConfiguration conf = new FSTConfiguration(shared);
         return initDefaultFstConfigurationInternal(conf);
     }
@@ -491,7 +248,7 @@ public class FSTConfiguration {
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
-        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
+//        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
 
         // serializers for classes failing in fst JDK emulation (e.g. Android<=>JDK)
         reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
@@ -503,32 +260,6 @@ public class FSTConfiguration {
         if (intToObjectMapFactory != null) {
             this.intToObjectMapFactory = intToObjectMapFactory;
         }
-    }
-
-    /**
-     * Returns a configuration using Unsafe to read write data.
-     * - platform dependent byte order
-     * - no value compression attempts
-     * - makes heavy use of Unsafe, which can be dangerous in case
-     *   of version conflicts
-     *
-     * Use only in case it makes a significant difference and you absolutely need the performance gain.
-     * Performance gains depend on data. There are cases where this is even slower,
-     * in some scenarios (many native arrays) it can be several times faster.
-     * see also OffHeapCoder, OnHeapCoder.
-     *
-     */
-    public static FSTConfiguration createUnsafeBinaryConfiguration() {
-        return createUnsafeBinaryConfiguration(null);
-    }
-
-    protected static FSTConfiguration createUnsafeBinaryConfiguration(ConcurrentHashMap<FieldKey, FSTClazzInfo.FSTFieldInfo> shared) {
-        if ( isAndroid )
-            throw new RuntimeException("not supported under android platform, use default configuration");
-        final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration(shared);
-        conf.type = ConfType.UNSAFE;
-        conf.setStreamCoderFactory(new FBinaryStreamCoderFactory(conf));
-        return conf;
     }
 
     /**
@@ -1043,105 +774,6 @@ public class FSTConfiguration {
         return streamCoderFactory.createStreamDecoder();
     }
 
-    AtomicBoolean cplock = new AtomicBoolean(false);
-    public void registerCrossPlatformClassBinaryCache( String fulLQName, byte[] binary ) {
-        try {
-            while (cplock.compareAndSet(false, true)) { } // spin
-            minBinNamesBytez.put(fulLQName, binary);
-        } finally {
-            cplock.set(false);
-        }
-    }
-
-    public byte[] getCrossPlatformBinaryCache(String symbolicName) {
-        try {
-            while ( cplock.compareAndSet(false, true)) { } // spin
-            return minBinNamesBytez.get(symbolicName);
-        } finally {
-            cplock.set(false);
-        }
-    }
-
-    /**
-     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     * currently only for minbin serialization
-     *
-     * @param keysAndVals { { "symbolicName", "fullQualifiedClazzName" }, .. }
-     */
-    public FSTConfiguration registerCrossPlatformClassMapping( String[][] keysAndVals ) {
-        for (int i = 0; i < keysAndVals.length; i++) {
-            String[] keysAndVal = keysAndVals[i];
-            registerCrossPlatformClassMapping(keysAndVal[0], keysAndVal[1]);
-        }
-        return this;
-    }
-
-    public FSTConfiguration registerCrossPlatformClassMapping( String shortName,  String fqName ) {
-        minbinNames.put(shortName, fqName);
-        minbinNamesReverse.put(fqName, shortName);
-        return this;
-    }
-
-    /**
-     * shorthand for registerCrossPlatformClassMapping(_,_)
-     * @param shortName - class name in json type field
-     * @param clz - class
-     * @return
-     */
-    public FSTConfiguration cpMap(String shortName, Class clz) {
-        return registerCrossPlatformClassMapping(shortName,clz.getName());
-    }
-
-    /**
-     * init right after creation of configuration, not during operation as it is not threadsafe regarding mutation
-     */
-    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( Class ... classes ) {
-        registerCrossPlatformClassMappingUseSimpleName(Arrays.asList(classes));
-        return this;
-    }
-
-    public FSTConfiguration registerCrossPlatformClassMappingUseSimpleName( List<Class> classes ) {
-        for (int i = 0; i < classes.size(); i++) {
-            Class clz = classes.get(i);
-            minbinNames.put(clz.getSimpleName(), clz.getName());
-            minbinNamesReverse.put(clz.getName(), clz.getSimpleName());
-            try {
-                if (!clz.isArray() ) {
-                    Class ac = Class.forName("[L"+clz.getName()+";");
-                    minbinNames.put(clz.getSimpleName()+"[]", ac.getName());
-                    minbinNamesReverse.put(ac.getName(), clz.getSimpleName()+"[]");
-                }
-            } catch (ClassNotFoundException e) {
-                FSTUtil.<RuntimeException>rethrow(e);
-            }
-        }
-        return this;
-    }
-
-    /**
-     * get cross platform symbolic class identifier
-     * @param cl
-     * @return
-     */
-    public String getCPNameForClass( Class cl ) {
-        String res = minbinNamesReverse.get(cl.getName());
-        if (res == null) {
-            if (cl.isAnonymousClass()) {
-                return getCPNameForClass(cl.getSuperclass());
-            }
-            return cl.getName();
-        }
-        return res;
-    }
-
-    public String getClassForCPName( String name ) {
-        String res = minbinNames.get(name);
-        if (res == null) {
-            return name;
-        }
-        return res;
-    }
-
     /**
      * convenience
      */
@@ -1206,21 +838,6 @@ public class FSTConfiguration {
     }
 
     /**
-     * utility/debug method. Use "asByteArray" for programmatic use as the
-     * byte array will already by UTF-8 and ready to be sent on network.
-     *
-     * @param o
-     * @return
-     */
-    public String asJsonString(Object o) {
-        if ( getCoderSpecific() instanceof JsonFactory == false ) {
-            return "can be called on JsonConfiguration only";
-        } else {
-            return new String(asByteArray(o), StandardCharsets.UTF_8);
-        }
-    }
-
-    /**
      * helper to write series of objects to streams/files > Integer.MAX_VALUE.
      * it
      *  - serializes the object
@@ -1232,7 +849,6 @@ public class FSTConfiguration {
      *  - reads [length] bytes from the stream
      *  - deserializes
      *
-     * @see decodeFromStream
      *
      * @param out
      * @param toSerialize
@@ -1253,7 +869,6 @@ public class FSTConfiguration {
     }
 
     /**
-     * @see encodeToStream
      *
      * @param in
      * @return
@@ -1304,9 +919,6 @@ public class FSTConfiguration {
 //        derived.lastResortResolver = lastResortResolver;
 
         // avoid concurrent registering later on !
-        derived.minbinNames = minbinNames;
-        derived.minBinNamesBytez = minBinNamesBytez;
-        derived.minbinNamesReverse = minbinNamesReverse;
 
         // errors with websockets ..
 //        derived.classRegistry = classRegistry;
@@ -1318,37 +930,6 @@ public class FSTConfiguration {
         return "FSTConfiguration{" +
                    "name='" + name + '\'' +
                    '}';
-    }
-
-    protected static class MinBinStreamCoderFactory implements StreamCoderFactory {
-        private final FSTConfiguration conf;
-
-        public MinBinStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTMinBinEncoder(conf);
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTMinBinDecoder(conf);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
     }
 
     protected static class FSTDefaultStreamCoderFactory implements FSTConfiguration.StreamCoderFactory {
@@ -1381,66 +962,4 @@ public class FSTConfiguration {
 
     }
 
-    protected static class JSonStreamCoderFactory implements StreamCoderFactory {
-        protected final FSTConfiguration conf;
-
-        public JSonStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTJsonEncoder(conf);
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTJsonDecoder(conf);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
-    }
-
-    protected static class FBinaryStreamCoderFactory implements StreamCoderFactory {
-        protected final FSTConfiguration conf;
-
-        public FBinaryStreamCoderFactory(FSTConfiguration conf) {
-            this.conf = conf;
-        }
-
-        @Override
-        public FSTEncoder createStreamEncoder() {
-            return new FSTBytezEncoder(conf, new HeapBytez(new byte[4096]));
-        }
-
-        @Override
-        public FSTDecoder createStreamDecoder() {
-            return new FSTBytezDecoder(conf);
-        }
-
-        static ThreadLocal input = new ThreadLocal();
-        static ThreadLocal output = new ThreadLocal();
-
-        @Override
-        public ThreadLocal getInput() {
-            return input;
-        }
-
-        @Override
-        public ThreadLocal getOutput() {
-            return output;
-        }
-
-    }
 }

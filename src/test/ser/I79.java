@@ -2,7 +2,6 @@ package ser;
 
 import org.junit.*;
 import org.nustaq.serialization.*;
-import org.nustaq.serialization.simpleapi.*;
 
 import java.io.*;
 

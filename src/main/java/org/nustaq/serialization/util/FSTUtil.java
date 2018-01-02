@@ -105,6 +105,62 @@ public class FSTUtil {
         System.arraycopy(EmptyObjArray, 0, arr, count, arrlen - count);
     }
 
+    // forced into unsafe since java 9
+    public static void setField( Object target, Field f, Object value ) {
+        int memOffset = (int) unFlaggedUnsafe.objectFieldOffset(f);
+        if (memOffset >= 0) {
+            Class<?> type = f.getType();
+            if ( type.isPrimitive() ) {
+                if ( type == byte.class ) {
+                    FSTUtil.unFlaggedUnsafe.putByte(target, memOffset, ((Number)value).byteValue() );
+                } else if (type == char.class ) {
+                    FSTUtil.unFlaggedUnsafe.putChar(target, memOffset, (char) ((Number)value).intValue());
+                } else if (type == short.class ) {
+                    FSTUtil.unFlaggedUnsafe.putShort(target, memOffset, ((Number)value).shortValue() );
+                } else if (type == int.class ) {
+                    FSTUtil.unFlaggedUnsafe.putInt(target, memOffset, ((Number)value).intValue() );
+                } else if (type == long.class ) {
+                    FSTUtil.unFlaggedUnsafe.putLong(target, memOffset, ((Number)value).longValue() );
+                } else if (type == float.class ) {
+                    FSTUtil.unFlaggedUnsafe.putFloat(target, memOffset, ((Number)value).floatValue() );
+                } else if (type == double.class ) {
+                    FSTUtil.unFlaggedUnsafe.putDouble(target, memOffset, ((Number)value).doubleValue() );
+                } else
+                    throw new RuntimeException("unexpected type in setfield "+ type);
+            } else
+                FSTUtil.unFlaggedUnsafe.putObject(target, memOffset, value);
+            return;
+        }
+        throw new RuntimeException("could not access Unsafe (required since jigsaw) or field");
+    }
+
+    public static Object getField( Object target, Field f ) {
+        int memOffset = (int) unFlaggedUnsafe.objectFieldOffset(f);
+        if (memOffset >= 0) {
+            Class<?> type = f.getType();
+            if ( type.isPrimitive() ) {
+                if (type == byte.class) {
+                    return FSTUtil.unFlaggedUnsafe.getByte(target, memOffset);
+                } else if (type == char.class) {
+                    return FSTUtil.unFlaggedUnsafe.getChar(target, memOffset);
+                } else if (type == short.class) {
+                    return FSTUtil.unFlaggedUnsafe.getShort(target, memOffset);
+                } else if (type == int.class) {
+                    return FSTUtil.unFlaggedUnsafe.getInt(target, memOffset);
+                } else if (type == long.class) {
+                    return FSTUtil.unFlaggedUnsafe.getLong(target, memOffset);
+                } else if (type == float.class) {
+                    return FSTUtil.unFlaggedUnsafe.getFloat(target, memOffset);
+                } else if (type == double.class) {
+                    return FSTUtil.unFlaggedUnsafe.getDouble(target, memOffset);
+                } else
+                    throw new RuntimeException("unexpected type in setfield " + type);
+            } else
+                return FSTUtil.unFlaggedUnsafe.getObject(target, memOffset);
+        }
+        throw new RuntimeException("could not access Unsafe (required since jigsaw) or field");
+    }
+
     public static String toString(Throwable th) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -141,7 +197,7 @@ public class FSTUtil {
             Method m = clazz.getDeclaredMethod(methName, clazzArgs);
             int modif = m.getModifiers();
             if ((m.getReturnType() == retClazz) && ((modif & Modifier.PRIVATE) != 0) && ((modif & Modifier.STATIC) == 0)) {
-                m.setAccessible(true);
+//                m.setAccessible(true);
                 return m;
             }
             return null;

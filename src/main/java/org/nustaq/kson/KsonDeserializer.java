@@ -18,6 +18,7 @@ package org.nustaq.kson;
 
 
 import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.util.FSTUtil;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -227,7 +228,7 @@ public class KsonDeserializer {
                     if ( field.getType().isEnum() && val instanceof String) {
                         val = Enum.valueOf( (Class<Enum>)field.getType(), (String) val);
                     }
-                    field.set(res, val);
+                    FSTUtil.setField(res,field,val);
                 }
             }
             if (DEBUG_STACK) {

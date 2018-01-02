@@ -112,7 +112,6 @@ public class SpecialsTest {
         oout.close();
     }
 
-    @Test
     public void main() throws Exception {
         boolean succ = true;
         try {
