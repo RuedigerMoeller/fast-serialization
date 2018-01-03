@@ -3,9 +3,7 @@ package org.nustaq.serialization.coders;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.SerializedString;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
 import org.nustaq.serialization.*;
 import org.nustaq.serialization.util.FSTOutputStream;
 import org.nustaq.serialization.util.FSTUtil;
@@ -15,44 +13,28 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.Map;
 
-import static org.nustaq.serialization.FSTObjectOutput.STRING;
-
 /**
  * Created by ruedi on 20/05/15.
  *
  */
 public class FSTJsonEncoder implements FSTEncoder {
 
-    public static final String TYPE = "typ";
-    public static final String OBJ = "obj";
-    public static final String SEQ_TYPE = "styp";
-    public static final String SEQ = "seq";
-    public static final String ENUM = "enum";
-    public static final String VAL = "val";
-    public static final String REF = "ref";
-
-    public static final SerializedString TYPE_S = new SerializedString(TYPE);
-    public static final SerializedString OBJ_S = new SerializedString(OBJ);
-    public static final SerializedString SEQ_TYPE_S = new SerializedString(SEQ_TYPE);
-    public static final SerializedString SEQ_S = new SerializedString(SEQ);
-    public static final SerializedString ENUM_S = new SerializedString(ENUM);
-    public static final SerializedString VAL_S = new SerializedString(VAL);
-    public static final SerializedString REF_S = new SerializedString(REF);
-
     JsonFactory fac;
     FSTConfiguration conf;
+    FSTJsonFieldNames fieldNames;
 
     protected JsonGenerator gen;
     FSTOutputStream out;
 
     public FSTJsonEncoder(FSTConfiguration conf) {
-        this.conf = conf;
         fac = conf.getCoderSpecific();
+        setConf(conf);
     }
 
     @Override
     public void setConf(FSTConfiguration conf) {
         this.conf = conf;
+        fieldNames = conf.getJsonFieldNames();
     }
 
     @Override
@@ -246,7 +228,7 @@ public class FSTJsonEncoder implements FSTEncoder {
         switch (tag) {
             case FSTObjectOutput.HANDLE:
                 gen.writeStartObject();
-                gen.writeFieldName(REF_S);
+                gen.writeFieldName(fieldNames.REF_S);
                 gen.writeNumber(somValue);
                 gen.writeEndObject();
                 return true;
@@ -286,16 +268,16 @@ public class FSTJsonEncoder implements FSTEncoder {
                     break;
                 if ( clzInfo.getSer()!=null || clzInfo.isExternalizable() ) {
                     gen.writeStartObject();
-                    gen.writeFieldName(TYPE_S);
+                    gen.writeFieldName(fieldNames.TYPE_S);
                     writeSymbolicClazz(clzInfo, clzInfo.getClazz());
-                    gen.writeFieldName(OBJ_S);
+                    gen.writeFieldName(fieldNames.OBJ_S);
                     gen.writeStartArray();
                 } else
                 {
                     gen.writeStartObject();
-                    gen.writeFieldName(TYPE_S);
+                    gen.writeFieldName(fieldNames.TYPE_S);
                     writeSymbolicClazz(clzInfo,clzInfo.getClazz());
-                    gen.writeFieldName(OBJ_S);
+                    gen.writeFieldName(fieldNames.OBJ_S);
                     gen.writeStartObject();
                 }
                 break;
@@ -322,9 +304,9 @@ public class FSTJsonEncoder implements FSTEncoder {
                     return true;
                 } else {
                     gen.writeStartObject();
-                    gen.writeFieldName(SEQ_TYPE_S);
+                    gen.writeFieldName(fieldNames.SEQ_TYPE_S);
                     writeSymbolicClazz(null,clz);
-                    gen.writeFieldName(SEQ_S);
+                    gen.writeFieldName(fieldNames.SEQ_S);
                     gen.writeStartArray();
                 }
                 break;
@@ -341,9 +323,9 @@ public class FSTJsonEncoder implements FSTEncoder {
                     }
                 }
                 gen.writeStartObject();
-                gen.writeFieldName(ENUM_S);
+                gen.writeFieldName(fieldNames.ENUM_S);
                 writeSymbolicClazz(null,c);
-                gen.writeFieldName(VAL_S);
+                gen.writeFieldName(fieldNames.VAL_S);
                 gen.writeString(toWrite.toString());
                 gen.writeEndObject();
                 return true;
@@ -355,9 +337,9 @@ public class FSTJsonEncoder implements FSTEncoder {
 
     private void writeUnkown(Unknown toWrite, FSTObjectOutput oout) throws IOException {
         gen.writeStartObject();
-        gen.writeFieldName(TYPE_S);
+        gen.writeFieldName(fieldNames.TYPE_S);
         gen.writeString(toWrite.getType());
-        gen.writeFieldName(OBJ_S);
+        gen.writeFieldName(fieldNames.OBJ_S);
         if ( toWrite.isSequence() ) {
             gen.writeStartArray();
             for (Object o : toWrite.getItems()) {

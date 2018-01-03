@@ -19,6 +19,7 @@ import java.util.List;
 public class FSTJsonDecoder implements FSTDecoder {
 
     protected FSTConfiguration conf;
+    protected FSTJsonFieldNames fieldNames;
 
     protected JsonParser input;
     protected JsonFactory fac;
@@ -30,13 +31,14 @@ public class FSTJsonDecoder implements FSTDecoder {
     protected int unknownNestLevel;
 
     public FSTJsonDecoder(FSTConfiguration conf) {
-        this.conf = conf;
         fac = conf.getCoderSpecific();
+        setConf(conf);
     }
 
     @Override
     public void setConf(FSTConfiguration conf) {
         this.conf = conf;
+        fieldNames = conf.getJsonFieldNames();
     }
 
     @Override
@@ -345,11 +347,11 @@ public class FSTJsonDecoder implements FSTDecoder {
         }
 
         String typeTag = input.nextFieldName();
-        if ( typeTag.equals(FSTJsonEncoder.TYPE) ) {
+        if ( typeTag.equals(fieldNames.TYPE) ) {
             // object
             String type = input.nextTextValue();
             String valueTag = input.nextFieldName();
-            if ( ! FSTJsonEncoder.OBJ.equals(valueTag) ) {
+            if ( ! fieldNames.OBJ.equals(valueTag) ) {
                 throw new RuntimeException("expected value attribute for object of type:"+type);
             }
             if ( ! input.nextToken().isStructStart() ) {
@@ -361,13 +363,13 @@ public class FSTJsonDecoder implements FSTDecoder {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.OBJECT;
-        } else if ( typeTag.equals(FSTJsonEncoder.SEQ_TYPE) ) {
+        } else if ( typeTag.equals(fieldNames.SEQ_TYPE) ) {
             // sequence
             String type = input.nextTextValue();
             try {
                 lastDirectClass = classForName(conf.getClassForCPName(type));
                 String valueTag = input.nextFieldName();
-                if ( ! FSTJsonEncoder.SEQ.equals(valueTag) ) {
+                if ( ! fieldNames.SEQ.equals(valueTag) ) {
                     throw new RuntimeException("expected value attribute for object of type:"+type);
                 }
                 if ( ! input.nextToken().isStructStart() ) {
@@ -377,14 +379,14 @@ public class FSTJsonDecoder implements FSTDecoder {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
             return FSTObjectOutput.ARRAY;
-        } else if ( typeTag.equals(FSTJsonEncoder.REF) ) {
+        } else if ( typeTag.equals(fieldNames.REF) ) {
             return FSTObjectOutput.HANDLE;
-        } else if ( typeTag.equals(FSTJsonEncoder.ENUM) ) {
+        } else if ( typeTag.equals(fieldNames.ENUM) ) {
             try {
                 String clName = input.nextTextValue();
                 Class aClass = classForName(conf.getClassForCPName(clName));
                 String valueTag = input.nextFieldName();
-                if ( ! FSTJsonEncoder.VAL.equals(valueTag) ) {
+                if ( ! fieldNames.VAL.equals(valueTag) ) {
                     throw new RuntimeException("expected value attribute for enum of type:"+clName);
                 }
                 String enumString = input.nextTextValue();
@@ -628,16 +630,16 @@ public class FSTJsonDecoder implements FSTDecoder {
                 return null;
             } else {
                 jsonToken = input.nextToken(); // seqType
-                if ( FSTJsonEncoder.TYPE.equals(input.getText())) {
+                if ( fieldNames.TYPE.equals(input.getText())) {
                     // object
                     type = input.nextTextValue();
                     String valueTag = input.nextFieldName();
-                    if ( !FSTJsonEncoder.OBJ.equals(valueTag) ) {
+                    if ( !fieldNames.OBJ.equals(valueTag) ) {
                         throw new RuntimeException("expected value attribute for object of type:"+type);
                     }
                     return classForName(conf.getClassForCPName(type));
                 }
-                if (!FSTJsonEncoder.SEQ_TYPE.equals(input.getText()) ) {
+                if (!fieldNames.SEQ_TYPE.equals(input.getText()) ) {
                     System.out.println(">" + input.getCurrentToken()+" "+input.getText());
                     input.nextToken();
                     System.out.println(">" + input.getCurrentToken()+" "+input.getText());

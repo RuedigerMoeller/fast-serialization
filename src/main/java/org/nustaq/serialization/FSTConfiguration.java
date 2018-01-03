@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
 import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
@@ -108,6 +107,15 @@ public class FSTConfiguration {
     LastResortClassResolver lastResortResolver;
 
     boolean forceClzInit = false; // always execute default fields init, even if no transients
+
+    FSTJsonFieldNames jsonFieldNames = new FSTJsonFieldNames("typ", "obj", "styp", "seq", "enum", "val", "ref");
+
+    public FSTJsonFieldNames getJsonFieldNames() {
+        return jsonFieldNames;
+    }
+    public void setJsonFieldNames(final FSTJsonFieldNames fieldNames) {
+        this.jsonFieldNames = fieldNames;
+    }
 
     public ClassSecurityVerifier getVerifier() {
         return verifier;
