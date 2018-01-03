@@ -17,6 +17,8 @@ package org.nustaq.serialization;
 
 import org.nustaq.serialization.coders.Unknown;
 import org.nustaq.serialization.util.FSTUtil;
+import sun.reflect.ReflectionFactory;
+
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -581,8 +583,8 @@ public class FSTObjectInput implements ObjectInput {
     protected Object handleReadRessolve(FSTClazzInfo serializationInfo, Object newObj) throws IllegalAccessException {
         Object rep = null;
         try {
-            rep = serializationInfo.getReadResolveMethod().invoke(newObj);
-        } catch (InvocationTargetException e) {
+            rep = serializationInfo.getReadResolveMethod().bindTo(newObj).invoke();
+        } catch (Throwable e) {
             FSTUtil.<RuntimeException>rethrow(e);
         }
         newObj = rep;//FIXME: support this in call
@@ -605,9 +607,9 @@ public class FSTObjectInput implements ObjectInput {
 //                    input.pos--;
                 }
                 ObjectInputStream objectInputStream = getObjectInputStream(cl, serializationInfo, referencee, toRead);
-                fstCompatibilityInfo.getReadMethod().invoke(toRead, objectInputStream);
+                fstCompatibilityInfo.getReadMethod().bindTo(toRead).invoke(objectInputStream);
                 fakeWrapper.pop();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 FSTUtil.<RuntimeException>rethrow(e);
             }
         } else {
@@ -1010,7 +1012,7 @@ public class FSTObjectInput implements ObjectInput {
                             Constructor constructor = constructors[i];
                             Class[] typeParameters = constructor.getParameterTypes();
                             if ( typeParameters != null && typeParameters.length == 1 && typeParameters[0] == int.class) {
-                                constructor.setAccessible(true);
+                                constructor = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(OptionalDataException.class,constructor);
                                 OptionalDataException ode;
                                 try {
                                     ode = (OptionalDataException) constructor.newInstance(0);

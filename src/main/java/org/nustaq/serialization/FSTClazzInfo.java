@@ -18,8 +18,10 @@ package org.nustaq.serialization;
 import org.nustaq.serialization.annotations.*;
 import org.nustaq.serialization.util.FSTMap;
 import org.nustaq.serialization.util.FSTUtil;
+import sun.reflect.ReflectionFactory;
 
 import java.io.*;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,7 +86,7 @@ public final class FSTClazzInfo {
     Class[] predict;
     private boolean ignoreAnn;
     FSTMap<String, FSTFieldInfo> fieldMap;
-    Method writeReplaceMethod, readResolveMethod;
+    MethodHandle writeReplaceMethod, readResolveMethod;
     FSTMap<Class, FSTCompatibilityInfo> compInfo;
 
     Object decoderAttached; // for decoders
@@ -150,10 +152,6 @@ public final class FSTClazzInfo {
                 predict = annotation.value();
             }
             flat = clazz.isAnnotationPresent(Flat.class);
-        }
-
-        if (cons != null) {
-//            cons.setAccessible(true);
         }
 
         final String name = clazz.getName();
@@ -391,10 +389,11 @@ public final class FSTClazzInfo {
         if ( ! Externalizable.class.isAssignableFrom(c) && getSerNoStore() == null ) {
             Class tmpCls = c;
             while( tmpCls != Object.class ) {
-                if ( FSTUtil.findPrivateMethod(tmpCls, "writeObject", new Class<?>[]{ObjectOutputStream.class}, Void.TYPE) != null ||
-                     FSTUtil.findPrivateMethod(tmpCls, "readObject", new Class<?>[]{ObjectInputStream.class},Void.TYPE) != null ||
-                     FSTUtil.findDerivedMethod(tmpCls, "writeReplace", null, Object.class) != null ||
-                     FSTUtil.findDerivedMethod(tmpCls, "readResolve", null, Object.class) != null ) {
+                ReflectionFactory rf = ReflectionFactory.getReflectionFactory();
+                if ( rf.writeObjectForSerialization(tmpCls) != null ||
+                     rf.writeReplaceForSerialization(tmpCls) != null ||
+                     rf.readObjectForSerialization(tmpCls) != null ||
+                     rf.readResolveForSerialization(tmpCls) != null ) {
                      requiresCompatibilityData = true;
                      break;
                 }
@@ -455,16 +454,8 @@ public final class FSTClazzInfo {
             off += fstFieldInfo.getStructSize();
         }
         structSize = off;
-        writeReplaceMethod = FSTUtil.findDerivedMethod(
-            c, "writeReplace", null, Object.class);
-        readResolveMethod = FSTUtil.findDerivedMethod(
-            c, "readResolve", null, Object.class);
-        if (writeReplaceMethod != null) {
-            writeReplaceMethod.setAccessible(true);
-        }
-        if (readResolveMethod != null) {
-            readResolveMethod.setAccessible(true);
-        }
+        writeReplaceMethod = ReflectionFactory.getReflectionFactory().writeReplaceForSerialization(c);
+        readResolveMethod = ReflectionFactory.getReflectionFactory().readResolveForSerialization(c);
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
             fstFieldInfo.indexId = i;
@@ -492,7 +483,6 @@ public final class FSTClazzInfo {
                 return res;
             }
         }
-//        field.setAccessible(true);
         Predict predict = crossPlatform ? null : field.getAnnotation(Predict.class); // needs to be iognored cross platform
         FSTFieldInfo result = new FSTFieldInfo(predict != null ? predict.value() : null, field, ignoreAnn);
         if ( conf.fieldInfoCache != null && key != null ) {
@@ -502,11 +492,11 @@ public final class FSTClazzInfo {
         return result;
     }
 
-    public final Method getReadResolveMethod() {
+    public final MethodHandle getReadResolveMethod() {
         return readResolveMethod;
     }
 
-    public final Method getWriteReplaceMethod() {
+    public final MethodHandle getWriteReplaceMethod() {
         return writeReplaceMethod;
     }
 
@@ -576,7 +566,6 @@ public final class FSTClazzInfo {
                 type = fi.getType();
                 primitive = type.isPrimitive();
                 if (FSTUtil.unFlaggedUnsafe != null ) {
-//                    fi.setAccessible(true);
                     if (!Modifier.isStatic(fi.getModifiers())) {
                         try {
                             memOffset = (int) FSTUtil.unFlaggedUnsafe.objectFieldOffset(fi);
@@ -988,7 +977,8 @@ public final class FSTClazzInfo {
     }
 
     static class FSTCompatibilityInfo {
-        Method writeMethod, readMethod;
+        MethodHandle writeMethod;
+        MethodHandle readMethod;
         ObjectStreamClass objectStreamClass;
         List<FSTFieldInfo> infos;
         Class clazz;
@@ -1024,33 +1014,23 @@ public final class FSTClazzInfo {
         }
 
         public void readClazz(Class c) {
-            writeMethod = FSTUtil.findPrivateMethod(c, "writeObject",
-                                                    new Class<?>[]{ObjectOutputStream.class},
-                                                    Void.TYPE);
-            readMethod = FSTUtil.findPrivateMethod(c, "readObject",
-                                                   new Class<?>[]{ObjectInputStream.class},
-                                                   Void.TYPE);
-            if (writeMethod != null) {
-                writeMethod.setAccessible(true);
-            }
-            if (readMethod != null) {
-                readMethod.setAccessible(true);
-            }
+            writeMethod = ReflectionFactory.getReflectionFactory().writeObjectForSerialization(c);
+            readMethod = ReflectionFactory.getReflectionFactory().readObjectForSerialization(c);
         }
 
-        public Method getReadMethod() {
+        public MethodHandle getReadMethod() {
             return readMethod;
         }
 
-        public void setReadMethod(Method readMethod) {
+        public void setReadMethod(MethodHandle readMethod) {
             this.readMethod = readMethod;
         }
 
-        public Method getWriteMethod() {
+        public MethodHandle getWriteMethod() {
             return writeMethod;
         }
 
-        public void setWriteMethod(Method writeMethod) {
+        public void setWriteMethod(MethodHandle writeMethod) {
             this.writeMethod = writeMethod;
         }
 

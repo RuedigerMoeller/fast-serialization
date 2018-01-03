@@ -64,19 +64,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
     }
 
     public Constructor findConstructorForExternalize(Class clazz) {
-        try {
-            Constructor c = clazz.getDeclaredConstructor((Class[]) null);
-            if ( c == null )
-                return null;
-            c.setAccessible(true);
-            if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
-                return c;
-            } else {
-                return null;
-            }
-        } catch (NoSuchMethodException ex) {
-            return null;
-        }
+        return ReflectionFactory.getReflectionFactory().newConstructorForExternalization(clazz);
     }
 
     public Constructor findConstructorForSerializable(final Class clazz) {
@@ -105,7 +93,6 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
                 return null;
             }
             c = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, c);
-//            c.setAccessible(true);
 
             if ( FSTClazzInfo.BufferConstructorMeta)
                 constructorMap.put(clazz,c);

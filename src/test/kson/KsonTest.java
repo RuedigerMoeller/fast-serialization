@@ -47,7 +47,10 @@ public class KsonTest {
 
         Object reRead = kk.readObject(res);
 
-        Assert.assertTrue(res.equals(kk.writeObject(reRead)));
+        String rereadString = kk.writeObject(reRead);
+        System.out.println(rereadString);
+
+        Assert.assertTrue(res.equals(rereadString));
         Assert.assertTrue(DeepEquals.deepEquals(result, reRead));
 
         res = kk.writeJSonObject(result, true);

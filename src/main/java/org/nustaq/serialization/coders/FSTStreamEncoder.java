@@ -94,59 +94,6 @@ public class FSTStreamEncoder implements FSTEncoder {
     }
 
 
-//    Using ByteBuffers is faster but only with 1.8_u40. seems terrible with prior versions.
-//    also requires some hacking in order to reuse a bytebuffer
-
-//    static Field bbHB, bbCap;
-//    static {
-//        Field[] fields = ByteBuffer.class.getDeclaredFields();
-//        for (int i = 0; i < fields.length; i++) {
-//            Field fi = fields[i];
-//            if ( fi.getName() == "hb" ) {
-//                bbHB = fi;
-//                bbHB.setAccessible(true);
-//            }
-//        }
-//        fields = Buffer.class.getDeclaredFields();
-//        for (int i = 0; i < fields.length; i++) {
-//            Field fi = fields[i];
-//            if ( fi.getName() == "capacity" ) {
-//                bbCap = fi;
-//                bbCap.setAccessible(true);
-//            }
-//        }
-//    }
-//
-//    ThreadLocal<ByteBuffer> buf = new ThreadLocal<ByteBuffer>() {
-//        @Override
-//        protected ByteBuffer initialValue() {
-//            return ByteBuffer.wrap(new byte[0]);
-//        }
-//    };
-//
-//    public void writeFDoubleArr(double[] arr, int off, int len) throws IOException {
-//        int byteLen = arr.length * 8;
-//        buffout.ensureFree(byteLen);
-//        int max = off + len;
-//        ByteBuffer wrap = buf.get();
-//        try {
-//            bbHB.set(wrap, buffout.buf);
-//            bbCap.set(wrap,buffout.buf.length);
-//            wrap.limit(buffout.pos+byteLen);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//            wrap = ByteBuffer.wrap(buffout.buf, buffout.pos, byteLen).order(ByteOrder.LITTLE_ENDIAN);
-//        }
-
-//        int count = buffout.pos;
-//        for (int i = off; i < max; i++) {
-//            long aLong = Double.doubleToLongBits(arr[i]);
-//            wrap.putLong(count,aLong);
-//            count += 8;
-//        }
-//        buffout.pos+= byteLen;
-//    }
-
     public void writeFShortArr(short[] arr, int off, int len) throws IOException {
         buffout.ensureFree(len*3);
         for (int i = off; i < off+len; i++) {

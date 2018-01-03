@@ -435,8 +435,8 @@ public class FSTObjectOutput implements ObjectOutput {
                     if ( serializationInfo.getWriteReplaceMethod() != null ) {
                         Object replaced = null;
                         try {
-                            replaced = serializationInfo.getWriteReplaceMethod().invoke(toWrite);
-                        } catch (Exception e) {
+                            replaced = serializationInfo.getWriteReplaceMethod().bindTo(toWrite).invoke();
+                        } catch (Throwable e) {
                             FSTUtil.<RuntimeException>rethrow(e);
                         }
                         if ( replaced != toWrite ) {
@@ -563,8 +563,8 @@ public class FSTObjectOutput implements ObjectOutput {
         if ( fstCompatibilityInfo != null && fstCompatibilityInfo.getWriteMethod() != null ) {
             try {
                 writeByte(55); // tag this is written with writeMethod
-                fstCompatibilityInfo.getWriteMethod().invoke(toWrite,getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
-            } catch (Exception e) {
+                fstCompatibilityInfo.getWriteMethod().bindTo(toWrite).invoke(getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
+            } catch (Throwable e) {
                 if ( e instanceof InvocationTargetException == true && ((InvocationTargetException) e).getTargetException() != null ) {
                     FSTUtil.<RuntimeException>rethrow(((InvocationTargetException) e).getTargetException());
                 }
@@ -904,12 +904,12 @@ public class FSTObjectOutput implements ObjectOutput {
                 if ( newInfo.getWriteReplaceMethod() != null ) {
                     LOGGER.log(FSTLogger.Level.WARN, "WRITE REPLACE NOT FULLY SUPPORTED", null);
                     try {
-                        Object replaced = newInfo.getWriteReplaceMethod().invoke(replObj);
+                        Object replaced = newInfo.getWriteReplaceMethod().bindTo(replObj).invoke();
                         if ( replaced != null && replaced != toWrite ) {
                             replObj = replaced;
                             newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass(), conf);
                         }
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         FSTUtil.<RuntimeException>rethrow(e);
                     }
                 }

@@ -197,51 +197,10 @@ public class FSTUtil {
             Method m = clazz.getDeclaredMethod(methName, clazzArgs);
             int modif = m.getModifiers();
             if ((m.getReturnType() == retClazz) && ((modif & Modifier.PRIVATE) != 0) && ((modif & Modifier.STATIC) == 0)) {
-//                m.setAccessible(true);
                 return m;
             }
             return null;
         } catch (NoSuchMethodException ex) {
-            return null;
-        }
-    }
-
-    public static Method findDerivedMethod(Class clazz, String metnam,
-                                           Class[] argClzz,
-                                           Class retClz) {
-        Method m = null;
-        Class defCl = clazz;
-        while (defCl != null) {
-            try {
-                m = defCl.getDeclaredMethod(metnam, argClzz);
-                break;
-            } catch (NoSuchMethodException ex) {
-                defCl = defCl.getSuperclass();
-            }
-        }
-        if (m == null) {
-            return null;
-        }
-        if (m.getReturnType() != retClz) {
-            return null;
-        }
-        int mods = m.getModifiers();
-        if ((mods & (Modifier.STATIC | Modifier.ABSTRACT)) != 0) {
-            return null;
-        } else if ((mods & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
-            m.setAccessible(true);
-            return m;
-        } else if ((mods & Modifier.PRIVATE) != 0) {
-            m.setAccessible(true);
-            if (clazz == defCl) {
-                return m;
-            }
-            return null;
-        } else {
-            m.setAccessible(true);
-            if (isPackEq(clazz, defCl)) {
-                return m;
-            }
             return null;
         }
     }
