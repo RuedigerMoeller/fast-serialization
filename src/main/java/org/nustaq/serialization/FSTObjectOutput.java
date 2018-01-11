@@ -437,7 +437,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         try {
                             replaced = serializationInfo.getWriteReplaceMethod().bindTo(toWrite).invoke();
                         } catch (Throwable e) {
-                            FSTUtil.<RuntimeException>rethrow(e);
+                            FSTUtil.rethrow(e);
                         }
                         if ( replaced != toWrite ) {
                             toWrite = replaced;
@@ -566,9 +566,9 @@ public class FSTObjectOutput implements ObjectOutput {
                 fstCompatibilityInfo.getWriteMethod().bindTo(toWrite).invoke(getObjectOutputStream(cl, serializationInfo,referencee,toWrite));
             } catch (Throwable e) {
                 if ( e instanceof InvocationTargetException == true && ((InvocationTargetException) e).getTargetException() != null ) {
-                    FSTUtil.<RuntimeException>rethrow(((InvocationTargetException) e).getTargetException());
+                    FSTUtil.rethrow(((InvocationTargetException) e).getTargetException());
                 }
-                FSTUtil.<RuntimeException>rethrow(e);
+                FSTUtil.rethrow(e);
             }
         } else {
             if ( fstCompatibilityInfo != null ) {
@@ -593,7 +593,7 @@ public class FSTObjectOutput implements ObjectOutput {
                         break;
                     }
                     final FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[j];
-                    if ( subInfo.getIntegralType() != subInfo.BOOL ) {
+                    if ( subInfo.getIntegralType() != FSTClazzInfo.FSTFieldInfo.BOOL) {
                         if ( boolcount > 0 ) {
                             getCodec().writeFByte(booleanMask << (8 - boolcount));
                         }
@@ -668,7 +668,7 @@ public class FSTObjectOutput implements ObjectOutput {
             getCodec().writeVersionTag((byte) 0);
             getCodec().writeFieldsEnd(serializationInfo);
         } catch (IllegalAccessException ex) {
-            FSTUtil.<RuntimeException>rethrow(ex);
+            FSTUtil.rethrow(ex);
         }
 
     }
@@ -726,7 +726,7 @@ public class FSTObjectOutput implements ObjectOutput {
                     writeObjectWithContext(subInfo, subObject);
                 }
             } catch (Exception ex) {
-                FSTUtil.<RuntimeException>rethrow(ex);
+                FSTUtil.rethrow(ex);
             }
         }
         if ( boolcount > 0 ) {
@@ -910,7 +910,7 @@ public class FSTObjectOutput implements ObjectOutput {
                             newInfo = getClassInfoRegistry().getCLInfo(replObj.getClass(), conf);
                         }
                     } catch (Throwable e) {
-                        FSTUtil.<RuntimeException>rethrow(e);
+                        FSTUtil.rethrow(e);
                     }
                 }
                 FSTObjectOutput.this.writeObjectFields(replObj, newInfo, newInfo.getCompInfo().get(cl).getFieldArray(),0,0);

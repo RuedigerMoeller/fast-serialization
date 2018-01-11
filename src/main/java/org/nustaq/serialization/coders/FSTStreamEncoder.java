@@ -496,7 +496,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         try {
             clnames.encodeClass(this,cl);
         } catch ( IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
     }
 
@@ -505,7 +505,7 @@ public class FSTStreamEncoder implements FSTEncoder {
         try {
             clnames.encodeClass(this, clInf);
         } catch ( IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
     }
     

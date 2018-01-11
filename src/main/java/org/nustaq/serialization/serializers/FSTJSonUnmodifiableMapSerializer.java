@@ -55,7 +55,7 @@ public class FSTJSonUnmodifiableMapSerializer extends FSTMapSerializer {
                 return Collections.unmodifiableMap(res);
             }
         } catch (Throwable th) {
-            FSTUtil.<RuntimeException>rethrow(th);
+            FSTUtil.rethrow(th);
         }
         return null;
     }

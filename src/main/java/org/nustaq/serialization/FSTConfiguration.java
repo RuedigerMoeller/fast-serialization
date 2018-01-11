@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTConfiguration {
 
-    static enum ConfType {
+    enum ConfType {
         DEFAULT, UNSAFE, JSON, JSONPRETTY
     }
 
@@ -57,7 +57,7 @@ public class FSTConfiguration {
      * Can be used in case e.g. dynamic classes need get generated.
      */
     public interface LastResortClassResolver {
-        public Class getClass( String clName );
+        Class getClass(String clName);
     }
 
     /**
@@ -614,7 +614,7 @@ public class FSTConfiguration {
             fstObjectInput.resetForReuse(in);
             return fstObjectInput;
         } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -652,7 +652,7 @@ public class FSTConfiguration {
             fstObjectInput.resetForReuseUseArray(arr,len);
             return fstObjectInput;
         } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -669,7 +669,7 @@ public class FSTConfiguration {
             fstObjectInput.resetForReuseCopyArray(arr, off, len);
             return fstObjectInput;
         } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -759,7 +759,7 @@ public class FSTConfiguration {
         return (T) asObject(asByteArray(metadata));
     }
 
-    public static interface StreamCoderFactory {
+    public interface StreamCoderFactory {
         FSTEncoder createStreamEncoder();
         FSTDecoder createStreamDecoder();
         ThreadLocal getInput();
@@ -792,7 +792,7 @@ public class FSTConfiguration {
             } catch (Exception e1) {
                 // debug hook
             }
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -811,7 +811,7 @@ public class FSTConfiguration {
             } catch (Exception ee) {
                 //
             }
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -832,7 +832,7 @@ public class FSTConfiguration {
             length[0] = objectOutput.getWritten();
             return objectOutput.getBuffer();
         } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }

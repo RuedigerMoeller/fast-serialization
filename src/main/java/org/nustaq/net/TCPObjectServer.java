@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TCPObjectServer {
 
     public interface NewClientListener {
-        public void connectionAccepted( TCPObjectSocket client );
+        void connectionAccepted(TCPObjectSocket client);
     }
 
     ServerSocket welcomeSocket;

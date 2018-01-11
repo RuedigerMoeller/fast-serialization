@@ -411,7 +411,7 @@ public final class FSTClazzInfo {
                 try {
                     os = ObjectStreamClass.lookup(curCl);
                 } catch (Exception e) {
-                    FSTUtil.<RuntimeException>rethrow(e);
+                    FSTUtil.rethrow(e);
                 }
                 if (os != null) {
                     final ObjectStreamField[] fi = os.getFields();
@@ -582,7 +582,7 @@ public final class FSTClazzInfo {
             }
             calcIntegral();
             if (fi != null && !ignoreAnnotations) {
-                version = (byte) (fi.isAnnotationPresent(Version.class) ? fi.getAnnotation(Version.class).value() : 0);
+                version = fi.isAnnotationPresent(Version.class) ? fi.getAnnotation(Version.class).value() : 0;
                 flat = fi.isAnnotationPresent(Flat.class);
                 isConditional = fi.isAnnotationPresent(Conditional.class);
                 if (isIntegral()) {

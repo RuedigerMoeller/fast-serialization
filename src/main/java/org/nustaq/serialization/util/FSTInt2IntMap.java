@@ -146,7 +146,7 @@ public class FSTInt2IntMap {
 
         for (int n = 0; n < oldTabKey.length; n++) {
             if (oldTabKey[n] != 0 || oldTabVal[n] != 0) {
-                put(oldTabKey[n], (int) oldTabVal[n]);
+                put(oldTabKey[n], oldTabVal[n]);
             }
         }
         if (next != null) {
@@ -160,7 +160,7 @@ public class FSTInt2IntMap {
         for (int i = 0; i < mKeys.length; i++) {
             int mKey = mKeys[i];
             if (mKey != 0 || mValues[i] != 0) {
-                kfstObject2IntMap.put(mKey, (int) mValues[i]);
+                kfstObject2IntMap.put(mKey, mValues[i]);
             }
         }
         if (next != null) {

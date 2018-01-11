@@ -82,7 +82,7 @@ public class FSTObjectInput implements ObjectInput {
 
     @Override
     public boolean readBoolean() throws IOException {
-        return getCodec().readFByte() == 0 ? false : true;
+        return getCodec().readFByte() != 0;
     }
 
     @Override
@@ -162,8 +162,8 @@ public class FSTObjectInput implements ObjectInput {
         }
     }
 
-    public static interface ConditionalCallback {
-        public boolean shouldSkip(Object halfDecoded, int streamPosition, Field field);
+    public interface ConditionalCallback {
+        boolean shouldSkip(Object halfDecoded, int streamPosition, Field field);
     }
 
     public FSTObjectInput() throws IOException {
@@ -292,7 +292,7 @@ public class FSTObjectInput implements ObjectInput {
             try {
                 callbackEntry.cb.validateObject();
             } catch (Exception ex) {
-                FSTUtil.<RuntimeException>rethrow(ex);
+                FSTUtil.rethrow(ex);
             }
         }
     }
@@ -313,7 +313,7 @@ public class FSTObjectInput implements ObjectInput {
             processValidation();
             return res;
         } catch (Throwable th) {
-            FSTUtil.<RuntimeException>rethrow(th);
+            FSTUtil.rethrow(th);
         } finally {
             curDepth--;
         }
@@ -333,7 +333,7 @@ public class FSTObjectInput implements ObjectInput {
             infoCache = info;
             return res;
         } catch (Throwable t) {
-            FSTUtil.<RuntimeException>rethrow(t);
+            FSTUtil.rethrow(t);
         }
         return null;
     }
@@ -359,7 +359,7 @@ public class FSTObjectInput implements ObjectInput {
                 clzSerInfo = getClazzInfo(c, referencee);
             } catch (Throwable th) {
                 clzSerInfo = null; c = null;
-                FSTUtil.<RuntimeException>rethrow(th);
+                FSTUtil.rethrow(th);
             }
         } else {
             Object res = instantiateSpecialTag(referencee, readPos, code);
@@ -376,7 +376,7 @@ public class FSTObjectInput implements ObjectInput {
                 return res;
             }
         } catch (Exception e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         return null;
     }
@@ -585,7 +585,7 @@ public class FSTObjectInput implements ObjectInput {
         try {
             rep = serializationInfo.getReadResolveMethod().bindTo(newObj).invoke();
         } catch (Throwable e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
         newObj = rep;//FIXME: support this in call
         return newObj;
@@ -610,7 +610,7 @@ public class FSTObjectInput implements ObjectInput {
                 fstCompatibilityInfo.getReadMethod().bindTo(toRead).invoke(objectInputStream);
                 fakeWrapper.pop();
             } catch (Throwable e) {
-                FSTUtil.<RuntimeException>rethrow(e);
+                FSTUtil.rethrow(e);
             }
         } else {
             if (fstCompatibilityInfo != null) {
@@ -643,7 +643,7 @@ public class FSTObjectInput implements ObjectInput {
         try {
             readObjectFields(referencee,serializationInfo,serializationInfo.getFieldInfo(),newObj,0,-1); // -1 flag to indicate no object end should be called
         } catch (Exception e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
     }
 
@@ -776,7 +776,7 @@ public class FSTObjectInput implements ObjectInput {
                         // direct primitive field
                         switch (fieldInfo.getIntegralType()) {
                             case FSTClazzInfo.FSTFieldInfo.BOOL:
-                                fieldInfo.setBooleanValue(newObj, getCodec().readFByte() == 0 ? false : true);
+                                fieldInfo.setBooleanValue(newObj, getCodec().readFByte() != 0);
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.BYTE:
                                 fieldInfo.setByteValue(newObj, getCodec().readFByte());
@@ -941,7 +941,7 @@ public class FSTObjectInput implements ObjectInput {
             reset();
             objects.clearForRead(conf);
         } catch (IOException e) {
-            FSTUtil.<RuntimeException>rethrow(e);
+            FSTUtil.rethrow(e);
         }
     }
 
@@ -1102,7 +1102,7 @@ public class FSTObjectInput implements ObjectInput {
                         fieldMap = (HashMap<String, Object>) FSTObjectInput.this.readObjectInternal(HashMap.class);
                     }
                 } catch (Exception e) {
-                    FSTUtil.<RuntimeException>rethrow(e);
+                    FSTUtil.rethrow(e);
                 }
                 return new GetField() {
                     @Override

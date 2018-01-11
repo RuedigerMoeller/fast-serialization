@@ -95,7 +95,7 @@ public class FSTJSonUnmodifiableCollectionSerializer extends FSTCollectionSerial
             }
             throw new RuntimeException("unexpected class tag "+clazz);
         } catch (Throwable th) {
-            FSTUtil.<RuntimeException>rethrow(th);
+            FSTUtil.rethrow(th);
         }
         return null;
     }

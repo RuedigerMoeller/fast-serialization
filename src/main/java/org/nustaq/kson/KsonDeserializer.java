@@ -113,7 +113,7 @@ public class KsonDeserializer {
             String type = readId();
             Object literal = mapper.mapLiteral(type);
             if (literal != null ) {
-                return literal == mapper.NULL_LITERAL ? null:literal;
+                return literal == KsonTypeMapper.NULL_LITERAL ? null:literal;
             }
             skipWS();
             Class mappedClass = null;

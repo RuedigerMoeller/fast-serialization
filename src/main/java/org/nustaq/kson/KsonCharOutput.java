@@ -18,8 +18,8 @@ package org.nustaq.kson;
 
 public interface KsonCharOutput {
 
-    public void writeChar( char c );
-    public void writeString( String s );
+    void writeChar(char c);
+    void writeString(String s);
 
     char lastChar();
 

@@ -222,7 +222,7 @@ public class FSTClazzNameRegistry {
                                     if ( aClass != null )
                                         return aClass;
                                 }
-                                FSTUtil.<RuntimeException>rethrow(clf);
+                                FSTUtil.rethrow(clf);
                             }
                         }
                         return actorClz;
