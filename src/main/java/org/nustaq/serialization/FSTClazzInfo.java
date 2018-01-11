@@ -24,7 +24,9 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -236,19 +238,23 @@ public final class FSTClazzInfo {
      * @param res
      * @return
      */
+    static ReentrantLock shareLock = new ReentrantLock(false);
     public final List<Field> getAllFields(Class c, List<Field> res) {
-        synchronized (sharedFieldSets) {
+        try {
+            if ( BufferFieldMeta ) {
+                shareLock.lock();
+            }
             if (res == null) {
                 res = new ArrayList<Field>();
             }
             if (c == null) {
                 return res;
             }
-            Field[] declaredFields = BufferFieldMeta && !conf.isStructMode() ? sharedFieldSets.get(c) : null ;
-            if ( declaredFields == null ) {
+            Field[] declaredFields = BufferFieldMeta && !conf.isStructMode() ? sharedFieldSets.get(c) : null;
+            if (declaredFields == null) {
                 declaredFields = c.getDeclaredFields();
                 if (BufferFieldMeta && !conf.isStructMode())
-                    sharedFieldSets.put(c,declaredFields);
+                    sharedFieldSets.put(c, declaredFields);
             }
             List<Field> c1 = Arrays.asList(declaredFields);
             Collections.reverse(c1);
@@ -268,6 +274,9 @@ public final class FSTClazzInfo {
             }
             List<Field> allFields = getAllFields(c.getSuperclass(), res);
             return new ArrayList<>(allFields);
+        } finally {
+            if ( BufferFieldMeta )
+                shareLock.unlock();
         }
     }
 
