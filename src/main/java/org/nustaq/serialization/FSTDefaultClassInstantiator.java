@@ -15,6 +15,7 @@
  */
 package org.nustaq.serialization;
 
+import org.nustaq.logging.FSTLogger;
 import org.nustaq.serialization.util.FSTUtil;
 import sun.reflect.ReflectionFactory;
 
@@ -30,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
+
+    private static final FSTLogger logger = FSTLogger.getLogger(FSTDefaultClassInstantiator.class);
 
     /**
      * reduce number of generated classes. Can be cleared riskless in case.
@@ -58,7 +61,7 @@ public class FSTDefaultClassInstantiator implements FSTClassInstantiator {
             }
             return cons.newInstance();
         } catch (Throwable ignored) {
-            ignored.printStackTrace();
+            logger.log(FSTLogger.Level.INFO, "Failed to construct new instance", ignored);
             return null;
         }
     }

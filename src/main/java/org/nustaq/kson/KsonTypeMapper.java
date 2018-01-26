@@ -16,6 +16,8 @@
 
 package org.nustaq.kson;
 
+import org.nustaq.logging.FSTLogger;
+
 import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -31,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class KsonTypeMapper {
 
+    private static final FSTLogger logger = FSTLogger.getLogger(KsonTypeMapper.class);
     public static final Object NULL_LITERAL = "NULL";
     protected boolean useSimplClzName = true;
     protected HashMap<String,Class> typeMap = new HashMap<String, Class>(31);
@@ -113,7 +116,7 @@ public class KsonTypeMapper {
                 }
                 return c;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(FSTLogger.Level.INFO, "Exception thrown by newInstance", e);
             }
         } else // make collections from arrays. warning: for optimal performance, use direct arrays[] only in your serialized classes
             if ( Collection.class.isAssignableFrom(type) && readObject.getClass().isArray() ) {
@@ -132,13 +135,13 @@ public class KsonTypeMapper {
                 }
                 return c;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(FSTLogger.Level.ERROR, "Exception thrown by newInstance", e);
             }
         } else if ( Date.class.isAssignableFrom(type) && readObject instanceof String) {
             try {
                 return dateTimeInstance.parse((String) readObject);
             } catch (ParseException pe) {
-                pe.printStackTrace();
+                logger.log(FSTLogger.Level.ERROR, "Failed to parse date", pe);
             }
         } else if ( (type == char.class || Character.class.isAssignableFrom(type)) && readObject instanceof String ) {
             return ((String) readObject).charAt(0);
