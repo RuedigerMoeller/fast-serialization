@@ -1,5 +1,6 @@
 package org.nustaq.offheap;
 
+import org.nustaq.logging.FSTLogger;
 import org.nustaq.offheap.bytez.ByteSink;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.Bytez;
@@ -18,6 +19,7 @@ import org.nustaq.offheap.bytez.onheap.HeapBytez;
  */
 public class BinaryQueue {
 
+    private static final FSTLogger logger = FSTLogger.getLogger(BinaryQueue.class);
     Bytez storage;
 
     long addIndex = 0;
@@ -119,7 +121,7 @@ public class BinaryQueue {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(FSTLogger.Level.ERROR, "Failed to poll", e);
         }
         return count;
     }
