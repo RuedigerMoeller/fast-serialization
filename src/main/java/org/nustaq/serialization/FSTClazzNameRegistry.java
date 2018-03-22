@@ -16,6 +16,7 @@
 package org.nustaq.serialization;
 
 import org.nustaq.offheap.structs.unsafeimpl.FSTStructFactory;
+import org.nustaq.serialization.FSTClazzInfo.FSTFieldInfo;
 import org.nustaq.serialization.util.FSTIdentity2IdMap;
 import org.nustaq.serialization.util.FSTObject2IntMap;
 import org.nustaq.serialization.util.FSTUtil;
@@ -42,7 +43,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FSTClazzNameRegistry {
 
-    public static final int LOWEST_CLZ_ID = 3;
+	/**
+	 * it seems that originally only bit 0 and 1 was used (<3)
+	 * 
+	 * we will use the bit 2 to signal that the fields uniqueId are saved with the class info
+	 * 
+	 */
+    public static final int LOWEST_CLZ_ID = FSTConfiguration.FIELDS_FIX ? 4 : 3;
     public static final int FIRST_USER_CLZ_ID = 1000;
 
     FSTIdentity2IdMap clzToId;
@@ -133,29 +140,56 @@ public class FSTClazzNameRegistry {
                     // ugly hack, also making assumptions about
                     // on how the encoder works internally
                     final byte[] bufferedName = ci.getBufferedName();
-                    out.writeFShort((short) 1); // no direct cl id ascii enc
+                    if(FSTConfiguration.FIELDS_FIX)
+                    	out.writeFShort((short) 3); // no direct cl id ascii enc
+                    else	
+                    	out.writeFShort((short) 1); // no direct cl id ascii enc
                     out.writeFInt((char) bufferedName.length);
                     out.writeRawBytes(bufferedName,0,bufferedName.length);
+                    //
+                    if(FSTConfiguration.FIELDS_FIX){
+                    	FSTFieldInfo[] fields = ci.getFieldInfo();
+                    	int len = fields==null ? 0 : fields.length;
+                    	out.writeFShort((short)fields.length);
+                    	for(int i=0;i<len;i++){
+                    		out.writeFLong(fields[i].getUniqueId());
+                    	}
+                    }
                     registerClassNoLookup(aClass,ci,ci.conf);
                 }
             } else {
-                encodeClass(out,ci.getClazz());
+                encodeClass(out,ci.getClazz(),ci);
             }
         }
     }
 
     public void encodeClass(FSTEncoder out, Class c) throws IOException {
+    	encodeClass(out, c, null);
+    }
+    
+    private void encodeClass(FSTEncoder out, Class c, FSTClazzInfo ci) throws IOException {    	
         int clid = getIdFromClazz(c);
         if ( clid != Integer.MIN_VALUE ) {
             out.writeFShort((short) clid); // > 2 !!
         } else {
-            encodeClassName(out, c, out.getConf() );
+            encodeClassName(out, c, out.getConf(), ci );
         }
     }
 
-    private void encodeClassName(FSTEncoder out, Class c, FSTConfiguration conf) throws IOException {
-        out.writeFShort((short) 0); // no direct cl id
+    private void encodeClassName(FSTEncoder out, Class c, FSTConfiguration conf, FSTClazzInfo ci) throws IOException {
+    	if(FSTConfiguration.FIELDS_FIX && ci!=null)
+    		out.writeFShort((short) 2); // no direct cl id
+    	else
+    		out.writeFShort((short) 0); // no direct cl id
         out.writeStringUTF(c.getName());
+        if(FSTConfiguration.FIELDS_FIX && ci!=null){
+        	final FSTFieldInfo[] fields = ci.getFieldInfo();
+        	final int len = fields==null ? 0 : fields.length;
+        	out.writeFShort((short)fields.length);
+        	for(int i=0;i<len;i++){
+        		out.writeFLong(fields[i].getUniqueId());
+        	}
+        }
         registerClassNoLookup(c,null,conf);
     }
 
@@ -164,14 +198,23 @@ public class FSTClazzNameRegistry {
         if ( c < LOWEST_CLZ_ID ) {
             // full class name
             String clName;
-            if ( c==0) {
+            if (c==0 || c==2) {
                 clName = in.readStringUTF();
             }
             else {
                 clName = in.readStringAsc();
             }
             Class cl = classForName(clName,conf);
-            final FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(cl, conf);
+            long fieldsUnique[] = null;
+            if ((c & 2) == 2) {
+            	/* read fields */
+            	int len = in.readFShort();
+            	fieldsUnique = new long[len];
+            	for(int i=0;i<len;i++){
+            		fieldsUnique[i] = in.readFLong();
+            	}
+            }
+            final FSTClazzInfo clInfo = conf.getCLInfoRegistry().getCLInfo(cl, conf,fieldsUnique);
             registerClassNoLookup(cl,clInfo,conf);
             return clInfo;
         } else {

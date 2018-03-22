@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.zip.CRC32;
 
 /**
  * Created with IntelliJ IDEA.
@@ -121,12 +122,19 @@ public final class FSTClazzInfo {
     boolean crossPlatform;
 
     public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations) {
+    	this(conf, clazz, infoRegistry, ignoreAnnotations, null);
+    }
+    
+    /**
+     * new constructor with the serialized order of fields and the uniqueId for each field
+     */
+    public FSTClazzInfo(FSTConfiguration conf, Class clazz, FSTClazzInfoRegistry infoRegistry, boolean ignoreAnnotations, long[] fieldsUniqueId) {
         this.conf = conf; // fixme: historically was not bound to conf but now is. Remove redundant state + refs (note: may still be useful because of less pointerchasing)
         crossPlatform = conf.isCrossPlatform();
         this.clazz = clazz;
         enumConstants = clazz.getEnumConstants();
         ignoreAnn = ignoreAnnotations;
-        createFields(clazz);
+        createFields(clazz, fieldsUniqueId);
 
         instantiator = conf.getInstantiator(clazz);
         if (Externalizable.class.isAssignableFrom(clazz)) {
@@ -357,45 +365,53 @@ public final class FSTClazzInfo {
         return res;
     }
 
-    private void createFields(Class c) {
+    private void createFields(Class c, long[] fieldsUniqueId) {
         if (c.isInterface() || c.isPrimitive()) {
             return;
         }
         List<Field> fields = getAllFields(c, null);
-        fieldInfo = new FSTFieldInfo[fields.size()];
-        for (int i = 0; i < fields.size(); i++) {
-            Field field = fields.get(i);
-            fieldInfo[i] = createFieldInfo(field);
+        if(fieldsUniqueId != null){
+        	// retains only the fields that are in the fields unique
+        	// and keep the given order. for those in unique that 
+        	// are not present - just add a FSTFieldInfo with missing set to true
+        	// in order to jump over the data and ignore it
+        	List<FSTFieldInfo> fstFields = new ArrayList<FSTFieldInfo>(fields.size());
+        	int fieldsLen = fields.size();
+	        for (int i = 0; i < fieldsLen; i++) {
+	        	fstFields.add(createFieldInfo(fields.get(i)));
+	        }
+	        // create the fields list
+	        final int lenFieldsUniqueId = fieldsUniqueId.length; 
+        	fieldInfo = new FSTFieldInfo[lenFieldsUniqueId];
+        	long uid;
+        	boolean foundIt;
+        	for(int i=0;i<lenFieldsUniqueId;i++){
+        		uid = fieldsUniqueId[i];
+        		foundIt = false;
+        		for(FSTFieldInfo ffi : fstFields){
+        			if(ffi.getUniqueId() == uid){
+        				// found it
+        				fieldInfo[i] = ffi;
+        				foundIt = true;
+        				break;
+        			}
+        		}
+        		if(foundIt) {
+        			//
+        			fstFields.remove(fieldInfo[i]);
+        		}else{
+        			// 
+        			(fieldInfo[i] = new FSTFieldInfo(null, null, true)).missing = true;
+        		}        		        		
+        	}        	
+        } else {
+	        fieldInfo = new FSTFieldInfo[fields.size()];
+	        int fieldsLen = fields.size();
+	        for (int i = 0; i < fieldsLen; i++) {
+	            fieldInfo[i] = createFieldInfo(fields.get(i));
+	        }		        
         }
-
-        // compatibility info sort order
-        Comparator<FSTFieldInfo> infocomp = new Comparator<FSTFieldInfo>() {
-            @Override
-            public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
-                int res = 0;
-                res = o1.getType().getSimpleName().compareTo(o2.getType().getSimpleName());
-                if (res == 0)
-                    res = o1.getType().getName().compareTo(o2.getType().getName());
-                if (res == 0) {
-                    Class declaringClass = o1.getType().getDeclaringClass();
-                    Class declaringClass1 = o2.getType().getDeclaringClass();
-                    if (declaringClass == null && declaringClass1 == null) {
-                        return 0;
-                    }
-                    if (declaringClass != null && declaringClass1 == null) {
-                        return 1;
-                    }
-                    if (declaringClass == null && declaringClass1 != null) {
-                        return -1;
-                    }
-                    if (res == 0) {
-                        return declaringClass.getName().compareTo(declaringClass1.getName());
-                    }
-                }
-                return res;
-            }
-        };
-
+        
         // check if we actually need to build up compatibility info (memory intensive)
         boolean requiresCompatibilityData = false;
         if ( ! Externalizable.class.isAssignableFrom(c) && getSerNoStore() == null ) {
@@ -443,6 +459,33 @@ public final class FSTClazzInfo {
                             }
                         }
                     }
+                    // compatibility info sort order
+                    Comparator<FSTFieldInfo> infocomp = new Comparator<FSTFieldInfo>() {
+                        @Override
+                        public int compare(FSTFieldInfo o1, FSTFieldInfo o2) {
+                            int res = 0;
+                            res = o1.getType().getSimpleName().compareTo(o2.getType().getSimpleName());
+                            if (res == 0)
+                                res = o1.getType().getName().compareTo(o2.getType().getName());
+                            if (res == 0) {
+                                Class declaringClass = o1.getType().getDeclaringClass();
+                                Class declaringClass1 = o2.getType().getDeclaringClass();
+                                if (declaringClass == null && declaringClass1 == null) {
+                                    return 0;
+                                }
+                                if (declaringClass != null && declaringClass1 == null) {
+                                    return 1;
+                                }
+                                if (declaringClass == null && declaringClass1 != null) {
+                                    return -1;
+                                }
+                                if (res == 0) {
+                                    return declaringClass.getName().compareTo(declaringClass1.getName());
+                                }
+                            }
+                            return res;
+                        }
+                    };
                     Collections.sort(curClzFields, infocomp);
                     FSTCompatibilityInfo info = new FSTCompatibilityInfo(curClzFields, curCl);
                     getCompInfo().put(curCl, info);
@@ -456,12 +499,14 @@ public final class FSTClazzInfo {
 
         // default sort order
         Comparator<FSTFieldInfo> comp = defFieldComparator;
-        if (!conf.isStructMode())
+        if (!conf.isStructMode() && (fieldsUniqueId == null))
             Arrays.sort(fieldInfo, comp);
         int off = 8; // object header: length + clzId
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
-            Align al = fstFieldInfo.getField().getAnnotation(Align.class);
+            // ARC: managing the missing fields
+            Field field;
+            Align al = (field = fstFieldInfo.getField())==null? null : field.getAnnotation(Align.class);
             if (al != null) {
                 fstFieldInfo.align = al.value();
                 int alignOff = fstFieldInfo.align(off);
@@ -581,6 +626,40 @@ public final class FSTClazzInfo {
         // in rare cases, a field used in putField is not present as a real field
         // in this case only these of a fieldinfo are set
         public String fakeName;
+        
+        // ARC: crc unique of the field name
+        Long uniqueId;
+        public boolean hasUniqueId() {
+        	return (field!=null) || (fakeName == null);
+        }        
+        public long getUniqueId(){
+        	if(uniqueId == null){        		        		    			
+    			if(field==null && fakeName == null){
+    				// this should not happen      				
+    				throw new UnsupportedOperationException("no unique id");
+    			}else{
+    				try{
+	    				CRC32 crc = new CRC32();
+	    				if(field==null){
+	    					crc.update(fakeName.getBytes("UTF-8"));   
+	    				}else{
+	    					crc.update(field.getDeclaringClass().getName().getBytes("UTF-8"));
+	    					crc.update('.');
+	    					crc.update(field.getName().getBytes("UTF-8"));
+	    				}
+	    				uniqueId = crc.getValue();        		        
+    				}catch(UnsupportedEncodingException e){
+    					throw new RuntimeException(e);
+    				}
+    			}
+        	}
+        	return uniqueId;
+        }
+        boolean missing = false;
+        
+        public boolean isMissing() {
+        	return missing;
+        }        
 
         public FSTFieldInfo(Class[] possibleClasses, Field fi, boolean ignoreAnnotations) {
             this.possibleClasses = possibleClasses;

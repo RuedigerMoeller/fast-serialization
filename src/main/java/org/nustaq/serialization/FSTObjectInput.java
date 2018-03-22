@@ -305,9 +305,10 @@ public class FSTObjectInput implements ObjectInput {
         }
         try {
             if (possibles != null && possibles.length > 1 ) {
+            	final FSTDecoder getCodec = getCodec();
                 for (int i = 0; i < possibles.length; i++) {
                     Class possible = possibles[i];
-                    getCodec().registerClass(possible);
+                    getCodec.registerClass(possible);
                 }
             }
             Object res = readObjectInternal(possibles);
@@ -342,8 +343,9 @@ public class FSTObjectInput implements ObjectInput {
     public Object readObjectWithHeader(FSTClazzInfo.FSTFieldInfo referencee) throws Exception {
         FSTClazzInfo clzSerInfo;
         Class c;
-        final int readPos = getCodec().getInputPos();
-        byte code = getCodec().readObjectHeaderTag();  // NOTICE: THIS ADVANCES THE INPUT STREAM...
+        final FSTDecoder getCodec = getCodec();
+        final int readPos = getCodec.getInputPos();
+        byte code = getCodec.readObjectHeaderTag();  // NOTICE: THIS ADVANCES THE INPUT STREAM...
         if (code == FSTObjectOutput.OBJECT ) {
             // class name
             clzSerInfo = readClass();
@@ -370,7 +372,7 @@ public class FSTObjectInput implements ObjectInput {
             FSTObjectSerializer ser = clzSerInfo.getSer();
             if (ser != null) {
                 Object res = instantiateAndReadWithSer(c, ser, clzSerInfo, referencee, readPos);
-                getCodec().readArrayEnd(clzSerInfo);
+                getCodec.readArrayEnd(clzSerInfo);
                 return res;
             } else {
                 Object res = instantiateAndReadNoSer(c, clzSerInfo, referencee, readPos);
@@ -383,8 +385,9 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object instantiateSpecialTag(FSTClazzInfo.FSTFieldInfo referencee, int readPos, byte code) throws Exception {
+    	final FSTDecoder getCodec = getCodec();
         if ( code == FSTObjectOutput.STRING ) { // faster than switch, note: currently string tag not used by all codecs ..
-            String res = getCodec().readStringUTF();
+            String res = getCodec.readStringUTF();
             objects.registerObjectForRead(res, readPos);
             return res;
         } else if ( code == FSTObjectOutput.BIG_INT ) {
@@ -395,18 +398,18 @@ public class FSTObjectInput implements ObjectInput {
         {
             switch (code) {
 //                case FSTObjectOutput.BIG_INT: { return instantiateBigInt(); }
-                case FSTObjectOutput.BIG_LONG: { return Long.valueOf(getCodec().readFLong()); }
+                case FSTObjectOutput.BIG_LONG: { return Long.valueOf(getCodec.readFLong()); }
                 case FSTObjectOutput.BIG_BOOLEAN_FALSE: { return Boolean.FALSE; }
                 case FSTObjectOutput.BIG_BOOLEAN_TRUE: { return Boolean.TRUE; }
-                case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec().readFByte()]; }
+                case FSTObjectOutput.ONE_OF: { return referencee.getOneOf()[getCodec.readFByte()]; }
 //                case FSTObjectOutput.NULL: { return null; }
                 case FSTObjectOutput.DIRECT_ARRAY_OBJECT: {
-                    Object directObject = getCodec().getDirectObject();
+                    Object directObject = getCodec.getDirectObject();
                     objects.registerObjectForRead(directObject,readPos);
                     return directObject;
                 }
                 case FSTObjectOutput.DIRECT_OBJECT: {
-                    Object directObject = getCodec().getDirectObject();
+                    Object directObject = getCodec.getDirectObject();
                     if (directObject.getClass() == byte[].class) { // fixme. special for minibin, move it there
                         if ( referencee != null && referencee.getType() == boolean[].class )
                         {
@@ -421,10 +424,10 @@ public class FSTObjectInput implements ObjectInput {
                     objects.registerObjectForRead(directObject,readPos);
                     return directObject;
                 }
-//                case FSTObjectOutput.STRING: return getCodec().readStringUTF();
+//                case FSTObjectOutput.STRING: return getCodec.readStringUTF();
                 case FSTObjectOutput.HANDLE: {
                     Object res = instantiateHandle(referencee);
-                    getCodec().readObjectEnd();
+                    getCodec.readObjectEnd();
                     return res;
                 }
                 case FSTObjectOutput.ARRAY: {
@@ -475,22 +478,46 @@ public class FSTObjectInput implements ObjectInput {
 
     protected Object instantiateEnum(FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws IOException, ClassNotFoundException {
         FSTClazzInfo clzSerInfo;
-        Class c;
+        //Class c;
         clzSerInfo = readClass();
-        c = clzSerInfo.getClazz();
-        int ordinal = getCodec().readFInt();
-        Object[] enumConstants = clzSerInfo.getEnumConstants();
-        if ( enumConstants == null ) {
-            // pseudo enum of anonymous classes tom style ?
-            return null;
+        //c = clzSerInfo.getClazz();
+        if (FSTConfiguration.FIELDS_FIX_ENUM_WITH_NAME) {
+	        String name = getCodec().readStringUTF();
+	        Object[] enumConstants = clzSerInfo.getEnumConstants();
+	        if ( enumConstants == null ) {
+	            // pseudo enum of anonymous classes tom style ?
+	            return null;
+	        }
+	        Object res = null;
+	        {
+	        	for(Object o : enumConstants){
+	        		if(((Enum)o).name().equals(name)){
+	        			res = o;
+	        			break;
+	        		}
+	        	}
+	        }	        	        
+	        if ( REGISTER_ENUMS_READ ) {
+	            if ( ! referencee.isFlat() ) { // should be unnecessary
+	                objects.registerObjectForRead(res, readPos);
+	            }
+	        }
+	        return res;
+        } else {
+        	int ordinal = getCodec().readFInt();
+	        Object[] enumConstants = clzSerInfo.getEnumConstants();
+	        if ( enumConstants == null ) {
+	            // pseudo enum of anonymous classes tom style ?
+	            return null;
+	        }
+	        Object res = enumConstants[ordinal];
+	        if ( REGISTER_ENUMS_READ ) {
+	            if ( ! referencee.isFlat() ) { // should be unnecessary
+	                objects.registerObjectForRead(res, readPos);
+	            }
+	        }
+	        return res;
         }
-        Object res = enumConstants[ordinal];
-        if ( REGISTER_ENUMS_READ ) {
-            if ( ! referencee.isFlat() ) { // should be unnecessary
-                objects.registerObjectForRead(res, readPos);
-            }
-        }
-        return res;
     }
 
     protected Object instantiateBigInt() throws IOException {
@@ -499,10 +526,11 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object instantiateAndReadWithSer(Class c, FSTObjectSerializer ser, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
+    	final FSTDecoder getCodec = getCodec();
         boolean serInstance = false;
         Object newObj = ser.instantiate(c, this, clzSerInfo, referencee, readPos);
         if (newObj == null) {
-            newObj = clzSerInfo.newInstance(getCodec().isMapBased());
+            newObj = clzSerInfo.newInstance(getCodec.isMapBased());
         } else
             serInstance = true;
         if (newObj == null) {
@@ -524,13 +552,14 @@ public class FSTObjectInput implements ObjectInput {
             if ( !serInstance )
                 ser.readObject(this, newObj, clzSerInfo, referencee);
         }
-        getCodec().consumeEndMarker(); //=> bug when writing objects unlimited
+        getCodec.consumeEndMarker(); //=> bug when writing objects unlimited
         return newObj;
     }
 
     protected Object instantiateAndReadNoSer(Class c, FSTClazzInfo clzSerInfo, FSTClazzInfo.FSTFieldInfo referencee, int readPos) throws Exception {
+    	final FSTDecoder getCodec = getCodec();
         Object newObj;
-        newObj = clzSerInfo.newInstance(getCodec().isMapBased());
+        newObj = clzSerInfo.newInstance(getCodec.isMapBased());
         if (newObj == null) {
             throw new IOException(referencee.getDesc() + ":Failed to instantiate '" + c.getName() + "'. Register a custom serializer implementing instantiate or define empty constructor.");
         }
@@ -546,9 +575,9 @@ public class FSTObjectInput implements ObjectInput {
         if ( clzSerInfo.isExternalizable() )
         {
             int tmp = readPos;
-            getCodec().ensureReadAhead(readExternalReadAHead);
+            getCodec.ensureReadAhead(readExternalReadAHead);
             ((Externalizable)newObj).readExternal(this);
-            getCodec().readExternalEnd();
+            getCodec.readExternalEnd();
             if ( clzSerInfo.getReadResolveMethod() != null ) {
                 final Object prevNew = newObj;
                 newObj = handleReadRessolve(clzSerInfo, newObj);
@@ -604,7 +633,8 @@ public class FSTObjectInput implements ObjectInput {
                 if ( tag == 66 ) {
                     // no write method defined, but read method defined ...
                     // expect defaultReadObject
-                    getCodec().moveTo(getCodec().getInputPos() - 1); // need to push back tag, cause defaultWriteObject on writer side does not write tag
+                	final FSTDecoder getCodec = getCodec();
+                    getCodec.moveTo(getCodec.getInputPos() - 1); // need to push back tag, cause defaultWriteObject on writer side does not write tag
 //                    input.pos--;
                 }
                 ObjectInputStream objectInputStream = getObjectInputStream(cl, serializationInfo, referencee, toRead);
@@ -649,11 +679,11 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected void readObjectFields(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo[] fieldInfo, Object newObj, int startIndex, int version) throws Exception {
-        
-        if ( getCodec().isMapBased() ) {
+    	final FSTDecoder getCodec = getCodec();
+        if ( getCodec.isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
             if ( version >= 0 /*&& newObj instanceof Unknown == false*/ ) {
-                getCodec().readObjectEnd();
+                getCodec.readObjectEnd();
             }
             return;
         }
@@ -663,11 +693,13 @@ public class FSTObjectInput implements ObjectInput {
         int boolcount = 8;
         final int length = fieldInfo.length;
         int conditional = 0;
+        byte[] storedSizeBuff = new byte[4];
         for (int i = startIndex; i < length; i++) {
             try {
-                FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
+                FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];                                
+                //
                 if (subInfo.getVersion() > version ) {
-                    int nextVersion = getCodec().readVersionTag();
+                    int nextVersion = getCodec.readVersionTag();
                     if ( nextVersion == 0 ) // old object read
                     {
                         oldVersionRead(newObj);
@@ -679,47 +711,73 @@ public class FSTObjectInput implements ObjectInput {
                     readObjectFields(referencee,serializationInfo,fieldInfo,newObj,i,nextVersion);
                     return;
                 }
-                if (subInfo.isPrimitive()) {
-                    int integralType = subInfo.getIntegralType();
-                    if (integralType == FSTClazzInfo.FSTFieldInfo.BOOL) {
-                        if (boolcount == 8) {
-                            booleanMask = ((int) getCodec().readFByte() + 256) &0xff;
-                            boolcount = 0;
-                        }
-                        boolean val = (booleanMask & 128) != 0;
-                        booleanMask = booleanMask << 1;
-                        boolcount++;
-                        subInfo.setBooleanValue(newObj, val);
-                    } else {
-                        switch (integralType) {
-                            case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, getCodec().readFByte()); break;
-                            case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, getCodec().readFChar()); break;
-                            case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, getCodec().readFShort()); break;
-                            case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, getCodec().readFInt()); break;
-                            case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, getCodec().readFLong()); break;
-                            case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, getCodec().readFFloat()); break;
-                            case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, getCodec().readFDouble()); break;
-                        }
-                    }
-                } else {
-                    if ( subInfo.isConditional() ) {
-                        if ( conditional == 0 ) {
-                            conditional = getCodec().readPlainInt();
-                            if ( skipConditional(newObj, conditional, subInfo) ) {
-                                getCodec().moveTo(conditional);
-                                continue;
-                            }
-                        }
-                    }
-                    // object
-                    Object subObject = readObjectWithHeader(subInfo);
-                    subInfo.setObjectValue(newObj, subObject);
+                // ARC: read the size in case that we are
+                int storedSize = -1;
+                if(FSTConfiguration.FIELDS_FIX_LENGTH){                	
+                	storedSizeBuff[0] = getCodec.readFByte();                	                	                	
+                	boolean extraSize = (storedSizeBuff[0] & 1) == 1;
+                	if(!extraSize){
+                		storedSize = ((storedSizeBuff[0] & 0xFE) >> 1);
+                	}else{                		                		
+                		// it's a int size
+                		int ch1 = (storedSizeBuff[0] & 0xFF);
+                		int ch2 = (getCodec.readFByte() & 0xFF);
+                		int ch3 = (getCodec.readFByte() & 0xFF);
+                		int ch4 = (getCodec.readFByte() & 0xFF);
+                		
+                		storedSize = ((((ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0)) & 0xFFFE) >> 1);
+                	}
+                }
+                if(subInfo.isMissing() && FSTConfiguration.FIELDS_FIX_LENGTH){
+                	// skip it
+                	getCodec.skip(storedSize);
+                }else{
+	                if (subInfo.isPrimitive()) {
+	                    int integralType = subInfo.getIntegralType();
+	                    if (integralType == FSTClazzInfo.FSTFieldInfo.BOOL) {
+	                    	if(FSTConfiguration.FIELDS_FIX_LENGTH){
+	                    		subInfo.setBooleanValue(newObj, getCodec.readFByte() == 1);
+	                    	}else{
+		                        if (boolcount == 8) {
+		                            booleanMask = ((int) getCodec.readFByte() + 256) &0xff;
+		                            boolcount = 0;
+		                        }
+		                        boolean val = (booleanMask & 128) != 0;
+		                        booleanMask = booleanMask << 1;
+		                        boolcount++;
+		                        subInfo.setBooleanValue(newObj, val);
+	                    	}
+	                    } else {
+	                        switch (integralType) {
+	                            case FSTClazzInfo.FSTFieldInfo.BYTE:   subInfo.setByteValue(newObj, getCodec.readFByte()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.CHAR:   subInfo.setCharValue(newObj, getCodec.readFChar()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.SHORT:  subInfo.setShortValue(newObj, getCodec.readFShort()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.INT:    subInfo.setIntValue(newObj, getCodec.readFInt()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.LONG:   subInfo.setLongValue(newObj, getCodec.readFLong()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.FLOAT:  subInfo.setFloatValue(newObj, getCodec.readFFloat()); break;
+	                            case FSTClazzInfo.FSTFieldInfo.DOUBLE: subInfo.setDoubleValue(newObj, getCodec.readFDouble()); break;
+	                        }
+	                    }
+	                } else {
+	                    if ( subInfo.isConditional() ) {
+	                        if ( conditional == 0 ) {
+	                            conditional = getCodec.readPlainInt();
+	                            if ( skipConditional(newObj, conditional, subInfo) ) {
+	                                getCodec.moveTo(conditional);
+	                                continue;
+	                            }
+	                        }
+	                    }
+	                    // object
+	                    Object subObject = readObjectWithHeader(subInfo);                    
+	                    subInfo.setObjectValue(newObj, subObject);                    
+	                }
                 }
             } catch (IllegalAccessException ex) {
                 throw new IOException(ex);
             }
         }
-        int debug = getCodec().readVersionTag();// just consume '0'
+        int debug = getCodec.readVersionTag();// just consume '0'
     }
 
     public VersionConflictListener getVersionConflictListener() {
@@ -740,27 +798,28 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected void readFieldsMapBased(FSTClazzInfo.FSTFieldInfo referencee, FSTClazzInfo serializationInfo, Object newObj) throws Exception {
+    	final FSTDecoder getCodec = getCodec();
         String name;
-        int len = getCodec().getObjectHeaderLen(); // check if len is known in advance
+        int len = getCodec.getObjectHeaderLen(); // check if len is known in advance
         if ( len < 0 )
             len = Integer.MAX_VALUE;
         int count = 0;
         boolean isUnknown = newObj.getClass() == Unknown.class; // json
-        boolean inArray = isUnknown && getCodec().inArray();    // json externalized/custom serialized
-        getCodec().startFieldReading(newObj);
+        boolean inArray = isUnknown && getCodec.inArray();    // json externalized/custom serialized
+        getCodec.startFieldReading(newObj);
         // fixme: break up this loop into separate impls.
         while( count < len ) {
             if ( inArray ) {
                 // unknwon json object written by externalize or custom serializer
                 Object o = readObjectWithHeader(null);
-                if ( o != null && getCodec().isEndMarker(o.toString()) )
+                if ( o != null && getCodec.isEndMarker(o.toString()) )
                     return;
                 ((Unknown)newObj).add(o);
                 continue;
             }
-            name= getCodec().readStringUTF();
-            //int debug = getCodec().getInputPos();
-            if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) )
+            name= getCodec.readStringUTF();
+            //int debug = getCodec.getInputPos();
+            if ( len == Integer.MAX_VALUE && getCodec.isEndMarker(name) )
                 return;
             count++;
             if (isUnknown) {
@@ -781,41 +840,41 @@ public class FSTObjectInput implements ObjectInput {
                         // direct primitive field
                         switch (fieldInfo.getIntegralType()) {
                             case FSTClazzInfo.FSTFieldInfo.BOOL:
-                                fieldInfo.setBooleanValue(newObj, getCodec().readFByte() == 0 ? false : true);
+                                fieldInfo.setBooleanValue(newObj, getCodec.readFByte() == 0 ? false : true);
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.BYTE:
-                                fieldInfo.setByteValue(newObj, getCodec().readFByte());
+                                fieldInfo.setByteValue(newObj, getCodec.readFByte());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.CHAR:
-                                fieldInfo.setCharValue(newObj, getCodec().readFChar());
+                                fieldInfo.setCharValue(newObj, getCodec.readFChar());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.SHORT:
-                                fieldInfo.setShortValue(newObj, getCodec().readFShort());
+                                fieldInfo.setShortValue(newObj, getCodec.readFShort());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.INT:
-                                fieldInfo.setIntValue(newObj, getCodec().readFInt());
+                                fieldInfo.setIntValue(newObj, getCodec.readFInt());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.LONG:
-                                fieldInfo.setLongValue(newObj, getCodec().readFLong());
+                                fieldInfo.setLongValue(newObj, getCodec.readFLong());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.FLOAT:
-                                fieldInfo.setFloatValue(newObj, getCodec().readFFloat());
+                                fieldInfo.setFloatValue(newObj, getCodec.readFFloat());
                                 break;
                             case FSTClazzInfo.FSTFieldInfo.DOUBLE:
-                                fieldInfo.setDoubleValue(newObj, getCodec().readFDouble());
+                                fieldInfo.setDoubleValue(newObj, getCodec.readFDouble());
                                 break;
                             default:
                                 throw new RuntimeException("unkown primitive type " + fieldInfo);
                         }
                     } else {
                         Object toSet = readObjectWithHeader(fieldInfo);
-                        toSet = getCodec().coerceElement(fieldInfo.getType(), toSet);
+                        toSet = getCodec.coerceElement(fieldInfo.getType(), toSet);
                         fieldInfo.setObjectValue(newObj, toSet);
                     }
                 }
             }
         }
-        getCodec().endFieldReading(newObj);
+        getCodec.endFieldReading(newObj);
     }
 
     protected boolean skipConditional(Object newObj, int conditional, FSTClazzInfo.FSTFieldInfo subInfo) {
@@ -833,9 +892,10 @@ public class FSTObjectInput implements ObjectInput {
                 FSTClazzInfo.FSTFieldInfo subInfo = fieldInfo[i];
                 if (subInfo.isIntegral() && !subInfo.isArray()) {
                     final Class subInfoType = subInfo.getType();
+                    final FSTDecoder getCodec = getCodec();
                     if (subInfoType == boolean.class) {
                         if (boolcount == 8) {
-                            booleanMask = ((int) getCodec().readFByte() + 256) &0xff;
+                            booleanMask = ((int) getCodec.readFByte() + 256) &0xff;
                             boolcount = 0;
                         }
                         boolean val = (booleanMask & 128) != 0;
@@ -844,19 +904,19 @@ public class FSTObjectInput implements ObjectInput {
                         res.put(subInfo.getName(), val);
                     }
                     if (subInfoType == byte.class) {
-                        res.put(subInfo.getName(), getCodec().readFByte());
+                        res.put(subInfo.getName(), getCodec.readFByte());
                     } else if (subInfoType == char.class) {
-                        res.put(subInfo.getName(), getCodec().readFChar());
+                        res.put(subInfo.getName(), getCodec.readFChar());
                     } else if (subInfoType == short.class) {
-                        res.put(subInfo.getName(), getCodec().readFShort());
+                        res.put(subInfo.getName(), getCodec.readFShort());
                     } else if (subInfoType == int.class) {
-                        res.put(subInfo.getName(), getCodec().readFInt());
+                        res.put(subInfo.getName(), getCodec.readFInt());
                     } else if (subInfoType == double.class) {
-                        res.put(subInfo.getName(), getCodec().readFDouble());
+                        res.put(subInfo.getName(), getCodec.readFDouble());
                     } else if (subInfoType == float.class) {
-                        res.put(subInfo.getName(), getCodec().readFFloat());
+                        res.put(subInfo.getName(), getCodec.readFFloat());
                     } else if (subInfoType == long.class) {
-                        res.put(subInfo.getName(), getCodec().readFLong());
+                        res.put(subInfo.getName(), getCodec.readFLong());
                     }
                 } else {
                     // object
@@ -883,20 +943,22 @@ public class FSTObjectInput implements ObjectInput {
     }
 
     protected Object readArray(FSTClazzInfo.FSTFieldInfo referencee, int pos) throws Exception {
-        Object classOrArray = getCodec().readArrayHeader();
+    	final FSTDecoder getCodec = getCodec();
+        Object classOrArray = getCodec.readArrayHeader();
         if (pos < 0)
-            pos = getCodec().getInputPos();
+            pos = getCodec.getInputPos();
         if ( classOrArray instanceof Class == false )
             return classOrArray;
         if ( classOrArray == null )
             return null;
         Object o = readArrayNoHeader(referencee, pos, (Class) classOrArray);
-        getCodec().readArrayEnd(null);
+        getCodec.readArrayEnd(null);
         return o;
     }
 
     protected Object readArrayNoHeader(FSTClazzInfo.FSTFieldInfo referencee, int pos, Class arrCl) throws Exception {
-        final int len = getCodec().readFInt();
+    	final FSTDecoder getCodec = getCodec();
+        final int len = getCodec.readFInt();
         if (len == -1) {
             return null;
         }
@@ -906,15 +968,15 @@ public class FSTObjectInput implements ObjectInput {
             if ( ! referencee.isFlat() )
                 objects.registerObjectForRead(array, pos );
             if (arrType.isPrimitive()) {
-                return getCodec().readFPrimitiveArray(array, arrType, len);
+                return getCodec.readFPrimitiveArray(array, arrType, len);
             } else { // Object Array
                 Object arr[] = (Object[]) array;
                 for (int i = 0; i < len; i++) {
                     Object value = readObjectWithHeader(referencee);
-                    value = getCodec().coerceElement(arrType, value);
+                    value = getCodec.coerceElement(arrType, value);
                     arr[i] = value;
                 }
-                getCodec().readObjectEnd();
+                getCodec.readObjectEnd();
             }
             return array;
         } else { // multidim array
@@ -958,8 +1020,9 @@ public class FSTObjectInput implements ObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        getCodec().reset();
-        getCodec().setInputStream(in);
+        final FSTDecoder getCodec = getCodec();
+        getCodec.reset();
+        getCodec.setInputStream(in);
         objects.clearForRead(conf);
         callbacks = null; //fix memory leak on reuse from default FstConfiguration
     }
@@ -968,9 +1031,10 @@ public class FSTObjectInput implements ObjectInput {
         if ( closed ) {
             throw new RuntimeException("can't reuse closed stream");
         }
-        getCodec().reset();
+        final FSTDecoder getCodec = getCodec();
+        getCodec.reset();
         objects.clearForRead(conf);
-        getCodec().resetToCopyOf(bytes, off, len);
+        getCodec.resetToCopyOf(bytes, off, len);
         callbacks = null; //fix memory leak on reuse from default FstConfiguration
     }
 
