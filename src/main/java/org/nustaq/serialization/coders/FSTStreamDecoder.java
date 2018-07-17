@@ -39,23 +39,13 @@ public class FSTStreamDecoder implements FSTDecoder {
 
     public FSTStreamDecoder(FSTConfiguration conf) {
         this.conf = conf;
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if (clnames == null) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
-        } else {
-            clnames.clear();
-        }
+        clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
     }
 
     @Override
     public void setConf(FSTConfiguration conf) {
         this.conf = conf;
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if (clnames == null) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
-        } else {
-            clnames.clear();
-        }
+        clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
     }
 
     public int ensureReadAhead(int bytes) {
