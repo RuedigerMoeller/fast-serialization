@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -502,6 +503,7 @@ public class FSTConfiguration {
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
 
         reg.putSerializer(BitSet.class, new FSTBitSetSerializer(),true);
+        reg.putSerializer(Timestamp.class, new FSTTimestampSerializer(),true);
 
         // serializers for classes failing in fst JDK emulation (e.g. Android<=>JDK)
         reg.putSerializer(BigInteger.class, new FSTBigIntegerSerializer(), true);
@@ -832,6 +834,7 @@ public class FSTConfiguration {
         classRegistry.registerClass(Vector.class,this);
         classRegistry.registerClass(Hashtable.class,this);
         classRegistry.registerClass(BitSet.class,this);
+        classRegistry.registerClass(Timestamp.class, this);
         classRegistry.registerClass(Locale.class,this);
 
         classRegistry.registerClass(StringBuffer.class,this);
