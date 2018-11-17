@@ -501,6 +501,7 @@ public class FSTConfiguration {
         reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
+        reg.putSerializer(Throwable.class, new FSTThrowableSerializer(),true);
 
         reg.putSerializer(BitSet.class, new FSTBitSetSerializer(),true);
         reg.putSerializer(Timestamp.class, new FSTTimestampSerializer(),true);
