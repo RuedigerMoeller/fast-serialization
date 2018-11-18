@@ -452,6 +452,10 @@ public class FSTStreamDecoder implements FSTDecoder {
         clnames.clear();
     }
 
+    public InputStream getInputStream() {
+        return input;
+    }
+
     @Override
     public void resetToCopyOf(byte[] bytes, int off, int len) {
         input.reset();
