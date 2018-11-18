@@ -115,6 +115,10 @@ public class FSTClazzInfoRegistry {
     }
 
     public FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf) {
+    	return getCLInfo(c, conf, null);
+    }
+    
+    public FSTClazzInfo getCLInfo(Class c, FSTConfiguration conf, long[] fieldsUniqueId) {
         while(!rwLock.compareAndSet(false,true));
         try {
             FSTClazzInfo res = (FSTClazzInfo) mInfos.get(c);
@@ -126,7 +130,7 @@ public class FSTClazzInfoRegistry {
                     if ( ! conf.getVerifier().allowClassDeserialization(c) )
                         throw new RuntimeException("tried to deserialize forbidden class "+c.getName() );
                 }
-                res = new FSTClazzInfo(conf, c, this, ignoreAnnotations);
+                res = new FSTClazzInfo(conf, c, this, ignoreAnnotations, fieldsUniqueId);
                 mInfos.put(c, res);
             }
             return res;

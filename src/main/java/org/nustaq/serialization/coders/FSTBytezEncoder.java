@@ -263,6 +263,15 @@ public class FSTBytezEncoder implements FSTEncoder {
         }
         buffout.putInt(position,v);
     }
+    @Override
+    public void writeByteAt(int position, byte v) {
+        try {
+            ensureFree( position+1);
+        } catch (IOException e) {
+            FSTUtil.<RuntimeException>rethrow(e);
+        }
+        buffout.put(position,v);
+    }
 
     /**
      * if output stream is null, just encode into a byte array

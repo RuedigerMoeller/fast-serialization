@@ -505,6 +505,10 @@ public class FSTStreamEncoder implements FSTEncoder {
         buffout.buf[position+2] = (byte) (v >>> 16);
         buffout.buf[position+3] = (byte) (v >>> 24);
     }
+    @Override
+    public void writeByteAt(int position, byte v) {
+        buffout.buf[position] = v;
+    }
 
     /**
      * if output stream is null, just encode into a byte array 

@@ -66,6 +66,12 @@ public interface FSTEncoder {
      * @param v
      */
     void writeInt32At(int position, int v);
+    /**
+     * used to write uncompressed int (guaranteed length = 1) at a (eventually recent) position
+     * @param position
+     * @param v
+     */
+    void writeByteAt(int position, byte v);
 
     /**
      * if output stream is null, just encode into a byte array

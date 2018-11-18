@@ -58,6 +58,36 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 public class FSTConfiguration {
+	
+	/**
+	 * ARC: a very simple hack in order to handle deserialisation of un-synched classes from the point of view of fields.
+	 * 
+	 * The hack is handling removed/added fields on the receiver side or sending side. EQ: a field is removed/added at the 
+	 * serialisation VM or de-serialising VM.
+	 * 
+	 * The hack is using an uniqueId computed as a CRC32 on the name of the declaring class and the field name. The uniqueId
+	 * is used to find the removed or added fields. 
+	 * 
+	 * On the de-serialising side the removed fields are read but not set, the new fields are ignored. In order to "jump" over
+	 * the field data we will prefix the data with a byte or 4byte information about the size of the serialized field.    
+	 * 
+	 * The hack is enforcing the order of de-serialisation as the one at the time of serialisation. 
+	 * 
+	 * Note: I did not implemented all the scenarios as we do not need it them.
+	 * 
+	 * Thus the hack is working only with in default SHARED configuration with classes that are not registred and that are not in 
+	 * compatible mode! Also the hack is not working with Conditional or Version annotations
+	 * 
+	 * Further work : make this configurable and not static as it is
+	 * Cons: the resulting binary format is bigger.
+	 * Pros: backward/forward compatibility between versions of classes in simple cases (adding/removing fields)
+	 */
+	public final static boolean FIELDS_FIX = true; 
+	public final static boolean FIELDS_FIX_LENGTH = FIELDS_FIX;
+	/**
+	 * ARC: store enum with names and not ordinal - as if the position changes then the deserialisation is not good. 
+	 */
+	public static boolean FIELDS_FIX_ENUM_WITH_NAME = FIELDS_FIX;
 
     static enum ConfType {
         DEFAULT, UNSAFE, MINBIN, JSON, JSONPRETTY

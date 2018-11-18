@@ -176,6 +176,10 @@ public class FSTJsonEncoder implements FSTEncoder {
     public void writeInt32At(int position, int v) {
         throw new RuntimeException("not supported");
     }
+    @Override
+    public void writeByteAt(int position, byte v) {
+        throw new RuntimeException("not supported");
+    }
 
     @Override
     public void setOutstream(OutputStream outstream) {
