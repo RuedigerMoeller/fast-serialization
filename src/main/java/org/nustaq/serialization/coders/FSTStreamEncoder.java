@@ -526,6 +526,10 @@ public class FSTStreamEncoder implements FSTEncoder {
         else
             buffout.setOutstream(outstream);
     }
+
+    public OutputStream getOutstream() {
+        return buffout;
+    }
     
     /**
      * writes current buffer to underlying output and resets buffer. 
