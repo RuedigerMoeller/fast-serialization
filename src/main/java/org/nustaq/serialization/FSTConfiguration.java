@@ -35,6 +35,7 @@ import org.objenesis.ObjenesisStd;
 
 import java.io.*;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -502,6 +503,7 @@ public class FSTConfiguration {
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
         reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
         reg.putSerializer(Throwable.class, new FSTThrowableSerializer(),true);
+        reg.putSerializer(Proxy.class, new FSTProxySerializer(),true);
 
         reg.putSerializer(BitSet.class, new FSTBitSetSerializer(),true);
         reg.putSerializer(Timestamp.class, new FSTTimestampSerializer(),true);
@@ -837,6 +839,8 @@ public class FSTConfiguration {
         classRegistry.registerClass(BitSet.class,this);
         classRegistry.registerClass(Timestamp.class, this);
         classRegistry.registerClass(Locale.class,this);
+
+        classRegistry.registerClass(Proxy.class,this);
 
         classRegistry.registerClass(StringBuffer.class,this);
         classRegistry.registerClass(StringBuilder.class,this);
