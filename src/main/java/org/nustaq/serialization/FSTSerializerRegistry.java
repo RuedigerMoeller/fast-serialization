@@ -108,11 +108,11 @@ public class FSTSerializerRegistry {
         }
         final SerEntry serEntry = map.get(cl);
         if ( serEntry != null ) {
-            if ( cl == lookupStart && serEntry.ser.willHandleClass(cl)) {
+            if ( cl == lookupStart && serEntry.ser.willHandleClass(lookupStart)) {
                 return serEntry.ser;
             }
-            if ( serEntry.forSubClasses && serEntry.ser.willHandleClass(cl) ) {
-                putSerializer(lookupStart,serEntry.ser, false);
+            if ( serEntry.forSubClasses && serEntry.ser.willHandleClass(lookupStart) ) {
+                putSerializer(lookupStart, serEntry.ser, false);
                 return serEntry.ser;
             }
         }
