@@ -15,7 +15,6 @@
  */
 package org.nustaq.serialization;
 
-import org.nustaq.offheap.structs.Align;
 import org.nustaq.serialization.annotations.*;
 import org.nustaq.serialization.util.FSTMap;
 import org.nustaq.serialization.util.FSTUtil;
@@ -461,13 +460,6 @@ public final class FSTClazzInfo {
         int off = 8; // object header: length + clzId
         for (int i = 0; i < fieldInfo.length; i++) {
             FSTFieldInfo fstFieldInfo = fieldInfo[i];
-            Align al = fstFieldInfo.getField().getAnnotation(Align.class);
-            if (al != null) {
-                fstFieldInfo.align = al.value();
-                int alignOff = fstFieldInfo.align(off);
-                fstFieldInfo.alignPad = alignOff - off;
-                off = alignOff;
-            }
             fstFieldInfo.setStructOffset(off);
             off += fstFieldInfo.getStructSize();
         }

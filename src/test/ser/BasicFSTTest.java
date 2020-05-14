@@ -561,7 +561,7 @@ public class BasicFSTTest {
             assertTrue(false);
         } catch (Exception ex) {
             // success
-            System.out.println(ex.getMessage());
+//            System.out.println(ex.getMessage());
         }
     }
 

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.offheap.structs.FSTStruct;
 import org.nustaq.serialization.coders.*;
 import org.nustaq.serialization.util.DefaultFSTInt2ObjectMapFactory;
 import org.nustaq.serialization.util.FSTInputStream;
@@ -500,7 +499,6 @@ public class FSTConfiguration {
         reg.putSerializer(LinkedHashMap.class, new FSTMapSerializer(), false); // subclass should register manually
         reg.putSerializer(Hashtable.class, new FSTMapSerializer(), true);
         reg.putSerializer(ConcurrentHashMap.class, new FSTMapSerializer(), true);
-        reg.putSerializer(FSTStruct.class, new FSTStructSerializer(), true);
         reg.putSerializer(Throwable.class, new FSTThrowableSerializer(),true);
 
         reg.putSerializer(BitSet.class, new FSTBitSetSerializer(),true);

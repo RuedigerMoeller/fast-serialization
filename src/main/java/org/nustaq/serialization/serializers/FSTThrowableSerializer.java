@@ -13,7 +13,7 @@ public class FSTThrowableSerializer extends FSTBasicObjectSerializer {
     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo,
                             FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
         Throwable t = (Throwable)toWrite;
-        out.writeStringUTF(t.getMessage());
+        out.writeStringUTF(t.getMessage() != null ? t.getMessage() : "null");
         StackTraceElement[] ste = t.getStackTrace();
         out.writeObject(ste);
         out.writeObject(t.getCause());
