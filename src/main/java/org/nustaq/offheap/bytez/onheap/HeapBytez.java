@@ -17,6 +17,7 @@ package org.nustaq.offheap.bytez.onheap;
 
 import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.Bytez;
+import org.nustaq.offheap.bytez.VolatileByteAccess;
 import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.serialization.util.FSTUtil;
 import sun.misc.Unsafe;
@@ -33,7 +34,7 @@ import java.util.Arrays;
  * byte array abstraction based on heap byte arrays. FIXME: Should be moved to ordinary safe access as it really seems not to make
  * a big difference.
  */
-public class HeapBytez implements Bytez {
+public class HeapBytez implements Bytez, VolatileByteAccess {
     static Unsafe unsafe = FSTUtil.getUnsafe();
     static long byteoff = FSTUtil.bufoff;
     static long caoff = FSTUtil.choff;

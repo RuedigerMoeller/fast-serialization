@@ -19,9 +19,6 @@ package org.nustaq.offheap.bytez.malloc;
 import jdk.incubator.foreign.*;
 import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.Bytez;
-import org.nustaq.offheap.bytez.onheap.HeapBytez;
-import org.nustaq.serialization.util.FSTUtil;
-import sun.misc.Unsafe;
 
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
@@ -144,120 +141,125 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public void getArr(long byteIndex, byte[] target, int elemoff, int numElems) {
-        return memseg.asSlice(elemoff,numElems).toByteArray();
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = get(byteIndex+i);
     }
 
     @Override
     public void getCharArr(long byteIndex, char[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null,baseAdress +byteIndex,target,caoff+elemoff*2,numElems*2);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getChar(byteIndex*2+i);
     }
 
     @Override
     public void getShortArr(long byteIndex, short[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null,baseAdress +byteIndex,target,saoff+elemoff*2,numElems*2);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getShort(byteIndex*2+i);
     }
 
     @Override
     public void getIntArr(long byteIndex, int[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null,baseAdress +byteIndex,target,iaoff+elemoff*4,numElems*4);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getInt(byteIndex*4+i);
     }
 
     @Override
     public void getLongArr(long byteIndex, long[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null, baseAdress +byteIndex,target,laoff+elemoff*8,numElems*8);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getLong(byteIndex*8+i);
     }
 
     @Override
     public void getFloatArr(long byteIndex, float[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null, baseAdress +byteIndex,target,faoff+elemoff*4,numElems*4);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getFloat(byteIndex*4+i);
     }
 
     @Override
     public void getDoubleArr(long byteIndex, double[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(null, baseAdress +byteIndex,target,daoff+elemoff*8,numElems*8);
+        for ( int i = 0; i < numElems; i++)
+            target[elemoff+i] = getDouble(byteIndex*8+i);
     }
 
     @Override
     public void getBooleanArr(long byteIndex, boolean[] target, int elemoff, int numElems) {
-        for ( int i = 0; i < numElems; i++) {
+        for ( int i = 0; i < numElems; i++)
             target[elemoff+i] = getBool(byteIndex+i);
-        }
     }
 
     @Override
     public void set(long byteIndex, byte[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source, byteoff+elemoff,null, baseAdress +byteIndex,numElems);
+        for ( int i = 0; i < numElems; i++)
+            put(byteIndex+i, source[i+elemoff]);
     }
 
     @Override
     public void setChar(long byteIndex, char[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,caoff+elemoff*2, null, baseAdress +byteIndex,numElems*2);
+        for ( int i = 0; i < numElems; i++)
+            putChar(byteIndex*2+i, source[i+elemoff]);
     }
 
     @Override
     public void setShort(long byteIndex, short[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,caoff+elemoff*2, null, baseAdress +byteIndex,numElems*2);
+        for ( int i = 0; i < numElems; i++)
+            putShort(byteIndex*2+i, source[i+elemoff]);
     }
 
     @Override
     public void setInt(long byteIndex, int[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,iaoff+elemoff*4,null, baseAdress +byteIndex,numElems*4);
+        for ( int i = 0; i < numElems; i++)
+            putInt(byteIndex*4+i, source[i+elemoff]);
     }
 
     @Override
     public void setLong(long byteIndex, long[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,laoff+ elemoff*8, null, baseAdress +byteIndex,numElems*8);
+        for ( int i = 0; i < numElems; i++)
+            putLong(byteIndex*8+i, source[i+elemoff]);
     }
 
     @Override
     public void setFloat(long byteIndex, float[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,faoff+elemoff*4, null, baseAdress +byteIndex,numElems*4);
+        for ( int i = 0; i < numElems; i++)
+            putFloat(byteIndex*4+i, source[i+elemoff]);
     }
 
     @Override
     public void setDouble(long byteIndex, double[] source, int elemoff, int numElems) {
-        unsafe.copyMemory(source,daoff+elemoff*8,null, baseAdress +byteIndex,numElems*8);
+        for ( int i = 0; i < numElems; i++)
+            putDouble(byteIndex*8+i, source[i+elemoff]);
     }
 
     @Override
     public void setBoolean(long byteIndex, boolean[] o, int elemoff, int numElems) {
-        for ( int i = 0; i < numElems; i++) {
+        for ( int i = 0; i < numElems; i++)
             put(byteIndex+i, (byte) (o[i+elemoff] ? 1 : 0));
-        }
     }
 
     @Override
     public void copyTo(BasicBytez other, long otherByteIndex, long myByteIndex, long lenBytes) {
-        if ( other instanceof HeapBytez) {
-            HeapBytez hp = (HeapBytez) other;
-            unsafe.copyMemory(null,baseAdress+myByteIndex, hp.getBase(), hp.getOff()+otherByteIndex,lenBytes);
-        } else {
-            for ( long i = 0; i < lenBytes; i++ ) {
-                other.put(otherByteIndex+i,get(myByteIndex+i));
-            }
+        for ( long i = 0; i < lenBytes; i++ ) {
+            other.put(otherByteIndex+i,get(myByteIndex+i));
         }
     }
 
     @Override
     public BasicBytez newInstance(long size) {
-        return new MemoryBytez(unsafe.allocateMemory(size),size);
+        return new MemoryBytez((long)size);
     }
 
     @Override
     public boolean compareAndSwapInt(long offset, int expect, int newVal) {
-        return unsafe.compareAndSwapInt(null, baseAdress + offset, expect, newVal);
+        return (int)intHandle.compareAndExchange(memseg.baseAddress().addOffset(offset), expect, newVal) == expect;
     }
 
     @Override
     public boolean compareAndSwapLong(long offset, long expect, long newVal) {
-        return unsafe.compareAndSwapLong(null, baseAdress + offset, expect, newVal);
+        return (long)longHandle.compareAndExchange(memseg.baseAddress().addOffset(offset), expect, newVal) == expect;
     }
 
     @Override
     public byte[] toBytes(long startIndex, int len) {
-        byte res[] = new byte[len];
-        unsafe.copyMemory(null,baseAdress+startIndex, res, FSTUtil.bufoff, len );
-        return res;
+        return memseg.asSlice(startIndex,len).toByteArray();
     }
 
     @Override
@@ -299,6 +301,29 @@ public class MemoryBytez implements Bytez {
 
     public long getLength() {
         return memseg.byteSize();
+    }
+
+    public static void main(String[] args) {
+        long siz = 1000 * 1_000_000L;
+        Bytez m = new MallocBytezAllocator().alloc(siz);
+        Bytez m1 = new MemoryBytez(siz);
+        while (true) {
+            for (int i = 0; i < 10; i++)
+                testPerf(m, "unsafe");
+            for (int i = 0; i < 10; i++)
+                testPerf(m, "safe");
+        }
+    }
+
+    private static long testPerf(Bytez m, String unsafe) {
+        long ti = System.currentTimeMillis();
+        long sum = 0;
+        long max = m.length() / 4;
+        for (long i = 0; i < max; i++ ) {
+            sum+=m.getInt(i);
+        }
+        System.out.println(unsafe+" tim "+(System.currentTimeMillis()-ti));
+        return sum;
     }
 
 }
