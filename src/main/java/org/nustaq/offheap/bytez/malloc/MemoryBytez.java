@@ -42,6 +42,8 @@ public class MemoryBytez implements Bytez {
 
     MemorySegment memseg;
 
+    protected MemoryBytez() {}
+
     public MemoryBytez(long len) {
         memseg = MemorySegment.allocateNative(len);
     }
