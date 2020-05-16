@@ -305,7 +305,7 @@ public class MemoryBytez implements Bytez {
         return memseg.byteSize();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         long siz = 1000 * 1_000_000L;
         Bytez m = new MallocBytezAllocator().alloc(siz);
         Bytez m1 = new MemoryBytez(siz);

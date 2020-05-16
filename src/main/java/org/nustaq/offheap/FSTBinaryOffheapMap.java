@@ -15,10 +15,13 @@
  */
 package org.nustaq.offheap;
 
+import org.nustaq.logging.FSTLogger;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.bytesource.AsciiStringByteSource;
 import org.nustaq.offheap.bytez.bytesource.BytezByteSource;
 import org.nustaq.offheap.bytez.Bytez;
+import org.nustaq.offheap.bytez.bytesource.LeftCutStringByteSource;
+import org.nustaq.offheap.bytez.bytesource.UTFStringByteSource;
 import org.nustaq.offheap.bytez.malloc.MMFBytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytez;
 import org.nustaq.offheap.bytez.malloc.MallocBytezAllocator;
@@ -96,12 +99,16 @@ public class FSTBinaryOffheapMap {
         bytezOffset = FILE_HEADER_LEN;
         freeList = new FreeList(); // FIXME: missing merge/split of different block sizes
         this.mappedFile = file;
-        resetMem(file, sizeMemBytes);
+        if ( new File(file).exists() )
+            resetMem(file, new File(file).length());
+        else
+            resetMem(file, sizeMemBytes);
         this.keyLen = keyLen;
         if ( memory.getInt(4) != HEADER_TAG || memory.getInt(0) <= 0 ) {
             // newly created or empty file
             index = new OffHeapByteTree(keyLen,OffHeapByteTree.estimateMBytesForIndex(keyLen,numberOfElems));
             memory.putInt(4,HEADER_TAG);
+            System.out.println("new file detected "+file);
         } else {
             // FIXME: be more resilent in case of corruption ..
             numElem = memory.getInt(0);
@@ -109,14 +116,10 @@ public class FSTBinaryOffheapMap {
             long off = FILE_HEADER_LEN;
             int elemCount = 0;
             BytezByteSource byteIter = new BytezByteSource(memory,0,0);
-//            BytezByteSource byteVal = new BytezByteSource(memory,0,0);
-
+            long tim = System.currentTimeMillis();
             while (elemCount < numElem) {
                 int len = getLenFromHeader(off);
-//                int contentLen = getContentLenFromHeader(off);
-
                 boolean removed = memory.get(off+4) != 0;
-
                 if ( ! removed ) {
                     elemCount++;
                     byteIter.setOff(off + KEY_OFFSET_IN_HEADER); // 16 = offset of key in header
@@ -126,14 +129,9 @@ public class FSTBinaryOffheapMap {
                 } else {
                     addToFreeList(off);
                 }
-
-//                for ( int i=0; i < byteIter.length(); i++ ) {
-//                    System.out.print((char) byteIter.get(i));
-//                }
-//                System.out.println();
-
                 off+= getHeaderLen() + len;
             }
+            FSTLogger.getLogger(getClass()).log(FSTLogger.Level.INFO,"boot "+numElem+" records in "+(System.currentTimeMillis()-tim)+"ms",null);
         }
     }
 
@@ -286,31 +284,17 @@ public class FSTBinaryOffheapMap {
         if ( required <= memory.length() )
             return;
         mutationCount++;
-        System.out.println("resizing underlying "+mappedFile+" to "+required+" numElem:"+numElem);
+        long newSize = Math.min(required*2,required+maxgrowbytes);
+        System.out.println("resizing underlying "+mappedFile+" to "+newSize+" numElem:"+numElem);
         long tim = System.currentTimeMillis();
         ((MMFBytez) memory).freeAndClose();
         memory = null;
         try {
-            File mf = new File(mappedFile);
-            FileOutputStream f = new FileOutputStream(mf,true);
-            long len = mf.length();
-            required = required + Math.min(required,maxgrowbytes);
-            byte[] toWrite = new byte[1000];
-            long max = (required - len)/1000;
-            for ( long i = 0; i < max+2; i++ ) {
-                f.write(toWrite);
-            }
-            f.flush();
-            f.close();
-            resetMem(mappedFile, mf.length());
-            System.out.println("resizing done in "+(System.currentTimeMillis()-tim)+" numElemAfter:"+numElem);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            resetMem(mappedFile, newSize);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("resizing done in "+(System.currentTimeMillis()-tim)+" numElemAfter:"+numElem);
     }
 
     /**
@@ -536,5 +520,17 @@ public class FSTBinaryOffheapMap {
     public static interface KeyValIter extends Iterator<ByteSource> {
         public ByteSource getValueBytes();
         public long getValueAddress();
+    }
+
+    public static void main(String[] args) throws Exception {
+        FSTAsciiStringOffheapMap map = new FSTAsciiStringOffheapMap("/tmp/omap.bin",64,10000, 10);
+        if ( false ) {
+            for ( int i = 0; i < 1000; i++ ) {
+                map.put(""+i, "Hello"+i);
+            }
+        }
+        for ( int i = 0; i < 1000; i++ ) {
+            System.out.println(map.get("" + i));
+        }
     }
 }

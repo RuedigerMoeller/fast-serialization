@@ -40,6 +40,10 @@ public class MMFBytez extends MemoryBytez {
         if (f.exists() && clearFile) {
             f.delete();
         }
+        if ( ! f.exists() ) {
+            f.getParentFile().mkdirs();
+            f.createNewFile();
+        }
         memseg = MemorySegment.mapFromPath(f.toPath(),length, FileChannel.MapMode.READ_WRITE);
         this.file = f;
     }
@@ -51,5 +55,14 @@ public class MMFBytez extends MemoryBytez {
     public File getFile() {
         return file;
     }
+
+//    public static void main(String[] args) throws Exception {
+//        MMFBytez mmfBytez = new MMFBytez("/tmp/mmf", 2000, false);
+//        mmfBytez.put(1999, (byte) 1999);
+//        for ( int i = 0; i < mmfBytez.length(); i++ ) {
+//            mmfBytez.put(i,(byte)i);
+//            System.out.println(mmfBytez.get(i));
+//        }
+//    }
 
 }
