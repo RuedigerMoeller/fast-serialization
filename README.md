@@ -20,13 +20,21 @@ fast-serialization
 
 [Kson: a JSon extension](https://github.com/RuedigerMoeller/fast-serialization/wiki/KSon)
 
-[Struct Emulation](https://github.com/RuedigerMoeller/fast-serialization/wiki/Structs) (currently not covered by tests)
-
 ### mvn
 
 **note:** maven.org might lag 1 day behind after releasing.
 
-2.0 version
+**3.0.0 version** (requires **java 14**, "--add-modules jdk.incubator.foreign" option on compiler and runtime)
+
+```.xml
+<dependency>
+    <groupId>de.ruedigermoeller</groupId>
+    <artifactId>fst</artifactId>
+    <version>3.0.0</version>
+</dependency>
+```
+
+**2.0 version** (java 8)
 ```.xml
 <dependency>
     <groupId>de.ruedigermoeller</groupId>
