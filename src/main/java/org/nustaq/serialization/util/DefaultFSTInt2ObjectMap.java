@@ -172,6 +172,7 @@ public class DefaultFSTInt2ObjectMap<V> implements FSTInt2ObjectMap <V>{
             mKeys = new int[size];
             mValues = new Object[size];
             mNumberOfElements = 0;
+            next = null;
         } else {
             FSTUtil.clear(mKeys);
             FSTUtil.clear(mValues);
