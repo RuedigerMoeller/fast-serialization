@@ -1,6 +1,7 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
+import org.junit.Ignore;
 import org.nustaq.serialization.*;
 import org.junit.Test;
 import org.nustaq.serialization.annotations.Version;
@@ -430,7 +431,7 @@ public class BasicFSTTest {
         Object[] foos;
     }
 
-    @Test
+    @Test @Ignore // refs inside json not longer supported
     public void testSelfRef() {
         FOO[] test = new FOO[1];
         test[0] = new FOO();
@@ -440,7 +441,7 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(deser,test));
     }
 
-    @Test
+    @Test @Ignore // refs inside json not longer supported
     public void testSelfRefArr() {
         Object[] test = new Object[1];
         test[0] = test;
@@ -449,7 +450,7 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(deser,test));
     }
 
-    @Test
+    @Test @Ignore // refs inside json not longer supported
     public void testSelfRefRefArr() {
         Object[] test = new Object[1];
         test[0] = new Object[]{test};
@@ -458,7 +459,7 @@ public class BasicFSTTest {
         assertTrue(DeepEquals.deepEquals(deser,test));
     }
 
-    @Test
+    @Test @Ignore // refs inside json not longer supported
     public void testSelfRef2Arr() {
         Object[][] test = new Object[1][];
         test[0] = new Object[]{test,test[0]};
