@@ -454,6 +454,9 @@ public class FSTBytezDecoder  implements FSTDecoder {
     public void readObjectEnd() {}
 
     @Override
+    public void readArrayObjectEnd() {}
+
+    @Override
     public Object coerceElement(Class arrType, Object value) {
         return value;
     }

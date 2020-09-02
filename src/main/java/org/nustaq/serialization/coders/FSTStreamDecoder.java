@@ -557,6 +557,10 @@ public class FSTStreamDecoder implements FSTDecoder {
     }
 
     @Override
+    public void readArrayObjectEnd() {
+    }
+
+    @Override
     public Object coerceElement(Class arrType, Object value) {
         return value;
     }

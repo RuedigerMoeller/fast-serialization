@@ -18,10 +18,110 @@ import java.util.List;
  */
 public class FSTJsonDecoder implements FSTDecoder {
 
+    static class TokenBufferedInput {
+        JsonParser input;
+
+        public TokenBufferedInput(JsonParser input) {
+            this.input = input;
+        }
+
+        public JsonToken nextToken() throws IOException {
+            return input.nextToken();
+        }
+
+        public String getCurrentName() throws IOException {
+            return input.getCurrentName();
+        }
+
+        public String getText() throws IOException {
+            return input.getText();
+        }
+
+        public String nextTextValue() throws IOException {
+            return input.nextTextValue();
+        }
+
+        public int getIntValue() throws IOException {
+            return input.getIntValue();
+        }
+
+        public long getLongValue() throws IOException {
+            return input.getLongValue();
+        }
+
+        public float getFloatValue() throws IOException {
+            return input.getFloatValue();
+        }
+
+        public double getDoubleValue() throws IOException {
+            return input.getDoubleValue();
+        }
+
+        public boolean getBooleanValue() throws IOException {
+            return input.getBooleanValue();
+        }
+
+        public byte getByteValue() throws IOException {
+            return input.getByteValue();
+        }
+
+        public short getShortValue() throws IOException {
+            return input.getShortValue();
+        }
+
+        public int nextIntValue(int i) throws IOException {
+            return input.nextIntValue(i);
+        }
+
+        public JsonToken getCurrentToken() {
+            return input.getCurrentToken();
+        }
+
+        public JsonLocation getCurrentLocation() {
+            return input.getCurrentLocation();
+        }
+
+        public int getCurrentTokenId() {
+            return input.getCurrentTokenId();
+        }
+
+        public String nextFieldName() throws IOException {
+            return input.nextFieldName();
+        }
+
+        public void close() throws IOException {
+            input.close();
+        }
+
+        public Number getNumberValue() throws IOException {
+            return input.getNumberValue();
+        }
+
+        public String getValueAsString() throws IOException {
+            return input.getValueAsString();
+        }
+
+        public JsonToken currentToken() {
+            return input.currentToken();
+        }
+
+        public JsonToken nextValue() throws IOException {
+            return input.nextValue();
+        }
+
+        public Object getCurrentValue() {
+            return input.getCurrentValue();
+        }
+
+        public JsonStreamContext getParsingContext() {
+            return input.getParsingContext();
+        }
+    }
+
     protected FSTConfiguration conf;
     protected FSTJsonFieldNames fieldNames;
 
-    protected JsonParser input;
+    protected TokenBufferedInput input;
     protected JsonFactory fac;
 
     protected FSTInputStream fstInput;
@@ -266,7 +366,7 @@ public class FSTJsonDecoder implements FSTDecoder {
     public void createParser() throws IOException {
         if ( input != null )
             input.close();
-        input = fac.createParser(fstInput);
+        input = new TokenBufferedInput(fac.createParser(fstInput));
     }
 
     @Override
@@ -343,7 +443,7 @@ public class FSTJsonDecoder implements FSTDecoder {
                 lastReadDirectObject = "]";
                 return FSTObjectOutput.DIRECT_OBJECT;
             }
-            throw new RuntimeException("Expected Object start, got '"+jsonToken+"'");
+            throw new RuntimeException("Expected Object start, got '"+jsonToken+"' "+input.currentToken()+" '"+input.getValueAsString()+"'");
         }
 
         String typeTag = input.nextFieldName();
@@ -715,7 +815,17 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public void readObjectEnd() {
-        consumeEnd();
+    }
+
+    @Override
+    public void readArrayObjectEnd() {
+        JsonParser jackIn = this.input.input;
+        JsonToken currentToken = jackIn.currentToken();
+        boolean inArr = jackIn.getParsingContext().inArray();
+        boolean parInArr = jackIn.getParsingContext().getParent().inArray();
+        System.out.println("POK "+currentToken+" "+inArr+" par "+parInArr);
+        if ( parInArr )
+            consumeEnd();
     }
 
     @Override

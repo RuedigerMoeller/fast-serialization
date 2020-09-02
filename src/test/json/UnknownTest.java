@@ -20,6 +20,22 @@ public class UnknownTest {
     }
 
     @Test
+    public void testU1() throws IOException {
+        FSTConfiguration jsonConfiguration = FSTConfiguration.createJsonConfiguration(false, false);
+//        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest.json").toPath());
+        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest1.json").toPath());
+        jsonConfiguration.asObject(bytes);
+    }
+
+    @Test
+    public void testU2() throws IOException {
+        FSTConfiguration jsonConfiguration = FSTConfiguration.createJsonConfiguration(false, false);
+//        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest.json").toPath());
+        byte[] bytes = Files.readAllBytes(new File("./src/test/json/unknowntest2.json").toPath());
+        jsonConfiguration.asObject(bytes);
+    }
+
+    @Test
     public void testUnknown() throws UnsupportedEncodingException {
         FSTConfiguration js = FSTConfiguration.createJsonConfiguration();
         byte[] bytes = getBytes("{ 'asd' : 123, '123': 3345.32, 'pok': { 'pak': '345', 'pick':[1,2,3,4.5,[1,2,'3']] } }");
@@ -36,6 +52,14 @@ public class UnknownTest {
         Unknown x = (Unknown) js.asObject(bytes);
         System.out.println(x.dot(0,"_id"));
         System.out.println(x.dot(1,"friends",1,"name"));
+        System.out.println(x);
+    }
+
+    @Test
+    public void testNested() throws IOException {
+        FSTConfiguration js = FSTConfiguration.createJsonConfiguration();
+        byte[] bytes = Files.readAllBytes(new File("src/test/json/testobj1.json").toPath());
+        Object x = js.asObject(bytes);
         System.out.println(x);
     }
 

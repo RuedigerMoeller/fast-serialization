@@ -650,9 +650,6 @@ public class FSTObjectInput implements ObjectInput {
         
         if ( getCodec().isMapBased() ) {
             readFieldsMapBased(referencee, serializationInfo, newObj);
-            if ( version >= 0 /*&& newObj instanceof Unknown == false*/ ) {
-                getCodec().readObjectEnd();
-            }
             return;
         }
         if ( version < 0 )
@@ -751,15 +748,19 @@ public class FSTObjectInput implements ObjectInput {
             if ( inArray ) {
                 // unknwon json object written by externalize or custom serializer
                 Object o = readObjectWithHeader(null);
-                if ( o != null && getCodec().isEndMarker(o.toString()) )
+                if ( o != null && getCodec().isEndMarker(o.toString()) ) {
+                    getCodec().endFieldReading(newObj);
                     return;
+                }
                 ((Unknown)newObj).add(o);
                 continue;
             }
             name= getCodec().readStringUTF();
             //int debug = getCodec().getInputPos();
-            if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) )
+            if ( len == Integer.MAX_VALUE && getCodec().isEndMarker(name) ) {
+                getCodec().endFieldReading(newObj);
                 return;
+            }
             count++;
             if (isUnknown) {
                 FSTClazzInfo.FSTFieldInfo fakeField = new FSTClazzInfo.FSTFieldInfo(null, null, true);
@@ -814,6 +815,7 @@ public class FSTObjectInput implements ObjectInput {
             }
         }
         getCodec().endFieldReading(newObj);
+        return;
     }
 
     protected boolean skipConditional(Object newObj, int conditional, FSTClazzInfo.FSTFieldInfo subInfo) {
@@ -912,7 +914,7 @@ public class FSTObjectInput implements ObjectInput {
                     value = getCodec().coerceElement(arrType, value);
                     arr[i] = value;
                 }
-                getCodec().readObjectEnd();
+                getCodec().readArrayObjectEnd();
             }
             return array;
         } else { // multidim array

@@ -433,6 +433,10 @@ public class FSTMinBinDecoder implements FSTDecoder {
     }
 
     @Override
+    public void readArrayObjectEnd() {
+    }
+
+    @Override
     public Object coerceElement(Class arrType, Object value) {
         if ( value instanceof Number ) {
             Number n = (Number) value;

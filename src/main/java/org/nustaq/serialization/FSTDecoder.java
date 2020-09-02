@@ -84,6 +84,7 @@ public interface FSTDecoder {
     void readArrayEnd(FSTClazzInfo clzSerInfo);
 
     void readObjectEnd();
+    void readArrayObjectEnd();
 
     Object coerceElement(Class arrType, Object value);
 

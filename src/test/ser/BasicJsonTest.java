@@ -1,6 +1,7 @@
 package ser;
 
 import com.cedarsoftware.util.DeepEquals;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nustaq.serialization.FSTConfiguration;
 
@@ -20,6 +21,10 @@ public class BasicJsonTest extends BasicFSTTest {
     @Test
     public void testVersioning() {
         // versioning not supported with json
+    }
+
+    @Ignore
+    public void testVersioningIssue84() {
     }
 
     @Test @Override

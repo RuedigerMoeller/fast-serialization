@@ -1,0 +1,18 @@
+{
+  "styp": "JSCompetitionChannel[]",
+  "seq": [
+    1,
+    {
+      "typ": "JSCompetitionChannel",
+      "obj": {
+        "stickyPost": {
+          "typ": "ArticleTeaser",
+          "obj": {
+            "competitionTeaser": 1
+          }
+        },
+        "name": "HoCaX_Ideen_Forum"
+      }
+    }
+  ]
+}
