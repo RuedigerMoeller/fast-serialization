@@ -164,9 +164,10 @@ public class FSTObjectOutput implements ObjectOutput {
     public void close() throws IOException {
         flush();
         closed = true;
-        getCodec().close();
         resetAndClearRefs();
+        getCodec().close();
         conf.returnObject(objects);
+        objects = null;
     }
 
 

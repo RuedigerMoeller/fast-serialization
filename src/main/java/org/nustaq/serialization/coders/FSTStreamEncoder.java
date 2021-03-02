@@ -475,7 +475,9 @@ public class FSTStreamEncoder implements FSTEncoder {
     @Override
     public void close() throws IOException {
         buffout.close();
+        clnames.clear();
         conf.returnObject(clnames);
+        clnames = null;
     }
 
     @Override

@@ -105,7 +105,7 @@ public final class FSTClazzInfo {
     boolean isAsciiNameShortString = false;
     boolean requiresInit = false;
     boolean hasTransient;
-    FSTObjectSerializer ser;
+    volatile FSTObjectSerializer ser;
     FSTFieldInfo fieldInfo[]; // serializable fields
 
     Class clazz;
@@ -975,19 +975,21 @@ public final class FSTClazzInfo {
      * @return
      */
     public FSTObjectSerializer getSer() {
-        if (ser == null) {
+        FSTObjectSerializer serializer = ser;
+        if (serializer == null) {
             if (clazz == null) {
                 return null;
             }
-            ser = getSerNoStore();
-            if (ser == null) {
+            serializer = getSerNoStore();
+            if (serializer == null) {
                 ser = FSTSerializerRegistry.NULL;
+                return null;
             }
-        }
-        if (ser == FSTSerializerRegistry.NULL) {
+            ser = serializer;
+        } else if (serializer == FSTSerializerRegistry.NULL) {
             return null;
         }
-        return ser;
+        return serializer;
     }
 
     // no sideffecting lookup
