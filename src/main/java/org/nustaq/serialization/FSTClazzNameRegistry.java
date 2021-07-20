@@ -20,7 +20,6 @@ import org.nustaq.serialization.util.FSTObject2IntMap;
 import org.nustaq.serialization.util.FSTUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -183,8 +182,6 @@ public class FSTClazzNameRegistry {
         }
     }
 
-
-    private static final String JDKPROXYCLASSPREFIX = "com.sun.proxy.$Proxy"; // Might only work with Oracle JDK
     HashMap<String,Class> classCache = new HashMap<String, Class>(200);
     AtomicBoolean classCacheLock = new AtomicBoolean(false);
     public Class classForName(String clName, FSTConfiguration conf) throws ClassNotFoundException {
@@ -217,10 +214,7 @@ public class FSTClazzNameRegistry {
                             }
                         }
                         return actorClz;
-                    } else if (clName.startsWith(JDKPROXYCLASSPREFIX)) {
-                        res = Proxy.class;
-                    }
-                    else {
+                    } else {
                         if ( conf.getLastResortResolver() != null ) {
                             Class aClass = conf.getLastResortResolver().getClass(clName);
                             if ( aClass != null )

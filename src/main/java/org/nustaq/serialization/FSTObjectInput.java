@@ -901,6 +901,8 @@ public class FSTObjectInput implements ObjectInput {
             return null;
         }
         Class arrType = arrCl.getComponentType();
+        if (arrType == null)
+            arrType = Object.class;
         if (!arrType.isArray()) {
             Object array = Array.newInstance(arrType, len);
             if ( ! referencee.isFlat() )
