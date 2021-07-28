@@ -31,7 +31,7 @@ public class FSTSerializerRegistry {
 
     private FSTSerializerRegistryDelegate delegate;
 
-    public static FSTObjectSerializer NULL = new NULLSerializer();
+    public static final FSTObjectSerializer NULL = new NULLSerializer();
 
     public void setDelegate(FSTSerializerRegistryDelegate delegate) {
         this.delegate = delegate;

@@ -999,6 +999,7 @@ public class FSTObjectInput implements ObjectInput {
         closed = true;
         resetAndClearRefs();
         conf.returnObject(objects);
+        objects = null;
         getCodec().close();
     }
 

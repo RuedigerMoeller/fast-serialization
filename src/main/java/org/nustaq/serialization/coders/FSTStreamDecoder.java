@@ -493,6 +493,7 @@ public class FSTStreamDecoder implements FSTDecoder {
     @Override
     public void close() {
         conf.returnObject(clnames);
+        clnames = null;
     }
 
     @Override

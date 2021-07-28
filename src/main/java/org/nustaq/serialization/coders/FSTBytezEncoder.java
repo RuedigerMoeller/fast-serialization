@@ -234,6 +234,7 @@ public class FSTBytezEncoder implements FSTEncoder {
     @Override
     public void close() throws IOException {
         conf.returnObject(clnames);
+        clnames = null;
     }
 
     @Override
