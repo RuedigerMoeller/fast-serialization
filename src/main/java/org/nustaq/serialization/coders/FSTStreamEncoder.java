@@ -35,23 +35,13 @@ public class FSTStreamEncoder implements FSTEncoder {
 
     public FSTStreamEncoder(FSTConfiguration conf) {
         this.conf = conf;
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if ( clnames == null ) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
-        } else {
-            clnames.clear();
-        }
+        clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
     }
 
     @Override
     public void setConf(FSTConfiguration conf) {
         this.conf = conf;
-        clnames = (FSTClazzNameRegistry) conf.getCachedObject(FSTClazzNameRegistry.class);
-        if ( clnames == null ) {
-            clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
-        } else {
-            clnames.clear();
-        }
+        clnames = new FSTClazzNameRegistry(conf.getClassRegistry());
     }
 
     void writeFBooleanArr(boolean[] arr, int off, int len) throws IOException {
