@@ -189,37 +189,37 @@ public class HeapBytez implements Bytez, VolatileByteAccess {
 
     @Override
     public void getArr(long byteIndex, byte[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,off+elemoff,numElems);
+        unsafe.copyMemory(base,off+byteIndex,target,byteoff+elemoff,numElems);
     }
 
     @Override
     public void getCharArr(long byteIndex, char[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,caoff+elemoff*2+off-byteoff,numElems*2);
+        unsafe.copyMemory(base,off+byteIndex,target,caoff+elemoff*2,numElems*2);
     }
 
     @Override
     public void getShortArr(long byteIndex, short[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,saoff+elemoff*2+off-byteoff,numElems*2);
+        unsafe.copyMemory(base,off+byteIndex,target,saoff+elemoff*2,numElems*2);
     }
 
     @Override
     public void getIntArr(long byteIndex, int[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,iaoff+elemoff*4+off-byteoff,numElems*4);
+        unsafe.copyMemory(base,off+byteIndex,target,iaoff+elemoff*4,numElems*4);
     }
 
     @Override
     public void getLongArr(long byteIndex, long[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,laoff+elemoff*8+off-byteoff,numElems*8);
+        unsafe.copyMemory(base,off+byteIndex,target,laoff+elemoff*8,numElems*8);
     }
 
     @Override
     public void getFloatArr(long byteIndex, float[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,faoff+elemoff*4+off-byteoff,numElems*4);
+        unsafe.copyMemory(base,off+byteIndex,target,faoff+elemoff*4,numElems*4);
     }
 
     @Override
     public void getDoubleArr(long byteIndex, double[] target, int elemoff, int numElems) {
-        unsafe.copyMemory(base,off+byteIndex,target,daoff+elemoff*4+off-byteoff,numElems*8);
+        unsafe.copyMemory(base,off+byteIndex,target,daoff+elemoff*4,numElems*8);
     }
 
     @Override
@@ -232,43 +232,43 @@ public class HeapBytez implements Bytez, VolatileByteAccess {
     @Override
     public void set(long byteIndex, byte[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems);
-        unsafe.copyMemory(source,off+elemoff,base,off+byteIndex,numElems);
+        unsafe.copyMemory(source,byteoff+elemoff,base,off+byteIndex,numElems);
     }
 
     @Override
     public void setChar(long byteIndex, char[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*2);
-        unsafe.copyMemory(source,caoff+off-byteoff+elemoff*2,base,off+byteIndex,numElems*2);
+        unsafe.copyMemory(source,caoff+elemoff*2,base,off+byteIndex,numElems*2);
     }
 
     @Override
     public void setShort(long byteIndex, short[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*2);
-        unsafe.copyMemory(source,caoff+off-byteoff+elemoff*2,base,off+byteIndex,numElems*2);
+        unsafe.copyMemory(source,caoff+elemoff*2,base,off+byteIndex,numElems*2);
     }
 
     @Override
     public void setInt(long byteIndex, int[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*4);
-        unsafe.copyMemory(source,iaoff+off-byteoff+elemoff*4,base,off+byteIndex,numElems*4);
+        unsafe.copyMemory(source,iaoff+elemoff*4,base,off+byteIndex,numElems*4);
     }
 
     @Override
     public void setLong(long byteIndex, long[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*8);
-        unsafe.copyMemory(source,laoff+off-byteoff+elemoff*8,base,off+byteIndex,numElems*8);
+        unsafe.copyMemory(source,laoff+elemoff*8,base,off+byteIndex,numElems*8);
     }
 
     @Override
     public void setFloat(long byteIndex, float[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*4);
-        unsafe.copyMemory(source,faoff+off-byteoff+elemoff*4,base,off+byteIndex,numElems*4);
+        unsafe.copyMemory(source,faoff+elemoff*4,base,off+byteIndex,numElems*4);
     }
 
     @Override
     public void setDouble(long byteIndex, double[] source, int elemoff, int numElems) {
         checkIndex(byteIndex,numElems*8);
-        unsafe.copyMemory(source,daoff+off-byteoff+elemoff*8,base,off+byteIndex,numElems*8);
+        unsafe.copyMemory(source,daoff+elemoff*8,base,off+byteIndex,numElems*8);
     }
 
     @Override
