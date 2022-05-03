@@ -32,20 +32,12 @@ import java.nio.ByteOrder;
  */
 public class MemoryBytez implements Bytez {
 
-    static VarHandle byteHandle = MemoryHandles.varHandle(byte.class, ByteOrder.nativeOrder());
-    static VarHandle charHandle = MemoryHandles.varHandle(char.class, ByteOrder.nativeOrder());
-    static VarHandle shortHandle = MemoryHandles.varHandle(short.class, ByteOrder.nativeOrder());
-    static VarHandle intHandle = MemoryHandles.varHandle(int.class, ByteOrder.nativeOrder());
-    static VarHandle longHandle = MemoryHandles.varHandle(long.class, ByteOrder.nativeOrder());
-    static VarHandle floatHandle = MemoryHandles.varHandle(float.class, ByteOrder.nativeOrder());
-    static VarHandle doubleHandle = MemoryHandles.varHandle(double.class, ByteOrder.nativeOrder());
-
     MemorySegment memseg;
 
     protected MemoryBytez() {}
 
     public MemoryBytez(long len) {
-        memseg = MemorySegment.allocateNative(len);
+        memseg = MemorySegment.allocateNative(len, ResourceScope.newImplicitScope());
     }
 
     public MemoryBytez(MemorySegment mem) {
@@ -58,7 +50,7 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public byte get(long byteIndex) {
-        return (byte)byteHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getByteAtOffset(memseg,byteIndex);
     }
 
     @Override
@@ -68,72 +60,72 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public char getChar(long byteIndex) {
-        return (char)charHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getCharAtOffset(memseg,byteIndex);
     }
 
     @Override
     public short getShort(long byteIndex) {
-        return (short)shortHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getShortAtOffset(memseg,byteIndex);
     }
 
     @Override
     public int getInt(long byteIndex) {
-        return (int)intHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getIntAtOffset(memseg,byteIndex);
     }
 
     @Override
     public long getLong(long byteIndex) {
-        return (long)longHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getLongAtOffset(memseg,byteIndex);
     }
 
     @Override
     public float getFloat(long byteIndex) {
-        return (float)floatHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getFloatAtOffset(memseg,byteIndex);
     }
 
     @Override
     public double getDouble(long byteIndex) {
-        return (double)doubleHandle.get(memseg.baseAddress().addOffset(byteIndex));
+        return MemoryAccess.getDoubleAtOffset(memseg,byteIndex);
     }
 
     @Override
     public void put(long byteIndex, byte value) {
-        byteHandle.set(memseg.baseAddress().addOffset(byteIndex),value);
+        MemoryAccess.setByteAtOffset(memseg, byteIndex, value);
     }
 
     @Override
     public void putBool(long byteIndex, boolean val) {
-        byteHandle.set(memseg.baseAddress().addOffset(byteIndex),val?1:0);
+        MemoryAccess.setByteAtOffset(memseg, byteIndex, (byte) (val?1:0));
     }
 
     @Override
     public void putChar(long byteIndex, char c) {
-        charHandle.set(memseg.baseAddress().addOffset(byteIndex),c);
+        MemoryAccess.setCharAtOffset(memseg, byteIndex, c);
     }
 
     @Override
     public void putShort(long byteIndex, short s) {
-        shortHandle.set(memseg.baseAddress().addOffset(byteIndex),s);
+        MemoryAccess.setShortAtOffset(memseg, byteIndex, s);
     }
 
     @Override
     public void putInt(long byteIndex, int i) {
-        intHandle.set(memseg.baseAddress().addOffset(byteIndex),i);
+        MemoryAccess.setIntAtOffset(memseg, byteIndex, i);
     }
 
     @Override
     public void putLong(long byteIndex, long l) {
-        longHandle.set(memseg.baseAddress().addOffset(byteIndex),l);
+        MemoryAccess.setLongAtOffset(memseg, byteIndex, l);
     }
 
     @Override
     public void putFloat(long byteIndex, float f) {
-        floatHandle.set(memseg.baseAddress().addOffset(byteIndex),f);
+        MemoryAccess.setFloatAtOffset(memseg, byteIndex, f);
     }
 
     @Override
     public void putDouble(long byteIndex, double d) {
-        doubleHandle.set(memseg.baseAddress().addOffset(byteIndex),d);
+        MemoryAccess.setDoubleAtOffset(memseg, byteIndex, d);
     }
 
     @Override
@@ -251,12 +243,24 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public boolean compareAndSwapInt(long offset, int expect, int newVal) {
-        return (int)intHandle.compareAndExchange(memseg.baseAddress().addOffset(offset), expect, newVal) == expect;
+        // compareAndExchange is gone ?? provide dummy impl unsync'ed
+        int intAtOffset = MemoryAccess.getIntAtOffset(memseg, offset);
+        if ( expect == intAtOffset ) {
+            MemoryAccess.setIntAtOffset(memseg, offset, newVal);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean compareAndSwapLong(long offset, long expect, long newVal) {
-        return (long)longHandle.compareAndExchange(memseg.baseAddress().addOffset(offset), expect, newVal) == expect;
+        // compareAndExchange is gone ?? provide dummy impl unsync'ed
+        long longAtOffset = MemoryAccess.getLongAtOffset(memseg, offset);
+        if ( expect == longAtOffset ) {
+            MemoryAccess.setLongAtOffset(memseg, offset, newVal);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -298,7 +302,7 @@ public class MemoryBytez implements Bytez {
     }
 
     void free() {
-        memseg.close();
+        memseg = null; //.close();
     }
 
     public long getLength() {

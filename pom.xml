@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.3-jdk17</version>
     <packaging>bundle</packaging>
 
     <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
@@ -47,8 +47,8 @@
                     <debuglevel>lines,vars,source</debuglevel> <!-- required to make structs work -->
                     <optimize>false</optimize>
                     <verbose>true</verbose>
-                    <source>14</source>
-                    <target>14</target>
+                    <source>17</source>
+                    <target>17</target>
                     <encoding>UTF-8</encoding>
                     <compilerArgs>
                         <arg>--add-modules</arg>
@@ -82,6 +82,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
+                    <javadocExecutable>/Library/Java/JavaVirtualMachines/jdk-17.0.2.jdk/Contents/Home/bin/javadoc</javadocExecutable>
                     <additionalOptions>-Xdoclint:none</additionalOptions>
                     <additionalJOptions>
                         <additionalJOption>--add-modules</additionalJOption>

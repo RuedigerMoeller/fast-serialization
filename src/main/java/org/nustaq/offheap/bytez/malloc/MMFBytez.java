@@ -17,11 +17,9 @@ package org.nustaq.offheap.bytez.malloc;
 
 
 import jdk.incubator.foreign.MemorySegment;
+import jdk.incubator.foreign.ResourceScope;
 
 import java.io.File;
-import java.io.RandomAccessFile;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.channels.FileChannel;
 
 /**
@@ -30,6 +28,7 @@ import java.nio.channels.FileChannel;
  */
 public class MMFBytez extends MemoryBytez {
     private File file;
+    private ResourceScope scope;
 
     public MMFBytez(String filePath, long length, boolean clearFile) throws Exception {
         init(filePath, length, clearFile);
@@ -44,12 +43,13 @@ public class MMFBytez extends MemoryBytez {
             f.getParentFile().mkdirs();
             f.createNewFile();
         }
-        memseg = MemorySegment.mapFromPath(f.toPath(),length, FileChannel.MapMode.READ_WRITE);
+        scope = ResourceScope.newSharedScope();
+        memseg = MemorySegment.mapFile(f.toPath(), 0, length, FileChannel.MapMode.READ_WRITE, scope);
         this.file = f;
     }
 
     public void freeAndClose() {
-        memseg.close();
+        scope.close();
     }
 
     public File getFile() {
