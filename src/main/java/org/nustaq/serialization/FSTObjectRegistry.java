@@ -129,7 +129,7 @@ public final class FSTObjectRegistry {
      * @return 0 if added, handle if already present
      */
     public int registerObjectForWrite(Object o, int streamPosition, FSTClazzInfo clzInfo, int reUseType[]) {
-        if (disabled) {
+        if (disabled || true) {
             return Integer.MIN_VALUE;
         }
 //        System.out.println("REGISTER AT WRITE:"+streamPosition+" "+o.getClass().getSimpleName());
