@@ -326,7 +326,7 @@ public class FSTJsonEncoder implements FSTEncoder {
                 gen.writeFieldName(fieldNames.ENUM_S);
                 writeSymbolicClazz(null,c);
                 gen.writeFieldName(fieldNames.VAL_S);
-                gen.writeString(toWrite.toString());
+                gen.writeString(((Enum)toWrite).name());
                 gen.writeEndObject();
                 return true;
             default:
