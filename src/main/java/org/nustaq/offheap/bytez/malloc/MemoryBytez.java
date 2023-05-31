@@ -16,7 +16,7 @@
 
 package org.nustaq.offheap.bytez.malloc;
 
-import jdk.incubator.foreign.*;
+import java.lang.foreign.*;
 import org.nustaq.offheap.bytez.BasicBytez;
 import org.nustaq.offheap.bytez.Bytez;
 
@@ -37,7 +37,7 @@ public class MemoryBytez implements Bytez {
     protected MemoryBytez() {}
 
     public MemoryBytez(long len) {
-        memseg = MemorySegment.allocateNative(len, ResourceScope.newImplicitScope());
+        memseg = MemorySegment.allocateNative(len, SegmentScope.auto());
     }
 
     public MemoryBytez(MemorySegment mem) {
@@ -50,7 +50,7 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public byte get(long byteIndex) {
-        return MemoryAccess.getByteAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_BYTE, byteIndex);
     }
 
     @Override
@@ -60,72 +60,72 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public char getChar(long byteIndex) {
-        return MemoryAccess.getCharAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_CHAR_UNALIGNED, byteIndex);
     }
 
     @Override
     public short getShort(long byteIndex) {
-        return MemoryAccess.getShortAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_SHORT_UNALIGNED, byteIndex);
     }
 
     @Override
     public int getInt(long byteIndex) {
-        return MemoryAccess.getIntAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_INT_UNALIGNED, byteIndex);
     }
 
     @Override
     public long getLong(long byteIndex) {
-        return MemoryAccess.getLongAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_LONG_UNALIGNED, byteIndex);
     }
 
     @Override
     public float getFloat(long byteIndex) {
-        return MemoryAccess.getFloatAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_FLOAT_UNALIGNED, byteIndex);
     }
 
     @Override
     public double getDouble(long byteIndex) {
-        return MemoryAccess.getDoubleAtOffset(memseg,byteIndex);
+        return memseg.get(ValueLayout.JAVA_DOUBLE_UNALIGNED, byteIndex);
     }
 
     @Override
     public void put(long byteIndex, byte value) {
-        MemoryAccess.setByteAtOffset(memseg, byteIndex, value);
+        memseg.set(ValueLayout.JAVA_BYTE, byteIndex, value);
     }
 
     @Override
     public void putBool(long byteIndex, boolean val) {
-        MemoryAccess.setByteAtOffset(memseg, byteIndex, (byte) (val?1:0));
+        put(byteIndex,(byte) (val?1:0));
     }
 
     @Override
     public void putChar(long byteIndex, char c) {
-        MemoryAccess.setCharAtOffset(memseg, byteIndex, c);
+        memseg.set(ValueLayout.JAVA_CHAR_UNALIGNED, byteIndex, c);
     }
 
     @Override
     public void putShort(long byteIndex, short s) {
-        MemoryAccess.setShortAtOffset(memseg, byteIndex, s);
+        memseg.set(ValueLayout.JAVA_SHORT_UNALIGNED, byteIndex, s);
     }
 
     @Override
     public void putInt(long byteIndex, int i) {
-        MemoryAccess.setIntAtOffset(memseg, byteIndex, i);
+        memseg.set(ValueLayout.JAVA_INT_UNALIGNED, byteIndex, i);
     }
 
     @Override
     public void putLong(long byteIndex, long l) {
-        MemoryAccess.setLongAtOffset(memseg, byteIndex, l);
+        memseg.set(ValueLayout.JAVA_LONG_UNALIGNED, byteIndex, l);
     }
 
     @Override
     public void putFloat(long byteIndex, float f) {
-        MemoryAccess.setFloatAtOffset(memseg, byteIndex, f);
+        memseg.set(ValueLayout.JAVA_FLOAT_UNALIGNED, byteIndex, f);
     }
 
     @Override
     public void putDouble(long byteIndex, double d) {
-        MemoryAccess.setDoubleAtOffset(memseg, byteIndex, d);
+        memseg.set(ValueLayout.JAVA_DOUBLE_UNALIGNED, byteIndex, d);
     }
 
     @Override
@@ -244,9 +244,9 @@ public class MemoryBytez implements Bytez {
     @Override
     public boolean compareAndSwapInt(long offset, int expect, int newVal) {
         // compareAndExchange is gone ?? provide dummy impl unsync'ed
-        int intAtOffset = MemoryAccess.getIntAtOffset(memseg, offset);
+        int intAtOffset = getInt(offset);
         if ( expect == intAtOffset ) {
-            MemoryAccess.setIntAtOffset(memseg, offset, newVal);
+            putInt( offset, newVal );
             return true;
         }
         return false;
@@ -255,9 +255,9 @@ public class MemoryBytez implements Bytez {
     @Override
     public boolean compareAndSwapLong(long offset, long expect, long newVal) {
         // compareAndExchange is gone ?? provide dummy impl unsync'ed
-        long longAtOffset = MemoryAccess.getLongAtOffset(memseg, offset);
+        long longAtOffset = getLong(offset);
         if ( expect == longAtOffset ) {
-            MemoryAccess.setLongAtOffset(memseg, offset, newVal);
+            putLong(offset, newVal);
             return true;
         }
         return false;
@@ -265,12 +265,12 @@ public class MemoryBytez implements Bytez {
 
     @Override
     public byte[] toBytes(long startIndex, int len) {
-        return memseg.asSlice(startIndex,len).toByteArray();
+        return memseg.asSlice(startIndex,len).toArray(ValueLayout.JAVA_BYTE);
     }
 
     @Override
     public byte[] asByteArray() {
-        return memseg.toByteArray();
+        return memseg.toArray(ValueLayout.JAVA_BYTE);
     }
 
     /**
