@@ -1,6 +1,11 @@
 fast-serialization
 ==================
 
+commandline VM args:
+
+--enable-preview -Djdk.internal.httpclient.disableHostnameVerification -verbose:gc -Xms16g -Xmx16g --add-opens=java.base/javax.security.auth=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.math=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.sql/java.sql=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.desktop/javax.swing.text.html=ALL-UNNAMED --add-opens=java.desktop/javax.swing.event=ALL-UNNAMED --add-opens=java.desktop/javax.swing.text=ALL-UNNAMED --add-opens=java.desktop/java.awt=ALL-UNNAMED --add-opens=java.desktop/java.awt.event=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED
+
+
 * up to 10 times faster 100% JDK Serialization compatible drop-in replacement (Ok, might be 99% ..). As an example: Lambda Serialization which came with 1.8 worked instantly.
 * Android compatible since version >= 2.17 (use ```FSTConfiguration.createAndroidDefaultConfiguration()``` both on server and client side. The configuration object has to be passed into FSTObjectIn/Output constructors)
 * OffHeap Maps, Persistent OffHeap maps
