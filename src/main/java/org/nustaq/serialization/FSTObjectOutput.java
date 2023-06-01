@@ -322,13 +322,18 @@ public class FSTObjectOutput implements ObjectOutput {
      * @throws IOException
      */
     public FSTClazzInfo writeObjectInternal(Object obj, FSTClazzInfo ci, Class... possibles) throws IOException {
-        FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
-        curDepth++;
-        FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
-        curDepth--;
-        if ( fstClazzInfo == null )
+        try {
+            FSTClazzInfo.FSTFieldInfo info = getCachedFI(possibles);
+            curDepth++;
+            FSTClazzInfo fstClazzInfo = writeObjectWithContext(info, obj, ci);
+            curDepth--;
+            if (fstClazzInfo == null)
+                return null;
+            return fstClazzInfo.useCompatibleMode() ? null : fstClazzInfo;
+        } catch (Throwable th) {
+            System.out.printf("failed to encode object "+obj);
             return null;
-        return fstClazzInfo.useCompatibleMode() ? null:fstClazzInfo;
+        }
     }
 
     public FSTSerialisationListener getListener() {

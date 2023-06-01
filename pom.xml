@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ruedigermoeller</groupId>
     <artifactId>fst</artifactId>
-    <version>3.0.3-jdk17</version>
+    <version>3.0.4-jdk17</version>
     <packaging>bundle</packaging>
 
     <description>A fast java serialization drop in-replacement and some serialization based utils such as Structs and OffHeap Memory.</description>
@@ -47,8 +47,8 @@
                     <debuglevel>lines,vars,source</debuglevel> <!-- required to make structs work -->
                     <optimize>false</optimize>
                     <verbose>true</verbose>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>14</source>
+                    <target>14</target>
                     <encoding>UTF-8</encoding>
                     <compilerArgs>
                         <arg>--add-modules</arg>
@@ -115,7 +115,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>4.2.1</version>
+                <version>5.1.5</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -139,7 +139,12 @@
           <artifactId>jackson-core</artifactId>
           <version>2.8.8</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>maven-bundle-plugin</artifactId>
+            <version>5.1.5</version>
+            <type>maven-plugin</type>
+        </dependency>
         <!-- only required if structs are used -->
         <dependency>
             <groupId>org.javassist</groupId>
@@ -202,6 +207,12 @@
             <artifactId>javax.json</artifactId>
             <version>1.0.4</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>8.5.9</version>
         </dependency>
 
         <dependency>

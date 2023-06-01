@@ -39,6 +39,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1161,8 +1163,13 @@ public class FSTConfiguration {
     public Object asObject( byte b[] ) {
         try {
             return getObjectInput(b).readObject();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             System.out.println("unable to decode:" +new String(b,0,0,Math.min(b.length,100)) );
+            try {
+                Files.write(new File("/tmp/fail"+Math.random()+".oos").toPath(), b);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
             try {
                 String debug = new String(b, "UTF-8");
             } catch (UnsupportedEncodingException e1) {

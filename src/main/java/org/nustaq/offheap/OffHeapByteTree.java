@@ -15,10 +15,12 @@
  */
 package org.nustaq.offheap;
 
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.nustaq.offheap.bytez.ByteSource;
 import org.nustaq.offheap.bytez.onheap.HeapBytez;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by ruedi on 29.06.14.
@@ -31,7 +33,7 @@ import java.util.HashMap;
  */
 public class OffHeapByteTree {
 
-    HashMap<ByteSource,Long> map = new HashMap<>();
+    Object2LongOpenHashMap<ByteSource> map = new Object2LongOpenHashMap<>();
 
     // dummy impl
     public static long estimateMBytesForIndex(int keyLen, int numberOfElems) {
