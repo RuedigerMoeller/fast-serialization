@@ -666,7 +666,7 @@ public class FSTJsonDecoder implements FSTDecoder {
 
     @Override
     public void readExternalEnd() {
-        consumeEndMarker();
+        readArrayEnd(null); // Always added in FSTJsonEncoder for externalisable objects
     }
 
     @Override
